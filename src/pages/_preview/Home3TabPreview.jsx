@@ -55,7 +55,6 @@ import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
 import CanvasLogo from "./canvas/CanvasLogo";
-import CanvasWordmarkLab from "./canvas/CanvasWordmarkLab";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
@@ -103,14 +102,8 @@ export default function Home3TabPreview() {
     new URLSearchParams(window.location.search).get("logo") === "blue"
       ? "blue"
       : "clay";
-  // Wordmark typeface lab (?wordmark=lab) — rip when Eli picks a treatment.
-  const wordmarkLab =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("wordmark") === "lab";
 
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
-
-  if (wordmarkLab) return <CanvasWordmarkLab />;
 
   return (
     <Layout currentPageName="Career">

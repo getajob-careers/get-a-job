@@ -122,6 +122,44 @@ scoped instance of the object material beyond the toolkit rail; both are
 recorded here, and applying the material anywhere else is a new explicit
 decision - default no.
 
+## The official logotype (LOCKED - Eli, 2026-07-17)
+
+The full lockup is **mark + words + optical spacing**. All three are locked
+together; changing any one re-opens the lockup. Single source of truth:
+`LOGOTYPE` in `CanvasLogo.jsx` - the header renders through it, so nothing can
+drift from what was approved.
+
+| Part               | Value                                    |
+| ------------------ | ---------------------------------------- |
+| Mark               | `MarkFullChair`, object material (above) |
+| Words              | **Archivo 700** ("Get" / "Job")          |
+| Letter-spacing     | `-0.02em`                                |
+| Gap: "Get" -> mark | `margin-left: 0.05em`                    |
+| Gap: mark -> "Job" | `margin-right: -0.05em`                  |
+
+**Archivo is the LOGOTYPE face only.** It is loaded in `index.html` at **weight
+700 only** (one weight, to hold the payload down) and nothing else in the product
+may set Archivo - the display face is still Rokkitt, body is still the system
+stack. Rokkitt 800 (incumbent) and Rokkitt 500 tracked-open were the free
+alternatives; Archivo won on the merits and the +1 font family is the accepted
+cost. The `?wordmark=lab` A/B/C lab is removed.
+
+**The spacing is ASYMMETRIC ON PURPOSE - it is optical, not metric.** Equal
+margins read _wrong_ here, because the shapes flanking the mark are not equal:
+
+- **Right (mark -> "J") needs the SMALLER gap** - it is _negative_. The mark's
+  right leg slopes away as it rises, and Archivo's cap `J` is a stem on the right
+  with its upper-left empty. Those two voids compound into one hole, so a
+  metrically-equal gap reads as a conspicuous hole. The negative value is also
+  absorbing the ~0.08em of padding the mark's own viewBox carries per side.
+- **Left ("t" -> mark) needs the LARGER gap** - "t" is a full-height vertical
+  stroke and the mark's left leg splays toward it at the baseline, so the two
+  nearly collide low down.
+
+Tuned by eye at **28px in the real header**, which is the only place it may be
+judged. If the mark, the face, or the size changes, **re-tune by eye** - do not
+carry these numbers over and do not "fix" them back to symmetry.
+
 ## Guardrail
 
 `node scripts/check-scale.mjs` — flags any raw `text-[Npx]` / `rounded-[Npx]` /

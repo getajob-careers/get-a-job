@@ -144,79 +144,59 @@ export function MarkFullChair({
   );
 }
 
-// WORDMARK TREATMENTS - the open pick. The MARK is locked; only the setting of
-// "Get" / "Job" around it is in play. Two treatments reuse Rokkitt (the display
-// font index.html already loads = zero cost); the third is a real typeface change
-// and therefore a real cost - see `fontLoad`. The header and the lab both render
-// through this map so a pick cannot drift from what Eli judged.
-export const WORDMARK_TREATMENTS = {
-  slab: {
-    id: "slab",
-    name: "A - House slab",
-    face: "Rokkitt 800",
-    rationale:
-      "Incumbent. The mark sits inside one continuous slab word and reads as the letter A. Maximum lockup unity; the word is the brand.",
-    fontLoad: null,
-    className: "font-display",
-    style: { fontWeight: 800, letterSpacing: "-0.015em" },
-    gap: "0.06em",
-  },
-  quiet: {
-    id: "quiet",
-    name: "B - Quiet slab",
-    face: "Rokkitt 500, tracked open",
-    rationale:
-      "Same family, opposite posture. The words step back to a calm label and the dimensional mark becomes the hero object - it stops competing with 800-weight text.",
-    fontLoad: null,
-    className: "font-display",
-    style: { fontWeight: 500, letterSpacing: "0.06em" },
-    gap: "0.12em",
-  },
-  grotesque: {
-    id: "grotesque",
-    name: "C - Grotesque counterpoint",
-    face: "Archivo 700",
-    rationale:
-      "A neutral sans against the slab mark: reads product/tech rather than editorial, and lets the mark own all the warmth and character.",
-    fontLoad: "Archivo",
-    className: "",
-    style: {
-      fontFamily: "'Archivo', system-ui, sans-serif",
-      fontWeight: 700,
-      letterSpacing: "-0.02em",
-    },
-    gap: "0.07em",
-  },
+// THE OFFICIAL LOGOTYPE - LOCKED (Eli, 2026-07-17).
+// Mark (locked, above) + "Get"/"Job" in Archivo 700 + the optical spacing below.
+// Canonical record: docs/design/canvas-tokens.md. Archivo is loaded in index.html
+// for the logotype ONLY - it is not a general display face.
+//
+// OPTICAL SPACING - asymmetric, tuned by eye at 28px, NOT metric.
+// The gaps are deliberately unequal because the shapes are unequal:
+//   left  (t -> mark): "t" is a full-height vertical stroke and the mark's left
+//     leg splays toward it at the baseline, so the two nearly collide low down.
+//     This side needs the LARGER gap.
+//   right (mark -> J): the mark's right leg slopes AWAY going up, and Archivo's
+//     cap J is a stem on the right with its upper-LEFT empty. Two voids compound
+//     into one hole, so a metrically-equal gap reads much wider here. This side
+//     needs the SMALLER gap (and it goes negative, because the mark's viewBox
+//     carries ~0.08em of its own padding per side).
+// Tune by eye at 28px against the header, never by matching numbers.
+export const LOGOTYPE = {
+  face: "'Archivo', system-ui, sans-serif",
+  weight: 700,
+  letterSpacing: "-0.02em",
+  gapLeft: "0.05em",
+  gapRight: "-0.05em",
 };
 
-export default function CanvasLogo({
-  variant = "clay",
-  size = 30,
-  treatment = "slab",
-}) {
+export default function CanvasLogo({ variant = "clay", size = 30 }) {
   const blue = variant === "blue";
   const ink = blue ? "#16245c" : "var(--rd-text)";
   const accent = blue ? "#2563eb" : "var(--rd-coral)";
   // ONE mark, every size (no size split). Clay = the official brand mark in the
   // object material; blue stays a flat reference.
   const material = !blue;
-  const t = WORDMARK_TREATMENTS[treatment] || WORDMARK_TREATMENTS.slab;
   const Mark = <MarkFullChair accent={accent} ink={ink} material={material} />;
   return (
     <span
-      className={`inline-flex items-end select-none ${t.className}`}
+      className="inline-flex items-end select-none"
       style={{
         fontSize: size,
         color: ink,
         lineHeight: 1,
-        ...t.style,
+        fontFamily: LOGOTYPE.face,
+        fontWeight: LOGOTYPE.weight,
+        letterSpacing: LOGOTYPE.letterSpacing,
       }}
       aria-label="Get A Job"
     >
       <span>Get</span>
       <span
         className="inline-flex items-end"
-        style={{ height: "1em", marginLeft: t.gap, marginRight: t.gap }}
+        style={{
+          height: "1em",
+          marginLeft: LOGOTYPE.gapLeft,
+          marginRight: LOGOTYPE.gapRight,
+        }}
       >
         {Mark}
       </span>

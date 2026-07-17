@@ -36,29 +36,27 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 - **Top third:** **A** — utility bar (logo left, search/settings/avatar right) + segmented-pill tabs, no greeting. B/`?top` removed.
 - **Coach ergonomics:** shipped + approved — stream-aware scroll (pin-while-streaming, stop on scroll-up, "↓ latest"), auto-grow textarea, `body-m` bubbles, expand-to-wide overlay.
 - **Logo:** **LOCKED.** One official mark at every size (no size split): the full desk-person + chair ("B") in the **toolkit-object material** (top-lit glaze + warm weight-shadow), header included. Clay colorway (terracotta/ink); blue is reference only (`?logo=blue`). Recorded in `canvas-tokens.md`; `?logo=lab` ripped. Simplified-A / no-chair / detailed-chair explorations rejected.
+- **Logotype:** **LOCKED.** Mark + **Archivo 700** words + **asymmetric optical
+  spacing** (`0.05em` left, **`-0.05em`** right - the mark's sloping right leg and
+  Archivo's cap-J upper-left void compound into a hole that equal margins read as
+  a gap). Tuned by eye at 28px in the real header. Archivo is the **logotype face
+  only**, loaded at weight 700 only in `index.html`; nothing else may set it.
+  Rokkitt 800 / Rokkitt 500-tracked were the free alternatives, rejected; the +1
+  font family is the accepted cost. Full record in `canvas-tokens.md`; single
+  source = `LOGOTYPE` in `CanvasLogo.jsx`; `?wordmark=lab` ripped.
+- **Chat history:** **DECIDED (option B)** - history lives in the **EXPANDED coach
+  only**, dock stays as locked; restyle the REAL `ChatInterface` picker into Clay,
+  render only when `conversations.length > 1`. Must **scale gracefully** if thread
+  counts grow (Eli: today's max-2 may be a symptom of the buried UI, not of
+  demand - so no search/grouping now, but don't paint into a corner).
+  `deleteConversation` is **named port-round work**. See
+  `docs/design/chat-history-proposal.md`.
 - **Chat tool:** **LOCKED.** 8th toolkit tile (2nd slot): two-bubble dialogue object in heather violet (`toolColors.js`), typing-dots beat. Opens the SAME coach conversation expanded (the dock is the general coach; Interview coach is the separate prep tool). Mobile coach surface deferred to the port round.
 - **Polish tier:** done — animated tab indicator (superseded by the segmented pill), button press states, lifted coach bubbles, funnel ring bump.
 
 ## PENDING Eli decisions (open)
 
-1. **Wordmark typeface** (`?wordmark=lab`): three treatments against the LOCKED
-   mark, each in real header context at 28px - **A** Rokkitt 800 (incumbent),
-   **B** Rokkitt 500 tracked open (mark becomes the hero), **C** Archivo 700
-   (grotesque counterpoint). A/B cost nothing; **C is a real +1 font load**. Both
-   header and lab render through `WORDMARK_TREATMENTS` in `CanvasLogo.jsx`. On
-   pick: keep the winner, rip the lab + the other two, and if C wins move the
-   Archivo `<link>` into `index.html` and nudge the mark's baseline (Archivo's
-   cap-height differs from Rokkitt's).
-2. **Chat history in the coach** - see `docs/design/chat-history-proposal.md`.
-   Backend is **SUPPORTED AS-IS** (tables live, cascade safe, provider 90% built,
-   only `deleteConversation` missing). The finding: a picker already ships in
-   `ChatInterface`, deliberately hidden in the dock because "switching belongs on
-   the full-page CareerAgent" - **and the canvas IA deletes CareerAgent**, so
-   porting as locked loses thread history. Scrubbed data: max **2** threads for any
-   real user (n=10, LOW CONFIDENCE). Recommendation **B**: history in the EXPANDED
-   coach only, restyling the real dropdown; dock stays as locked. Open: Eli may
-   instead **drop threading entirely**.
-3. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
+1. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
@@ -70,5 +68,4 @@ Move the remaining pages onto the new system (Clay tokens, scales, elevation, bu
 
 - `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
 - `?roadmap=lab` (elevated matched-roles panel; rip on integration)
-- `?wordmark=lab` (three wordmark treatments; rip on the typeface pick)
   All other `?param` labs/switchers (ring, hue, field, palette, story, top, layout) are already removed.
