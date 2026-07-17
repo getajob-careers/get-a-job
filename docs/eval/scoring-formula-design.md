@@ -133,4 +133,33 @@ product actually renders. The harness now sorts by and reports `attainability_sc
 (fit% is kept alongside only for the fit-vs-attain divergence check, which is
 small: mean 2.8, max 6 pts across the pinned 160, so the labels are unaffected).
 
-_Design only. Formula, predicted label movement, and before/after measurement plan for review. No code changes in this document._
+## 8. Program status (amended 2026-07-17, after C4's harness)
+
+Where the five components landed, and the program's next move:
+
+- **#1 confidence-aware ranking — SHIPPED** (C1, #595 then re-targeted #597).
+- **#2a must-have weighting — SHIPPED** (#599). **#2b direction blend + card — SHIPPED** (#600/#601).
+  All of #1/#2 are default-on as the `scoring_v2` stack (#603), live-validated.
+- **#4 role-tier / underleveled — PARKED** (branch `eli/scoring-c4-roletier`, PR #608
+  closed parked-not-rejected). The deterministic classifier works (95% on the spike
+  sample) but the SIGNAL does not discriminate: on the pinned 160 it penalizes 30% of
+  GOODs (`docs/eval/scoring-c4-harness-results.md`). Root cause is structural, not a
+  threshold - `MAX-across-target-titles` makes IC-track seniors (Product/Eng, whose
+  targets include leadership titles) look under-leveled at the SAME tier_gap as the
+  finance analysts we correctly demote, opposite label. The proven classifier +
+  regression tests + the harness are merged UNWIRED (`src/lib/roleTier.js`,
+  `scripts/c4-harness.mjs`) for when the rule is reformulated.
+- **#3 hard gates — STAYS PARKED** (2b's direction gate already covers most of its
+  intended effect; narrowed to near-zero marginal value).
+- **#5 embeddings — UNLIKELY** (was "last, only if headroom"; the headroom case is weak
+  now that C1+2a carry the BAD-catching).
+
+**The next move is RE-MEASUREMENT, not more components.** The shipped stack cleared the
+original failure; the remaining components either don't discriminate (C4) or have little
+marginal value (C3/C5) against these 160 labels. The binding constraint is now the label
+set itself - 16 profiles, one frozen snapshot. **Do a second labeling round on fresh
+real-user data**, with ENOUGH senior profiles to condition a firing rule on user level
+(the exact gap C4 exposed). That round is what tells us whether C4 is reformulable, and
+whether any further component is worth building at all.
+
+_Design + program-status record. No product code changes in this document._
