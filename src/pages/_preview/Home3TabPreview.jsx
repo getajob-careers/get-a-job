@@ -100,8 +100,13 @@ export default function Home3TabPreview() {
   // its full 23-token set (+ its re-derived toolkit vars) over the last one.
   const [palette, setPalette] = useState(() => {
     if (typeof window === "undefined") return DEFAULT_PALETTE;
+    // Case-insensitive: ?palette=YISHAI used to fall back to Clay silently, which
+    // in a flip session means judging the incumbent while believing you're
+    // judging the challenger. The switcher's pressed state would have shown the
+    // truth, but a footgun that only a careful reader catches is still a footgun.
     const p = new URLSearchParams(window.location.search).get("palette");
-    return p && PALETTES[p] ? p : DEFAULT_PALETTE;
+    const id = p ? p.trim().toLowerCase() : null;
+    return id && PALETTES[id] ? id : DEFAULT_PALETTE;
   });
   useEffect(
     () => (CANVAS_FIXTURES ? applyPalette(palette) : undefined),
