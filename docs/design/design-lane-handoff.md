@@ -3,7 +3,9 @@
 Snapshot for reopening the design lane fresh. Companion docs:
 `docs/design/canvas-tokens.md` (the enforced token layer + scoped exceptions),
 `docs/design/port-plan-input.md` (canvas↔production map), `docs/design/component-audit.md`,
-`docs/design/feasibility-audit.md` (per-surface backend reality + port work-list).
+`docs/design/feasibility-audit.md` (per-surface backend reality + port work-list),
+`docs/design/page-port-plan.md` (the PAGE-PORT ARC kickoff: full surface inventory +
+ordered plan + open design questions — awaiting Eli's answers before any restyle).
 
 ## STANDING RULE - feasibility-first
 
