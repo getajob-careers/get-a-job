@@ -56,7 +56,8 @@ import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
 import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
-import { applyPalette } from "./canvas/palette";
+import { applyPalette, PALETTES, DEFAULT_PALETTE } from "./canvas/palette";
+import CanvasPaletteSwitcher from "./canvas/CanvasPaletteSwitcher";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
 import "./canvas/toolkit.css";
@@ -93,9 +94,27 @@ const TABS = [
 
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
-  // Clay is the adopted palette (hue exploration final). Applied once on mount to
-  // the document root so portaled overlays inherit; restored on unmount.
-  useEffect(() => (CANVAS_FIXTURES ? applyPalette() : undefined), []);
+  // Round 4: Clay stays the incumbent + default; challengers are flipped through
+  // the pinned switcher. Applied to the document root so portaled overlays
+  // inherit; restored on unmount. Re-runs on switch so every candidate installs
+  // its full 23-token set (+ its re-derived toolkit vars) over the last one.
+  const [palette, setPalette] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_PALETTE;
+    const p = new URLSearchParams(window.location.search).get("palette");
+    return p && PALETTES[p] ? p : DEFAULT_PALETTE;
+  });
+  useEffect(
+    () => (CANVAS_FIXTURES ? applyPalette(palette) : undefined),
+    [palette],
+  );
+  const pickPalette = (id) => {
+    setPalette(id);
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.set("palette", id);
+      window.history.replaceState({}, "", u);
+    }
+  };
   // Logo colorway: Clay (default) vs the mockup blue (?logo=blue), for the pick.
   const logoVariant =
     typeof window !== "undefined" &&
@@ -110,6 +129,9 @@ export default function Home3TabPreview() {
       <CvGenProvider onStart={() => setActiveTab("cv")}>
         <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
+          {CANVAS_FIXTURES && (
+            <CanvasPaletteSwitcher value={palette} onChange={pickPalette} />
+          )}
           {/* Utility top bar (comp A): brand left, actions right. */}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">
