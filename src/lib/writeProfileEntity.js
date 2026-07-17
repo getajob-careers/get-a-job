@@ -71,6 +71,48 @@ export async function writeProfileEntity(supabase, opts) {
   });
 }
 
+// Reorder experiences (Studio drag-reorder write-through). A reorder is a
+// MULTI-ROW structural write (it renumbers every experience's display_order), so
+// it does not fit the single-field runMediatedWrite shape - there is no content
+// to anti-fab-gate and no single per-field version to concurrency-check. It is a
+// distinct, still-audited operation in this same shared layer: it writes
+// display_order = position for each row (in the caller's new global order) and
+// records ONE profile_edits row for the whole reorder (prior/new id order). Undo
+// re-applies the prior order through the same helper.
+export async function reorderExperiences(
+  supabase,
+  { userId, orderedIds, priorOrderedIds = null, source = "studio" },
+) {
+  if (!userId) return { ok: false, error: "Missing user." };
+  const ids = (orderedIds || []).filter(Boolean);
+  if (!ids.length) return { ok: false, error: "Nothing to reorder." };
+  for (let i = 0; i < ids.length; i++) {
+    const { error } = await supabase
+      .from("experiences")
+      .update({ display_order: i })
+      .eq("id", ids[i])
+      .eq("user_id", userId); // RLS belt-and-suspenders
+    if (error) return { ok: false, error: error.message, writtenUpTo: i };
+  }
+  const { error: auditErr } = await supabase.from("profile_edits").insert({
+    user_id: userId,
+    entity_type: "experience",
+    entity_id: null,
+    field: "display_order",
+    prior_value: priorOrderedIds,
+    new_value: ids,
+    source,
+  });
+  return {
+    ok: true,
+    audit_ok: !auditErr,
+    error: auditErr
+      ? `Reorder saved but the audit record failed: ${auditErr.message}`
+      : undefined,
+    undo_order: priorOrderedIds,
+  };
+}
+
 // Session-scoped undo (Requirement 1). Restores the prior value captured in the
 // write's undo_token via ANOTHER mediated write, so the undo is itself audited
 // (both the edit and its reversal land in profile_edits) and re-uses the same

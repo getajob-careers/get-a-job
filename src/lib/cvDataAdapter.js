@@ -84,7 +84,28 @@ function mapExpOut(arr, orgKey) {
 // name list, preserving each language's original object (proficiency + any
 // extras) by matching on name; a newly-typed language with no source becomes a
 // bare name string.
-function rebuildLanguages(modelLangs, baseLangs) {
+// The flat profiles.skills list a MASTER skills edit writes back. The CV shows
+// skills bucketed into { domain, tools, technical } (a computed categorization
+// of the one flat list), but only the domain line is editable; writing back the
+// domain alone would DROP the tools + technical items. So the write is the
+// edited domain MERGED with the preserved tools + technical buckets, deduped
+// case-insensitively, first-seen order. Editing one bucket never drops another.
+// (Honest scope: the master categorizes profile.skills UNION every experience's
+// skills[], so a skill sourced only from an experience is re-derived on rebuild
+// and is not represented here - this owns profiles.skills only.)
+export function masterSkillsFlat({ domain = [], tools = [], technical = [] }) {
+  const seen = new Set();
+  const out = [];
+  for (const s of [...domain, ...tools, ...technical]) {
+    const v = String(s ?? "").trim();
+    if (!v || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    out.push(v);
+  }
+  return out;
+}
+
+export function rebuildLanguages(modelLangs, baseLangs) {
   const base = asArray(baseLangs);
   return asArray(modelLangs).map((name) => {
     const nm = str(name).trim();

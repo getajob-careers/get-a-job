@@ -260,6 +260,12 @@ export function buildMasterCvData(
       degree: str(ed?.degree_type),
       field_of_study: str(ed?.field_of_study),
       dates: formatDateRange(ed?.start_date, ed?.end_date, ed?.is_current),
+      // Stamp education_id from the source row so a Studio edit to an education
+      // field can attribute back to its `education` row (the write-through
+      // contract), mirroring experience_id above. An entry with no id still
+      // carries through; the Studio surfaces "can't attribute" rather than
+      // silently dropping such an edit.
+      ...(ed?.id ? { education_id: str(ed.id) } : {}),
       ...(coursework.length ? { relevant_coursework: coursework } : {}),
       ...(academic.length ? { academic_projects: academic } : {}),
     };
