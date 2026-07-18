@@ -142,6 +142,31 @@ describe("PR-B: experience/education entry add + delete row helpers", () => {
     expect(db._tables.profile_edits[0].field).toBe("restore");
   });
 
+  it("toCvData KEEPS a blank experience backed by a real row (survives reload)", () => {
+    // A just-added "Add role" is blank until filled. mapExpOut drops fully-blank
+    // SYNTHETIC entries (F3), but one backed by an experience_id is a real row -
+    // dropping it would orphan the row + make it vanish on reload.
+    const model = fromCvData({
+      professional_experiences: [
+        {
+          title: "",
+          company: "",
+          dates: "",
+          bullets: [],
+          experience_id: "new-1",
+        },
+      ],
+    });
+    const out = toCvData(model);
+    expect(out.professional_experiences).toHaveLength(1);
+    expect(out.professional_experiences[0].experience_id).toBe("new-1");
+    // ...but a blank SYNTHETIC entry (no experience_id) is still dropped.
+    const model2 = fromCvData({
+      professional_experiences: [{ title: "", company: "", bullets: [] }],
+    });
+    expect(toCvData(model2).professional_experiences).toHaveLength(0);
+  });
+
   it("rejects add/delete for unsupported entities (e.g. profile)", async () => {
     const db = mockRowDb({});
     expect(

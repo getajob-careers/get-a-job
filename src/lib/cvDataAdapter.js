@@ -67,11 +67,15 @@ function mapExpOut(arr, orgKey) {
           .map((b) => str(b?.text).trim())
           .filter(Boolean),
       }))
-      // Drop a fully-blank entry (an added-but-unfilled row): no title, org,
-      // dates, or bullets. Otherwise it persists into cv_data and renders as a
-      // blank line / floating gap in the PDF (the "weird extra line" bug). (F3)
+      // Drop a fully-blank SYNTHETIC entry (no source row): no title, org,
+      // dates, or bullets. Otherwise it renders as a blank line / floating gap
+      // in the PDF (the "weird extra line" bug). (F3) A blank entry backed by a
+      // real experiences row (experience_id present, e.g. a just-added "Add
+      // role" the user hasn't filled in yet) is KEPT, so it survives reload and
+      // stays visible to fill in or delete - never a silently-orphaned row.
       .filter(
         (e) =>
+          e.experience_id ||
           str(e.title).trim() ||
           str(e[orgKey]).trim() ||
           str(e.dates).trim() ||
