@@ -23,18 +23,21 @@ jobs:
           node-version: "22"
           cache: "npm"
 
-      # The client-side role mirrors (src/lib/roleLookup.js and
-      # roleSkillsGenerated.json) are generated from 00_role_library.ts and
-      # must be regenerated when it changes. They silently drifted for weeks
-      # (roleLookup 159 vs 195 canonical) after the original generator was
-      # lost. Regenerate and fail if the committed mirrors differ. Generators
-      # use only node built-ins, so this runs before npm ci for a fast fail.
-      - name: Role-mirror staleness check
+      # The client-side mirrors are generated from the canonical TS libraries
+      # and must be regenerated when those change, or they silently drift:
+      #   - roleLookup.js + roleSkillsGenerated.json  <- 00_role_library.ts
+      #     (drifted for weeks, roleLookup 159 vs 195, after the generator was lost)
+      #   - skillIdsGenerated.json                    <- 01_skill_library.ts
+      #     (drifted 599 vs 618 after the 7-role expansion #580-582)
+      # Regenerate and fail if the committed mirrors differ. Generators use only
+      # node built-ins, so this runs before npm ci for a fast fail.
+      - name: Generated-mirror staleness check
         run: |
           node scripts/regen-role-skills.mjs
           node scripts/regen-role-lookup.mjs
-          if ! git diff --exit-code -- src/lib/roleSkillsGenerated.json src/lib/roleLookup.js; then
-            echo "::error::Role mirrors are stale vs 00_role_library.ts — run 'node scripts/regen-role-skills.mjs && node scripts/regen-role-lookup.mjs' and commit."
+          node scripts/regen-skill-ids.mjs
+          if ! git diff --exit-code -- src/lib/roleSkillsGenerated.json src/lib/roleLookup.js src/lib/skillIdsGenerated.json; then
+            echo "::error::Generated mirrors are stale vs the canonical libraries — run 'node scripts/regen-role-skills.mjs && node scripts/regen-role-lookup.mjs && node scripts/regen-skill-ids.mjs' and commit."
             exit 1
           fi
 

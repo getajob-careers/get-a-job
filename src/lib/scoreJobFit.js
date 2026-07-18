@@ -27,7 +27,10 @@
 //     reasoning: { strengths: string[], gaps: string[] },
 //   }
 
-import { totalYearsOfExperience, inferExperienceLevel } from "./experienceLevel";
+import {
+  totalYearsOfExperience,
+  inferExperienceLevel,
+} from "./experienceLevel";
 // IMPORTANT: trackFromScore is imported from the shared .ts constants
 // file, NOT from ./scoreApplication. scoreApplication imports scoreJobFit
 // (PR-D), so the reverse direction created a circular module graph that
@@ -52,12 +55,169 @@ import {
 // Component weights — sum to 1.0. Skill dominates because it's both the
 // strongest signal and the one the extractor is most confident about.
 const WEIGHTS = {
-  skill: 0.50,
-  years: 0.20,
-  education: 0.10,
-  seniority: 0.10,
-  function_family: 0.10,
+  skill: 0.5,
+  years: 0.2,
+  education: 0.1,
+  seniority: 0.1,
+  function_family: 0.1,
 };
+
+// ── Component 1: confidence-aware ranking (flag-gated, default off) ──────────
+// The composite treats a match on ONE generic core skill against a 1-skill JD
+// as a confident 1.0 skill axis = half the score. The 160-label baseline showed
+// this is 49% of BAD top-picks (the "87% on lone analytical_thinking" cluster)
+// and the ELI 87% ties. Confidence-aware ranking shrinks the score toward a
+// neutral prior in proportion to how thin/generic/low-coverage the evidence is,
+// so a thin-evidence high overlap can no longer outrank a match on several
+// distinctive must-haves. Tunable; validated against the pinned labels, not by eye.
+const CONF = {
+  neutral: 0.5, // prior the score shrinks toward when confidence is low
+  // sub-factor weights (sum to 1). Thinness + distinctiveness dominate the
+  // single-generic-skill inflation; coverage is up-weighted because the BAD
+  // cluster's signature (label baseline) is very low coverage (0.04-0.15).
+  w_thinness: 0.35,
+  w_distinctiveness: 0.35,
+  w_coverage: 0.2,
+  w_extraction: 0.1,
+  // requirement-thinness factor by core-skill count (more cores = more signal)
+  thinnessByCoreCount: { 0: 0.5, 1: 0.35, 2: 0.6, 3: 0.8 }, // >=4 -> 1.0
+};
+
+// Generic / transferable competencies. A match resting only on these is weak
+// evidence of role fit vs a match on distinctive hard skills (sql, python,
+// financial_modeling). Curated from the BAD-cluster review of the 160 labels.
+const GENERIC_SKILLS = new Set([
+  "analytical_thinking",
+  "problem_solving",
+  "critical_thinking",
+  "communication",
+  "customer_communication",
+  "presentation_skills",
+  "cross_functional_collaboration",
+  "collaboration",
+  "teamwork",
+  "stakeholder_management",
+  "project_management",
+  "program_management",
+  "organization",
+  "attention_to_detail",
+  "time_management",
+  "leadership",
+  "mentoring",
+  "coaching",
+  "adaptability",
+  "emotional_intelligence",
+  "interpersonal_skills",
+  "work_ethic",
+  "self_motivation",
+  "creativity",
+  "multitasking",
+  "prioritization",
+]);
+
+function clamp01(x) {
+  return Math.max(0, Math.min(1, x));
+}
+
+// ── Component 2a: must-have weighting (flag-gated, default off) ───────────────
+// The legacy skill axis is a plain hit ratio (matchedCore / core.length), so a
+// match on ONE core skill against a 1-core JD maxes the axis (=1.0) - even when
+// that core is a generic competency (analytical_thinking). The 160-label
+// baseline shows this is the single largest BAD driver: matched_core≤1 is ~59%
+// BAD, a lone-generic core signature is 64% BAD (53% of all BADs), while a
+// distinctive multi-core match is 30-41% GOOD. 2a reshapes the CORE portion of
+// the skill axis so (a) missing must-haves costs more than the ratio implies,
+// (b) a distinctive core counts more than a generic one, and (c) the axis does
+// NOT saturate on a single thin match (absolute distinctive-evidence ramp).
+// Acts ONLY on attainability_score (the for-you feed's canonical number) via a
+// separate `score_musthave`; fit_score keeps the legacy hit ratio. Constants
+// tuned against the pinned labels (harness), not by eye. See docs/eval.
+const MUSTHAVE = {
+  // A generic core counts this fraction of a distinctive core in the coverage
+  // ratio (both numerator when matched and denominator as a requirement).
+  genericWeight: 0.35,
+  // Distinctive-evidence multiplier by count of DISTINCTIVE cores matched.
+  // 0 distinctive matched -> hard floor (lone-generic / no-distinctive match,
+  // the 64%-BAD signature); 1 -> mild guard; 2+ -> full credit so a match that
+  // covers every core (incl. distinctive ones) is NOT penalized (coverageW
+  // alone carries the missing-must-have penalty). Tuned on the 160 labels: a
+  // steeper ramp sank a full-coverage GOOD (P09) with no BAD-in-top-5 payoff,
+  // because the residual top-5 BADs are coreless (C1's shrink) or off-direction
+  // (2b), not thin-distinctive - which 2a's core reshape cannot reach.
+  evidenceByDistinctive: { 0: 0.15, 1: 0.85, 2: 1 },
+};
+
+// Distinctive-weighted core coverage × absolute distinctive-evidence.
+// Returns [0,1]. coverageW = 1 only when every required core is matched (so a
+// full match is never penalized - the asymmetry is that MISSES cost); the
+// evidence ramp caps thin/generic matches so a lone generic core can't max it.
+export function mustHaveCoreScore(core, userSet, params = MUSTHAVE) {
+  let totalW = 0;
+  let matchedW = 0;
+  let distinctiveMatched = 0;
+  for (const id of core) {
+    const w = GENERIC_SKILLS.has(id) ? params.genericWeight : 1;
+    totalW += w;
+    if (userSet.has(id)) {
+      matchedW += w;
+      if (!GENERIC_SKILLS.has(id)) distinctiveMatched++;
+    }
+  }
+  const coverageW = totalW > 0 ? matchedW / totalW : 0;
+  const evidence =
+    distinctiveMatched >= 3
+      ? 1
+      : (params.evidenceByDistinctive[distinctiveMatched] ?? 1);
+  return clamp01(coverageW * evidence);
+}
+
+// ── Component 2b: direction-aware blend (flag-gated, default off) ─────────────
+// attainability_score answers "can this person do the job mechanically" and by
+// design (#393) EXCLUDES function_family, so the for-you sort is direction-blind:
+// a high-attainability off-direction job outranks an on-direction one (Eli's
+// live top: a Product-target user's Helfy PM sank below six adjacent
+// CSM/SDR/Marketing roles). rank_score reintroduces direction into the SORT ONLY
+// (not the displayed attainability badge - Option B keeps that pure): a soft
+// multiplicative boost for on-direction (primary) roles. NOT hard tier-first
+// (all-primary-above-all-adjacent was the pre-#585 "75% below 21%" failure) - a
+// blend so a primary GOOD generally clears the adjacent block without burying a
+// genuinely stronger adjacent match. w tuned on the 160 labels + the live ELI
+// full-candidate Helfy test (docs/eval): w=0.25 lifts Helfy above the whole
+// wrong-direction block while a weak (~55%) primary stays down.
+const DIRECTION = { w: 0.25 };
+
+// Confidence in [0,1] for a (user, job) match: high when the JD has several
+// distinctive core requirements the user genuinely matches at good coverage;
+// low when it rests on a thin/generic/low-coverage signal.
+export function matchConfidence(skill, job, conf) {
+  const coreN = Array.isArray(job?.req_skills_core)
+    ? job.req_skills_core.length
+    : 0;
+  const thinness = coreN >= 4 ? 1 : (CONF.thinnessByCoreCount[coreN] ?? 0.6);
+  const matchedCore = Array.isArray(skill?.matched_core_skills)
+    ? skill.matched_core_skills
+    : [];
+  const distinctiveMatched = matchedCore.filter(
+    (id) => !GENERIC_SKILLS.has(id),
+  ).length;
+  const distinctiveness =
+    matchedCore.length === 0
+      ? 0.55 // no core matched: low-ish (the overlap that drove the score is off-core)
+      : distinctiveMatched >= 1
+        ? 1.0
+        : 0.3; // only-generic core matches are weak evidence
+  const coverage =
+    typeof job?.skill_coverage_ratio === "number"
+      ? clamp01(job.skill_coverage_ratio)
+      : 1;
+  const extraction = typeof conf === "number" ? clamp01(conf) : 1;
+  return clamp01(
+    CONF.w_thinness * thinness +
+      CONF.w_distinctiveness * distinctiveness +
+      CONF.w_coverage * coverage +
+      CONF.w_extraction * extraction,
+  );
+}
 
 // IMPORTANT — historically these derived values lived at module top level:
 //   const DOMAIN_TO_FAMILIES_SET = Object.fromEntries(Object.entries(DOMAIN_TO_FAMILIES)...);
@@ -130,7 +290,10 @@ function getStageFloorByLevel() {
 }
 
 // ─── Skill axis ────────────────────────────────────────────────────────
-function computeSkillAxis(userCanonical, job) {
+// mhParams: when non-null (Component 2a flag on), also computes a reshaped
+// `score_musthave` used by attainability_score. The legacy `score` is always
+// returned unchanged so fit_score (the Search-tab number) stays flag-independent.
+function computeSkillAxis(userCanonical, job, mhParams = null) {
   const core = Array.isArray(job?.req_skills_core) ? job.req_skills_core : [];
   const nice = Array.isArray(job?.req_skills_nice) ? job.req_skills_nice : [];
   const userSet = new Set(Array.isArray(userCanonical) ? userCanonical : []);
@@ -141,10 +304,11 @@ function computeSkillAxis(userCanonical, job) {
   if (core.length === 0 && nice.length === 0) {
     return {
       score: 0.5,
+      score_musthave: null, // no requirements to reshape; leans on other axes
       matched_skills: [],
       missing_core_skills: [],
       missing_nice_skills: [],
-      skill_match_pct: null,  // not applicable
+      skill_match_pct: null, // not applicable
     };
   }
 
@@ -163,45 +327,86 @@ function computeSkillAxis(userCanonical, job) {
     score = (coreRatio * 2 + niceRatio) / 3;
   }
 
+  // Component 2a: reshape the CORE portion (distinctive-weighted coverage that
+  // does not saturate on a lone thin match), keep the same 2:1 core:nice blend.
+  // Only cores are must-haves, so a coreless JD leaves score_musthave null and
+  // attainability falls back to the legacy score.
+  let score_musthave = null;
+  if (mhParams && core.length > 0) {
+    const coreScore = mustHaveCoreScore(core, userSet, mhParams);
+    score_musthave = clamp01(
+      niceRatio === null ? coreScore : (coreScore * 2 + niceRatio) / 3,
+    );
+  }
+
   return {
     score: Math.max(0, Math.min(1, score)),
+    score_musthave,
     matched_skills: [...matchedCore, ...matchedNice],
+    matched_core_skills: matchedCore, // for the confidence-aware distinctiveness check
     missing_core_skills: missingCore,
     missing_nice_skills: missingNice,
-    skill_match_pct: core.length > 0 ? Math.round(coreRatio * 100) : Math.round((niceRatio ?? 0) * 100),
+    skill_match_pct:
+      core.length > 0
+        ? Math.round(coreRatio * 100)
+        : Math.round((niceRatio ?? 0) * 100),
   };
 }
 
 // ─── Years axis ────────────────────────────────────────────────────────
 function computeYearsAxis(userYears, job) {
-  const reqMin = typeof job?.req_years_min === "number" ? job.req_years_min : null;
-  const reqMax = typeof job?.req_years_max === "number" ? job.req_years_max : null;
+  const reqMin =
+    typeof job?.req_years_min === "number" ? job.req_years_min : null;
+  const reqMax =
+    typeof job?.req_years_max === "number" ? job.req_years_max : null;
 
   if (reqMin === null) {
-    return { score: 0.5, status: "unspecified", user_years: userYears, required_min: null };
+    return {
+      score: 0.5,
+      status: "unspecified",
+      user_years: userYears,
+      required_min: null,
+    };
   }
 
   if (userYears >= reqMin) {
     // In range or above. Linear bonus for being closer to min (don't
     // over-reward 20-yr veterans for 2-yr-min jobs — they're overqualified).
     if (reqMax !== null && userYears > reqMax + 2) {
-      return { score: 0.7, status: "above_max", user_years: userYears, required_min: reqMin };
+      return {
+        score: 0.7,
+        status: "above_max",
+        user_years: userYears,
+        required_min: reqMin,
+      };
     }
-    return { score: 1.0, status: "in_range", user_years: userYears, required_min: reqMin };
+    return {
+      score: 1.0,
+      status: "in_range",
+      user_years: userYears,
+      required_min: reqMin,
+    };
   }
 
   // Below min — linear penalty, floor at 0.25 (we still score "1y vs 3y
   // required" higher than "0y vs 5y required").
   const gap = reqMin - userYears;
   const penaltyScore = Math.max(0.25, 1 - gap * 0.2);
-  return { score: penaltyScore, status: "below", user_years: userYears, required_min: reqMin };
+  return {
+    score: penaltyScore,
+    status: "below",
+    user_years: userYears,
+    required_min: reqMin,
+  };
 }
 
 // ─── Education axis ────────────────────────────────────────────────────
 // Per-spec: req_education_strict → heavy penalty (not hard exclusion).
 // Equivalent-experience counts via qualification_level when not strict.
 function computeEducationAxis(profile, educations, job) {
-  const reqLevels = Array.isArray(job?.req_education_levels) ? job.req_education_levels : [];
+  const reqLevels = Array.isArray(job?.req_education_levels)
+    ? job.req_education_levels
+    : [];
   const reqStrict = job?.req_education_strict === true;
 
   if (reqLevels.length === 0) {
@@ -209,7 +414,9 @@ function computeEducationAxis(profile, educations, job) {
   }
 
   const userLevels = (Array.isArray(educations) ? educations : [])
-    .map((e) => (e?.degree_level || "").toString().toLowerCase().replace(/\s+/g, "_"))
+    .map((e) =>
+      (e?.degree_level || "").toString().toLowerCase().replace(/\s+/g, "_"),
+    )
     .filter(Boolean);
   const reqRanks = reqLevels.map((l) => EDUCATION_RANK[l] ?? 0);
   const userRanks = userLevels.map((l) => EDUCATION_RANK[l] ?? 0);
@@ -224,7 +431,7 @@ function computeEducationAxis(profile, educations, job) {
   // experience can offset (qualification_level === "equivalent_experience"
   // → soften to 0.65).
   if (reqStrict) {
-    return { score: 0.30, match: "gap_strict" };
+    return { score: 0.3, match: "gap_strict" };
   }
   const qual = String(profile?.qualification_level || "").toLowerCase();
   if (qual.includes("equivalent")) {
@@ -275,13 +482,23 @@ function computeFunctionFamilyAxis(profile, job) {
 }
 
 // ─── Composer ──────────────────────────────────────────────────────────
-export function scoreJobFit(input, job) {
+export function scoreJobFit(input, job, opts = {}) {
   const { profile, experiences = [], educations = [] } = input || {};
   const userCanonical = profile?.skills_canonical || [];
   const userYears = totalYearsOfExperience(experiences);
   const userLevel = inferExperienceLevel(experiences, educations);
 
-  const skill = computeSkillAxis(userCanonical, job);
+  // Component 2a (must-have weighting) flag. opts.mustHave may be `true` (use
+  // the tuned MUSTHAVE defaults) or a params object (harness sweeps the curve).
+  // Off => computeSkillAxis leaves score_musthave null and attainability is
+  // byte-identical to the legacy path.
+  const mhParams = opts.mustHave
+    ? opts.mustHave === true
+      ? MUSTHAVE
+      : opts.mustHave
+    : null;
+
+  const skill = computeSkillAxis(userCanonical, job, mhParams);
   const years = computeYearsAxis(userYears, job);
   const education = computeEducationAxis(profile, educations, job);
   const seniority = computeSeniorityAxis(userLevel, job);
@@ -295,12 +512,20 @@ export function scoreJobFit(input, job) {
     seniority.score * WEIGHTS.seniority +
     family.score * WEIGHTS.function_family;
 
-  // Extraction confidence modifier: when the JD extraction is sparse
-  // (confidence < 0.4) the JD-derived requirements are unreliable —
-  // soften the score 10% so the user isn't shown a confident "Track 1"
-  // built on shaky data.
-  const conf = typeof job?.extraction_confidence === "number" ? job.extraction_confidence : null;
+  const conf =
+    typeof job?.extraction_confidence === "number"
+      ? job.extraction_confidence
+      : null;
+
+  // Component 1 (confidence-aware ranking) lives on attainability_score — the
+  // for-you-feed's canonical sort+display+band number (Option A) — NOT here.
+  // fit_score is the Search-tab number and keeps only the legacy binary
+  // softener. match_confidence is populated in the attainability block below
+  // (stays null when the flag is off).
+  let match_confidence = null;
   if (conf !== null && conf < 0.4) {
+    // Extraction confidence modifier (legacy): sparse JD extraction is
+    // unreliable, soften 10% so we don't show a confident match on shaky data.
     fit_score = fit_score * 0.9;
   }
 
@@ -394,20 +619,37 @@ export function scoreJobFit(input, job) {
     relevance_match = "adjacent";
   }
 
+  // Component 2a acts INSIDE attainability_score (the canonical for-you number):
+  // when the flag is on, the reshaped must-have skill axis replaces the legacy
+  // hit ratio here only. fit_score above keeps skill.score untouched.
+  const attainSkill = skill.score_musthave ?? skill.score;
   let attainability_score =
-    skill.score * ATTAINABILITY_WEIGHTS.skill +
+    attainSkill * ATTAINABILITY_WEIGHTS.skill +
     years.score * ATTAINABILITY_WEIGHTS.years +
     education.score * ATTAINABILITY_WEIGHTS.education +
     seniority.score * ATTAINABILITY_WEIGHTS.seniority;
-  // Mirror the extraction-confidence softener from fit_score for parity.
-  if (conf !== null && conf < 0.4) attainability_score = attainability_score * 0.9;
+  // Component 1: confidence-aware ranking (flag-gated), on the for-you-feed's
+  // canonical score. When ON, shrink toward a neutral prior in proportion to
+  // how thin/generic/low-coverage the evidence is — a graded successor to the
+  // binary <0.4 softener, which it subsumes (extraction is one of its factors).
+  // When OFF, the legacy binary softener runs and live behavior is byte-identical.
+  if (opts.confidenceAware) {
+    match_confidence = matchConfidence(skill, job, conf);
+    attainability_score =
+      CONF.neutral + (attainability_score - CONF.neutral) * match_confidence;
+  } else if (conf !== null && conf < 0.4) {
+    attainability_score = attainability_score * 0.9;
+  }
   attainability_score = Math.max(0, Math.min(1, attainability_score));
   attainability_score = Math.round(attainability_score * 100) / 100;
 
   let attainability_band;
-  if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.strong) attainability_band = "strong";
-  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.good) attainability_band = "good";
-  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch) attainability_band = "stretch";
+  if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.strong)
+    attainability_band = "strong";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.good)
+    attainability_band = "good";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch)
+    attainability_band = "stretch";
   else attainability_band = "reach";
 
   // Above-ceiling soft gate (PR #393 follow-up). The seniority axis only
@@ -419,10 +661,30 @@ export function scoreJobFit(input, job) {
   // labelled, ranked below in-range alternatives via the band-sort UI.
   // Same failure pattern the family weight fix addressed; same fix
   // approach (gate on the categorical signal, don't lean on the weight).
-  if (seniority.match === "above_ceiling" &&
-      (attainability_band === "strong" || attainability_band === "good")) {
+  if (
+    seniority.match === "above_ceiling" &&
+    (attainability_band === "strong" || attainability_band === "good")
+  ) {
     attainability_band = "stretch";
   }
+
+  // Component 2b: rank_score is the for-you feed SORT key. It equals
+  // attainability_score with the flag off (sort byte-identical to legacy), and
+  // applies the direction boost when on. opts.directionBlend may be `true` (use
+  // DIRECTION.w) or a params object (harness sweeps w). The feed still SECTIONS
+  // by attainability_band and DISPLAYS attainability_score - only the ordering
+  // within/across the gated set consults direction (Option B).
+  const directionW = opts.directionBlend
+    ? opts.directionBlend === true
+      ? DIRECTION.w
+      : (opts.directionBlend.w ?? DIRECTION.w)
+    : 0;
+  const rank_score =
+    Math.round(
+      attainability_score *
+        (1 + directionW * (relevance_match === "primary" ? 1 : 0)) *
+        10000,
+    ) / 10000;
 
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
@@ -461,7 +723,10 @@ export function scoreJobFit(input, job) {
   //   unspecified → null  job has no extracted function_family OR user
   //                       has no primary_domain — UI hides the bar
   let goal_alignment_score = null;
-  if (job?.function_family && getDomainFamiliesSet()[String(profile?.primary_domain || "").toLowerCase()]) {
+  if (
+    job?.function_family &&
+    getDomainFamiliesSet()[String(profile?.primary_domain || "").toLowerCase()]
+  ) {
     goal_alignment_score = family.match ? 1.0 : 0.35;
   }
 
@@ -474,6 +739,7 @@ export function scoreJobFit(input, job) {
     relevance_match,
     attainability_score,
     attainability_band,
+    rank_score,
     signals: {
       skill_match_pct: skill.skill_match_pct,
       matched_skills: skill.matched_skills,
@@ -491,7 +757,10 @@ export function scoreJobFit(input, job) {
       // the skill axis (and the composite) are unreliable. Passed through for
       // the display gate; the scoring math above is unchanged.
       skill_coverage_ratio:
-        typeof job?.skill_coverage_ratio === "number" ? job.skill_coverage_ratio : null,
+        typeof job?.skill_coverage_ratio === "number"
+          ? job.skill_coverage_ratio
+          : null,
+      match_confidence, // Component 1: null when flag off, else the [0,1] shrink factor
       user_level: userLevel,
       user_stage: EXPERIENCE_LEVEL_TO_STAGE[userLevel] || null,
     },

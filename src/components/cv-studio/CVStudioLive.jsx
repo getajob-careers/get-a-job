@@ -25,17 +25,31 @@ import {
   useApplicationForTailor,
   useApplicationsWithJd,
 } from "@/lib/queries/useApplicationCvs";
-import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useProfileQuery, profileQueryKey } from "@/lib/queries/useProfile";
 import {
   useExperiencesQuery,
   experiencesQueryKey,
 } from "@/lib/queries/useExperiences";
-import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
+
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { trackCvGenerated } from "@/lib/analytics";
 import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
-import { useEducationQuery } from "@/lib/queries/useEducation";
-import { fromCvData, toCvData, buildMasterCvData } from "@/lib/cvDataAdapter";
+import {
+  useEducationQuery,
+  educationQueryKey,
+} from "@/lib/queries/useEducation";
+import {
+  fromCvData,
+  toCvData,
+  buildMasterCvData,
+  rebuildLanguages,
+  masterSkillsFlat,
+} from "@/lib/cvDataAdapter";
+import {
+  writeProfileEntity,
+  undoProfileWrite,
+  reorderExperiences,
+} from "@/lib/writeProfileEntity";
 import { useSeededCvModel } from "@/components/cv-studio/useSeededCvModel";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -169,10 +183,23 @@ export default function CVStudioLive() {
   // ---- debounced autosave to application_cvs.cv_data (RLS own-row) ----
   const [saveState, setSaveState] = useState("saved");
   const saveTimer = useRef(null);
-  const profilePromptedRef = useRef(false);
+  // Session-scoped undo stack (Requirement 1). Each MASTER write-through pushes a
+  // { prevModel, revertSource, label }; "Undo last change" restores BOTH the
+  // source row (revertSource -> another audited write) and the editor model.
+  // In-memory + capped + lost on refresh; the durable trail lives in
+  // profile_edits. Only master edits mutate source, so only they are undoable.
+  const undoStackRef = useRef([]);
+  const [canUndo, setCanUndo] = useState(false);
   useEffect(() => () => clearTimeout(saveTimer.current), []);
   useEffect(() => () => stageTimers.current.forEach(clearTimeout), []);
 
+  // Debounced write of the editor model to application_cvs.cv_data. For the
+  // MASTER this row is a re-derived CACHE - the source-of-truth write goes
+  // through writeField() on each field commit (below); for a TAILORED CV this
+  // row IS the document. Either way it keeps the loaded row + its react-query
+  // cache in sync so a reload re-seeds the same content. The old master->profile
+  // "Save to profile" toast (S8) is gone: every master edit now persists to
+  // source immediately via write-through, so there is nothing left to promote.
   const persist = useCallback(
     (cvId, nextModel) => {
       if (!cvId) return;
@@ -193,66 +220,193 @@ export default function CVStudioLive() {
         queryClient.setQueryData(cvDataQueryKey(cvId), (prev) =>
           prev ? { ...prev, cv_data } : prev,
         );
-        // FIX 2b: the master is a pure derivative (rebuilt from the profile on
-        // every tailor), so a direct studio edit to it is ephemeral. Offer to
-        // promote the change to the PROFILE (the source of truth). Deduped via
-        // profilePromptedRef so the debounced autosave prompts once per edit burst.
-        const savedCv = cvOptions.find((o) => o.id === cvId);
-        if (savedCv?.isMaster && !profilePromptedRef.current) {
-          profilePromptedRef.current = true;
-          toast("Saved to this CV.", {
-            description: "Save these bullet edits to your profile too?",
-            action: {
-              label: "Save to profile",
-              onClick: async () => {
-                const res = await promoteBulletsToProfile({
-                  supabase,
-                  user,
-                  cvData: toCvData(nextModel),
-                });
-                if (res.updated > 0) {
-                  queryClient.invalidateQueries({
-                    queryKey: experiencesQueryKey(user.id),
-                  });
-                  toast.success(
-                    `Saved to your profile (${res.updated} experience${res.updated > 1 ? "s" : ""}).`,
-                  );
-                } else {
-                  toast.error("Couldn't save that to your profile.");
-                }
-              },
-            },
-          });
-        }
       }, 800);
     },
-    [queryClient, cvOptions, user],
+    [queryClient],
   );
 
   const update = useCallback(
     (updater) => {
-      if (!modelRef.current) return;
+      if (!modelRef.current) return null;
       const next = updater(modelRef.current);
       modelRef.current = next;
       setModel(next);
-      profilePromptedRef.current = false;
       persist(selectedCvId, next);
+      return next;
     },
     [persist, selectedCvId],
   );
 
-  const onPatchHeader = (patch) =>
+  // ── Master write-through (Option-A) ────────────────────────────────────────
+  // On the MASTER, each field commit persists to its SOURCE row (profiles /
+  // experiences / education) through the shared write layer, IN ADDITION to the
+  // debounced cv_data cache write in persist(). TAILORED CVs are documents:
+  // writeField no-ops for them, so persist() (cv_data only) is their sole writer.
+  // Requirement 3's two modes are thus enforced here, not just signalled in UI.
+  const isMasterCv = useCallback(
+    () => !!cvOptions.find((o) => o.id === selectedCvId)?.isMaster,
+    [cvOptions, selectedCvId],
+  );
+
+  const pushUndo = useCallback((entry) => {
+    const stack = undoStackRef.current;
+    stack.push(entry);
+    if (stack.length > 30) stack.shift();
+    setCanUndo(stack.length > 0);
+  }, []);
+
+  // Resolve an experience/education source-row id; on the master, surface loudly
+  // when it's missing (older masters built before the id-stamp) rather than
+  // silently writing cv_data only (spec S2: an unattributable edit is surfaced,
+  // not dropped). Returns null when it can't attribute.
+  const attributedId = useCallback(
+    (srcId, kind) => {
+      if (srcId) return srcId;
+      if (isMasterCv())
+        toast.error(
+          `This ${kind} isn't linked to your profile yet, so the edit stayed on this CV only. Rebuild your master CV to link it.`,
+        );
+      return null;
+    },
+    [isMasterCv],
+  );
+
+  // Route one field commit to its source row (master only). Never a silent
+  // no-op: conflict / needs-confirm / error / audit-failure each surface.
+  const writeField = useCallback(
+    async ({
+      field,
+      entityId = null,
+      newValue,
+      prevModel,
+      confirmed = false,
+      label,
+    }) => {
+      if (!isMasterCv() || !user?.id) return;
+      const res = await writeProfileEntity(supabase, {
+        userId: user.id,
+        field,
+        entityId,
+        newValue,
+        source: "studio",
+        confirmed,
+        // baseVersion omitted: the Studio edits a re-derived cache and doesn't
+        // hold the source row's load-time version. Concurrency is fail-open
+        // (last-write-wins) here; the coach path - the reason optimistic
+        // concurrency exists - carries versions and is a separate arc.
+      });
+      if (res.conflict) {
+        toast.error(
+          "This changed elsewhere since you opened it - reload to see the latest.",
+        );
+        return;
+      }
+      if (res.needsConfirm) {
+        toast.error("That change needs confirmation and wasn't saved.");
+        return;
+      }
+      if (!res.ok) {
+        setSaveState("error");
+        toast.error(res.error || "Couldn't save that to your profile.");
+        return;
+      }
+      if (res.audit_ok === false)
+        toast("Saved, but the change history couldn't be recorded.");
+      pushUndo({
+        label: label || field,
+        prevModel,
+        revertSource: () =>
+          undoProfileWrite(supabase, {
+            userId: user.id,
+            undoToken: res.undo_token,
+          }),
+      });
+    },
+    [isMasterCv, user, pushUndo],
+  );
+
+  // Undo the last master write-through: revert the source row (an audited
+  // reversal), then restore the editor model + cv_data cache to the pre-edit
+  // snapshot and remount so contentEditable re-seeds (the chat-apply mechanism).
+  const onUndo = useCallback(async () => {
+    const entry = undoStackRef.current.pop();
+    setCanUndo(undoStackRef.current.length > 0);
+    if (!entry) return;
+    const res = await entry.revertSource();
+    if (res && res.ok === false) {
+      undoStackRef.current.push(entry); // keep it so the user can retry
+      setCanUndo(true);
+      toast.error(res.error || "Couldn't undo that change.");
+      return;
+    }
+    modelRef.current = entry.prevModel;
+    setModel(entry.prevModel);
+    setEditVersion((v) => v + 1);
+    persist(selectedCvId, entry.prevModel);
+    queryClient.invalidateQueries({ queryKey: experiencesQueryKey(user?.id) });
+    queryClient.invalidateQueries({ queryKey: educationQueryKey(user?.id) });
+    queryClient.invalidateQueries({ queryKey: profileQueryKey(user?.id) });
+    toast.success(`Undid your ${entry.label} change.`);
+  }, [persist, selectedCvId, user, queryClient]);
+
+  // Header: name/headline/linkedin/location write through; email is a LOUD
+  // EXCEPTION (auth-owned, read-only on the master in the View) so it never
+  // reaches writeField for the master.
+  const HEADER_FIELD = {
+    name: "full_name",
+    headline: "headline",
+    linkedin: "linkedin",
+    location: "location",
+  };
+  const EXP_FIELD = { title: "exp_title", org: "exp_company" };
+  const EDU_FIELD = {
+    institution: "edu_institution",
+    degree: "edu_degree",
+    field: "edu_field",
+  };
+
+  const onPatchHeader = (patch) => {
+    const prevModel = modelRef.current;
     update((m) => ({ ...m, header: { ...m.header, ...patch } }));
-  const onPatchSummary = (v) => update((m) => ({ ...m, summary: v }));
+    for (const [k, val] of Object.entries(patch)) {
+      const field = HEADER_FIELD[k];
+      if (field) writeField({ field, newValue: val, prevModel, label: k });
+    }
+  };
+  const onPatchSummary = (v) => {
+    const prevModel = modelRef.current;
+    update((m) => ({ ...m, summary: v }));
+    writeField({ field: "summary", newValue: v, prevModel, label: "summary" });
+  };
   // Experience handlers are keyed by section ("experiences" | "military" |
   // "volunteering" | "leadership") so the four buckets share one set of logic.
-  const onPatchExp = (section, id, patch) =>
-    update((m) => ({
+  // dates are a LOUD EXCEPTION (read-only on the master in the View).
+  const onPatchExp = (section, id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
       ...m,
       [section]: m[section].map((e) => (e.id === id ? { ...e, ...patch } : e)),
     }));
-  const onPatchBullet = (section, expId, bId, text) =>
-    update((m) => ({
+    if (!next) return;
+    const srcId =
+      next[section].find((e) => e.id === id)?.__src?.experience_id || null;
+    for (const [k, val] of Object.entries(patch)) {
+      const field = EXP_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "role");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  const onPatchBullet = (section, expId, bId, text) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
       ...m,
       [section]: m[section].map((e) =>
         e.id === expId
@@ -265,6 +419,23 @@ export default function CVStudioLive() {
           : e,
       ),
     }));
+    if (!next || !isMasterCv()) return;
+    const entry = next[section].find((e) => e.id === expId);
+    const eid = attributedId(entry?.__src?.experience_id || null, "role");
+    if (!eid) return;
+    const bullets = entry.bullets
+      .map((b) => String(b.text || "").trim())
+      .filter(Boolean);
+    writeField({
+      field: "exp_bullets",
+      entityId: eid,
+      newValue: bullets,
+      prevModel,
+      label: "bullets",
+    });
+  };
+  // Add creates an EMPTY editable line; no source write yet (the text lands via
+  // onPatchBullet on blur). cv_data cache only, so the new line renders.
   const onAddBullet = (section, expId) =>
     update((m) => ({
       ...m,
@@ -274,8 +445,23 @@ export default function CVStudioLive() {
           : e,
       ),
     }));
-  const onRemoveBullet = (section, expId, bId) =>
-    update((m) => ({
+  // Destructive: on the master this removes a bullet from the profile, so confirm
+  // first (undoable). The write is pre-confirmed so the layer doesn't re-prompt.
+  const onRemoveBullet = (section, expId, bId) => {
+    const prevModel = modelRef.current;
+    const srcId =
+      prevModel?.[section]?.find((e) => e.id === expId)?.__src?.experience_id ||
+      null;
+    const master = isMasterCv();
+    if (
+      master &&
+      srcId &&
+      !window.confirm(
+        "Remove this bullet from your profile? You can undo it after.",
+      )
+    )
+      return;
+    const next = update((m) => ({
       ...m,
       [section]: m[section].map((e) =>
         e.id === expId
@@ -283,36 +469,136 @@ export default function CVStudioLive() {
           : e,
       ),
     }));
-  const onDragEnd = (section, result) => {
-    if (!result.destination) return;
-    update((m) => {
-      const next = [...m[section]];
-      const [moved] = next.splice(result.source.index, 1);
-      next.splice(result.destination.index, 0, moved);
-      return { ...m, [section]: next };
+    if (!next || !master) return;
+    if (!srcId) {
+      attributedId(null, "role"); // told: removed from this CV only
+      return;
+    }
+    const entry = next[section].find((e) => e.id === expId);
+    const bullets = entry.bullets
+      .map((b) => String(b.text || "").trim())
+      .filter(Boolean);
+    writeField({
+      field: "exp_bullets",
+      entityId: srcId,
+      newValue: bullets,
+      prevModel,
+      confirmed: true,
+      label: "bullets",
     });
   };
-  const onPatchEdu = (id, patch) =>
-    update((m) => ({
+  const onDragEnd = (section, result) => {
+    if (!result.destination) return;
+    const prevModel = modelRef.current;
+    const next = update((m) => {
+      const arr = [...m[section]];
+      const [moved] = arr.splice(result.source.index, 1);
+      arr.splice(result.destination.index, 0, moved);
+      return { ...m, [section]: arr };
+    });
+    if (!next || !isMasterCv() || !user?.id) return;
+    // Reorder writes experiences.display_order across the whole render order
+    // (all four buckets), so a rebuild reproduces the new order. Any entry
+    // missing a source id makes the order unattributable -> surface, don't drop.
+    const BUCKETS = ["experiences", "military", "volunteering", "leadership"];
+    const idsOf = (model) =>
+      BUCKETS.flatMap((b) => model[b] || []).map(
+        (e) => e?.__src?.experience_id || null,
+      );
+    const orderedIds = idsOf(next);
+    if (orderedIds.some((id) => !id)) {
+      toast.error(
+        "Some experiences aren't linked to your profile yet, so the new order stayed on this CV only. Rebuild your master CV to save ordering.",
+      );
+      return;
+    }
+    const priorOrderedIds = idsOf(prevModel).filter(Boolean);
+    reorderExperiences(supabase, {
+      userId: user.id,
+      orderedIds,
+      priorOrderedIds,
+      source: "studio",
+    }).then((res) => {
+      if (!res.ok) {
+        toast.error(res.error || "Couldn't save the new order.");
+        return;
+      }
+      if (res.audit_ok === false)
+        toast("Order saved, but the change history couldn't be recorded.");
+      pushUndo({
+        label: "order",
+        prevModel,
+        revertSource: () =>
+          reorderExperiences(supabase, {
+            userId: user.id,
+            orderedIds: priorOrderedIds,
+            priorOrderedIds: orderedIds,
+            source: "studio",
+          }),
+      });
+      queryClient.invalidateQueries({ queryKey: experiencesQueryKey(user.id) });
+    });
+  };
+  const onPatchEdu = (id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
       ...m,
       education: m.education.map((e) => (e.id === id ? { ...e, ...patch } : e)),
     }));
-  const onPatchSkills = (line) =>
-    update((m) => ({
-      ...m,
-      skills: line
-        .split("·")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    }));
-  const onPatchLanguages = (line) =>
-    update((m) => ({
-      ...m,
-      languages: line
-        .split("·")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    }));
+    if (!next) return;
+    const srcId =
+      next.education.find((e) => e.id === id)?.__src?.education_id || null;
+    for (const [k, val] of Object.entries(patch)) {
+      const field = EDU_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "education entry");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  // Skills: the edited domain line writes back to the single flat profiles.skills,
+  // MERGED with the preserved tools + technical buckets so editing domain never
+  // drops them. Honest scope: the master categorizes profile.skills UNION every
+  // experience's skills[]; a skill sourced only from an experience is re-derived
+  // on rebuild and is not managed by this write - it owns profiles.skills only.
+  const onPatchSkills = (line) => {
+    const prevModel = modelRef.current;
+    const domain = line
+      .split("·")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const next = update((m) => ({ ...m, skills: domain }));
+    if (!next) return;
+    const flat = masterSkillsFlat({
+      domain: next.skills,
+      tools: next.skillsTools,
+      technical: next.skillsTechnical,
+    });
+    writeField({ field: "skills", newValue: flat, prevModel, label: "skills" });
+  };
+  // Languages edit names only; preserve each language's stored proficiency by
+  // name-match (profiles.languages is [{language, proficiency}] or bare names).
+  const onPatchLanguages = (line) => {
+    const prevModel = modelRef.current;
+    const names = line
+      .split("·")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const next = update((m) => ({ ...m, languages: names }));
+    if (!next) return;
+    writeField({
+      field: "languages",
+      newValue: rebuildLanguages(names, profile?.languages),
+      prevModel,
+      label: "languages",
+    });
+  };
 
   const onDownload = useCallback(async () => {
     if (!modelRef.current) return;
@@ -804,6 +1090,9 @@ export default function CVStudioLive() {
         }}
         onDeleteCv={onDeleteCv}
         currentCv={currentCv}
+        isMaster={!!currentCv?.isMaster}
+        canUndo={canUndo}
+        onUndo={onUndo}
         saveState={saveState}
         onDownload={onDownload}
         chatMessages={chatMessages}

@@ -4,7 +4,7 @@
     "supabase/functions/_shared/libraries/04_role_skill_mapping.ts"
   ],
   "count": 195,
-  "with_skill_mapping": 172,
+  "with_skill_mapping": 179,
   "roles": [
     {
       "id": "customer_support_representative",
@@ -63,7 +63,8 @@
         "technical_communication",
         "api_integrations",
         "technical_documentation",
-        "analytical_thinking"
+        "analytical_thinking",
+        "root_cause_analysis"
       ]
     },
     {
@@ -1300,7 +1301,8 @@
         "mlops",
         "cloud_data_platforms",
         "experimentation_framework",
-        "cross_functional_collaboration"
+        "cross_functional_collaboration",
+        "embeddings"
       ]
     },
     {
@@ -1893,7 +1895,8 @@
         "linux_fundamentals",
         "sql",
         "testing_practices",
-        "communication"
+        "communication",
+        "code_quality"
       ]
     },
     {
@@ -1917,7 +1920,9 @@
         "system_design_basics",
         "testing_practices",
         "cloud_fundamentals",
-        "debugging"
+        "debugging",
+        "code_quality",
+        "system_design"
       ]
     },
     {
@@ -1941,7 +1946,8 @@
         "mentoring",
         "technical_leadership",
         "cloud_platforms",
-        "databases"
+        "databases",
+        "code_quality"
       ]
     },
     {
@@ -1964,7 +1970,9 @@
         "performance_optimization",
         "cross_team_collaboration",
         "cloud_platforms",
-        "ai_tool_fluency"
+        "ai_tool_fluency",
+        "code_quality",
+        "system_design"
       ]
     },
     {
@@ -2082,7 +2090,9 @@
         "analytical_thinking",
         "attention_to_detail",
         "communication",
-        "sql"
+        "sql",
+        "code_quality",
+        "root_cause_analysis"
       ]
     },
     {
@@ -2106,7 +2116,8 @@
         "monitoring_observability",
         "networking_fundamentals",
         "security_best_practices",
-        "git_version_control"
+        "git_version_control",
+        "root_cause_analysis"
       ]
     },
     {
@@ -2129,7 +2140,8 @@
         "cloud_platforms_devops",
         "containerization",
         "networking_fundamentals",
-        "ci_cd"
+        "ci_cd",
+        "root_cause_analysis"
       ]
     },
     {
@@ -2209,7 +2221,8 @@
         "databases",
         "machine_learning_fundamentals",
         "debugging",
-        "ai_product_thinking"
+        "ai_product_thinking",
+        "embeddings"
       ]
     },
     {
@@ -2239,7 +2252,8 @@
         "ai_cost_optimization",
         "mentoring",
         "technical_leadership",
-        "performance_optimization"
+        "performance_optimization",
+        "embeddings"
       ]
     },
     {
@@ -2268,7 +2282,8 @@
         "system_design",
         "ml_systems_thinking",
         "scripting_automation",
-        "performance_optimization"
+        "performance_optimization",
+        "embeddings"
       ]
     },
     {
@@ -2325,7 +2340,9 @@
         "ai_experiment_tracking",
         "llm_fundamentals",
         "communication",
-        "technical_communication"
+        "technical_communication",
+        "embeddings",
+        "data_science"
       ]
     },
     {
@@ -2352,7 +2369,8 @@
         "ai_safety_responsible_ai",
         "attention_to_detail",
         "analytical_thinking",
-        "cross_functional_collaboration"
+        "cross_functional_collaboration",
+        "embeddings"
       ]
     },
     {
@@ -4061,8 +4079,18 @@
         "Application Security Engineer",
         "Product Security Engineer"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "ci_cd",
+        "cloud_platforms_devops",
+        "containerization",
+        "threat_modeling"
+      ],
+      "secondary_skills": [
+        "os_internals",
+        "code_quality",
+        "git_version_control",
+        "security_monitoring_detection"
+      ]
     },
     {
       "id": "incident_response_engineer",
@@ -4073,8 +4101,17 @@
         "Cyber Incident Responder",
         "DFIR Engineer"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "incident_response_forensics",
+        "threat_modeling",
+        "security_monitoring_detection",
+        "root_cause_analysis"
+      ],
+      "secondary_skills": [
+        "siem_operations",
+        "log_analysis",
+        "os_internals"
+      ]
     },
     {
       "id": "sales_enablement_manager",
@@ -4177,8 +4214,17 @@
         "Technical Policy Researcher",
         "Android Security Research Team Lead"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "security_research",
+        "vulnerability_research",
+        "reverse_engineering",
+        "threat_modeling"
+      ],
+      "secondary_skills": [
+        "os_internals",
+        "exploit_development",
+        "threat_analysis_investigation"
+      ]
     },
     {
       "id": "research_scientist",
@@ -4197,8 +4243,17 @@
         "Applied Physics and Electro-Optics Intern",
         "Physics student"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "data_science",
+        "machine_learning",
+        "statistical_analysis",
+        "deep_learning"
+      ],
+      "secondary_skills": [
+        "model_training_finetuning",
+        "python_data",
+        "applied_ai_research"
+      ]
     },
     {
       "id": "medical_science_liaison",
@@ -4226,8 +4281,17 @@
         "Communication Algorithms Engineer",
         "Process Engineer - Magnesium Site"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "root_cause_analysis",
+        "process_improvement",
+        "statistical_analysis",
+        "lean_manufacturing"
+      ],
+      "secondary_skills": [
+        "six_sigma",
+        "spc",
+        "data_analysis"
+      ]
     },
     {
       "id": "manufacturing_quality_engineer",
@@ -4243,8 +4307,17 @@
         "QA Engineer (Manufacturing)",
         "Supplier quality engineer"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "root_cause_analysis",
+        "spc",
+        "six_sigma",
+        "process_improvement"
+      ],
+      "secondary_skills": [
+        "statistical_analysis",
+        "lean_manufacturing",
+        "data_analysis"
+      ]
     },
     {
       "id": "quality_control_technician",
@@ -4303,8 +4376,18 @@
         "Software Verification Engineer, DOCA",
         "Senior Product Quality and Reliability Engineer"
       ],
-      "core_skills": [],
-      "secondary_skills": []
+      "core_skills": [
+        "embedded_systems",
+        "os_internals",
+        "board_design",
+        "firmware"
+      ],
+      "secondary_skills": [
+        "robotics",
+        "rf_engineering",
+        "verilog",
+        "python_development"
+      ]
     }
   ]
 }

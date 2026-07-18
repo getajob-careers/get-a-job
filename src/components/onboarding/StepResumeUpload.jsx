@@ -80,7 +80,6 @@ import {
   Upload,
   CheckCircle2,
   ArrowRight,
-  Linkedin,
   Info,
   ExternalLink,
   X,
@@ -133,11 +132,6 @@ export default function StepResumeUpload({
   // path is byte-identical.
   const [uploadFailMode, setUploadFailMode] = useState(null);
   const [cvTruncated, setCvTruncated] = useState(false);
-  const [linkedinUrl, setLinkedinUrl] = useState(
-    profileData?.linkedin_url || "",
-  );
-  const [linkedinDone, setLinkedinDone] = useState(false);
-  const [showLinkedin, setShowLinkedin] = useState(!!profileData?.linkedin_url);
   const [liExportDismissed, setLiExportDismissed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef();
@@ -449,13 +443,6 @@ export default function StepResumeUpload({
     },
   };
 
-  const handleLinkedinExtract = () => {
-    if (!linkedinUrl.trim()) return;
-    onChange({ linkedin_url: linkedinUrl });
-    onExtracted({ linkedin_url: linkedinUrl });
-    setLinkedinDone(true);
-  };
-
   const selected = new Set(profileData?.employment_status || []);
 
   return (
@@ -735,46 +722,9 @@ export default function StepResumeUpload({
         </div>
       )}
 
-      {/* LinkedIn URL — collapsed by default; click to add. Optional. */}
-      {!showLinkedin ? (
-        <button
-          type="button"
-          onClick={() => setShowLinkedin(true)}
-          className="inline-flex items-center gap-2 text-[13px] text-rd-text-tertiary hover:text-rd-text"
-        >
-          <Linkedin className="w-4 h-4" /> + Add LinkedIn URL (optional)
-        </button>
-      ) : (
-        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-2.5">
-          <label className="block text-[12px] font-semibold text-rd-text">
-            LinkedIn URL{" "}
-            <span className="text-rd-text-secondary font-normal">
-              (optional)
-            </span>
-          </label>
-          <div className="flex gap-2">
-            <input
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/yourname"
-              className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
-            />
-            <button
-              type="button"
-              onClick={handleLinkedinExtract}
-              disabled={!linkedinUrl.trim() || linkedinDone}
-              className="px-4 py-2.5 text-[13px] font-semibold rounded-full border border-rd-border text-rd-text bg-rd-bg-card hover:bg-rd-bg-soft disabled:opacity-50 transition-colors whitespace-nowrap"
-            >
-              {linkedinDone ? <CheckCircle2 className="w-4 h-4" /> : "Save"}
-            </button>
-          </div>
-          {linkedinDone && (
-            <p className="text-[11.5px] text-rd-teal-dark">
-              ✓ LinkedIn URL saved
-            </p>
-          )}
-        </div>
-      )}
+      {/* LinkedIn URL is no longer asked here — it is auto-extracted from the
+          CV when present and otherwise editable in Settings/Profile. We never
+          ask for something we may already have. */}
 
       <div className="flex justify-between items-center pt-2">
         <button
@@ -785,13 +735,7 @@ export default function StepResumeUpload({
         </button>
         <RdButton
           onClick={onNext}
-          disabled={
-            !done &&
-            !error &&
-            !linkedinDone &&
-            !emptyTextMode &&
-            !uploadFailMode
-          }
+          disabled={!done && !error && !emptyTextMode && !uploadFailMode}
         >
           {done ? (
             <>

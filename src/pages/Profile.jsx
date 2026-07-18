@@ -23,6 +23,7 @@ import { useStoriesQuery } from "@/lib/queries/useStories";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
 import BulletsEditor from "@/components/profile/BulletsEditor";
+import { formatDateRange } from "../../supabase/functions/_shared/date-format.ts";
 import { createPageUrl } from "@/utils";
 
 // PR 3F — Profile restyled on rd-* tokens. Restyle-only on behavior;
@@ -1193,7 +1194,9 @@ export default function Profile() {
                         </p>
                         <p className="text-[12px] text-rd-text-tertiary mt-0.5">
                           {e.type?.replace("_", " ")}
-                          {e.start_date ? ` · ${e.start_date}${e.end_date ? ` – ${e.end_date}` : ""}` : ""}
+                          {e.start_date || e.end_date || e.is_current
+                            ? ` · ${formatDateRange(e.start_date, e.end_date, e.is_current)}`
+                            : ""}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">

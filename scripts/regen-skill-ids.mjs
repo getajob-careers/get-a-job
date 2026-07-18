@@ -2,8 +2,9 @@
 // Regenerate src/lib/skillIdsGenerated.json from the canonical TS library.
 //
 // Run after edits to supabase/functions/_shared/libraries/01_skill_library.ts.
-// CI re-runs this in `npm run prebuild` so a stale committed file is caught
-// at build time, not in production.
+// CI re-runs this in the "Generated-mirror staleness check" step (ci.yml) and
+// fails the build via `git diff --exit-code` if the committed file is stale.
+// The output carries NO timestamp so that check is stable across days.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -11,7 +12,10 @@ import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
-const SRC = resolve(ROOT, "supabase/functions/_shared/libraries/01_skill_library.ts");
+const SRC = resolve(
+  ROOT,
+  "supabase/functions/_shared/libraries/01_skill_library.ts",
+);
 const OUT = resolve(ROOT, "src/lib/skillIdsGenerated.json");
 
 const raw = readFileSync(SRC, "utf-8");
@@ -57,8 +61,8 @@ writeFileSync(
   OUT,
   JSON.stringify(
     {
-      generated_from: "supabase/functions/_shared/libraries/01_skill_library.ts",
-      generated_at: new Date().toISOString().slice(0, 10),
+      generated_from:
+        "supabase/functions/_shared/libraries/01_skill_library.ts",
       count: ids.length,
       ids,
       names,
@@ -68,4 +72,6 @@ writeFileSync(
   ) + "\n",
 );
 
-console.log(`Wrote ${ids.length} IDs + ${Object.keys(names).length} names to src/lib/skillIdsGenerated.json`);
+console.log(
+  `Wrote ${ids.length} IDs + ${Object.keys(names).length} names to src/lib/skillIdsGenerated.json`,
+);

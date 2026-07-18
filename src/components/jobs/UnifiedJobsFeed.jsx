@@ -20,6 +20,7 @@ import {
 } from "@/lib/experienceLevel";
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
+import { scoringOpts } from "@/lib/flags";
 import { dedupeJobsById } from "@/lib/careerJobsQuery";
 import {
   UNIFIED_MAX_ROLES,
@@ -130,31 +131,47 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
   const scoredById = useMemo(() => {
     if (!profile || jobs.length === 0) return {};
+    const opts = scoringOpts();
     const out = {};
     for (const job of jobs) {
-      out[job.id] = scoreJobFit({ profile, experiences, educations }, job);
+      out[job.id] = scoreJobFit(
+        { profile, experiences, educations },
+        job,
+        opts,
+      );
     }
     return out;
   }, [profile, experiences, educations, jobs]);
 
   // relevance_match GATES feed membership (primary + adjacent + unknown pass;
-  // "off" drops). Within the gated set, sort by relevance tier then
-  // attainability_score DESC.
+  // "off" drops). Within the gated set, sort by rank_score DESC. rank_score
+  // EQUALS attainability_score with the scoring flag off (byte-identical legacy
+  // order), and applies Component 2b's direction boost when on - the card still
+  // DISPLAYS attainability_score and the picks/stretch bands are still built on
+  // it (Option B: sort by a transparent function of the two displayed axes,
+  // never a hidden re-break of sort==one-number). relevance_tier is only a
+  // tiebreaker for equal rank_score: it must never reorder a higher-score job
+  // below a lower-score one (that produced the "75% listed after 21%" ordering
+  // bug). fit_score (the Search-tab number) breaks remaining ties.
   const displayedJobs = useMemo(() => {
     if (jobs.length === 0 || !profile) return jobs;
     const rankRel = { primary: 0, adjacent: 1, unknown: 2 };
+    const rankOf = (r) => r.rank_score ?? r.attainability_score ?? 0;
     const gated = jobs.filter((job) => {
       const r = scoredById[job.id];
       if (!r) return false;
       return r.relevance_match && r.relevance_match !== "off";
     });
     gated.sort((a, b) => {
+      const aa = rankOf(scoredById[a.id]);
+      const ab = rankOf(scoredById[b.id]);
+      if (ab !== aa) return ab - aa;
       const ra = rankRel[scoredById[a.id].relevance_match];
       const rb = rankRel[scoredById[b.id].relevance_match];
       if (ra !== rb) return ra - rb;
-      const aa = scoredById[a.id].attainability_score ?? 0;
-      const ab = scoredById[b.id].attainability_score ?? 0;
-      return ab - aa;
+      const fa = scoredById[a.id].fit_score ?? 0;
+      const fb = scoredById[b.id].fit_score ?? 0;
+      return fb - fa;
     });
     return gated;
   }, [jobs, scoredById, profile]);
@@ -258,7 +275,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   // to a fixture job array so the full Career preview renders the populated
   // grid without auth or the (RLS-empty) RPC. Folds to null in prod builds.
   const previewInjectedJobs =
-    import.meta.env.DEV && typeof window !== "undefined" && Array.isArray(window.__GAJ_PREVIEW_JOBS__)
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    Array.isArray(window.__GAJ_PREVIEW_JOBS__)
       ? window.__GAJ_PREVIEW_JOBS__
       : null;
 
@@ -290,7 +309,11 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
     setVisibleCount(nextVisible);
     // Refill from the DB before the buffer runs dry (revealed count is
     // within one chunk of everything we've fetched + gated), if more exist.
-    if (hasMore && !loading && nextVisible + REVEAL_SIZE >= displayedJobs.length) {
+    if (
+      hasMore &&
+      !loading &&
+      nextVisible + REVEAL_SIZE >= displayedJobs.length
+    ) {
       const next = offset + MATCHES_FETCH_SIZE;
       setOffset(next);
       fetchJobs({ offsetArg: next, append: true });
@@ -370,7 +393,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       scoredById={scoredById}
                       unified
                       singleColumn={singleColumn}
-                      onOpen={(j, s, tc) => setOpenJob({ job: j, scoreResult: s, trackColor: tc })}
+                      onOpen={(j, s, tc) =>
+                        setOpenJob({ job: j, scoreResult: s, trackColor: tc })
+                      }
                     />
                   </section>
                 )}
@@ -392,7 +417,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       scoredById={scoredById}
                       unified
                       singleColumn={singleColumn}
-                      onOpen={(j, s, tc) => setOpenJob({ job: j, scoreResult: s, trackColor: tc })}
+                      onOpen={(j, s, tc) =>
+                        setOpenJob({ job: j, scoreResult: s, trackColor: tc })
+                      }
                     />
                   </section>
                 )}
@@ -454,9 +481,7 @@ function UnifiedTabButton({ label, active, onClick }) {
 
 function JobGrid({ jobs, scoredById, unified = false, onOpen }) {
   return (
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-    >
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {jobs.map((job) => {
         const perJobTrack = scoredById[job.id]?.track;
         const trackRdColor = perJobTrack
