@@ -13,6 +13,8 @@ export default function CanvasSidebar() {
   const [coachExpanded, setCoachExpanded] = useState(false);
   return (
     <ShellSidebar
+      name={CANVAS_PROFILE.full_name}
+      profileStrength={62}
       onOpenChat={() => setCoachExpanded(true)}
       coach={
         <CanvasCoachDock

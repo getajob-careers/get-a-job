@@ -1,46 +1,47 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
+import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 
-// Below-md sidebar: content-first. The full sidebar is hidden and the tiles +
-// coach + account collapse into a fixed bottom icon rail (standard mobile
-// pattern) so the first screen is the work, never the navigation. Tab-switching
-// tiles (Tracker/Browse) are already in the tab bar, so the rail shows only the
-// nav tiles (LinkedIn / Story bank / CV bank / Profile) + a Coach toggle (opens
-// a slide-up sheet) + the account avatar.
+// Below-md sidebar: content-first. The full sidebar is hidden and the nav + coach
+// + account collapse into a fixed bottom icon rail (standard mobile pattern) so
+// the first screen is the work, never the navigation. Shows the ruled nav items
+// (a horizontally-scrollable icon row) + a Coach toggle (slide-up sheet) + the
+// account avatar. (Fuller mobile nav polish is PR4.)
 
-function RailItem({ tile }) {
-  const Icon = tile.icon;
+function RailItem({ item }) {
+  const Icon = item.icon;
   const cls =
     "flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rd-r-sm text-rd-text-secondary hover:text-rd-coral hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral";
   return (
     <Link
-      to={tile.href}
+      to={createPageUrl(item.page)}
       className={cls}
-      aria-label={tile.label}
-      title={tile.label}
+      aria-label={item.label}
+      title={item.label}
     >
       <Icon className="w-[18px] h-[18px]" aria-hidden="true" />
     </Link>
   );
 }
 
-export default function CanvasMobileRail({ tiles, coach, account }) {
+export default function CanvasMobileRail({ navItems = [], coach, account }) {
   const [coachOpen, setCoachOpen] = useState(false);
-  const navTiles = tiles.filter((t) => t.href); // exclude the tab-switchers
 
   return (
     <div className="md:hidden">
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around gap-0.5 bg-rd-bg-sidebar/95 backdrop-blur border-t border-rd-border px-2 py-1.5"
+        className="fixed bottom-0 left-0 right-0 z-40 flex items-center gap-0.5 bg-rd-bg-sidebar/95 backdrop-blur border-t border-rd-border px-2 py-1.5"
         style={{ paddingBottom: "max(6px, env(safe-area-inset-bottom))" }}
-        aria-label="Sidebar"
+        aria-label="Primary"
       >
-        {navTiles.map((t) => (
-          <RailItem key={t.id} tile={t} />
-        ))}
+        <div className="flex-1 min-w-0 flex items-center gap-0.5 overflow-x-auto cx-carousel">
+          {navItems.map((item) => (
+            <RailItem key={item.id} item={item} />
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => setCoachOpen(true)}

@@ -1,39 +1,34 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import CoachDock from "@/components/agent/CoachDock";
 import DepthField from "@/components/redesign/DepthField";
 import GrainGround from "@/components/redesign/GrainGround";
-import CanvasLogo from "./CanvasLogo";
 import CanvasSidebar from "./CanvasSidebar";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 
 // CanvasShell - the redesign app frame (flag ON only), wrapping the REAL routed
-// page in `children`. This is the ported canvas chrome: a non-scrolling
-// h-[100dvh] frame with a top utility bar, a persistent left toolkit rail + coach
-// dock, and a scrolling content column. Providers (auth, react-query, agent
-// drawer, coach) come from Layout above, so routing/auth/data flow unchanged.
-//
-// PR1 scope = the FRAME. The home-route 3-tab pill is a later phase (home
-// content, not chrome). Search is intentionally omitted until it has a real
-// target. Rail-content roster + full top-bar wiring land in PR2.
+// page in `children`. The mockup's chrome: a non-scrolling h-[100dvh] frame with
+// the left sidebar (brand + profile-strength chip + labeled nav grid + coach card,
+// in CanvasSidebar) and a thin top utility bar (the avatar; the greeting is
+// home-route content, search stays out until it has a real target), then a
+// scrolling content column. Providers (auth, react-query, agent drawer, coach)
+// come from Layout above, so routing/auth/data flow unchanged.
 //
 // `relative isolate` makes this a stacking context - REQUIRED so the -z-10
 // DepthField/GrainGround ground layers paint (see canvas-tokens.md ground spec).
 const selectName = (p) => (p ? { full_name: p.full_name } : p);
 
-export default function CanvasShell({ children, revealMode }) {
+export default function CanvasShell({ children, revealMode, currentPageName }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const agentDrawer = useAgentDrawer();
   const { data: profileName } = useProfileQuery(user?.id, selectName);
+  const name = profileName?.full_name || "";
 
   const account = {
-    name: profileName?.full_name || "",
+    name,
     email: user?.email || "",
     onProfile: () => navigate(createPageUrl("Profile")),
     onSettings: () => navigate(createPageUrl("Settings")),
@@ -56,37 +51,22 @@ export default function CanvasShell({ children, revealMode }) {
         </div>
       )}
 
-      {/* Utility top bar: brand left, actions right. */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <Link
-            to={createPageUrl("Home")}
-            aria-label="Get A Job home"
-            className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
-          >
-            <CanvasLogo size={28} />
-          </Link>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          <Link
-            to={createPageUrl("Settings")}
-            aria-label="Settings"
-            className="inline-flex items-center justify-center w-8 h-8 rounded-full text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rd-press"
-          >
-            <Settings className="w-4 h-4" aria-hidden="true" />
-          </Link>
-          <CanvasAvatarChip compact account={account} />
-        </div>
+      {/* Thin top utility bar: the account chip, right-aligned. The brand lives in
+          the sidebar (mockup); the greeting is the home route's own content. */}
+      <div className="flex items-center justify-end gap-1 flex-shrink-0">
+        <CanvasAvatarChip compact account={account} />
       </div>
 
-      {/* Content row: persistent rail + coach, then the routed page. The <main>
-          is transparent so the ground shows through (flag ON only reaches here).
-          It scrolls on every size so real pages are never clipped. */}
-      <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
+      {/* Content row: the persistent sidebar, then the routed page. The <main> is
+          transparent so the ground shows through (flag ON only reaches here). It
+          scrolls on every size so real pages are never clipped. */}
+      <div className="mt-3 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
         <CanvasSidebar
           coach={<CoachDock />}
-          onOpenChat={() => agentDrawer.open()}
           account={account}
+          currentPageName={currentPageName}
+          name={name}
+          profileStrength={null}
         />
         <main className="legacy-body flex-1 min-w-0 min-h-0 overflow-y-auto pb-16 md:pb-0">
           {children}
