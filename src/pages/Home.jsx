@@ -112,14 +112,20 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const agentDrawer = useAgentDrawer();
+  // Depend on the STABLE setPageContext (a useCallback), not the whole
+  // agentDrawer object. pageContext is a memo dep of that object, so a
+  // [agentDrawer] dep would re-fire this effect every time the effect itself
+  // updates pageContext, oscillating null <-> {page} and exceeding the update
+  // depth. setPageContext keeps a fixed identity, so this runs once per mount.
+  const { setPageContext } = agentDrawer;
   // PR-B2: Today surface — set page-only context so the agent knows the
   // route the user is on without surfacing any entity IDs (Today's
   // attention items are linked through to /Career?pipeline=open, not
   // selected on this surface).
   useEffect(() => {
-    agentDrawer.setPageContext({ page: "Today" });
-    return () => agentDrawer.setPageContext(null);
-  }, [agentDrawer]);
+    setPageContext({ page: "Today" });
+    return () => setPageContext(null);
+  }, [setPageContext]);
 
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 
