@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from 'npm:@supabase/supabase-js@2'
 // Pinned to 1.6.2 — esm.sh's @latest can silently advance and we want
 // deterministic edge behaviour for the CV-parse hot path.
 import { extractText, getDocumentProxy } from 'https://esm.sh/unpdf@1.6.2'

@@ -128,7 +128,8 @@ export function finishMetric(m: Metric, result: MetricResult): void {
   // Fire-and-forget. Don't await — observability shouldn't block the response.
   ;(async () => {
     try {
-      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
+      const supabaseSpecifier = 'npm:@supabase/supabase-js@2'
+      const { createClient } = await import(supabaseSpecifier)
       const client = createClient(url, serviceKey)
       const { error } = await client.from('function_metrics').insert(row)
       if (error) console.warn(`[metrics] insert failed for ${m.functionName}:`, error.message)
