@@ -21,7 +21,7 @@
 //
 // Callers translate the result to their own Response shape.
 
-import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import type { SupabaseClient } from 'npm:@supabase/supabase-js@2'
 import { openaiChatCompletion } from './openai-chat.ts'
 import type { Metric } from './metrics.ts'
 
