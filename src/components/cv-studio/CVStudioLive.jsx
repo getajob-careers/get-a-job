@@ -82,6 +82,7 @@ export default function CVStudioLive() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatBusy, setChatBusy] = useState(false);
   const [editVersion, setEditVersion] = useState(0); // bumps on chat-applied edits → remount so contentEditable re-seeds
+  const [autoFocusId, setAutoFocusId] = useState(null); // model id of a just-added entry → its title/institution field auto-focuses
   const [searchParams, setSearchParams] = useSearchParams();
   // Tracks which ?cv/?application_id value we've already RESOLVED to a selection.
   // Not a one-shot boolean: a deep-linked application may have no tailored copy
@@ -182,6 +183,35 @@ export default function CVStudioLive() {
   useEffect(() => {
     setChatMessages([]);
   }, [selectedCvId]);
+
+  // Auto-focus a just-added entry's first field (title / institution) so the
+  // user can type immediately. Imperative + from THIS stable effect (the entry's
+  // own mount effect raced the mount/remount and the focus didn't land): once
+  // the model update has committed the new node, a rAF lets it paint, then we
+  // query it by data-entry-id and focus it, and clear so it fires exactly once.
+  // Self-contained (writes only autoFocusId, never model) - no two-effect clobber.
+  useEffect(() => {
+    if (!autoFocusId) return;
+    const id = autoFocusId;
+    // A plain timeout (NOT rAF with a cancel-on-cleanup): the id is captured
+    // locally, and re-renders around the add (autosave "saving" state, dnd
+    // remount) don't cancel it. 80ms lets the new node settle; then focus it by
+    // data-entry-id. Clearing the state re-runs this effect into the early
+    // return - the already-scheduled timeout still fires.
+    // Retry across a few frames: the new entry can re-render/remount once (dnd,
+    // autosave state) right after it mounts, blurring a single-shot focus. Each
+    // attempt re-queries by data-entry-id (fresh node) and focuses only if it's
+    // not already the active field, so it settles on the title/institution.
+    [30, 120, 260, 450].forEach((d) =>
+      window.setTimeout(() => {
+        const el = document.querySelector(
+          `[data-entry-id="${id}"] [contenteditable="true"]`,
+        );
+        if (el && document.activeElement !== el) el.focus();
+      }, d),
+    );
+    setAutoFocusId(null);
+  }, [autoFocusId]);
 
   // ---- debounced autosave to application_cvs.cv_data (RLS own-row) ----
   const [saveState, setSaveState] = useState("saved");
@@ -655,6 +685,10 @@ export default function CVStudioLive() {
       __src: {},
     };
     if (!isMasterCv()) {
+      // Set autoFocusId in the SAME commit that mounts the entry (not before the
+      // async row insert below - the auto-clear timer would fire during the
+      // await and clear it before the entry ever mounts).
+      setAutoFocusId(entry.id);
       update((m) => ({ ...m, experiences: [...m.experiences, entry] }));
       return;
     }
@@ -669,6 +703,7 @@ export default function CVStudioLive() {
       return;
     }
     entry.__src = { experience_id: res.id };
+    setAutoFocusId(entry.id); // its title field focuses when it mounts (below)
     update((m) => ({ ...m, experiences: [...m.experiences, entry] }));
     if (res.audit_ok === false)
       toast("Added, but the change history couldn't be recorded.");
@@ -695,6 +730,7 @@ export default function CVStudioLive() {
       __src: {},
     };
     if (!isMasterCv()) {
+      setAutoFocusId(entry.id); // same commit that mounts the entry (see above)
       update((m) => ({ ...m, education: [...m.education, entry] }));
       return;
     }
@@ -709,6 +745,7 @@ export default function CVStudioLive() {
       return;
     }
     entry.__src = { education_id: res.id };
+    setAutoFocusId(entry.id); // its institution field focuses when it mounts (below)
     update((m) => ({ ...m, education: [...m.education, entry] }));
     if (res.audit_ok === false)
       toast("Added, but the change history couldn't be recorded.");
