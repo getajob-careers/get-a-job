@@ -301,6 +301,9 @@ export function buildMasterCvData(
       name: str(pr?.name),
       ...(str(pr?.url) ? { url: str(pr.url) } : {}),
       ...(str(pr?.description) ? { description: str(pr.description) } : {}),
+      // Stamp project_id so a Studio edit to a project field attributes back to
+      // its `projects` row (mirrors experience_id / education_id).
+      ...(pr?.id ? { project_id: str(pr.id) } : {}),
     }))
     .filter((pr) => pr.name);
   const certifications = asArray(extras?.certifications)
@@ -310,6 +313,9 @@ export function buildMasterCvData(
       ...(str(c?.date_earned || c?.date)
         ? { date_earned: str(c?.date_earned || c?.date) }
         : {}),
+      // Stamp certification_id so a Studio edit attributes back to its
+      // `certifications` row (mirrors experience_id / education_id).
+      ...(c?.id ? { certification_id: str(c.id) } : {}),
     }))
     .filter((c) => c.name);
 

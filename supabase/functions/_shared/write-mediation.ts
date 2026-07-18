@@ -12,7 +12,12 @@
 // runs) and call THIS for every decision. Kept pure + isomorphic (no Deno or
 // browser APIs) so both a Deno edge function and a Vite browser bundle import it.
 
-export type EntityType = "profile" | "experience" | "education";
+export type EntityType =
+  | "profile"
+  | "experience"
+  | "education"
+  | "certification"
+  | "project";
 export type WriteSource = "studio" | "coach";
 
 // A route maps a logical CV field to its source-of-truth destination. `scope`
@@ -47,6 +52,16 @@ export const FIELD_ROUTES: Record<string, FieldRoute> = {
   edu_degree: { entity: "education", column: "degree_type", content: false, scope: "row" },
   edu_field: { entity: "education", column: "field_of_study", content: false, scope: "row" },
   edu_honors: { entity: "education", column: "honors", content: true, scope: "row" },
+  // certification-row-scoped (S7)
+  cert_name: { entity: "certification", column: "name", content: false, scope: "row" },
+  cert_issuer: { entity: "certification", column: "issuer", content: false, scope: "row" },
+  cert_date: { entity: "certification", column: "date_earned", content: false, scope: "row" },
+  // project-row-scoped (S7). project_description is free prose -> content-gated on
+  // the LLM path; project BULLETS have no source column (cv_data-only) and are a
+  // deliberate loud exception in the Studio, so no route exists for them.
+  project_name: { entity: "project", column: "name", content: false, scope: "row" },
+  project_url: { entity: "project", column: "url", content: false, scope: "row" },
+  project_description: { entity: "project", column: "description", content: true, scope: "row" },
 };
 
 // LOUD EXCEPTIONS — deliberately absent from FIELD_ROUTES so a write is never a
@@ -145,6 +160,8 @@ export const TABLE: Record<EntityType, string> = {
   profile: "profiles",
   experience: "experiences",
   education: "education",
+  certification: "certifications",
+  project: "projects",
 };
 
 // The injected data interface. The client wrapper backs it with the browser

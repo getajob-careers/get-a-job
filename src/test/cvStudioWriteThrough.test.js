@@ -9,6 +9,79 @@ import {
   buildMasterCvData,
 } from "@/lib/cvDataAdapter";
 import { reorderExperiences } from "@/lib/writeProfileEntity";
+import { fromCvData, toCvData } from "@/lib/cvDataAdapter";
+import {
+  routeFor,
+  FIELD_ROUTES,
+  TABLE,
+} from "../../supabase/functions/_shared/write-mediation.ts";
+
+describe("S7: cert/project write-through wiring", () => {
+  it("buildMasterCvData stamps certification_id + project_id from source rows", () => {
+    const master = buildMasterCvData(
+      { full_name: "T", skills: [] },
+      [],
+      [],
+      "e@x.co",
+      {
+        projects: [
+          { id: "proj-1", name: "Sidebar", url: "u", description: "d" },
+        ],
+        certifications: [{ id: "cert-1", name: "AWS SAA", issuer: "Amazon" }],
+      },
+    );
+    expect(master.projects[0].project_id).toBe("proj-1");
+    expect(master.certifications[0].certification_id).toBe("cert-1");
+  });
+
+  it("cert/project field routes point at the right table + column", () => {
+    expect(routeFor("cert_name")).toMatchObject({
+      entity: "certification",
+      column: "name",
+      scope: "row",
+    });
+    expect(routeFor("cert_issuer")?.column).toBe("issuer");
+    expect(routeFor("cert_date")?.column).toBe("date_earned");
+    expect(routeFor("project_name")).toMatchObject({
+      entity: "project",
+      column: "name",
+    });
+    expect(routeFor("project_url")?.column).toBe("url");
+    expect(TABLE.certification).toBe("certifications");
+    expect(TABLE.project).toBe("projects");
+    // project BULLETS are cv_data-only: no route (loud exception, never a write).
+    expect(routeFor("project_bullets")).toBeNull();
+    expect(FIELD_ROUTES.project_bullets).toBeUndefined();
+  });
+
+  it("cert/project round-trip preserves the stamped ids through the editor model", () => {
+    const cv = {
+      certifications: [
+        {
+          name: "AWS",
+          issuer: "Amazon",
+          date_earned: "2024",
+          certification_id: "cert-1",
+        },
+      ],
+      projects: [
+        { name: "Sidebar", url: "u", description: "d", project_id: "proj-1" },
+      ],
+    };
+    const model = fromCvData(cv);
+    expect(model.certifications[0].__src.certification_id).toBe("cert-1");
+    expect(model.projects[0].__src.project_id).toBe("proj-1");
+    const out = toCvData(model);
+    expect(out.certifications[0].certification_id).toBe("cert-1");
+    expect(out.projects[0].project_id).toBe("proj-1");
+    // an edit to the name overlays onto __src, id intact
+    model.certifications[0].name = "AWS SAA";
+    expect(toCvData(model).certifications[0]).toMatchObject({
+      name: "AWS SAA",
+      certification_id: "cert-1",
+    });
+  });
+});
 
 describe("masterSkillsFlat — editing one bucket never drops another", () => {
   it("merges the edited domain with the preserved tools + technical buckets", () => {
