@@ -47,12 +47,21 @@
     />
     <!-- Redesign display font — Rokkitt slab serif. Used via Tailwind
          font-display utility or var(--rd-font-display). Body keeps the
-         platform default system stack. See tasks/redesign.md. -->
+         platform default system stack. See tasks/redesign.md.
+
+         Archivo is the LOGOTYPE face only (the "Get"/"Job" words of the
+         locked lockup — see docs/design/canvas-tokens.md). It is NOT a
+         general display face: nothing else may set Archivo. Weight 700
+         only, to keep the added payload to one weight. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wght@700&display=swap"
     />
     <title>Get A Job: Your job search, finally connected</title>
   </head>

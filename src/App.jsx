@@ -39,6 +39,7 @@ import JobsGridPreview from '@/pages/_preview/JobsGridPreview';
 import LandingV2Preview from '@/pages/_preview/LandingV2Preview';
 import CVAgentPreview from '@/pages/_preview/CVAgentPreview';
 import CVAgentLivePreview from '@/pages/_preview/CVAgentLivePreview';
+import Home3TabPreview from '@/pages/_preview/Home3TabPreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
 import StoryBankPreview from '@/pages/_preview/StoryBankPreview';
@@ -223,6 +224,12 @@ function App() {
               <Route
                 path="/_preview/cv-agent-live"
                 element={<CVAgentLivePreview />}
+              />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/home-3tab"
+                element={<Home3TabPreview />}
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
