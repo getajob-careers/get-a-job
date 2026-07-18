@@ -8,7 +8,156 @@ import {
   rebuildLanguages,
   buildMasterCvData,
 } from "@/lib/cvDataAdapter";
-import { reorderExperiences } from "@/lib/writeProfileEntity";
+import {
+  reorderExperiences,
+  createProfileRow,
+  deleteProfileRow,
+  restoreProfileRow,
+} from "@/lib/writeProfileEntity";
+
+// Minimal supabase double for the row helpers: insert(row).select("*").single(),
+// select("*").eq().eq().maybeSingle(), delete().eq().eq() awaited, and a bare
+// insert(row) awaited (audit).
+function mockRowDb(initial) {
+  const tables = {
+    experiences: [],
+    education: [],
+    profile_edits: [],
+    ...initial,
+  };
+  let idSeq = 0;
+  return {
+    _tables: tables,
+    from(table) {
+      const rows = tables[table] || (tables[table] = []);
+      let op = null;
+      const filters = [];
+      let pending = null;
+      const match = (r) => filters.every(([c, v]) => r[c] === v);
+      const b = {
+        insert(row) {
+          pending = { ...row };
+          if (!("id" in pending)) pending.id = `gen-${++idSeq}`;
+          rows.push(pending);
+          op = { kind: "insert" };
+          return b;
+        },
+        delete() {
+          op = { kind: "delete" };
+          return b;
+        },
+        select() {
+          return b;
+        },
+        eq(c, v) {
+          filters.push([c, v]);
+          return b;
+        },
+        async single() {
+          return { data: pending, error: null };
+        },
+        async maybeSingle() {
+          const f = rows.find(match);
+          return { data: f ? { ...f } : null, error: null };
+        },
+        then(resolve) {
+          if (op?.kind === "delete") {
+            const i = rows.findIndex(match);
+            if (i >= 0) rows.splice(i, 1);
+          }
+          return Promise.resolve({ error: null }).then(resolve);
+        },
+      };
+      return b;
+    },
+  };
+}
+
+describe("PR-B: experience/education entry add + delete row helpers", () => {
+  it("createProfileRow inserts a row + audits field=create", async () => {
+    const db = mockRowDb({ experiences: [] });
+    const res = await createProfileRow(db, {
+      userId: "u1",
+      entity: "experience",
+      values: { title: "", company: "" },
+    });
+    expect(res.ok).toBe(true);
+    expect(db._tables.experiences).toHaveLength(1);
+    expect(db._tables.experiences[0].user_id).toBe("u1");
+    expect(res.id).toBe(db._tables.experiences[0].id);
+    expect(db._tables.profile_edits[0]).toMatchObject({
+      entity_type: "experience",
+      field: "create",
+      source: "studio",
+    });
+  });
+
+  it("deleteProfileRow snapshots the FULL row (awards incl.) then deletes + audits", async () => {
+    const db = mockRowDb({
+      experiences: [
+        {
+          id: "e1",
+          user_id: "u1",
+          title: "Eng",
+          awards: ["Dean's List", "MVP"],
+        },
+      ],
+    });
+    const res = await deleteProfileRow(db, {
+      userId: "u1",
+      entity: "experience",
+      rowId: "e1",
+    });
+    expect(res.ok).toBe(true);
+    expect(db._tables.experiences).toHaveLength(0); // deleted
+    expect(res.snapshot.awards).toEqual(["Dean's List", "MVP"]); // cascade captured
+    expect(db._tables.profile_edits[0]).toMatchObject({
+      entity_type: "experience",
+      field: "delete",
+    });
+    expect(db._tables.profile_edits[0].prior_value.awards).toEqual([
+      "Dean's List",
+      "MVP",
+    ]);
+  });
+
+  it("restoreProfileRow re-inserts the snapshot exactly (awards restored) + audits", async () => {
+    const db = mockRowDb({ experiences: [] });
+    const snapshot = {
+      id: "e1",
+      user_id: "u1",
+      title: "Eng",
+      awards: ["Dean's List"],
+    };
+    const res = await restoreProfileRow(db, {
+      userId: "u1",
+      entity: "experience",
+      snapshot,
+    });
+    expect(res.ok).toBe(true);
+    expect(db._tables.experiences[0]).toMatchObject({
+      id: "e1",
+      awards: ["Dean's List"],
+    });
+    expect(db._tables.profile_edits[0].field).toBe("restore");
+  });
+
+  it("rejects add/delete for unsupported entities (e.g. profile)", async () => {
+    const db = mockRowDb({});
+    expect(
+      (await createProfileRow(db, { userId: "u1", entity: "profile" })).ok,
+    ).toBe(false);
+    expect(
+      (
+        await deleteProfileRow(db, {
+          userId: "u1",
+          entity: "certification",
+          rowId: "x",
+        })
+      ).ok,
+    ).toBe(false);
+  });
+});
 import { fromCvData, toCvData } from "@/lib/cvDataAdapter";
 import {
   routeFor,
