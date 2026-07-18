@@ -23,6 +23,52 @@
 // EXTEND HERE not in the edge function. Future expansion goes in this file.
 
 export const SKILL_ALIASES: Record<string, string[]> = {
+  // ── 7-role expansion: HW cluster (2026-07-14) ────────────────────────────
+  // "firmware" / "signal processing" auto-resolve via the snake-ID step; these
+  // are the variants + the circuit_design→board_design borderline alias (Eli:
+  // same hiring competency, software_architecture pattern).
+  "firmware development": ["firmware"],
+  "embedded firmware": ["firmware"],
+  "bare-metal": ["firmware"],
+  "bare metal programming": ["firmware"],
+  "rtos": ["firmware"],
+  // "dsp" removed — ambiguous (AdTech "DSP" = Demand-Side Platform, not Digital
+  // Signal Processing; it false-resolved on 6 non-eng jobs). "digital signal
+  // processing" is unambiguous and kept.
+  "digital signal processing": ["signal_processing"],
+  // ── 7-role expansion: Security/IR cluster (2026-07-14) ────────────────────
+  // Exact-snake "security research"/"malware analysis"/"log analysis"/"exploit
+  // development"/"vulnerability analysis" auto-resolve; these are the variants +
+  // maps to existing umbrella IDs.
+  "offensive security research": ["security_research"],
+  "defensive security research": ["security_research"],
+  "cybersecurity research": ["security_research"],
+  "cloud security research": ["security_research"],
+  "offensive security": ["security_research"],
+  "exploitation": ["exploit_development"],
+  "exploit dev": ["exploit_development"],
+  "software exploitation": ["exploit_development"],
+  "malware research": ["malware_analysis"],
+  "static malware analysis": ["malware_analysis"],
+  "dynamic malware analysis": ["malware_analysis"],
+  "vulnerability assessment": ["vulnerability_analysis"],
+  "vulnerability assessments": ["vulnerability_analysis"],
+  "log management": ["log_analysis"],
+  "digital forensics": ["incident_response_forensics"],
+  "forensics": ["incident_response_forensics"],
+  // ── 7-role expansion: Quality/Ops cluster (2026-07-14) ────────────────────
+  // "six sigma"/"lean manufacturing"/"spc" auto-resolve via snake-ID; variants:
+  "lean methodology": ["lean_manufacturing"],
+  "kaizen": ["lean_manufacturing"],
+  "value stream mapping": ["lean_manufacturing"],
+  "dmaic": ["six_sigma"],
+  "6 sigma": ["six_sigma"],
+  "statistical process control": ["spc"],
+  "control charts": ["spc"],
+  "process capability": ["spc"],
+  "circuit design": ["board_design"],
+  "analog design": ["board_design"],
+  "schematic design": ["board_design"],
   // ── Library-expansion batch 1 (2026-07-13) ───────────────────────────────
   // Variants of the batch-1 additions that DON'T auto-resolve via the snake-ID
   // step (exact-snake phrases like "data science"/"os internals"/"teamwork"

@@ -23,6 +23,20 @@ export const BAND_META = {
   reach:   { label: "Reach",        bg: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
 };
 
+// Component 2b direction axis. The for-you feed sorts on rank_score, which boosts
+// on-direction (primary) roles, so a lower "qualified now" % can rank above a
+// higher one. This is the second visible axis that makes that ordering
+// self-explain: attainability = "qualified now", direction = "on your goal path".
+// Derived from relevance_match so it is band-independent (a primary role in the
+// Stretch section still reads on-direction). The live card renders a quiet tag
+// from dot/label; the canvas port reads the same `direction` and applies its own
+// treatment, so it lives here (the shared seam), not in either card. unknown/off
+// resolve to null (nothing honest to say about direction).
+export const DIRECTION_META = {
+  primary:  { label: "On your goal path", tone: "primary",  dot: "var(--rd-teal-dark)" },
+  adjacent: { label: "Adjacent field",    tone: "adjacent", dot: "var(--rd-golden-dark)" },
+};
+
 const SENIORITY_LABEL = {
   entry: "Entry", mid: "Mid", senior: "Senior", lead: "Lead", director: "Director", executive: "Exec",
 };
@@ -87,6 +101,7 @@ export function deriveJobDisplay(job, scoreResult, { showAttainabilityBand = fal
     band,
     badgeStyle,
     bandMeta: attainBand ? BAND_META[attainBand] : null,
+    direction: scored ? DIRECTION_META[scoreResult.relevance_match] || null : null,
     matchedSkills: (scoreResult?.signals?.matched_skills || []).map(humanizeSkillId),
     missingCoreSkills: (scoreResult?.signals?.missing_core_skills || []).map(humanizeSkillId),
     reasonText: (scoreResult?.reasoning?.strengths || []).join(" · "),

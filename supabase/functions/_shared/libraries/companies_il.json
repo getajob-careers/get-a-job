@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1163,
+  "total_companies": 1162,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 229,
+    "comeet": 228,
     "custom": 28,
     "eightfold": 3,
     "greenhouse": 200,
@@ -13253,18 +13253,6 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/5A.00A/positions?token=A5A487629683E1C5D2A2968A5A33C214B433C2&details=true",
       "verified": true,
       "notes": "Comeet; 4 live IL role(s). Comeet r1 harvest 2026-07-08."
-    },
-    {
-      "name": "Ori",
-      "type": "israeli_founded",
-      "industry": "Technology",
-      "domain": "ori-sandbox.com",
-      "careers_url": "https://www.comeet.com/jobs/ori-sandbox/97.00E",
-      "ats": "comeet",
-      "slug": "97.00E",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/97.00E/positions?token=79E2DB41E7879E1E783CF0448E79E26162616&details=true",
-      "verified": true,
-      "notes": "Comeet; 4 live IL role(s). domain-unverified Comeet r1 harvest 2026-07-08."
     },
     {
       "name": "A Security",

@@ -47,3 +47,19 @@ export async function promoteBulletsToProfile({ supabase, user, cvData }) {
   }
   return { updated, skipped };
 }
+
+// FIX (F2): promote the studio-edited MASTER summary to the PROFILE. The master
+// CV's summary IS profiles.summary (the deterministic master build sources it),
+// so a studio edit must persist to the profile or it silently reverts on the
+// next tailor - the exact "new summary wouldn't save" bug (there was NO code
+// path writing profiles.summary from the studio). Only writes a non-empty
+// summary (never wipes the profile with a blank). Returns { ok, error }.
+export async function promoteSummaryToProfile({ supabase, user, summary }) {
+  const s = String(summary || "").trim();
+  if (!user?.id || !s) return { ok: false, error: null };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ summary: s })
+    .eq("id", user.id);
+  return { ok: !error, error: error || null };
+}

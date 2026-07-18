@@ -3,7 +3,17 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { Loader2, Brain, CheckCircle2, Circle, AlertCircle, Trash2, Calendar as CalendarIcon, X, RefreshCw } from "lucide-react";
+import {
+  Loader2,
+  Brain,
+  CheckCircle2,
+  Circle,
+  AlertCircle,
+  Trash2,
+  Calendar as CalendarIcon,
+  X,
+  RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import { resolveDueDate, validateDueDate } from "@/lib/taskDueDate";
@@ -43,11 +53,31 @@ const TASK_MESSAGES = [
 //   - cv → neutral
 //   - application → teal-dark (ready-to-ship)
 const CATEGORY_LABELS = {
-  skill:       { label: "Skill gap",   tint: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
-  project:     { label: "Project",     tint: "var(--rd-coral-tint)",  fg: "var(--rd-coral-dark)" },
-  networking:  { label: "Networking",  tint: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
-  cv:          { label: "CV",          tint: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
-  application: { label: "Application", tint: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
+  skill: {
+    label: "Skill gap",
+    tint: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
+  },
+  project: {
+    label: "Project",
+    tint: "var(--rd-coral-tint)",
+    fg: "var(--rd-coral-dark)",
+  },
+  networking: {
+    label: "Networking",
+    tint: "var(--rd-golden-tint)",
+    fg: "var(--rd-golden-dark)",
+  },
+  cv: {
+    label: "CV",
+    tint: "var(--rd-bg-soft)",
+    fg: "var(--rd-text-secondary)",
+  },
+  application: {
+    label: "Application",
+    tint: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
+  },
 };
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -62,7 +92,9 @@ function dueChipFor(isoString) {
   today.setHours(0, 0, 0, 0);
   const dueMidnight = new Date(due);
   dueMidnight.setHours(0, 0, 0, 0);
-  const dayDiff = Math.round((dueMidnight.getTime() - today.getTime()) / 86400000);
+  const dayDiff = Math.round(
+    (dueMidnight.getTime() - today.getTime()) / 86400000,
+  );
   if (dayDiff < 0) return { label: `Overdue · ${-dayDiff}d`, state: "overdue" };
   if (dayDiff === 0) return { label: "Due today", state: "today" };
   if (dayDiff === 1) return { label: "Due tomorrow", state: "neutral" };
@@ -78,11 +110,16 @@ function dueSortKey(t) {
 }
 
 // rd-token class strings — mirror Profile / StoryBank / Tracker page chrome.
-const RD_CARD     = "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 shadow-rd";
-const RD_CARD_LG  = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
-const RD_BTN_PRIMARY_SM = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors";
-const RD_BTN_GHOST_SM   = "inline-flex items-center gap-1 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1 transition-colors";
+const RD_CARD =
+  "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 shadow-rd";
+const RD_CARD_LG =
+  "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
+const RD_BTN_PRIMARY =
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_PRIMARY_SM =
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors";
+const RD_BTN_GHOST_SM =
+  "inline-flex items-center gap-1 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1 transition-colors";
 
 export default function Tasks() {
   const queryClient = useQueryClient();
@@ -94,11 +131,18 @@ export default function Tasks() {
   const [deletingIds, setDeletingIds] = useState(new Set());
   const [editingDateFor, setEditingDateFor] = useState(null);
 
-  const { data: tasks = [], isLoading: loadingTasks, isError: tasksError } = useQuery({
+  const {
+    data: tasks = [],
+    isLoading: loadingTasks,
+    isError: tasksError,
+  } = useQuery({
     queryKey: ["tasks", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("tasks").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
@@ -111,7 +155,10 @@ export default function Tasks() {
     queryKey: ["careerRoles", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("career_roles").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("career_roles")
+        .select("*")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
@@ -130,16 +177,34 @@ export default function Tasks() {
         .eq("is_complete", false);
       const incompleteIds = (freshTasks || []).map((t) => t.id);
 
-      const { data, error } = await supabase.functions.invoke("generate-tasks", {
-        body: { context: "weekly action plan" },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "generate-tasks",
+        {
+          body: { context: "weekly action plan" },
+        },
+      );
 
       if (error) throw error;
 
       // Safety net: edge function should return only DB-compliant values,
       // but map here too in case an old deploy slips through.
-      const PRIORITY_MAP = { urgent_now: "high", this_week: "medium", longer_term: "low", high: "high", medium: "medium", low: "low" };
-      const CATEGORY_MAP = { application: "application", cv: "cv", skill: "skill", project: "project", networking: "networking", interview_prep: "application", clarity_positioning: "application" };
+      const PRIORITY_MAP = {
+        urgent_now: "high",
+        this_week: "medium",
+        longer_term: "low",
+        high: "high",
+        medium: "medium",
+        low: "low",
+      };
+      const CATEGORY_MAP = {
+        application: "application",
+        cv: "cv",
+        skill: "skill",
+        project: "project",
+        networking: "networking",
+        interview_prep: "application",
+        clarity_positioning: "application",
+      };
       const normPriority = (p) => PRIORITY_MAP[p] || "medium";
       const normCategory = (c) => CATEGORY_MAP[c] || "application";
 
@@ -158,15 +223,23 @@ export default function Tasks() {
       }));
 
       if (generatedTasks.length > 0) {
-        const { error: insertError } = await supabase.from("tasks").insert(generatedTasks);
+        const { error: insertError } = await supabase
+          .from("tasks")
+          .insert(generatedTasks);
         if (insertError) throw insertError;
       }
 
       if (incompleteIds.length > 0) {
-        const { error: deleteError } = await supabase.from("tasks").delete().in("id", incompleteIds).eq("is_complete", false);
+        const { error: deleteError } = await supabase
+          .from("tasks")
+          .delete()
+          .in("id", incompleteIds)
+          .eq("is_complete", false);
         if (deleteError) {
           console.error("Task cleanup error:", deleteError);
-          toast.error("Tasks generated but old tasks could not be removed. Refresh the page.");
+          toast.error(
+            "Tasks generated but old tasks could not be removed. Refresh the page.",
+          );
         }
       }
 
@@ -176,7 +249,9 @@ export default function Tasks() {
       // Surface as an inline retry banner — the previous toast-only behavior
       // left the button stuck in "Generating…" forever if the user missed
       // the toast.
-      setGenerateError(err.message || "Failed to generate tasks. Please try again.");
+      setGenerateError(
+        err.message || "Failed to generate tasks. Please try again.",
+      );
     } finally {
       setGenerating(false);
     }
@@ -186,10 +261,19 @@ export default function Tasks() {
     if (togglingIds.has(task.id)) return;
     setTogglingIds((prev) => new Set(prev).add(task.id));
     queryClient.setQueryData(["tasks", user?.id], (prev) =>
-      (prev || []).map((t) => t.id === task.id ? { ...t, is_complete: !task.is_complete } : t)
+      (Array.isArray(prev) ? prev : []).map((t) =>
+        t.id === task.id ? { ...t, is_complete: !task.is_complete } : t,
+      ),
     );
-    const { error } = await supabase.from("tasks").update({ is_complete: !task.is_complete }).eq("id", task.id);
-    setTogglingIds((prev) => { const next = new Set(prev); next.delete(task.id); return next; });
+    const { error } = await supabase
+      .from("tasks")
+      .update({ is_complete: !task.is_complete })
+      .eq("id", task.id);
+    setTogglingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(task.id);
+      return next;
+    });
     if (error) {
       console.error("Failed to update task:", error);
       toast.error("Failed to update task. Please try again.");
@@ -203,10 +287,14 @@ export default function Tasks() {
     if (deletingIds.has(taskId)) return;
     setDeletingIds((prev) => new Set(prev).add(taskId));
     queryClient.setQueryData(["tasks", user?.id], (prev) =>
-      (prev || []).filter((t) => t.id !== taskId)
+      (Array.isArray(prev) ? prev : []).filter((t) => t.id !== taskId),
     );
     const { error } = await supabase.from("tasks").delete().eq("id", taskId);
-    setDeletingIds((prev) => { const next = new Set(prev); next.delete(taskId); return next; });
+    setDeletingIds((prev) => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
     if (error) {
       console.error("Failed to delete task:", error);
       toast.error("Failed to delete task. Please try again.");
@@ -224,9 +312,14 @@ export default function Tasks() {
       return;
     }
     queryClient.setQueryData(["tasks", user?.id], (prev) =>
-      (prev || []).map((t) => t.id === task.id ? { ...t, due_date: next } : t)
+      (Array.isArray(prev) ? prev : []).map((t) =>
+        t.id === task.id ? { ...t, due_date: next } : t,
+      ),
     );
-    const { error } = await supabase.from("tasks").update({ due_date: next }).eq("id", task.id);
+    const { error } = await supabase
+      .from("tasks")
+      .update({ due_date: next })
+      .eq("id", task.id);
     if (error) {
       console.error("Failed to set due date:", error);
       toast.error("Couldn't update due date.");
@@ -242,12 +335,14 @@ export default function Tasks() {
   // dates surface above the no-date ones at the same priority).
   const sorted = [...tasks].sort((a, b) => {
     if (a.is_complete !== b.is_complete) return a.is_complete ? 1 : -1;
-    const priorityDiff = (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
+    const priorityDiff =
+      (PRIORITY_ORDER[a.priority] ?? 1) - (PRIORITY_ORDER[b.priority] ?? 1);
     if (priorityDiff !== 0) return priorityDiff;
     return dueSortKey(a) - dueSortKey(b);
   });
 
-  const filtered = filter === "all" ? sorted : sorted.filter((t) => t.category === filter);
+  const filtered =
+    filter === "all" ? sorted : sorted.filter((t) => t.category === filter);
   const completedCount = tasks.filter((t) => t.is_complete).length;
 
   if (loadingTasks) {
@@ -281,7 +376,8 @@ export default function Tasks() {
             Your next moves.
           </h1>
           <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
-            Generated from your skill gaps and role requirements. Not invented by you.
+            Generated from your skill gaps and role requirements. Not invented
+            by you.
           </p>
           {tasks.length > 0 && (
             <p className="text-[12px] text-rd-text-tertiary mt-2.5">
@@ -297,9 +393,15 @@ export default function Tasks() {
             className={`${RD_BTN_PRIMARY} flex-shrink-0`}
           >
             {generating ? (
-              <><Loader2 className="w-4 h-4 animate-spin" />Generating…</>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating…
+              </>
             ) : (
-              <><Brain className="w-3.5 h-3.5" />Generate tasks</>
+              <>
+                <Brain className="w-3.5 h-3.5" />
+                Generate tasks
+              </>
             )}
           </button>
         )}
@@ -307,15 +409,23 @@ export default function Tasks() {
 
       {generating && (
         <div className="mb-6">
-          <GeneratingBanner messages={TASK_MESSAGES} subtitle="Generating your tasks - this takes ~20–40 seconds" />
+          <GeneratingBanner
+            messages={TASK_MESSAGES}
+            subtitle="Generating your tasks - this takes ~20–40 seconds"
+          />
         </div>
       )}
 
       {generateError && !generating && (
         <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark mb-6 flex items-center justify-between gap-3 flex-wrap">
           <span>{generateError}</span>
-          <button type="button" onClick={handleGenerate} className={RD_BTN_PRIMARY_SM}>
-            <RefreshCw className="w-3 h-3" />Try again
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className={RD_BTN_PRIMARY_SM}
+          >
+            <RefreshCw className="w-3 h-3" />
+            Try again
           </button>
         </div>
       )}
@@ -326,50 +436,64 @@ export default function Tasks() {
           generic fallback tasks. This banner offers a one-click upgrade
           to real LLM-generated tasks. handleGenerate's delete-then-insert
           flow handles the replacement atomically. See PR C. */}
-      {profile?.onboarding_complete && !generating && allTasksAreOnboardingFallback(tasks) && (
-        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-golden-tint border border-rd-golden/30 text-rd-text mb-6 flex items-center justify-between gap-3 flex-wrap">
-          <span>Your tasks haven&apos;t been personalised yet - these are placeholders.</span>
-          <button type="button" onClick={handleGenerate} className={RD_BTN_PRIMARY_SM}>
-            <Brain className="w-3.5 h-3.5" />Generate personalised tasks
-          </button>
-        </div>
-      )}
+      {profile?.onboarding_complete &&
+        !generating &&
+        allTasksAreOnboardingFallback(tasks) && (
+          <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-golden-tint border border-rd-golden/30 text-rd-text mb-6 flex items-center justify-between gap-3 flex-wrap">
+            <span>
+              Your tasks haven&apos;t been personalised yet - these are
+              placeholders.
+            </span>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              className={RD_BTN_PRIMARY_SM}
+            >
+              <Brain className="w-3.5 h-3.5" />
+              Generate personalised tasks
+            </button>
+          </div>
+        )}
 
       {/* Category filters */}
       {tasks.length > 0 && (
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
-          {["all", "skill", "project", "networking", "cv", "application"].map((cat) => {
-            const selected = filter === cat;
-            return (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setFilter(cat)}
-                aria-pressed={selected}
-                className={[
-                  "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
-                  selected
-                    ? "bg-rd-coral text-white"
-                    : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
-                ].join(" ")}
-              >
-                {cat === "all" ? "All" : CATEGORY_LABELS[cat]?.label || cat}
-              </button>
-            );
-          })}
+          {["all", "skill", "project", "networking", "cv", "application"].map(
+            (cat) => {
+              const selected = filter === cat;
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setFilter(cat)}
+                  aria-pressed={selected}
+                  className={[
+                    "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
+                    selected
+                      ? "bg-rd-coral text-white"
+                      : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
+                  ].join(" ")}
+                >
+                  {cat === "all" ? "All" : CATEGORY_LABELS[cat]?.label || cat}
+                </button>
+              );
+            },
+          )}
         </div>
       )}
 
       {tasks.length === 0 && (
         <div className={`${RD_CARD_LG} text-center`}>
           <Brain className="w-10 h-10 text-rd-coral mx-auto mb-3" />
-          <p className="font-display font-bold text-[15px] text-rd-text">No tasks assigned yet.</p>
+          <p className="font-display font-bold text-[15px] text-rd-text">
+            No tasks assigned yet.
+          </p>
           <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-md mx-auto">
             {!profile
               ? "Complete your profile first."
               : roles.length === 0
-              ? "Generate your Career Roadmap first - tasks are derived from your role gaps."
-              : "Click \"Generate tasks\" to assign work based on your current skill gaps and Track 1 roles."}
+                ? "Generate your Career Roadmap first - tasks are derived from your role gaps."
+                : 'Click "Generate tasks" to assign work based on your current skill gaps and Track 1 roles.'}
           </p>
         </div>
       )}
@@ -395,7 +519,9 @@ export default function Tasks() {
                 onClick={() => toggleComplete(task)}
                 data-task-toggle={task.id}
                 className="mt-0.5 flex-shrink-0"
-                aria-label={task.is_complete ? "Mark incomplete" : "Mark complete"}
+                aria-label={
+                  task.is_complete ? "Mark incomplete" : "Mark complete"
+                }
               >
                 {task.is_complete ? (
                   <CheckCircle2 className="w-5 h-5 text-rd-teal-dark" />
@@ -407,7 +533,14 @@ export default function Tasks() {
                 <div className="flex items-center gap-2 flex-wrap mb-1.5">
                   <p
                     className="font-display font-bold text-[14px] text-rd-text"
-                    style={task.is_complete ? { textDecoration: "line-through", color: "var(--rd-text-tertiary)" } : undefined}
+                    style={
+                      task.is_complete
+                        ? {
+                            textDecoration: "line-through",
+                            color: "var(--rd-text-tertiary)",
+                          }
+                        : undefined
+                    }
                   >
                     {task.title}
                   </p>
@@ -420,23 +553,24 @@ export default function Tasks() {
                   {task.priority === "high" && (
                     <span
                       className="text-[10.5px] font-mono font-semibold uppercase tracking-[0.06em] px-2 py-0.5 rounded-full"
-                      style={{ background: "var(--rd-coral-tint)", color: "var(--rd-coral-dark)" }}
+                      style={{
+                        background: "var(--rd-coral-tint)",
+                        color: "var(--rd-coral-dark)",
+                      }}
                     >
                       High priority
                     </span>
                   )}
-                  {due && (
-                    <DueChip due={due} />
-                  )}
+                  {due && <DueChip due={due} />}
                 </div>
                 {task.description && (
-                  <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">{task.description}</p>
+                  <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
+                    {task.description}
+                  </p>
                 )}
-                {(task.role_title || task.skill_gap) && (
+                {task.role_title && (
                   <p className="text-[11px] text-rd-text-tertiary mt-1">
-                    {task.role_title && `For: ${task.role_title}`}
-                    {task.role_title && task.skill_gap && " · "}
-                    {task.skill_gap && `Gap: ${task.skill_gap}`}
+                    For: {task.role_title}
                   </p>
                 )}
                 {/* Due-date controls. Inline input toggles open via the
@@ -489,9 +623,11 @@ export default function Tasks() {
                 className="flex-shrink-0 text-rd-text-tertiary hover:text-rd-coral-dark transition-colors disabled:opacity-50 mt-0.5"
                 aria-label="Delete task"
               >
-                {deletingIds.has(task.id)
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Trash2 className="w-4 h-4" />}
+                {deletingIds.has(task.id) ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
               </button>
             </div>
           );
@@ -508,11 +644,14 @@ function DueChip({ due }) {
     due.state === "overdue"
       ? "bg-rd-coral-tint text-rd-coral-dark"
       : due.state === "today"
-      ? "bg-rd-golden-tint text-rd-golden-dark"
-      : "bg-rd-bg-soft text-rd-text-secondary";
+        ? "bg-rd-golden-tint text-rd-golden-dark"
+        : "bg-rd-bg-soft text-rd-text-secondary";
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-mono font-semibold uppercase tracking-[0.06em] ${tone}`}>
-      <CalendarIcon className="w-3 h-3" />{due.label}
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10.5px] font-mono font-semibold uppercase tracking-[0.06em] ${tone}`}
+    >
+      <CalendarIcon className="w-3 h-3" />
+      {due.label}
     </span>
   );
 }

@@ -659,6 +659,10 @@ function drawEntryTitleLine(
   dateRight: string | undefined,
   isFirst: boolean,
 ) {
+  // A fully-empty entry (no title AND no date) must reserve NO space, otherwise
+  // it advances the cursor and prints a blank line / floating date (the "weird
+  // extra line" download bug, reachable from a blank added-but-unfilled row). (F3)
+  if (!trim(titleLeft) && !trim(dateRight)) return;
   if (!isFirst)
     ctx.y -= s(ctx, ctx.premium ? ctx.d.spEntryBefore : SP_ENTRY_BEFORE);
   const titleSize = s(ctx, ctx.premium ? ctx.d.roleSize : SIZE_BODY);
@@ -701,6 +705,8 @@ function drawRoleEntry(
   dateRight: string | undefined,
   isFirst: boolean,
 ) {
+  // Fully-empty entry: reserve no space (F3, see drawEntryTitleLine).
+  if (!trim(title) && !trim(org) && !trim(dateRight)) return;
   if (!isFirst) ctx.y -= s(ctx, ctx.d.spEntryBefore);
   const roleSize = s(ctx, ctx.d.roleSize);
   const date = trim(dateRight);

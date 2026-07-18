@@ -56,22 +56,56 @@ function mapExpIn(arr, orgKey) {
 // Editor entry -> persisted entry: overlay the editor-owned fields (under the
 // canonical org key) onto __src, drop ids, bullets back to strings.
 function mapExpOut(arr, orgKey) {
-  return asArray(arr).map((e) => ({
-    ...obj(e.__src),
-    title: str(e.title),
-    [orgKey]: str(e.org),
-    dates: str(e.dates),
-    bullets: asArray(e.bullets)
-      .map((b) => str(b?.text).trim())
-      .filter(Boolean),
-  }));
+  return (
+    asArray(arr)
+      .map((e) => ({
+        ...obj(e.__src),
+        title: str(e.title),
+        [orgKey]: str(e.org),
+        dates: str(e.dates),
+        bullets: asArray(e.bullets)
+          .map((b) => str(b?.text).trim())
+          .filter(Boolean),
+      }))
+      // Drop a fully-blank entry (an added-but-unfilled row): no title, org,
+      // dates, or bullets. Otherwise it persists into cv_data and renders as a
+      // blank line / floating gap in the PDF (the "weird extra line" bug). (F3)
+      .filter(
+        (e) =>
+          str(e.title).trim() ||
+          str(e[orgKey]).trim() ||
+          str(e.dates).trim() ||
+          (Array.isArray(e.bullets) && e.bullets.length > 0),
+      )
+  );
 }
 
 // Rebuild canonical languages [{language,proficiency}] from the editor's flat
 // name list, preserving each language's original object (proficiency + any
 // extras) by matching on name; a newly-typed language with no source becomes a
 // bare name string.
-function rebuildLanguages(modelLangs, baseLangs) {
+// The flat profiles.skills list a MASTER skills edit writes back. The CV shows
+// skills bucketed into { domain, tools, technical } (a computed categorization
+// of the one flat list), but only the domain line is editable; writing back the
+// domain alone would DROP the tools + technical items. So the write is the
+// edited domain MERGED with the preserved tools + technical buckets, deduped
+// case-insensitively, first-seen order. Editing one bucket never drops another.
+// (Honest scope: the master categorizes profile.skills UNION every experience's
+// skills[], so a skill sourced only from an experience is re-derived on rebuild
+// and is not represented here - this owns profiles.skills only.)
+export function masterSkillsFlat({ domain = [], tools = [], technical = [] }) {
+  const seen = new Set();
+  const out = [];
+  for (const s of [...domain, ...tools, ...technical]) {
+    const v = String(s ?? "").trim();
+    if (!v || seen.has(v.toLowerCase())) continue;
+    seen.add(v.toLowerCase());
+    out.push(v);
+  }
+  return out;
+}
+
+export function rebuildLanguages(modelLangs, baseLangs) {
   const base = asArray(baseLangs);
   return asArray(modelLangs).map((name) => {
     const nm = str(name).trim();
@@ -147,7 +181,9 @@ export function fromCvData(cvData) {
       .map((hh) =>
         typeof hh === "string"
           ? hh
-          : [str(hh?.name), str(hh?.description)].filter(Boolean).join(" \u2014 "),
+          : [str(hh?.name), str(hh?.description)]
+              .filter(Boolean)
+              .join(" \u2014 "),
       )
       .filter(Boolean),
     // Untouched original — toCvData overlays onto this to preserve every

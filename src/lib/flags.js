@@ -51,3 +51,52 @@ export function isLowCoverage(ratio) {
     ratio < coverageThreshold()
   );
 }
+
+// Scoring redesign, Component 1: confidence-aware ranking. Shrinks a match's
+// fit_score toward a neutral prior when the evidence is thin/generic/low-
+// coverage (see scoreJobFit.matchConfidence). Opt-in via ?scoring_confidence=1
+// so its impact is verified on the pinned label set before it becomes default
+// (PR #156 lesson: flag a scoring change before fan-out). Off by default =>
+// every caller behaves exactly as before.
+export function scoringConfidenceEnabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("scoring_confidence") ===
+      "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Scoring redesign, combined flag. Bundles the fully-validated re-rank:
+// Component 1 (confidence-aware shrink) + 2a (must-have weighting) + 2b
+// (direction-aware rank_score) + the direction card tag. **Default ON** as of
+// the v2 default-on flip - every user gets the validated stack. The card tag
+// and the re-rank both read this one function, so they flip together by
+// construction (the tag can never show without the re-rank, or vice versa).
+// **Kill switch:** `?scoring_v2=0` forces the legacy path (byte-identical to
+// pre-v2). The old `?scoring_confidence=1` still enables C1 alone when paired
+// with the kill switch (`?scoring_v2=0&scoring_confidence=1`), a diagnostic path.
+export function scoringV2Enabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("scoring_v2") !== "0"
+    );
+  } catch {
+    return true;
+  }
+}
+
+// The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
+// compose so every call site stays in lockstep: C1 turns on under EITHER flag
+// (scoring_confidence is the C1-only alias); 2a turns on under scoring_v2 only.
+// Both off => opts are empty and scoreJobFit is byte-identical to legacy.
+export function scoringOpts() {
+  const v2 = scoringV2Enabled();
+  return {
+    confidenceAware: v2 || scoringConfidenceEnabled(),
+    mustHave: v2,
+    directionBlend: v2,
+  };
+}

@@ -26,6 +26,7 @@ import {
   FileText,
   Trash2,
   Loader2,
+  RotateCcw,
 } from "lucide-react";
 // Template tokens moved to a React-free module so the verification harness can
 // import the same source of truth (see cvTemplates.js). Imported for in-file use
@@ -51,13 +52,30 @@ function Editable({
   className = "",
   placeholder = "",
   block = false,
+  readOnly = false,
+  hint = "",
 }) {
   const ref = useRef(null);
   const Tag = block ? "div" : "span";
   useEffect(() => {
-    if (ref.current && ref.current.innerText !== (value || ""))
+    if (!readOnly && ref.current && ref.current.innerText !== (value || ""))
       ref.current.innerText = value || "";
   }, []);
+  // Read-only-from-source (master dates / email): render the value, never
+  // contentEditable, with a pointer hint. A would-be edit can't silently no-op
+  // here - the exact bug class the write-through arc kills - because there is no
+  // editable surface to type into; the hint points at where the value is owned.
+  if (readOnly) {
+    return (
+      <Tag
+        title={hint || undefined}
+        data-ph={placeholder}
+        className={`cv-edit cv-edit-ro ${block ? "cv-edit-block" : ""} ${className}`}
+      >
+        {value || ""}
+      </Tag>
+    );
+  }
   return (
     <Tag
       ref={ref}
@@ -89,6 +107,7 @@ function ExperienceEntry({
   onBullet,
   onAddBullet,
   onRemoveBullet,
+  isMaster = false,
 }) {
   return (
     <div className="group/entry relative pl-5 mb-3.5">
@@ -119,6 +138,12 @@ function ExperienceEntry({
         <Editable
           value={exp.dates}
           onCommit={(v) => onPatch({ dates: v })}
+          readOnly={isMaster}
+          hint={
+            isMaster
+              ? "Dates come from your profile - edit them in your profile."
+              : ""
+          }
           className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[120px]"
           placeholder="Dates"
         />
@@ -168,6 +193,7 @@ function ExperienceSection({
   onPatchBullet,
   onAddBullet,
   onRemoveBullet,
+  isMaster = false,
 }) {
   return (
     <>
@@ -190,6 +216,7 @@ function ExperienceSection({
                     >
                       <ExperienceEntry
                         exp={exp}
+                        isMaster={isMaster}
                         dragHandleProps={p.dragHandleProps}
                         onPatch={(patch) =>
                           onPatchExp(sectionKey, exp.id, patch)
@@ -358,6 +385,9 @@ export default function CVStudioView({
   onTailorNew,
   onDeleteCv,
   currentCv,
+  isMaster = false, // master = live view (writes through to profile); tailored = document
+  canUndo = false,
+  onUndo,
   saveState = "saved",
   onDownload,
   coach,
@@ -434,6 +464,16 @@ export default function CVStudioView({
           onDelete={onDeleteCv ? handleDelete : null}
         />
         <div className="flex-1" />
+        {isMaster && onUndo && (
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo your last change to your profile"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] text-rd-text-secondary hover:bg-rd-bg-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            <RotateCcw className="w-3.5 h-3.5" /> Undo
+          </button>
+        )}
         <span
           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${savePill.cls}`}
         >
@@ -603,7 +643,9 @@ export default function CVStudioView({
                 </span>
               )}
               <span className="text-[11.5px] text-rd-text-tertiary shrink-0">
-                Click any text to edit · saves automatically
+                {isMaster
+                  ? "Click any text to edit · changes save to your profile"
+                  : "Click any text to edit · changes stay in this copy"}
               </span>
             </div>
           </div>
@@ -630,6 +672,12 @@ export default function CVStudioView({
                 <Editable
                   value={cv.header.email}
                   onCommit={(v) => onPatchHeader({ email: v })}
+                  readOnly={isMaster}
+                  hint={
+                    isMaster
+                      ? "Email comes from your account and can't be edited here."
+                      : ""
+                  }
                   placeholder="email"
                 />
                 <span className="cv-dot">·</span>
@@ -659,6 +707,7 @@ export default function CVStudioView({
                 label="Experience"
                 sectionKey="experiences"
                 items={cv.experiences}
+                isMaster={isMaster}
                 onDragEnd={onDragEnd}
                 onPatchExp={onPatchExp}
                 onPatchBullet={onPatchBullet}
@@ -670,6 +719,7 @@ export default function CVStudioView({
                   label="Military Service"
                   sectionKey="military"
                   items={cv.military}
+                  isMaster={isMaster}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -682,6 +732,7 @@ export default function CVStudioView({
                   label="Volunteering"
                   sectionKey="volunteering"
                   items={cv.volunteering}
+                  isMaster={isMaster}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -694,6 +745,7 @@ export default function CVStudioView({
                   label="Leadership"
                   sectionKey="leadership"
                   items={cv.leadership}
+                  isMaster={isMaster}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -742,6 +794,12 @@ export default function CVStudioView({
                     <Editable
                       value={ed.dates}
                       onCommit={(v) => onPatchEdu(ed.id, { dates: v })}
+                      readOnly={isMaster}
+                      hint={
+                        isMaster
+                          ? "Dates come from your profile - edit them in your profile."
+                          : ""
+                      }
                       className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[80px]"
                       placeholder="Year"
                     />
@@ -813,7 +871,10 @@ export default function CVStudioView({
                           {p.name}
                         </span>
                         {p.url ? (
-                          <span className="text-[color:var(--cv-muted)]"> ({p.url})</span>
+                          <span className="text-[color:var(--cv-muted)]">
+                            {" "}
+                            ({p.url})
+                          </span>
                         ) : null}
                         {p.bullets.length > 0 && (
                           <ul className="cv-summary list-disc pl-4 space-y-0.5 mt-0.5">
@@ -942,6 +1003,8 @@ function CvStudioStyles({ ruleOn }) {
       .cv-edit { outline: none; border-radius: 4px; transition: background .12s ease, box-shadow .12s ease; cursor: text; }
       .cv-edit:hover { background: rgba(0,0,0,.04); box-shadow: 0 0 0 4px rgba(0,0,0,.04); }
       .cv-edit:focus { background: rgba(0,0,0,.05); box-shadow: 0 0 0 4px rgba(0,0,0,.05); }
+      .cv-edit-ro { cursor: help; }
+      .cv-edit-ro:hover { background: transparent; box-shadow: none; text-decoration: underline dotted rgba(0,0,0,.28); text-underline-offset: 3px; }
       .cv-edit-block { display: block; }
       .cv-edit:empty:before { content: attr(data-ph); color: #B5B2AC; font-style: italic; }
       .cv-name { font-size: 28px; font-weight: 700; letter-spacing: -.01em; color: var(--cv-ink); line-height: 1.1; }

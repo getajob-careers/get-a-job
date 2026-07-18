@@ -7,6 +7,7 @@ import AgencyBadge from "@/components/jobs/AgencyBadge";
 import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
 import { prefetchJobDescription, useJobDescription } from "@/lib/queries/useJobDescription";
 import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
+import { scoringV2Enabled } from "@/lib/flags";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -197,6 +198,22 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
         <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
           {[job.company_name, job.location_city || job.location_raw].filter(Boolean).join(" · ")}
         </p>
+
+        {/* Component 2b: quiet direction tag. Shown only in the unified for-you
+            feed AND only with ?scoring_v2, so the direction axis appears in
+            lockstep with the rank_score re-rank it explains, never the re-rank
+            without the reason. A small dot + label, not a redesign; the full
+            visual treatment is the canvas port's job (same d.direction). */}
+        {unified && scoringV2Enabled() && d.direction && (
+          <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-rd-text-secondary">
+            <span
+              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+              style={{ background: d.direction.dot }}
+              aria-hidden="true"
+            />
+            {d.direction.label}
+          </span>
+        )}
 
         {job.is_agency && (
           <div className="mt-1">

@@ -20,6 +20,8 @@
 // the same key when an operator-precedence bug made every entry's end-date
 // render as "present". See PR #234 for the bug history.
 
+import { formatDateRange } from "../_shared/date-format.ts";
+
 export interface SourceExperience {
   title: string;
   company: string;
@@ -77,52 +79,14 @@ export interface ReconcileWarning {
   source_index?: number;
 }
 
-const MONTHS_FULL: Record<string, string> = {
-  january: "Jan", february: "Feb", march: "Mar", april: "Apr", may: "May",
-  june: "Jun", july: "Jul", august: "Aug", september: "Sep", sept: "Sep",
-  october: "Oct", november: "Nov", december: "Dec",
-};
-const MONTHS_SHORT_OK = new Set([
-  "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec",
-]);
-
-function formatDatePart(raw: string): string {
-  const t = String(raw || "").trim();
-  if (!t) return "";
-  const short = t.match(/^([A-Za-z]{3,4})\.?\s+(\d{4})$/);
-  if (short) {
-    const monRaw = short[1];
-    const cap = monRaw.charAt(0).toUpperCase() + monRaw.slice(1, 3).toLowerCase();
-    if (MONTHS_SHORT_OK.has(cap)) return `${cap} ${short[2]}`;
-  }
-  const long = t.match(/^([A-Za-z]+)\s+(\d{4})$/);
-  if (long) {
-    const abbrev = MONTHS_FULL[long[1].toLowerCase()];
-    if (abbrev) return `${abbrev} ${long[2]}`;
-  }
-  if (/^\d{4}$/.test(t)) return t;
-  const numeric = t.match(/^(\d{1,2})[\/\-](\d{4})$/);
-  if (numeric) {
-    const idx = parseInt(numeric[1], 10);
-    if (idx >= 1 && idx <= 12) {
-      const abbrev = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][idx - 1];
-      return `${abbrev} ${numeric[2]}`;
-    }
-  }
-  return t;
-}
-
+// Experience date range for a reconciled entry. Delegates to the shared
+// canonical formatter (Mon YYYY, year-only preserved, ISO day stripped).
 export function formatExperienceDates(
   start: string,
   end: string,
   isCurrent: boolean,
 ): string {
-  const s = formatDatePart(start);
-  const e = isCurrent ? "Present" : formatDatePart(end);
-  if (s && e) return `${s} – ${e}`;
-  if (s) return s;
-  if (e) return e;
-  return "";
+  return formatDateRange(start, end, isCurrent);
 }
 
 function responsibilitiesToBullets(text: string): string[] {

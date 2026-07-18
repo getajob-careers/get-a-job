@@ -91,13 +91,10 @@ const INDUSTRY_SUGGESTIONS = [
   "Agriculture", "Farming", "Food Production", "AgriTech",
 ];
 
-const HONORS_SUGGESTIONS = [
-  "Dean's List", "Honors Program", "President's Honors", "Academic Excellence Award",
-  "Merit Scholarship", "Honors Thesis", "Distinction in Field",
-  "Summa Cum Laude", "Magna Cum Laude", "Cum Laude", "First Class Honors", "High Distinction",
-  "Valedictorian", "Salutatorian", "Outstanding Student Award",
-  "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
-];
+// Intentionally empty: honors must be user-typed (their real, earned awards).
+// Suggesting specific named awards as tap-to-add chips is a fabrication vector
+// (Dean's List was the motivating case for the CV honors-provenance fix).
+const HONORS_SUGGESTIONS = [];
 
 export default function RdSkillTagInput({
   label,
