@@ -45,6 +45,13 @@ jobs:
         run: npm run lint
         continue-on-error: false
 
+      # Ground-occlusion guard: fails if a ground-filling layout wrapper carries
+      # an opaque bg that would occlude the -z-10 grain ground. This bug class
+      # recurred three times invisibly; enforce it so it cannot recur silently.
+      - name: Ground check
+        run: npm run check:ground
+        continue-on-error: false
+
       # Typecheck is non-blocking until the existing TS errors in Tracker.jsx
       # (shadcn component type inference issues) are resolved. Track progress
       # via `npm run typecheck` locally; this step surfaces regressions

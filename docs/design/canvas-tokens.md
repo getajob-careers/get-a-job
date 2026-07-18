@@ -59,6 +59,12 @@ with it).
   expected, not a bug. Keeping the grain on the h-screen shell (not inside the
   scroll container) is also what makes it a FIXED ground that content scrolls over,
   rather than a texture that scrolls away.
+- **ENFORCED by `scripts/check-ground.mjs`** (wired into CI + `npm run check:ground`,
+  added 2026-07-18 after the class recurred three times). It fails the build if a
+  ground-filling wrapper (`flex-1` / `overflow-*-auto` / `h-full` / `h-screen`) in
+  the layout/shell files carries an opaque bg class, unless that element is the
+  isolate ground provider itself (`isolate`). Scoped to layout files so it never
+  fires on cards. Prose alone did not stop the recurrence; this does.
 - **Verify by pixel-diff, never by computed style.** A `-z-10` layer can exist in
   the DOM with the correct computed style and still paint nothing. To confirm the
   ground renders: screenshot with vs without and diff the pixels (a real change is
