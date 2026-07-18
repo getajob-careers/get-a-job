@@ -357,6 +357,7 @@ export default function CVStudioLive() {
     headline: "headline",
     linkedin: "linkedin",
     location: "location",
+    phone: "phone",
   };
   const EXP_FIELD = { title: "exp_title", org: "exp_company" };
   const EDU_FIELD = {
@@ -364,6 +365,14 @@ export default function CVStudioLive() {
     degree: "edu_degree",
     field: "edu_field",
   };
+  const CERT_FIELD = {
+    name: "cert_name",
+    issuer: "cert_issuer",
+    date: "cert_date",
+  };
+  // project_name / project_url write through; project BULLETS have no source
+  // column (cv_data-only) -> deliberately absent, so a bullet edit loud-surfaces.
+  const PROJ_FIELD = { name: "project_name", url: "project_url" };
 
   const onPatchHeader = (patch) => {
     const prevModel = modelRef.current;
@@ -552,6 +561,68 @@ export default function CVStudioLive() {
       const field = EDU_FIELD[k];
       if (!field) continue;
       const eid = attributedId(srcId, "education entry");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  // Certifications (S7): name/issuer/date write through to the certifications
+  // row (entityId = certification_id stamped by the master build). Edit-existing
+  // only; add/delete stays on the Profile page.
+  const onPatchCert = (id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
+      ...m,
+      certifications: m.certifications.map((c) =>
+        c.id === id ? { ...c, ...patch } : c,
+      ),
+    }));
+    if (!next) return;
+    const srcId =
+      next.certifications.find((c) => c.id === id)?.__src?.certification_id ||
+      null;
+    for (const [k, val] of Object.entries(patch)) {
+      const field = CERT_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "certification");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  // Projects (S7): name/url write through to the projects row. Project BULLETS
+  // are cv_data-only (no source column) - editing them loud-surfaces as
+  // "stayed on this CV only" and never writes through (Eli ruling, option a).
+  const onPatchProject = (id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
+      ...m,
+      projects: m.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+    if (!next) return;
+    const srcId =
+      next.projects.find((p) => p.id === id)?.__src?.project_id || null;
+    for (const [k, val] of Object.entries(patch)) {
+      if (k === "bullets") {
+        if (isMasterCv())
+          toast(
+            "Project bullets live on this CV only - your name and link save to your profile, but bullets stay here.",
+          );
+        continue;
+      }
+      const field = PROJ_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "project");
       if (eid)
         writeField({
           field,
@@ -1078,6 +1149,8 @@ export default function CVStudioLive() {
         onRemoveBullet={onRemoveBullet}
         onDragEnd={onDragEnd}
         onPatchEdu={onPatchEdu}
+        onPatchCert={onPatchCert}
+        onPatchProject={onPatchProject}
         onPatchSkills={onPatchSkills}
         onPatchLanguages={onPatchLanguages}
         templateId={templateId}

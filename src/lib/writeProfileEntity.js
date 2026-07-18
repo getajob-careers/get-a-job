@@ -20,10 +20,12 @@ function supabaseDb(supabase) {
     entity === "profile" ? q : q.eq("user_id", userId);
   return {
     async readRow(table, rowId, userId, entity, column) {
-      let q = supabase
-        .from(table)
-        .select(`${column}, updated_at`)
-        .eq("id", rowId);
+      // select("*") not "${column}, updated_at": certifications / projects have
+      // NO updated_at column (only profiles/experiences/education got it in the
+      // foundation migration), so naming it would error the read and kill the
+      // write. "*" reads the column + updated_at where it exists (version=null
+      // otherwise, which optimistic concurrency treats as fail-open).
+      let q = supabase.from(table).select("*").eq("id", rowId);
       q = ownershipEq(q, entity, userId);
       const { data, error } = await q.maybeSingle();
       if (error) return { found: false, error: error.message };

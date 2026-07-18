@@ -136,10 +136,10 @@ function makeServiceDb(
     entity === "profile" ? q : q.eq("user_id", userId);
   return {
     async readRow(table, rowId, _uid, entity, column) {
-      let q = serviceClient
-        .from(table)
-        .select(`${column}, updated_at`)
-        .eq("id", rowId);
+      // select("*"): certifications / projects have no updated_at column, so
+      // naming it would error the read. "*" reads the column + updated_at where
+      // it exists (version=null otherwise -> optimistic concurrency fail-open).
+      let q = serviceClient.from(table).select("*").eq("id", rowId);
       q = ownership(q, entity);
       const { data, error } = await q.maybeSingle();
       if (error) return { found: false, error: error.message };
