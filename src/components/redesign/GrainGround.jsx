@@ -1,23 +1,20 @@
 import React from "react";
 
-// GrainGround - the canonical LOCKED grain texture (SINGLE SOURCE OF TRUTH). A
-// faint paper/fibre noise (inline SVG feTurbulence) multiplied over the ground,
-// felt more than seen. Pure CSS (no image asset). Static. Painted on a `-z-10`
-// layer BEHIND content, so it never touches text AA or card-vs-ground elevation.
-// Final baked opacity 0.36. The canvas `_preview/canvas/CanvasTexture.jsx`
-// re-exports THIS file, and both the canvas + the production Layout import it, so
-// the grain cannot fork again (it did once, in Phase 0). It sits ON TOP of
-// DepthField (rendered first) - the field tone + arcs are the base it composites
-// on; grain alone over the bare page reads lighter and flatter (that was the bug).
+// GrainGround - the canonical ground TEXTURE (SINGLE SOURCE OF TRUTH). As of
+// 2026-07-18 this is the mockup's DOT GRID, not grain: a subtle radial-gradient
+// dot pattern in the border tone (--rd-border), 1.1px dots on a 26px grid - the
+// exact texture the canonical handoff mockup paints on its content area (see
+// docs/design/reference/app-handoff-mockup.html). The old feTurbulence grain
+// retired to the graveyard: it was greying the cream (Eli's ruling). Painted on a
+// transparent `-z-10` pointer-events-none layer over DepthField, so it never
+// touches text AA or card-vs-ground elevation. Token-driven, so it re-tints.
 //
-// CRITICAL: this only paints when its nearest positioned ancestor is a STACKING
-// CONTEXT (`isolate` on the Layout shell). Without it the `-z-10` layer escapes
-// upward and paints behind the opaque page background - silently invisible.
-// Verify visual changes by pixel-diff, not computed style. See the ground spec in
-// docs/design/canvas-tokens.md.
+// (File name kept as GrainGround for now so existing imports/re-exports resolve;
+// a rename to DotGround is a follow-up cleanup. Verify visual changes by
+// pixel-diff, not computed style. See the ground spec in canvas-tokens.md.)
 
-const GRAIN_URL =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+const DOT_GRID =
+  "radial-gradient(var(--rd-border, #E0D2B9) 1.1px, transparent 1.1px)";
 
 export default function GrainGround() {
   return (
@@ -25,10 +22,8 @@ export default function GrainGround() {
       aria-hidden="true"
       className="absolute inset-0 -z-10 pointer-events-none"
       style={{
-        backgroundImage: GRAIN_URL,
-        backgroundRepeat: "repeat",
-        mixBlendMode: "multiply",
-        opacity: 0.36,
+        backgroundImage: DOT_GRID,
+        backgroundSize: "26px 26px",
       }}
     />
   );

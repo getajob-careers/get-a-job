@@ -80,60 +80,68 @@
   }
 
   /* Flag ON: the crowned YISHAI system. */
+  /* Flag ON: the crowned YISHAI system, sampled VERBATIM from the canonical
+     handoff mockup (docs/design/reference/app-handoff-mockup.html - the file's
+     own CSS vars). Comments name the mockup var each value came from. DERIVED =
+     the mockup does not define this slot; minimally derived from its neighbours
+     (Eli-ruled, 2026-07-18). AA notes: two token pairs fail WCAG AA on the exact
+     hexes and were min-fixed (marked); text-tertiary + the neutral mono chip
+     stay EXACT as the accepted faint-meta tier (see canvas-tokens.md). */
   :root[data-next-design] {
-    /* Surfaces - greige ground + the MEDIUM cool-tinted card */
-    --rd-bg-page: #ebe8e1;
-    --rd-bg-card: #ecedf7;
-    --rd-bg-sidebar: #e3e0d8;
-    --rd-bg-soft: #e6e3db;
+    /* Surfaces - mockup creams */
+    --rd-bg-page: #f4ebda; /* --bg (body) */
+    --rd-bg-card: #fffcf4; /* --card */
+    --rd-bg-sidebar: #fffcf4; /* --card (mockup sidebar = card) */
+    --rd-bg-soft: #ece0c9; /* --bg-warm */
 
     /* Lines */
-    --rd-border: #dad6cd;
-    --rd-border-subtle: #e4e1d9;
-    --rd-border-hover: #c8c4ba;
+    --rd-border: #e0d2b9; /* --line */
+    --rd-border-subtle: #e9dec8; /* --line-soft */
+    --rd-border-hover: #d4c4a6; /* DERIVED (one step darker than --line) */
 
-    /* Text - brown ink (AA on greige + on the tinted card) */
-    --rd-text: #60483e;
-    --rd-text-secondary: #6b5346;
-    --rd-text-tertiary: #755c4e;
-    --rd-text-eyebrow: #60617d;
+    /* Text - brown ink */
+    --rd-text: #4a372d; /* --ink */
+    --rd-text-secondary: #7b675c; /* --ink-soft #7C685C, AA min-fix (4.44 -> 4.51 on --bg) */
+    --rd-text-tertiary: #a6957f; /* --ink-faint EXACT (accepted faint-meta tier, sub-AA) */
+    --rd-text-eyebrow: #60617d; /* --accent (.h section eyebrow) */
 
-    /* Primary (the `coral` slot = Yishai blue) */
-    --rd-coral: #60617d;
-    --rd-coral-dark: #4b4c63;
-    --rd-coral-tint: #e4e4ec;
+    /* Primary (the `coral` slot = mockup blue accent) */
+    --rd-coral: #60617d; /* --accent */
+    --rd-coral-dark: #4b4c66; /* --accent-deep */
+    --rd-coral-tint: #e3e3ec; /* --accent-tint */
 
-    /* Strong band (the `teal` slot = Yishai mauve secondary) */
-    --rd-teal: #9b7d8a;
-    --rd-teal-dark: #6e5460;
-    --rd-teal-tint: #eee4e8;
+    /* Strong band (the `teal` slot = mockup mauve) */
+    --rd-teal: #9b7d8a; /* --mauve */
+    --rd-teal-dark: #7b606d; /* --mauve-deep #7E626F, AA min-fix (4.36 -> 4.51 on --mauve-tint) */
+    --rd-teal-tint: #efe3e9; /* --mauve-tint */
 
-    /* Stretch band (the `golden` slot = derived ochre) */
-    --rd-golden: #9c7a46;
-    --rd-golden-dark: #6b4f24;
-    --rd-golden-tint: #f1e7d2;
+    /* Stretch band (the `golden` slot = mockup BROWN family; the mockup has no
+       ochre, Eli chose option A - map to his neighbours, no invented hue) */
+    --rd-golden: #60483e; /* --brown */
+    --rd-golden-dark: #4a362e; /* --brown-deep */
+    --rd-golden-tint: #e9decf; /* --brown-tint */
 
-    /* Decorative */
-    --rd-peach: #d8a98c;
+    /* --rd-peach RETIRED: the mockup defines no peach. Unported consumers
+       (legacy SidebarFooter, onboarding) fall back to the :root v1 value. */
 
-    /* Elevation + type + depth-field tone + logotype glaze highlight */
-    --rd-shadow:
-      0 22px 46px -14px rgba(52, 50, 74, 0.3), 0 6px 16px rgba(52, 50, 74, 0.16);
-    --rd-field: #dcd9d0;
-    --rd-logo-hi: #8a8ba8;
+    /* Elevation + field tone + logotype glaze highlight */
+    --rd-shadow: 0 14px 40px -22px rgba(96, 72, 62, 0.4); /* --shadow (warm brown) */
+    --rd-field: #f4ebda; /* ground base (was greige #DCD9D0; grain retired, see below) */
+    --rd-logo-hi: #8b8ca3; /* --accent-soft */
     --rd-font-display: "Rokkitt", Georgia, serif;
 
-    /* MEDIUM amplitude (always-on) - mauve-forward + coach tint. Consumed by the
-       ported components in later phases; defined now so they're ready. */
-    --rd-amp-section-fg: #60617d;
+    /* Component tokens. section-fg / mauve / coach map to mockup vars; the
+       kanban-* slots stay DERIVED until PR3 ports the mockup's cream-cards-with-
+       dots kanban (it has no mauve-fill header). */
+    --rd-amp-section-fg: #60617d; /* --accent */
     --rd-amp-bandstrip: 0.5;
-    --rd-amp-coach-bg: #ecedf5;
-    --rd-amp-mauve: #9b7d8a;
-    --rd-amp-mauve-wash: #e9dae0;
-    --rd-amp-kanban-header: #9b7d8a;
-    --rd-amp-kanban-label: #ffffff;
-    --rd-amp-kanban-body: #efe4e8;
-    --rd-amp-deco: #9b7d8a;
+    --rd-amp-coach-bg: #ece0c9; /* --bg-warm (coach card base; mockup gradient -> #E5D6C0) */
+    --rd-amp-mauve: #9b7d8a; /* --mauve */
+    --rd-amp-mauve-wash: #efe3e9; /* --mauve-tint */
+    --rd-amp-kanban-header: #9b7d8a; /* DERIVED (retain mauve until PR3) */
+    --rd-amp-kanban-label: #fdfbf5; /* --onaccent */
+    --rd-amp-kanban-body: #efe4e8; /* DERIVED (retain until PR3) */
+    --rd-amp-deco: #9b7d8a; /* DERIVED */
   }
 }
 
