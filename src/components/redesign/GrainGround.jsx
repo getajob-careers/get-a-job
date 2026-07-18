@@ -1,10 +1,14 @@
 import React from "react";
 
-// GrainGround - the LOCKED ground texture (page-port Phase 0), promoted from the
-// canvas `CanvasTexture` to production. A faint paper/fibre noise (inline SVG
-// feTurbulence) multiplied over the greige ground, felt more than seen. Pure CSS
-// (no image asset). Static. Painted on a `-z-10` layer BEHIND content, so it
-// never touches text AA or card-vs-ground elevation. Final baked opacity 0.36.
+// GrainGround - the canonical LOCKED grain texture (SINGLE SOURCE OF TRUTH). A
+// faint paper/fibre noise (inline SVG feTurbulence) multiplied over the ground,
+// felt more than seen. Pure CSS (no image asset). Static. Painted on a `-z-10`
+// layer BEHIND content, so it never touches text AA or card-vs-ground elevation.
+// Final baked opacity 0.36. The canvas `_preview/canvas/CanvasTexture.jsx`
+// re-exports THIS file, and both the canvas + the production Layout import it, so
+// the grain cannot fork again (it did once, in Phase 0). It sits ON TOP of
+// DepthField (rendered first) - the field tone + arcs are the base it composites
+// on; grain alone over the bare page reads lighter and flatter (that was the bug).
 //
 // CRITICAL: this only paints when its nearest positioned ancestor is a STACKING
 // CONTEXT (`isolate` on the Layout shell). Without it the `-z-10` layer escapes

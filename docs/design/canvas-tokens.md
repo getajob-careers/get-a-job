@@ -24,18 +24,35 @@ no palette/amplitude param — the canvas renders the crowned look by default.
 
 ## THE GROUND (official spec — locked, Eli 2026-07-17)
 
-The ground is **greige `#EBE8E1` + grain**, and the grain only survives if the
-shell is a stacking context. Both halves are load-bearing; the port must carry
-both or the ground silently reverts to flat greige (and the depth field vanishes
-with it).
+The ground is a THREE-LAYER STACK on the isolate shell, in this order:
+**page `#EBE8E1` (fallback) -> DepthField (field tone `#DCD9D0` + brand arcs) ->
+grain (multiply)**. The visible ground is the FIELD tone `#DCD9D0` (DepthField
+covers the page), NOT the bare page `#EBE8E1` - the page is only the fallback
+behind DepthField. The grain composites on the field tone, not the page.
 
-- **Grain** (`CanvasTexture.jsx`): an inline **SVG feTurbulence** fractal-noise
+**SINGLE SOURCE OF TRUTH (2026-07-18):** the field + grain live in
+`src/components/redesign/DepthField.jsx` + `GrainGround.jsx`. The canvas
+(`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them, and the
+production `Layout` imports them, so the canvas and the real app render the
+identical ground and cannot fork. **The port originally forked this** (Phase 0
+shipped only the grain over the bare page `#EBE8E1`, no DepthField), which made the
+real app ground read ~16 levels LIGHTER and flatter than the crowned canvas ground
+(`#D0CDC7` vs `#E0DDD8` on a bare-strip crop). The bar is "indistinguishable from
+the crowned canvas ground," which needs the whole stack from one source, not just
+the grain.
+
+- **Grain** (`GrainGround.jsx`): an inline **SVG feTurbulence** fractal-noise
   (`baseFrequency 0.85`, 2 octaves), **`mix-blend-mode: multiply`**, **final
-  opacity `0.36`** (the baked value = grain base 0.06 × the 6× intensity Eli
-  picked — one number, no runtime math). Pure CSS data-URI, no image asset, so it
-  ports as a page-background treatment. Rendered on the **`-z-10` field layer**
-  (with `CanvasField`'s depth arcs), behind cards — so it never touches text AA or
-  card-vs-ground elevation. Gradient + dots explorations retired to `_graveyard.js`.
+  opacity `0.36`** (the baked value = grain base 0.06 x the 6x intensity Eli
+  picked - one number, no runtime math). Pure CSS data-URI, no image asset, so it
+  ports as a page-background treatment. Rendered on the **`-z-10` field layer** ON
+  TOP of `DepthField` (rendered first), behind cards - so it never touches text AA
+  or card-vs-ground elevation. Gradient + dots explorations retired to
+  `_graveyard.js`.
+- **DepthField** (`DepthField.jsx`): the base layer under the grain - field tone
+  `#DCD9D0` + oversized brand arcs (token-driven), `-z-10`, behind cards. This is
+  what the grain composites on; without it the grain reads flat over the lighter
+  page.
 - **`isolate` on the shell is REQUIRED (part of this spec, not incidental).** The
   ground layers are `position:absolute; z-index:-10`. If their nearest positioned
   ancestor is not a **stacking context**, the negative z-index escapes upward and

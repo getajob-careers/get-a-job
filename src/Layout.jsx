@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
+import DepthField from "@/components/redesign/DepthField";
 import GrainGround from "@/components/redesign/GrainGround";
 import { createPageUrl } from "@/utils";
 import {
@@ -262,13 +263,17 @@ function LayoutBody({ children, currentPageName }) {
 
   return (
     // `relative isolate` makes this shell a STACKING CONTEXT - REQUIRED for the
-    // -z-10 GrainGround to paint (see canvas-tokens.md ground spec + GrainGround).
-    // The greige ground comes from bg-rd-bg-page; the grain multiplies over it,
-    // behind all content. (Phase-2 shell restructure keeps this ground.)
+    // -z-10 ground layers to paint (see canvas-tokens.md ground spec). The GROUND
+    // STACK is the canonical canvas ground, shared source: DepthField (field tone
+    // #DCD9D0 + brand arcs) FIRST, then GrainGround (grain multiply) on top - the
+    // exact stack + order the crowned home-3tab renders, so the two are
+    // indistinguishable. bg-rd-bg-page is the fallback behind DepthField.
+    // (Phase-2 shell restructure keeps this ground.)
     <div
       data-private
       className="relative isolate flex h-screen bg-rd-bg-page font-body text-rd-text"
     >
+      <DepthField />
       <GrainGround />
       <TopLoadingBar loading={navLoading} />
       {/* Mobile overlay */}
