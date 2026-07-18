@@ -10,7 +10,11 @@
 import {
   runMediatedWrite,
   routeFor,
+  TABLE,
 } from "../../supabase/functions/_shared/write-mediation.ts";
+
+// Row entities the Studio can add/delete (whole rows, not single fields).
+const ROW_ENTITIES = new Set(["experience", "education"]);
 
 // Build the supabase-backed WriteDb. Profiles are keyed by id = userId (1:1 with
 // auth.users); experiences/education are keyed by row id AND user_id (defense in
@@ -20,10 +24,12 @@ function supabaseDb(supabase) {
     entity === "profile" ? q : q.eq("user_id", userId);
   return {
     async readRow(table, rowId, userId, entity, column) {
-      let q = supabase
-        .from(table)
-        .select(`${column}, updated_at`)
-        .eq("id", rowId);
+      // select("*") not "${column}, updated_at": certifications / projects have
+      // NO updated_at column (only profiles/experiences/education got it in the
+      // foundation migration), so naming it would error the read and kill the
+      // write. "*" reads the column + updated_at where it exists (version=null
+      // otherwise, which optimistic concurrency treats as fail-open).
+      let q = supabase.from(table).select("*").eq("id", rowId);
       q = ownershipEq(q, entity, userId);
       const { data, error } = await q.maybeSingle();
       if (error) return { found: false, error: error.message };
@@ -111,6 +117,108 @@ export async function reorderExperiences(
       : undefined,
     undo_order: priorOrderedIds,
   };
+}
+
+// Add a new experience/education ROW (Studio "add entry"). A row add is a
+// multi-field insert, not a single-field write, so it is a distinct audited
+// helper (like reorderExperiences). Returns the new row (incl. id) so the caller
+// stamps it into the editor model. Undo = deleteProfileRow(the new id).
+export async function createProfileRow(
+  supabase,
+  { userId, entity, values = {}, source = "studio" },
+) {
+  if (!userId || !ROW_ENTITIES.has(entity))
+    return { ok: false, error: "Unsupported entity for add." };
+  const { data, error } = await supabase
+    .from(TABLE[entity])
+    .insert({ ...values, user_id: userId })
+    .select("*")
+    .single();
+  if (error) return { ok: false, error: error.message };
+  const { error: auditErr } = await supabase.from("profile_edits").insert({
+    user_id: userId,
+    entity_type: entity,
+    entity_id: data.id,
+    field: "create",
+    prior_value: null,
+    new_value: data,
+    source,
+  });
+  return {
+    ok: true,
+    id: data.id,
+    row: data,
+    audit_ok: !auditErr,
+    error: auditErr
+      ? `Added, but the change history couldn't be recorded: ${auditErr.message}`
+      : undefined,
+  };
+}
+
+// Delete an experience/education ROW (destructive). Snapshots the FULL row
+// FIRST so undo can re-insert it exactly - including awards / honors (the S4
+// cascade: those feed the CV Honors section and would otherwise be lost).
+// Audited (prior_value = the whole row). Returns { snapshot } for undo.
+export async function deleteProfileRow(
+  supabase,
+  { userId, entity, rowId, source = "studio" },
+) {
+  if (!userId || !ROW_ENTITIES.has(entity) || !rowId)
+    return { ok: false, error: "Unsupported delete." };
+  const table = TABLE[entity];
+  const { data: snapshot, error: readErr } = await supabase
+    .from(table)
+    .select("*")
+    .eq("id", rowId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (readErr) return { ok: false, error: readErr.message };
+  if (!snapshot) return { ok: false, error: "That entry was already removed." };
+  const { error: delErr } = await supabase
+    .from(table)
+    .delete()
+    .eq("id", rowId)
+    .eq("user_id", userId);
+  if (delErr) return { ok: false, error: delErr.message };
+  const { error: auditErr } = await supabase.from("profile_edits").insert({
+    user_id: userId,
+    entity_type: entity,
+    entity_id: rowId,
+    field: "delete",
+    prior_value: snapshot,
+    new_value: null,
+    source,
+  });
+  return {
+    ok: true,
+    snapshot,
+    audit_ok: !auditErr,
+    error: auditErr
+      ? `Removed, but the change history couldn't be recorded: ${auditErr.message}`
+      : undefined,
+  };
+}
+
+// Re-insert a full-row snapshot (undo of a delete). Re-inserts with the SAME id
+// so ordering / references stay valid. Audited.
+export async function restoreProfileRow(
+  supabase,
+  { userId, entity, snapshot, source = "studio" },
+) {
+  if (!userId || !ROW_ENTITIES.has(entity) || !snapshot?.id)
+    return { ok: false, error: "Nothing to restore." };
+  const { error } = await supabase.from(TABLE[entity]).insert(snapshot);
+  if (error) return { ok: false, error: error.message };
+  const { error: auditErr } = await supabase.from("profile_edits").insert({
+    user_id: userId,
+    entity_type: entity,
+    entity_id: snapshot.id,
+    field: "restore",
+    prior_value: null,
+    new_value: snapshot,
+    source,
+  });
+  return { ok: true, audit_ok: !auditErr };
 }
 
 // Session-scoped undo (Requirement 1). Restores the prior value captured in the

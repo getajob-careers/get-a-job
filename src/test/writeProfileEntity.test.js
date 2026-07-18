@@ -52,6 +52,8 @@ function mockSupabase(initial) {
         async maybeSingle() {
           const found = rows.find(match);
           if (!found) return { data: null, error: null };
+          if (op.cols.trim() === "*")
+            return { data: { ...found }, error: null };
           const cols = op.cols.split(",").map((s) => s.trim());
           const data = {};
           for (const c of cols) data[c] = found[c];

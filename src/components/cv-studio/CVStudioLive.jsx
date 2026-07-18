@@ -49,6 +49,9 @@ import {
   writeProfileEntity,
   undoProfileWrite,
   reorderExperiences,
+  createProfileRow,
+  deleteProfileRow,
+  restoreProfileRow,
 } from "@/lib/writeProfileEntity";
 import { useSeededCvModel } from "@/components/cv-studio/useSeededCvModel";
 
@@ -357,6 +360,7 @@ export default function CVStudioLive() {
     headline: "headline",
     linkedin: "linkedin",
     location: "location",
+    phone: "phone",
   };
   const EXP_FIELD = { title: "exp_title", org: "exp_company" };
   const EDU_FIELD = {
@@ -364,6 +368,14 @@ export default function CVStudioLive() {
     degree: "edu_degree",
     field: "edu_field",
   };
+  const CERT_FIELD = {
+    name: "cert_name",
+    issuer: "cert_issuer",
+    date: "cert_date",
+  };
+  // project_name / project_url write through; project BULLETS have no source
+  // column (cv_data-only) -> deliberately absent, so a bullet edit loud-surfaces.
+  const PROJ_FIELD = { name: "project_name", url: "project_url" };
 
   const onPatchHeader = (patch) => {
     const prevModel = modelRef.current;
@@ -561,6 +573,270 @@ export default function CVStudioLive() {
           label: k,
         });
     }
+  };
+  // Certifications (S7): name/issuer/date write through to the certifications
+  // row (entityId = certification_id stamped by the master build). Edit-existing
+  // only; add/delete stays on the Profile page.
+  const onPatchCert = (id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
+      ...m,
+      certifications: m.certifications.map((c) =>
+        c.id === id ? { ...c, ...patch } : c,
+      ),
+    }));
+    if (!next) return;
+    const srcId =
+      next.certifications.find((c) => c.id === id)?.__src?.certification_id ||
+      null;
+    for (const [k, val] of Object.entries(patch)) {
+      const field = CERT_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "certification");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  // Projects (S7): name/url write through to the projects row. Project BULLETS
+  // are cv_data-only (no source column) - editing them loud-surfaces as
+  // "stayed on this CV only" and never writes through (Eli ruling, option a).
+  const onPatchProject = (id, patch) => {
+    const prevModel = modelRef.current;
+    const next = update((m) => ({
+      ...m,
+      projects: m.projects.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+    if (!next) return;
+    const srcId =
+      next.projects.find((p) => p.id === id)?.__src?.project_id || null;
+    for (const [k, val] of Object.entries(patch)) {
+      if (k === "bullets") {
+        if (isMasterCv())
+          toast(
+            "Project bullets live on this CV only - your name and link save to your profile, but bullets stay here.",
+          );
+        continue;
+      }
+      const field = PROJ_FIELD[k];
+      if (!field) continue;
+      const eid = attributedId(srcId, "project");
+      if (eid)
+        writeField({
+          field,
+          entityId: eid,
+          newValue: val,
+          prevModel,
+          label: k,
+        });
+    }
+  };
+  // ── Entry add / delete (PR-B) ───────────────────────────────────────────────
+  // Adding/deleting an experience or education ENTRY is a whole-ROW op (insert /
+  // delete), routed through the dedicated audited helpers (create/delete/restore
+  // ProfileRow). Master mutates the source row + is undoable (delete captures a
+  // full-row snapshot so undo re-inserts awards/honors too); tailored is
+  // cv_data-only. New rows start blank; the user then edits fields which write
+  // through via the existing per-field handlers.
+  const onAddExperience = async () => {
+    const prevModel = modelRef.current;
+    if (!prevModel) return;
+    const entry = {
+      id: uid(),
+      title: "",
+      org: "",
+      dates: "",
+      bullets: [],
+      __src: {},
+    };
+    if (!isMasterCv()) {
+      update((m) => ({ ...m, experiences: [...m.experiences, entry] }));
+      return;
+    }
+    if (!user?.id) return;
+    const res = await createProfileRow(supabase, {
+      userId: user.id,
+      entity: "experience",
+      values: { title: "", company: "" },
+    });
+    if (!res.ok) {
+      toast.error(res.error || "Couldn't add that role.");
+      return;
+    }
+    entry.__src = { experience_id: res.id };
+    update((m) => ({ ...m, experiences: [...m.experiences, entry] }));
+    if (res.audit_ok === false)
+      toast("Added, but the change history couldn't be recorded.");
+    pushUndo({
+      label: "added role",
+      prevModel,
+      revertSource: () =>
+        deleteProfileRow(supabase, {
+          userId: user.id,
+          entity: "experience",
+          rowId: res.id,
+        }),
+    });
+  };
+  const onAddEducation = async () => {
+    const prevModel = modelRef.current;
+    if (!prevModel) return;
+    const entry = {
+      id: uid(),
+      institution: "",
+      degree: "",
+      dates: "",
+      field: "",
+      __src: {},
+    };
+    if (!isMasterCv()) {
+      update((m) => ({ ...m, education: [...m.education, entry] }));
+      return;
+    }
+    if (!user?.id) return;
+    const res = await createProfileRow(supabase, {
+      userId: user.id,
+      entity: "education",
+      values: {},
+    });
+    if (!res.ok) {
+      toast.error(res.error || "Couldn't add that education entry.");
+      return;
+    }
+    entry.__src = { education_id: res.id };
+    update((m) => ({ ...m, education: [...m.education, entry] }));
+    if (res.audit_ok === false)
+      toast("Added, but the change history couldn't be recorded.");
+    pushUndo({
+      label: "added education",
+      prevModel,
+      revertSource: () =>
+        deleteProfileRow(supabase, {
+          userId: user.id,
+          entity: "education",
+          rowId: res.id,
+        }),
+    });
+  };
+  // Destructive. On the master, confirm first - surfacing the S4 cascade (an
+  // experience's awards / an education entry's honors feed the CV Honors section
+  // and go with the row). Undo restores the full-row snapshot.
+  const onDeleteExperience = async (section, id) => {
+    const prevModel = modelRef.current;
+    const entry = prevModel?.[section]?.find((e) => e.id === id);
+    if (!entry) return;
+    const master = isMasterCv();
+    const srcId = entry.__src?.experience_id || null;
+    if (master && srcId) {
+      const dbRow = experiences.find((x) => x.id === srcId);
+      const awards = Array.isArray(dbRow?.awards)
+        ? dbRow.awards.filter(Boolean).length
+        : 0;
+      const cascade = awards
+        ? ` This also removes ${awards} award${awards > 1 ? "s" : ""} from your Honors section.`
+        : "";
+      if (
+        !window.confirm(
+          `Delete this experience from your profile?${cascade} You can undo it after.`,
+        )
+      )
+        return;
+    }
+    const next = update((m) => ({
+      ...m,
+      [section]: m[section].filter((e) => e.id !== id),
+    }));
+    if (!next || !master) return;
+    if (!srcId) {
+      attributedId(null, "role"); // removed from this CV only
+      return;
+    }
+    const res = await deleteProfileRow(supabase, {
+      userId: user.id,
+      entity: "experience",
+      rowId: srcId,
+    });
+    if (!res.ok) {
+      modelRef.current = prevModel;
+      setModel(prevModel);
+      setEditVersion((v) => v + 1);
+      persist(selectedCvId, prevModel);
+      toast.error(res.error || "Couldn't delete that role.");
+      return;
+    }
+    if (res.audit_ok === false)
+      toast("Removed, but the change history couldn't be recorded.");
+    pushUndo({
+      label: "deleted role",
+      prevModel,
+      revertSource: () =>
+        restoreProfileRow(supabase, {
+          userId: user.id,
+          entity: "experience",
+          snapshot: res.snapshot,
+        }),
+    });
+  };
+  const onDeleteEducation = async (id) => {
+    const prevModel = modelRef.current;
+    const entry = prevModel?.education?.find((e) => e.id === id);
+    if (!entry) return;
+    const master = isMasterCv();
+    const srcId = entry.__src?.education_id || null;
+    if (master && srcId) {
+      const dbRow = education.find((x) => x.id === srcId);
+      const honors = Array.isArray(dbRow?.honors)
+        ? dbRow.honors.filter(Boolean).length
+        : 0;
+      const cascade = honors
+        ? ` This also removes ${honors} honor${honors > 1 ? "s" : ""} from your Honors section.`
+        : "";
+      if (
+        !window.confirm(
+          `Delete this education entry from your profile?${cascade} You can undo it after.`,
+        )
+      )
+        return;
+    }
+    const next = update((m) => ({
+      ...m,
+      education: m.education.filter((e) => e.id !== id),
+    }));
+    if (!next || !master) return;
+    if (!srcId) {
+      attributedId(null, "education entry");
+      return;
+    }
+    const res = await deleteProfileRow(supabase, {
+      userId: user.id,
+      entity: "education",
+      rowId: srcId,
+    });
+    if (!res.ok) {
+      modelRef.current = prevModel;
+      setModel(prevModel);
+      setEditVersion((v) => v + 1);
+      persist(selectedCvId, prevModel);
+      toast.error(res.error || "Couldn't delete that education entry.");
+      return;
+    }
+    if (res.audit_ok === false)
+      toast("Removed, but the change history couldn't be recorded.");
+    pushUndo({
+      label: "deleted education",
+      prevModel,
+      revertSource: () =>
+        restoreProfileRow(supabase, {
+          userId: user.id,
+          entity: "education",
+          snapshot: res.snapshot,
+        }),
+    });
   };
   // Skills: the edited domain line writes back to the single flat profiles.skills,
   // MERGED with the preserved tools + technical buckets so editing domain never
@@ -1078,6 +1354,12 @@ export default function CVStudioLive() {
         onRemoveBullet={onRemoveBullet}
         onDragEnd={onDragEnd}
         onPatchEdu={onPatchEdu}
+        onPatchCert={onPatchCert}
+        onPatchProject={onPatchProject}
+        onAddExperience={onAddExperience}
+        onDeleteExperience={onDeleteExperience}
+        onAddEducation={onAddEducation}
+        onDeleteEducation={onDeleteEducation}
         onPatchSkills={onPatchSkills}
         onPatchLanguages={onPatchLanguages}
         templateId={templateId}

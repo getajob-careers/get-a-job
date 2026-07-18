@@ -42,55 +42,90 @@ when `isNextDesign()`; flag-off keeps the opaque `<main>` (no ground to occlude)
 **deletes the whole mechanism**: this bootstrap, `nextDesign.js`, every guard, and
 the `:root[data-next-design]` selector (promote its values into `:root`).
 
-## THE PALETTE (crowned — Eli, 2026-07-17)
+## THE PALETTE (canonical source = the handoff mockup - Eli, 2026-07-18)
 
-**YISHAI is the system.** After a five-finalist flip (Clay / Yishai / Heather /
-Moss / Pewter, each dressed identically at medium), Yishai won. The losers'
-tokens/tool-sets are retired to `_graveyard.js`; the switcher is deleted; there is
-no palette/amplitude param — the canvas renders the crowned look by default.
+**The mockup file is the canonical colour source.** Every `--rd-*` value in
+`:root[data-next-design]` (`src/index.css`) is sampled VERBATIM from
+`docs/design/reference/app-handoff-mockup.html` (the file's own `:root` CSS vars),
+not by eye and not from `palette.js`. This **supersedes the greige decision**
+(greige + its rationale are in the graveyard note under THE GROUND).
 
-- **Palette** (`palette.js` `YISHAI`): brown ink `#60483E`, **greige ground**
-  `#EBE8E1` (the mock's cream `#F4EBDA` read yellow at full-page scale and was
-  replaced), blue primary `#60617D`, mauve secondary `#9B7D8A`, derived ochre
-  stretch `#9C7A46`. Logotype mark is blue (the crowned re-open).
-- **The always-on MEDIUM treatment** (`amplitude.js` `MEDIUM`): a cool blue-tinted
-  card `#ECEDF7` lifted above the greige ground (shadow deepened to carry the
-  lift), the coach panel owning a soft blue tint, section headers on the primary,
-  and the **mauve-forward** pass — vivid `#9B7D8A` filled kanban headers (white
-  20px large-bold labels, legal on the 3:1 floor), mauve washes + deco. AA +
-  elevation gated by `scripts/audit-amplitude.mjs`.
+**Token map (mockup var -> our slot):**
 
-## THE GROUND (official spec — locked, Eli 2026-07-17)
+| slot                               | mockup var                        | value                                 |
+| ---------------------------------- | --------------------------------- | ------------------------------------- |
+| `bg-page`                          | `--bg`                            | `#F4EBDA`                             |
+| `bg-card` / `bg-sidebar`           | `--card`                          | `#FFFCF4`                             |
+| `bg-soft`                          | `--bg-warm`                       | `#ECE0C9`                             |
+| `border` / `border-subtle`         | `--line` / `--line-soft`          | `#E0D2B9` / `#E9DEC8`                 |
+| `text`                             | `--ink`                           | `#4A372D`                             |
+| `text-secondary`                   | `--ink-soft` (AA min-fix)         | `#7B675C`                             |
+| `text-tertiary`                    | `--ink-faint` (EXACT, faint tier) | `#A6957F`                             |
+| `eyebrow` / `coral` (primary=blue) | `--accent`                        | `#60617D`                             |
+| `coral-dark` / `-tint`             | `--accent-deep` / `--accent-tint` | `#4B4C66` / `#E3E3EC`                 |
+| `teal` (secondary=mauve)           | `--mauve`                         | `#9B7D8A`                             |
+| `teal-dark` (AA min-fix) / `-tint` | `--mauve-deep` / `--mauve-tint`   | `#7B606D` / `#EFE3E9`                 |
+| `golden` (stretch)                 | `--brown` family (DERIVED)        | `#60483E` / `#4A362E` / `#E9DECF`     |
+| `shadow`                           | `--shadow`                        | `0 14px 40px -22px rgba(96,72,62,.4)` |
+| `logo-hi`                          | `--accent-soft`                   | `#8B8CA3`                             |
 
-The ground is a THREE-LAYER STACK on the isolate shell, in this order:
-**page `#EBE8E1` (fallback) -> DepthField (field tone `#DCD9D0` + brand arcs) ->
-grain (multiply)**. The visible ground is the FIELD tone `#DCD9D0` (DepthField
-covers the page), NOT the bare page `#EBE8E1` - the page is only the fallback
-behind DepthField. The grain composites on the field tone, not the page.
+**DERIVED slots (the mockup does not define these - flagged, not invented):**
 
-**SINGLE SOURCE OF TRUTH (2026-07-18):** the field + grain live in
-`src/components/redesign/DepthField.jsx` + `GrainGround.jsx`. The canvas
-(`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them, and the
-production `Layout` imports them, so the canvas and the real app render the
-identical ground and cannot fork. **The port originally forked this** (Phase 0
-shipped only the grain over the bare page `#EBE8E1`, no DepthField), which made the
-real app ground read ~16 levels LIGHTER and flatter than the crowned canvas ground
-(`#D0CDC7` vs `#E0DDD8` on a bare-strip crop). The bar is "indistinguishable from
-the crowned canvas ground," which needs the whole stack from one source, not just
-the grain.
+- `golden*` = the mockup's **brown** family (no ochre in the file; Eli chose
+  option A - map to his neighbours, no invented hue).
+- `border-hover` `#D4C4A6` (one step darker than `--line`).
+- `--rd-peach` **RETIRED** (no peach in the mockup); unported consumers (legacy
+  `SidebarFooter`, onboarding) fall back to the `:root` v1 value.
+- `field` = `#F4EBDA` (the ground base).
+- `amp-kanban-header` / `-body` / `-deco` retain their prior values until PR3 ports
+  the mockup's cream-cards-with-dots kanban (it has no mauve-fill header).
 
-- **Grain** (`GrainGround.jsx`): an inline **SVG feTurbulence** fractal-noise
-  (`baseFrequency 0.85`, 2 octaves), **`mix-blend-mode: multiply`**, **final
-  opacity `0.36`** (the baked value = grain base 0.06 x the 6x intensity Eli
-  picked - one number, no runtime math). Pure CSS data-URI, no image asset, so it
-  ports as a page-background treatment. Rendered on the **`-z-10` field layer** ON
-  TOP of `DepthField` (rendered first), behind cards - so it never touches text AA
-  or card-vs-ground elevation. Gradient + dots explorations retired to
-  `_graveyard.js`.
-- **DepthField** (`DepthField.jsx`): the base layer under the grain - field tone
-  `#DCD9D0` + oversized brand arcs (token-driven), `-z-10`, behind cards. This is
-  what the grain composites on; without it the grain reads flat over the lighter
-  page.
+**AA exceptions (Eli-ruled - exact fidelity is the default, legibility is his call):**
+
+- **Min-fixed (imperceptible):** text-secondary `#7C685C -> #7B675C`, mauve chip
+  `#7E626F -> #7B606D`, hero eyebrow `#C6C7D6 -> #DEDFE7`.
+- **Accepted as-is (sub-AA, deliberate faint-meta tier):** `--rd-text-tertiary`
+  `#A6957F` (2.46 on `--bg`) and the neutral mono chip `#A6957F` on `#ECE0C9`
+  (2.22). These are de-emphasised meta (timestamps, counts); Eli accepted the
+  exact mockup hexes.
+- **Mauve badge:** keep `#9B7D8A` at large/UI sizes; darken the FILL to ~`#84697A`
+  only where SMALL text renders on it (a component rule, applied when the badges
+  port in PR3).
+
+## THE GROUND (official spec - mockup-sourced, Eli 2026-07-18)
+
+The ground is the MOCKUP's treatment: a cream base + a decorative blob layer + a
+dot-grid texture, a `-z-10` stack on the isolate shell, in this order:
+**page `#F4EBDA` (fallback) -> DepthField (cream field `--rd-field #F4EBDA` + two
+blurred colour BLOBS) -> DotGrid (the mockup's subtle dot texture)**.
+
+**SINGLE SOURCE OF TRUTH:** the field + texture live in
+`src/components/redesign/DepthField.jsx` + `GrainGround.jsx` (the latter now
+renders the DOT GRID, not grain - a rename to `DotGround` is a follow-up so
+existing imports/re-exports stay valid). The canvas
+(`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them and the
+production shell imports them, so the canvas and the real app render the identical
+ground and cannot fork.
+
+- **Dot grid** (`GrainGround.jsx`): `radial-gradient(var(--rd-border) 1.1px,
+transparent 1.1px)` on a `26px` grid - the exact texture the mockup paints on
+  its content area. Transparent `-z-10` layer over `DepthField`, behind cards, so
+  it never touches text AA or card-vs-ground elevation. Token-driven, so it
+  re-tints with the palette.
+- **Blobs** (`DepthField.jsx`): two large, heavily-blurred circles on the cream
+  `--rd-field` base - accent (`--rd-coral`, 420px, blur 130px, opacity .10,
+  top-right) and mauve (`--rd-teal`, 340px, blur 120px, opacity .12, lower-left) -
+  the mockup's `.blob-a` / `.blob-b`. `-z-10`, behind cards.
+
+**GRAVEYARD (retired 2026-07-18, Eli ruled the mockup canonical):**
+
+- **greige `#EBE8E1` + its rationale.** Greige was chosen when the mock's cream
+  `#F4EBDA` was judged to read yellow at full-page scale. Superseded: the mockup's
+  exact creams are now canonical.
+- **the feTurbulence grain** (`baseFrequency 0.85`, multiply, opacity 0.36) + the
+  **greige brand arcs**. The grain was **greying the cream** - a multiply layer
+  darkens/desaturates the ground toward greige (visible in the A/B/C texture
+  side-by-side that drove this ruling). Replaced by the mockup's dot grid + blobs.
 - **`isolate` on the shell is REQUIRED (part of this spec, not incidental).** The
   ground layers are `position:absolute; z-index:-10`. If their nearest positioned
   ancestor is not a **stacking context**, the negative z-index escapes upward and

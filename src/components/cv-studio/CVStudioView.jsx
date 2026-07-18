@@ -107,6 +107,7 @@ function ExperienceEntry({
   onBullet,
   onAddBullet,
   onRemoveBullet,
+  onDelete,
   isMaster = false,
 }) {
   return (
@@ -119,6 +120,16 @@ function ExperienceEntry({
       >
         <GripVertical className="w-4 h-4" />
       </button>
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          aria-label="Delete this experience"
+          title="Delete this experience"
+          className="absolute right-[-4px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
       <div className="flex items-baseline justify-between gap-3">
         <div className="text-[13.5px] min-w-0">
           <Editable
@@ -193,6 +204,8 @@ function ExperienceSection({
   onPatchBullet,
   onAddBullet,
   onRemoveBullet,
+  onDeleteExperience,
+  onAddExperience,
   isMaster = false,
 }) {
   return (
@@ -228,6 +241,11 @@ function ExperienceSection({
                         onRemoveBullet={(bId) =>
                           onRemoveBullet(sectionKey, exp.id, bId)
                         }
+                        onDelete={
+                          onDeleteExperience
+                            ? () => onDeleteExperience(sectionKey, exp.id)
+                            : undefined
+                        }
                       />
                     </div>
                   )}
@@ -238,6 +256,14 @@ function ExperienceSection({
           )}
         </Droppable>
       </DragDropContext>
+      {onAddExperience && (
+        <button
+          onClick={onAddExperience}
+          className="mt-1 ml-5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+        >
+          <Plus className="w-3 h-3" /> Add role
+        </button>
+      )}
     </>
   );
 }
@@ -374,6 +400,12 @@ export default function CVStudioView({
   onRemoveBullet,
   onDragEnd,
   onPatchEdu,
+  onPatchCert,
+  onPatchProject,
+  onAddExperience,
+  onDeleteExperience,
+  onAddEducation,
+  onDeleteEducation,
   onPatchSkills,
   onPatchLanguages,
   templates = CV_TEMPLATES,
@@ -692,6 +724,12 @@ export default function CVStudioView({
                   onCommit={(v) => onPatchHeader({ location: v })}
                   placeholder="Location"
                 />
+                <span className="cv-dot">·</span>
+                <Editable
+                  value={cv.header.phone}
+                  onCommit={(v) => onPatchHeader({ phone: v })}
+                  placeholder="Phone"
+                />
               </div>
 
               <SectionLabel>Summary</SectionLabel>
@@ -713,6 +751,8 @@ export default function CVStudioView({
                 onPatchBullet={onPatchBullet}
                 onAddBullet={onAddBullet}
                 onRemoveBullet={onRemoveBullet}
+                onDeleteExperience={onDeleteExperience}
+                onAddExperience={onAddExperience}
               />
               {cv.military?.length > 0 && (
                 <ExperienceSection
@@ -725,6 +765,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
               {cv.volunteering?.length > 0 && (
@@ -738,6 +779,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
               {cv.leadership?.length > 0 && (
@@ -751,6 +793,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
 
@@ -759,8 +802,18 @@ export default function CVStudioView({
                 {cv.education.map((ed) => (
                   <div
                     key={ed.id}
-                    className="flex items-baseline justify-between gap-3"
+                    className="group/edu relative flex items-baseline justify-between gap-3 pr-5"
                   >
+                    {onDeleteEducation && (
+                      <button
+                        onClick={() => onDeleteEducation(ed.id)}
+                        aria-label="Delete this education entry"
+                        title="Delete this education entry"
+                        className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <div className="text-[12.5px] min-w-0">
                       <Editable
                         value={ed.institution}
@@ -806,6 +859,14 @@ export default function CVStudioView({
                   </div>
                 ))}
               </div>
+              {onAddEducation && (
+                <button
+                  onClick={onAddEducation}
+                  className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add education entry
+                </button>
+              )}
 
               <SectionLabel>Skills</SectionLabel>
               <Editable
@@ -851,35 +912,74 @@ export default function CVStudioView({
               {cv.certifications?.length > 0 && (
                 <>
                   <SectionLabel>Certifications</SectionLabel>
-                  <ul className="cv-summary list-disc pl-4 space-y-0.5">
-                    {cv.certifications.map((ct, i) => (
-                      <li key={i}>
-                        {[ct.name, ct.issuer].filter(Boolean).join(", ")}
-                        {ct.date ? ` (${ct.date})` : ""}
-                      </li>
+                  <div className="space-y-0.5">
+                    {cv.certifications.map((ct) => (
+                      <div
+                        key={ct.id}
+                        className="cv-summary flex items-baseline gap-1 flex-wrap"
+                      >
+                        <Editable
+                          value={ct.name}
+                          onCommit={(v) => onPatchCert(ct.id, { name: v })}
+                          className="font-medium text-[color:var(--cv-ink)]"
+                          placeholder="Certification"
+                        />
+                        <span className="text-[color:var(--cv-muted)]">·</span>
+                        <Editable
+                          value={ct.issuer}
+                          onCommit={(v) => onPatchCert(ct.id, { issuer: v })}
+                          placeholder="Issuer"
+                        />
+                        <Editable
+                          value={ct.date}
+                          onCommit={(v) => onPatchCert(ct.id, { date: v })}
+                          className="text-[color:var(--cv-muted)]"
+                          placeholder="Year"
+                        />
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </>
               )}
               {cv.projects?.length > 0 && (
                 <>
                   <SectionLabel>Projects</SectionLabel>
                   <div className="space-y-1.5">
-                    {cv.projects.map((p, i) => (
-                      <div key={i} className="text-[12.5px]">
-                        <span className="font-semibold text-[color:var(--cv-ink)]">
-                          {p.name}
+                    {cv.projects.map((p) => (
+                      <div key={p.id} className="text-[12.5px]">
+                        <Editable
+                          value={p.name}
+                          onCommit={(v) => onPatchProject(p.id, { name: v })}
+                          className="font-semibold text-[color:var(--cv-ink)]"
+                          placeholder="Project"
+                        />
+                        <span className="text-[color:var(--cv-muted)]">
+                          {" "}
+                          ·{" "}
                         </span>
-                        {p.url ? (
-                          <span className="text-[color:var(--cv-muted)]">
-                            {" "}
-                            ({p.url})
-                          </span>
-                        ) : null}
+                        <Editable
+                          value={p.url}
+                          onCommit={(v) => onPatchProject(p.id, { url: v })}
+                          className="text-[color:var(--cv-muted)]"
+                          placeholder="Link"
+                        />
                         {p.bullets.length > 0 && (
                           <ul className="cv-summary list-disc pl-4 space-y-0.5 mt-0.5">
                             {p.bullets.map((b, j) => (
-                              <li key={j}>{b}</li>
+                              <li key={j}>
+                                <Editable
+                                  value={b}
+                                  onCommit={(v) =>
+                                    onPatchProject(p.id, {
+                                      bullets: p.bullets.map((x, k) =>
+                                        k === j ? v : x,
+                                      ),
+                                    })
+                                  }
+                                  placeholder="Detail"
+                                  block
+                                />
+                              </li>
                             ))}
                           </ul>
                         )}

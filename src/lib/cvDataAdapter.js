@@ -67,11 +67,15 @@ function mapExpOut(arr, orgKey) {
           .map((b) => str(b?.text).trim())
           .filter(Boolean),
       }))
-      // Drop a fully-blank entry (an added-but-unfilled row): no title, org,
-      // dates, or bullets. Otherwise it persists into cv_data and renders as a
-      // blank line / floating gap in the PDF (the "weird extra line" bug). (F3)
+      // Drop a fully-blank SYNTHETIC entry (no source row): no title, org,
+      // dates, or bullets. Otherwise it renders as a blank line / floating gap
+      // in the PDF (the "weird extra line" bug). (F3) A blank entry backed by a
+      // real experiences row (experience_id present, e.g. a just-added "Add
+      // role" the user hasn't filled in yet) is KEPT, so it survives reload and
+      // stays visible to fill in or delete - never a silently-orphaned row.
       .filter(
         (e) =>
+          e.experience_id ||
           str(e.title).trim() ||
           str(e[orgKey]).trim() ||
           str(e.dates).trim() ||
@@ -165,16 +169,20 @@ export function fromCvData(cvData) {
     skillsTechnical: asArray(c.skills?.technical).map(str).filter(Boolean),
     certifications: asArray(c.certifications)
       .map((ct) => ({
+        id: uid(),
         name: str(ct?.name),
         issuer: str(ct?.issuer),
         date: str(ct?.date_earned || ct?.date),
+        __src: obj(ct),
       }))
       .filter((ct) => ct.name || ct.issuer),
     projects: asArray(c.projects)
       .map((p) => ({
+        id: uid(),
         name: str(p?.name),
         url: str(p?.url),
         bullets: asArray(p?.bullets).map(str).filter(Boolean),
+        __src: obj(p),
       }))
       .filter((p) => p.name || p.bullets.length > 0),
     honors: asArray(c.honors_and_awards)
@@ -236,6 +244,27 @@ export function toCvData(model) {
   // Mirror summary into about_me only if the source carried it — don't introduce
   // a key that wasn't there.
   if ("about_me" in base) out.about_me = str(m.summary);
+  // Re-emit certifications / projects from the editor model, overlaying each
+  // entry's __src so certification_id / project_id and any unsurfaced keys
+  // (e.g. project.description) round-trip. Only when the source carried the key
+  // (don't introduce it). Optional fields stay conditional to match the
+  // deterministic master build's shape.
+  if ("certifications" in base)
+    out.certifications = asArray(m.certifications).map((ct) => ({
+      ...obj(ct.__src),
+      name: str(ct.name),
+      ...(str(ct.issuer) ? { issuer: str(ct.issuer) } : {}),
+      ...(str(ct.date) ? { date_earned: str(ct.date) } : {}),
+    }));
+  if ("projects" in base)
+    out.projects = asArray(m.projects).map((p) => ({
+      ...obj(p.__src),
+      name: str(p.name),
+      ...(str(p.url) ? { url: str(p.url) } : {}),
+      ...(asArray(p.bullets).length
+        ? { bullets: asArray(p.bullets).map(str).filter(Boolean) }
+        : {}),
+    }));
   return out;
 }
 

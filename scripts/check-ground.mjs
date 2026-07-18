@@ -1,10 +1,12 @@
-// check-ground.mjs - ENFORCEMENT for the grain-ground occlusion class.
+// check-ground.mjs - ENFORCEMENT for the ground-occlusion class.
 //
-// The greige+grain ground is a `-z-10` layer on the isolate app shell (Layout),
-// mounted ONLY when the NEXT_DESIGN flag is on. It paints on the shell's
-// background, BEHIND the shell's in-flow children. So any GROUND-FILLING wrapper
-// between the shell and the page content that carries an OPAQUE background paints
-// OVER the grain and silently occludes it. This class of bug recurred THREE times
+// The cream ground (the DepthField field + blobs, plus the mockup DOT-GRID
+// texture - 2026-07-18, was greige + grain) is a `-z-10` layer on the isolate app
+// shell (Layout / CanvasShell), mounted ONLY when the NEXT_DESIGN flag is on. It
+// paints on the shell's background, BEHIND the shell's in-flow children. So any
+// GROUND-FILLING wrapper between the shell and the page content that carries an
+// OPAQUE background paints OVER the ground and silently occludes it. This class of
+// bug recurred THREE times
 // (preview shell, first port on <main>, ...), each time invisible until a
 // pixel-diff caught it. Prose in canvas-tokens.md was not enough; this fails the
 // build instead.
@@ -17,7 +19,7 @@
 //    | bg-[#hex])
 // UNLESS one of:
 //   (a) it is the isolate ground provider itself (className also has `isolate`) -
-//       that element is SUPPOSED to carry the greige bg + the grain; or
+//       that element is SUPPOSED to carry the cream field + dot grid; or
 //   (b) the opaque bg is FLAG-GATED to the flag-OFF branch (appears only inside a
 //       `!nextDesign && "..."` / `!isNextDesign() && "..."` clause). Flag OFF
 //       mounts no ground, so an opaque <main> there occludes nothing - it is the
