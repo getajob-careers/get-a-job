@@ -4,6 +4,44 @@ The token layer for the fixture-Home redesign. These are **enforced**, not
 suggestions: `scripts/check-scale.mjs` fails on any off-scale size/radius in the
 canvas tree.
 
+## THE REVEAL FLAG - NEXT_DESIGN (standing architecture, Eli 2026-07-18)
+
+The redesign ships to users as **ONE reveal**, not phase by phase. Every
+user-visible redesign change is gated by a single flag. **Flag OFF (default) =
+current app, byte-identical for all real users. Flag ON = the redesign as far as
+it is built.** Each phase still **merges to `main`** as it is verified (no
+long-lived branch, no rot, per-PR CI stays real); the flag, not the branch, holds
+the reveal.
+
+**`src/lib/nextDesign.js` (`isNextDesign()`) is the ONLY legal guard.** No phase
+may invent its own check. Shell, components, and pages all gate on either:
+
+- **JS:** `isNextDesign()` from `src/lib/nextDesign.js`, or
+- **CSS:** the `:root[data-next-design]` selector (for token overrides).
+
+Both read the SAME signal: a `data-next-design` attribute on `<html>`, set once
+**before first paint** by the bootstrap in `index.html`. Resolving it pre-paint
+(not via an async profile fetch) is what avoids a flash on the CSS-variable swap.
+
+**Precedence:** `?next=` query param > `localStorage 'nextDesign'` >
+`VITE_NEXT_DESIGN` build default.
+
+- Turn ON: append **`?next=1`** to any URL (persists in this browser).
+- Turn OFF: **`?next=0`**.
+- At a glance: flag-ON non-reveal shows a small **`NEXT`** badge, bottom-right
+  (suppressed once `VITE_NEXT_DESIGN=1`, i.e. reveal day).
+
+**Token gating:** `src/index.css` keeps the v1 production values in `:root`
+(byte-identical to old `main`) and puts the Yishai values under
+`:root[data-next-design]` (specificity `(0,1,1)` beats `(0,0,1)`). **Ground
+gating:** `Layout` mounts DepthField + GrainGround and drops the `<main>` bg only
+when `isNextDesign()`; flag-off keeps the opaque `<main>` (no ground to occlude).
+`scripts/check-ground.mjs` understands the flag-off-gated bg.
+
+**Reveal day** = flip the default (`VITE_NEXT_DESIGN=1`), then a cleanup phase
+**deletes the whole mechanism**: this bootstrap, `nextDesign.js`, every guard, and
+the `:root[data-next-design]` selector (promote its values into `:root`).
+
 ## THE PALETTE (crowned — Eli, 2026-07-17)
 
 **YISHAI is the system.** After a five-finalist flip (Clay / Yishai / Heather /

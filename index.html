@@ -5,6 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#FBF8F1" />
+    <!-- NEXT_DESIGN flag bootstrap. Resolves the redesign flag ONCE, before first
+         paint and before the CSS module loads, so the token overrides in
+         :root[data-next-design] (src/index.css) and the JS guard
+         (src/lib/nextDesign.js) never disagree and there is no flash. Precedence:
+         ?next= query param > localStorage 'nextDesign' > VITE_NEXT_DESIGN build
+         default. Flag OFF (default) = current production, untouched. This whole
+         block is deleted at reveal. -->
+    <script>
+      (function () {
+        try {
+          var q = new URLSearchParams(location.search).get("next");
+          if (q === "1") localStorage.setItem("nextDesign", "1");
+          else if (q === "0") localStorage.removeItem("nextDesign");
+          var envDefault = "%VITE_NEXT_DESIGN%" === "1";
+          if (localStorage.getItem("nextDesign") === "1" || envDefault) {
+            document.documentElement.setAttribute("data-next-design", "");
+          }
+        } catch (e) {}
+      })();
+    </script>
     <!-- SEO / social. Static so no-JS crawlers and social unfurlers (which do
          NOT run JS) get a real card. Per-route overrides (canonical, JSON-LD)
          are set at runtime in the landing head hook. -->

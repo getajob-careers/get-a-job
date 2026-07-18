@@ -16,18 +16,71 @@
  * "Token reference" table so the doc stays the source of truth.
  */
 /*
- * YISHAI - THE crowned design system (page-port Phase 0, 2026-07-17). These
- * values are the locked look from the canvas: the Yishai palette on the GREIGE
- * ground with the always-on MEDIUM treatment MERGED IN (the canvas applied MEDIUM
- * as a separate layer; production just bakes the final values here - no runtime
- * amplitude layer). Source of truth + rationale: docs/design/canvas-tokens.md.
- * The --rd-amp-* tokens below feed the mauve-forward surfaces (kanban headers,
- * washes, coach tint) that the component ports (Phase 3) consume; harmless until
- * then. Grain ground + the `isolate` requirement live on the authenticated shell
- * (Layout), per the ground spec.
+ * NEXT_DESIGN reveal flag. The redesign ships to users as ONE reveal, gated by a
+ * single flag (see src/lib/nextDesign.js + the bootstrap in index.html). This
+ * block defines the --rd-* tokens for BOTH states:
+ *
+ *   :root                   = flag OFF (default) = the v1 production palette,
+ *                             byte-identical to pre-Phase-0 main. Real users see
+ *                             NO change until reveal day.
+ *   :root[data-next-design] = flag ON = the crowned YISHAI system (Yishai palette
+ *                             on the GREIGE ground, always-on MEDIUM treatment
+ *                             baked in). Its specificity (0,1,1) beats :root
+ *                             (0,0,1), so it wins once the bootstrap sets
+ *                             data-next-design on <html>.
+ *
+ * Source of truth + rationale: docs/design/canvas-tokens.md. --rd-field,
+ * --rd-logo-hi and the --rd-amp-* tokens are new to the redesign and live ONLY in
+ * the ON block (field tone feeds the DepthField ground; amp-* feed the ported
+ * components in later phases). At reveal: delete the OFF :root, promote the ON
+ * values into :root, drop the [data-next-design] selector. Mirror any edit into
+ * tasks/redesign.md's token table.
  */
 @layer base {
+  /* Flag OFF (default): the exact pre-Phase-0 main palette. Do not "improve" it -
+     this exists to be byte-identical to old main until reveal day. */
   :root {
+    /* Surfaces */
+    --rd-bg-page: #faf6f0;
+    --rd-bg-card: #ffffff;
+    --rd-bg-sidebar: #efe7db;
+    --rd-bg-soft: #f3ece0;
+
+    /* Lines */
+    --rd-border: #f0e7d8;
+    --rd-border-subtle: #ede7dd;
+    --rd-border-hover: #e0d6c4;
+
+    /* Text */
+    --rd-text: #211d18;
+    --rd-text-secondary: #6e675b;
+    --rd-text-tertiary: #5e584e;
+    --rd-text-eyebrow: #766445;
+
+    /* Coral (primary) */
+    --rd-coral: #d6421f;
+    --rd-coral-dark: #b23a17;
+    --rd-coral-tint: #fce6df;
+
+    /* Teal */
+    --rd-teal: #54b5a2;
+    --rd-teal-dark: #2a6e5e;
+    --rd-teal-tint: #dbeee8;
+
+    /* Golden */
+    --rd-golden: #efb23e;
+    --rd-golden-dark: #7a5408;
+    --rd-golden-tint: #fbebc9;
+
+    /* Decorative */
+    --rd-peach: #e79b7d;
+
+    --rd-shadow: 0 10px 28px rgba(40, 25, 10, 0.07);
+    --rd-font-display: "Rokkitt", Georgia, serif;
+  }
+
+  /* Flag ON: the crowned YISHAI system. */
+  :root[data-next-design] {
     /* Surfaces - greige ground + the MEDIUM cool-tinted card */
     --rd-bg-page: #ebe8e1;
     --rd-bg-card: #ecedf7;
@@ -71,7 +124,7 @@
     --rd-font-display: "Rokkitt", Georgia, serif;
 
     /* MEDIUM amplitude (always-on) - mauve-forward + coach tint. Consumed by the
-       ported components in Phase 3; defined now so they're ready. */
+       ported components in later phases; defined now so they're ready. */
     --rd-amp-section-fg: #60617d;
     --rd-amp-bandstrip: 0.5;
     --rd-amp-coach-bg: #ecedf5;
