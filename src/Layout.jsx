@@ -4,6 +4,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
+import DepthField from "@/components/redesign/DepthField";
+import GrainGround from "@/components/redesign/GrainGround";
+import { isNextDesign } from "@/lib/nextDesign";
 import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
@@ -78,7 +81,11 @@ const BASE_SECTIONS = [
       { name: "Career Agent", page: "CareerAgent", icon: Brain },
       { name: "CV Agent", page: "CVAgent", icon: FileText },
       { name: "Interview Coach", page: "InterviewCoach", icon: Mic },
-      { name: "Skill Advisor", page: "SkillDevelopmentAdvisor", icon: GraduationCap },
+      {
+        name: "Skill Advisor",
+        page: "SkillDevelopmentAdvisor",
+        icon: GraduationCap,
+      },
     ],
   },
   {
@@ -102,7 +109,8 @@ const ONBOARDING_PAGE = "Onboarding";
 function findActiveSectionId(sections, currentPageName) {
   for (const section of sections) {
     if (section.page === currentPageName) return section.id;
-    if (section.items?.some((it) => it.page === currentPageName)) return section.id;
+    if (section.items?.some((it) => it.page === currentPageName))
+      return section.id;
   }
   return null;
 }
@@ -254,11 +262,39 @@ function LayoutBody({ children, currentPageName }) {
 
   const closeMobileSidebar = () => setSidebarOpen(false);
 
+  // NEXT_DESIGN gate. Flag OFF = current production shell (opaque <main>, no
+  // ground). Flag ON = the crowned ground stack + transparent <main>. Resolved
+  // once, pre-paint, via src/lib/nextDesign.js. `revealMode` (env default ON)
+  // suppresses the corner badge - at reveal everyone is on, so it is not a "mode".
+  const nextDesign = isNextDesign();
+  const revealMode = import.meta.env.VITE_NEXT_DESIGN === "1";
+
   return (
+    // `relative isolate` makes this shell a STACKING CONTEXT - REQUIRED for the
+    // -z-10 ground layers to paint (see canvas-tokens.md ground spec). It is
+    // visually inert with no -z-10 children, so flag OFF (no ground mounted)
+    // renders exactly like old main. Flag ON mounts the canonical canvas ground,
+    // shared source: DepthField (field tone #DCD9D0 + brand arcs) FIRST, then
+    // GrainGround (grain multiply) on top - the exact stack + order the crowned
+    // home-3tab renders, so the two are indistinguishable.
     <div
       data-private
-      className="flex h-screen bg-rd-bg-page font-body text-rd-text"
+      className="relative isolate flex h-screen bg-rd-bg-page font-body text-rd-text"
     >
+      {nextDesign && (
+        <>
+          <DepthField />
+          <GrainGround />
+        </>
+      )}
+      {nextDesign && !revealMode && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none fixed bottom-2 right-2 z-[60] rounded-sm bg-rd-coral px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-80 shadow-rd"
+        >
+          NEXT
+        </div>
+      )}
       <TopLoadingBar loading={navLoading} />
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -319,13 +355,13 @@ function LayoutBody({ children, currentPageName }) {
         />
       </aside>
 
-      {/* Main content. The `legacy-body` wrapper forces the warm page
-          background underneath any unrestyled page that still ships a
-          legacy white/grey background — keeps the cream sidebar from
-          clashing while the per-page restyles roll out. Pages restyled
-          on rd tokens can leave their own backgrounds alone; pages that
-          set `bg-white` etc. as their root will paint over this with the
-          rd page color via the CSS reset below. */}
+      {/* Main content. Flag ON: `<main>` is TRANSPARENT so the shell's greige
+          ground + the fixed -z-10 GrainGround show through it (an opaque bg here
+          would paint OVER the grain and occlude it - the Phase-0 ground bug). Flag
+          OFF: `<main>` keeps bg-rd-bg-page, exactly like old main (no ground to
+          occlude). The flag-gated bg is why scripts/check-ground.mjs allows an
+          opaque bg on this ground-filler. See the ground spec in
+          docs/design/canvas-tokens.md. */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header — hamburger + persistent Coach trigger chip on
             the left, brand mark center. The right edge stays clear so
@@ -346,7 +382,12 @@ function LayoutBody({ children, currentPageName }) {
           <div className="w-9" />
         </header>
 
-        <main className="legacy-body flex-1 overflow-y-auto bg-rd-bg-page">
+        <main
+          className={cn(
+            "legacy-body flex-1 overflow-y-auto",
+            !nextDesign && "bg-rd-bg-page",
+          )}
+        >
           {children}
         </main>
       </div>

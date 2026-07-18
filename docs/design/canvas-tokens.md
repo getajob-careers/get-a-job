@@ -4,6 +4,44 @@ The token layer for the fixture-Home redesign. These are **enforced**, not
 suggestions: `scripts/check-scale.mjs` fails on any off-scale size/radius in the
 canvas tree.
 
+## THE REVEAL FLAG - NEXT_DESIGN (standing architecture, Eli 2026-07-18)
+
+The redesign ships to users as **ONE reveal**, not phase by phase. Every
+user-visible redesign change is gated by a single flag. **Flag OFF (default) =
+current app, byte-identical for all real users. Flag ON = the redesign as far as
+it is built.** Each phase still **merges to `main`** as it is verified (no
+long-lived branch, no rot, per-PR CI stays real); the flag, not the branch, holds
+the reveal.
+
+**`src/lib/nextDesign.js` (`isNextDesign()`) is the ONLY legal guard.** No phase
+may invent its own check. Shell, components, and pages all gate on either:
+
+- **JS:** `isNextDesign()` from `src/lib/nextDesign.js`, or
+- **CSS:** the `:root[data-next-design]` selector (for token overrides).
+
+Both read the SAME signal: a `data-next-design` attribute on `<html>`, set once
+**before first paint** by the bootstrap in `index.html`. Resolving it pre-paint
+(not via an async profile fetch) is what avoids a flash on the CSS-variable swap.
+
+**Precedence:** `?next=` query param > `localStorage 'nextDesign'` >
+`VITE_NEXT_DESIGN` build default.
+
+- Turn ON: append **`?next=1`** to any URL (persists in this browser).
+- Turn OFF: **`?next=0`**.
+- At a glance: flag-ON non-reveal shows a small **`NEXT`** badge, bottom-right
+  (suppressed once `VITE_NEXT_DESIGN=1`, i.e. reveal day).
+
+**Token gating:** `src/index.css` keeps the v1 production values in `:root`
+(byte-identical to old `main`) and puts the Yishai values under
+`:root[data-next-design]` (specificity `(0,1,1)` beats `(0,0,1)`). **Ground
+gating:** `Layout` mounts DepthField + GrainGround and drops the `<main>` bg only
+when `isNextDesign()`; flag-off keeps the opaque `<main>` (no ground to occlude).
+`scripts/check-ground.mjs` understands the flag-off-gated bg.
+
+**Reveal day** = flip the default (`VITE_NEXT_DESIGN=1`), then a cleanup phase
+**deletes the whole mechanism**: this bootstrap, `nextDesign.js`, every guard, and
+the `:root[data-next-design]` selector (promote its values into `:root`).
+
 ## THE PALETTE (crowned — Eli, 2026-07-17)
 
 **YISHAI is the system.** After a five-finalist flip (Clay / Yishai / Heather /
@@ -24,18 +62,35 @@ no palette/amplitude param — the canvas renders the crowned look by default.
 
 ## THE GROUND (official spec — locked, Eli 2026-07-17)
 
-The ground is **greige `#EBE8E1` + grain**, and the grain only survives if the
-shell is a stacking context. Both halves are load-bearing; the port must carry
-both or the ground silently reverts to flat greige (and the depth field vanishes
-with it).
+The ground is a THREE-LAYER STACK on the isolate shell, in this order:
+**page `#EBE8E1` (fallback) -> DepthField (field tone `#DCD9D0` + brand arcs) ->
+grain (multiply)**. The visible ground is the FIELD tone `#DCD9D0` (DepthField
+covers the page), NOT the bare page `#EBE8E1` - the page is only the fallback
+behind DepthField. The grain composites on the field tone, not the page.
 
-- **Grain** (`CanvasTexture.jsx`): an inline **SVG feTurbulence** fractal-noise
+**SINGLE SOURCE OF TRUTH (2026-07-18):** the field + grain live in
+`src/components/redesign/DepthField.jsx` + `GrainGround.jsx`. The canvas
+(`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them, and the
+production `Layout` imports them, so the canvas and the real app render the
+identical ground and cannot fork. **The port originally forked this** (Phase 0
+shipped only the grain over the bare page `#EBE8E1`, no DepthField), which made the
+real app ground read ~16 levels LIGHTER and flatter than the crowned canvas ground
+(`#D0CDC7` vs `#E0DDD8` on a bare-strip crop). The bar is "indistinguishable from
+the crowned canvas ground," which needs the whole stack from one source, not just
+the grain.
+
+- **Grain** (`GrainGround.jsx`): an inline **SVG feTurbulence** fractal-noise
   (`baseFrequency 0.85`, 2 octaves), **`mix-blend-mode: multiply`**, **final
-  opacity `0.36`** (the baked value = grain base 0.06 × the 6× intensity Eli
-  picked — one number, no runtime math). Pure CSS data-URI, no image asset, so it
-  ports as a page-background treatment. Rendered on the **`-z-10` field layer**
-  (with `CanvasField`'s depth arcs), behind cards — so it never touches text AA or
-  card-vs-ground elevation. Gradient + dots explorations retired to `_graveyard.js`.
+  opacity `0.36`** (the baked value = grain base 0.06 x the 6x intensity Eli
+  picked - one number, no runtime math). Pure CSS data-URI, no image asset, so it
+  ports as a page-background treatment. Rendered on the **`-z-10` field layer** ON
+  TOP of `DepthField` (rendered first), behind cards - so it never touches text AA
+  or card-vs-ground elevation. Gradient + dots explorations retired to
+  `_graveyard.js`.
+- **DepthField** (`DepthField.jsx`): the base layer under the grain - field tone
+  `#DCD9D0` + oversized brand arcs (token-driven), `-z-10`, behind cards. This is
+  what the grain composites on; without it the grain reads flat over the lighter
+  page.
 - **`isolate` on the shell is REQUIRED (part of this spec, not incidental).** The
   ground layers are `position:absolute; z-index:-10`. If their nearest positioned
   ancestor is not a **stacking context**, the negative z-index escapes upward and
@@ -45,6 +100,26 @@ with it).
   NOT create a stacking context, and neither does `overflow-hidden`. The shell
   carries `isolate` (Tailwind `isolation: isolate`); **the port must reproduce a
   stacking context on whatever element owns these ground layers.**
+- **`isolate` is necessary but NOT sufficient in the real app (added 2026-07-17,
+  the bug recurred on its first port).** The `-z-10` grain paints on the isolate
+  shell's own background, BEHIND the shell's in-flow children. So **no in-flow
+  descendant between the shell and the content may carry an opaque background**, or
+  it paints over the grain and re-occludes it. In production the culprit was
+  `Layout`'s `<main class="legacy-body">`, which forced `bg-rd-bg-page` (opaque
+  greige) and covered the grain. The preview never hit this because its content sat
+  directly on the isolate shell with no full-bleed `<main>`. **The rule for the
+  port: the scroll container / content wrapper under the shell must be TRANSPARENT**
+  (the shell already provides the greige ground). A page body that sets its own
+  `bg-*` root will occlude the grain in its own area until that page is ported -
+  expected, not a bug. Keeping the grain on the h-screen shell (not inside the
+  scroll container) is also what makes it a FIXED ground that content scrolls over,
+  rather than a texture that scrolls away.
+- **ENFORCED by `scripts/check-ground.mjs`** (wired into CI + `npm run check:ground`,
+  added 2026-07-18 after the class recurred three times). It fails the build if a
+  ground-filling wrapper (`flex-1` / `overflow-*-auto` / `h-full` / `h-screen`) in
+  the layout/shell files carries an opaque bg class, unless that element is the
+  isolate ground provider itself (`isolate`). Scoped to layout files so it never
+  fires on cards. Prose alone did not stop the recurrence; this does.
 - **Verify by pixel-diff, never by computed style.** A `-z-10` layer can exist in
   the DOM with the correct computed style and still paint nothing. To confirm the
   ground renders: screenshot with vs without and diff the pixels (a real change is

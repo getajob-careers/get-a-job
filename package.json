@@ -17,6 +17,7 @@
     "refresh-jobs": "tsx scripts/refresh-jobs.ts",
     "refresh-jobs:dry": "tsx scripts/refresh-jobs.ts --dry-run",
     "docs:check": "node scripts/check-docs-freshness.mjs",
+    "check:ground": "node scripts/check-ground.mjs",
     "package:verify": "node extension/verify-package.mjs"
   },
   "dependencies": {
