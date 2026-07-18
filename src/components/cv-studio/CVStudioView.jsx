@@ -107,6 +107,7 @@ function ExperienceEntry({
   onBullet,
   onAddBullet,
   onRemoveBullet,
+  onDelete,
   isMaster = false,
 }) {
   return (
@@ -119,6 +120,16 @@ function ExperienceEntry({
       >
         <GripVertical className="w-4 h-4" />
       </button>
+      {onDelete && (
+        <button
+          onClick={onDelete}
+          aria-label="Delete this experience"
+          title="Delete this experience"
+          className="absolute right-[-4px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+      )}
       <div className="flex items-baseline justify-between gap-3">
         <div className="text-[13.5px] min-w-0">
           <Editable
@@ -193,6 +204,8 @@ function ExperienceSection({
   onPatchBullet,
   onAddBullet,
   onRemoveBullet,
+  onDeleteExperience,
+  onAddExperience,
   isMaster = false,
 }) {
   return (
@@ -228,6 +241,11 @@ function ExperienceSection({
                         onRemoveBullet={(bId) =>
                           onRemoveBullet(sectionKey, exp.id, bId)
                         }
+                        onDelete={
+                          onDeleteExperience
+                            ? () => onDeleteExperience(sectionKey, exp.id)
+                            : undefined
+                        }
                       />
                     </div>
                   )}
@@ -238,6 +256,14 @@ function ExperienceSection({
           )}
         </Droppable>
       </DragDropContext>
+      {onAddExperience && (
+        <button
+          onClick={onAddExperience}
+          className="mt-1 ml-5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+        >
+          <Plus className="w-3 h-3" /> Add role
+        </button>
+      )}
     </>
   );
 }
@@ -376,6 +402,10 @@ export default function CVStudioView({
   onPatchEdu,
   onPatchCert,
   onPatchProject,
+  onAddExperience,
+  onDeleteExperience,
+  onAddEducation,
+  onDeleteEducation,
   onPatchSkills,
   onPatchLanguages,
   templates = CV_TEMPLATES,
@@ -721,6 +751,8 @@ export default function CVStudioView({
                 onPatchBullet={onPatchBullet}
                 onAddBullet={onAddBullet}
                 onRemoveBullet={onRemoveBullet}
+                onDeleteExperience={onDeleteExperience}
+                onAddExperience={onAddExperience}
               />
               {cv.military?.length > 0 && (
                 <ExperienceSection
@@ -733,6 +765,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
               {cv.volunteering?.length > 0 && (
@@ -746,6 +779,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
               {cv.leadership?.length > 0 && (
@@ -759,6 +793,7 @@ export default function CVStudioView({
                   onPatchBullet={onPatchBullet}
                   onAddBullet={onAddBullet}
                   onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
                 />
               )}
 
@@ -767,8 +802,18 @@ export default function CVStudioView({
                 {cv.education.map((ed) => (
                   <div
                     key={ed.id}
-                    className="flex items-baseline justify-between gap-3"
+                    className="group/edu relative flex items-baseline justify-between gap-3 pr-5"
                   >
+                    {onDeleteEducation && (
+                      <button
+                        onClick={() => onDeleteEducation(ed.id)}
+                        aria-label="Delete this education entry"
+                        title="Delete this education entry"
+                        className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                     <div className="text-[12.5px] min-w-0">
                       <Editable
                         value={ed.institution}
@@ -814,6 +859,14 @@ export default function CVStudioView({
                   </div>
                 ))}
               </div>
+              {onAddEducation && (
+                <button
+                  onClick={onAddEducation}
+                  className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+                >
+                  <Plus className="w-3 h-3" /> Add education entry
+                </button>
+              )}
 
               <SectionLabel>Skills</SectionLabel>
               <Editable
