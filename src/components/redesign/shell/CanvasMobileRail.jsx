@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
-import { CANVAS_FIXTURES } from "./canvasConfig";
-import CanvasCoachDock from "./CanvasCoachDock";
 import CoachDock from "@/components/agent/CoachDock";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 
@@ -29,7 +27,7 @@ function RailItem({ tile }) {
   );
 }
 
-export default function CanvasMobileRail({ tiles }) {
+export default function CanvasMobileRail({ tiles, coach, account }) {
   const [coachOpen, setCoachOpen] = useState(false);
   const navTiles = tiles.filter((t) => t.href); // exclude the tab-switchers
 
@@ -56,7 +54,7 @@ export default function CanvasMobileRail({ tiles }) {
             strokeWidth={2}
           />
         </button>
-        <CanvasAvatarChip compact />
+        <CanvasAvatarChip compact account={account} />
       </nav>
 
       {coachOpen && (
@@ -85,7 +83,7 @@ export default function CanvasMobileRail({ tiles }) {
               </button>
             </div>
             <div className="flex-1 min-h-0 flex flex-col">
-              {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
+              {coach || <CoachDock />}
             </div>
           </div>
         </div>

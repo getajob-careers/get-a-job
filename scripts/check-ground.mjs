@@ -38,6 +38,10 @@ const FILES = [
   ...safeReaddir(path.join(ROOT, "components", "layout")).map((f) =>
     path.join(ROOT, "components", "layout", f),
   ),
+  // The redesign shell (CanvasShell + rail) owns the ground on the flag-ON path.
+  ...safeReaddir(path.join(ROOT, "components", "redesign", "shell")).map((f) =>
+    path.join(ROOT, "components", "redesign", "shell", f),
+  ),
 ].filter((f) => f.endsWith(".jsx") && fs.existsSync(f));
 
 function safeReaddir(dir) {
@@ -53,6 +57,11 @@ const GROUND_FILLER =
 const OPAQUE_BG =
   /\bbg-(?:rd-bg-page|rd-bg-card|rd-bg-soft|rd-bg-sidebar|white)\b|\bbg-\[#[0-9A-Fa-f]{3,8}\]/;
 const IS_GROUND_PROVIDER = /\bisolate\b/;
+// A ROUNDED surface is a bounded card/panel (e.g. the sidebar coach dock), not
+// the flat full-bleed wrapper the occlusion bug lives on - the ground bleeds
+// around its corners, so an opaque bg here occludes nothing. The occluder is
+// always a square-cornered content/scroll container (never rounded).
+const IS_BOUNDED_PANEL = /\brd-r-|\brounded/;
 // A flag-OFF-guarded class clause: `!nextDesign && "..."` or `!isNextDesign() && "..."`.
 const FLAG_OFF_CLAUSE =
   /!\s*(?:isNextDesign\(\)|nextDesign)\s*&&\s*"[^"]*"|!\s*(?:isNextDesign\(\)|nextDesign)\s*&&\s*`[^`]*`/g;
@@ -91,6 +100,7 @@ for (const file of FILES) {
     if (!GROUND_FILLER.test(cls)) continue;
     if (!OPAQUE_BG.test(cls)) continue;
     if (IS_GROUND_PROVIDER.test(cls)) continue; // the shell itself - allowed
+    if (IS_BOUNDED_PANEL.test(cls)) continue; // rounded card/panel - not an occluder
     // Strip flag-OFF-guarded clauses, then see if an opaque bg still remains
     // UNCONDITIONALLY. Only an unconditional one can occlude the flag-ON ground.
     const unguarded = cls.replace(FLAG_OFF_CLAUSE, "");
