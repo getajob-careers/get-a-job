@@ -12,6 +12,18 @@ export default defineConfig({
     __PREVIEW_ROUTES__: JSON.stringify(process.env.VERCEL_ENV === "preview"),
   },
   plugins: [react()],
+  // Pin the dev/preview server to a fixed port. strictPort makes vite FAIL if
+  // 5173 is taken rather than silently rolling to 5174/5175 - the "port roulette"
+  // that kept sending review links to the wrong port. Kill the stale instance
+  // (pkill -f vite) instead of letting a second one grab a new port.
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
+  preview: {
+    port: 5173,
+    strictPort: true,
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
