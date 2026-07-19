@@ -7,6 +7,7 @@ import SidebarFooter from "./components/layout/SidebarFooter";
 import DepthField from "@/components/redesign/DepthField";
 import GrainGround from "@/components/redesign/GrainGround";
 import { isNextDesign } from "@/lib/nextDesign";
+import CanvasShell from "@/components/redesign/shell/CanvasShell";
 import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
@@ -268,6 +269,17 @@ function LayoutBody({ children, currentPageName }) {
   // suppresses the corner badge - at reveal everyone is on, so it is not a "mode".
   const nextDesign = isNextDesign();
   const revealMode = import.meta.env.VITE_NEXT_DESIGN === "1";
+
+  // Shell fork (shell phase, PR1). Flag ON = the ported CanvasShell (top utility
+  // bar + toolkit rail + coach dock) wrapping the REAL routed page. Flag OFF =
+  // the legacy sidebar shell below, byte-identical to current production. Both
+  // render inside the same Layout providers, so CanvasShell wraps the real
+  // authenticated app with real auth/data - not a fixture. The legacy return is
+  // left fully intact (its `nextDesign &&` gates are simply dead when off); it
+  // dies in the cleanup phase at reveal, not now.
+  if (nextDesign) {
+    return <CanvasShell revealMode={revealMode}>{children}</CanvasShell>;
+  }
 
   return (
     // `relative isolate` makes this shell a STACKING CONTEXT - REQUIRED for the

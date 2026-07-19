@@ -61,7 +61,7 @@ import { applyPalette } from "./canvas/palette";
 import { applyAmplitude } from "./canvas/amplitude";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
-import "./canvas/toolkit.css";
+import "@/components/redesign/shell/toolkit.css";
 import "./canvas/amplitude.css";
 
 const APPLICATION_STATUSES = [
