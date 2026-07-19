@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { openrouterChatCompletionWithRetry } from '../_shared/openrouter-chat.ts'
+import { anthropicChatCompletionWithRetry } from '../_shared/anthropic-chat.ts'
 import type { ReconcileWarning } from './reconcile.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
@@ -1601,6 +1602,22 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       return json({ error: "OpenRouter API key not configured on server (required for cv_model='sonnet')" }, 500);
     }
 
+    // CV Pass-2 transport selection. Direct Anthropic bypasses OpenRouter, which
+    // measured ~24s slower per generation (docs/research/cv-generation-speed-
+    // investigation.md — the OpenRouter Sonnet call is the whole ~34s tail).
+    // Env-selectable so OpenRouter stays a code-level fallback:
+    //   CV_PASS2_TRANSPORT = 'anthropic' → direct Anthropic (needs ANTHROPIC_API_KEY)
+    //   anything else (default)          → OpenRouter (current production path)
+    // Sonnet path only; gpt-4o is untouched. If the flag is 'anthropic' but the
+    // key secret is absent, it falls back to OpenRouter — so flipping the flag
+    // before the secret is set can never break generation.
+    const anthropicKey = Deno.env.get("ANTHROPIC_API_KEY") || null;
+    const cvPass2Transport = (Deno.env.get("CV_PASS2_TRANSPORT") ?? "openrouter").trim().toLowerCase();
+    const useAnthropicDirect = safeCvModel === 'sonnet' && cvPass2Transport === 'anthropic' && !!anthropicKey;
+    // Anthropic model id differs from the OpenRouter slug; env-tunable so the
+    // exact (possibly dated) id can change without a redeploy.
+    const anthropicCvModel = Deno.env.get("ANTHROPIC_CV_MODEL") ?? "claude-sonnet-4-6";
+
     // Diagnostic: confirm the JD is actually reaching the LLM and the
     // keyword extraction pulled something useful out. Shows up in
     // Supabase edge-function logs under this function.
@@ -1622,7 +1639,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       systemPrompt +=
         '\n\nATTRIBUTION VERIFICATION (this run): for EACH professional_experiences entry, ALSO include a "company_check" field echoing VERBATIM the company from USER DATA.professional_experiences[index].company. This OVERRIDES the "do NOT emit company / any value is discarded" rule above, for the company_check field ONLY. The server verifies company_check names the SAME experience as the index you chose and REJECTS the entry on mismatch — so index and company_check MUST describe the same role. Add no other suppressed field.';
     }
-    const pass2Model = safeCvModel === 'sonnet' ? SONNET_OPENROUTER_SLUG : MODEL;
+    const pass2Model = safeCvModel === 'sonnet'
+      ? (useAnthropicDirect ? anthropicCvModel : SONNET_OPENROUTER_SLUG)
+      : MODEL;
+    // Metrics/billing model id is transport-independent for Sonnet — the same
+    // model runs whether via OpenRouter or direct Anthropic.
     const pass2MetricsModel = safeCvModel === 'sonnet' ? SONNET_MODEL_USED : MODEL;
     const pass2Payload = {
       model: pass2Model,
@@ -1649,7 +1670,14 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       },
     };
     mark('pass2_start')
-    const openaiRes = safeCvModel === 'sonnet'
+    const openaiRes = useAnthropicDirect
+      ? await anthropicChatCompletionWithRetry(
+          pass2Payload,
+          anthropicKey!,
+          pass2TraceCtx,
+          { signal: AbortSignal.timeout(60000) },
+        )
+      : safeCvModel === 'sonnet'
       ? await openrouterChatCompletionWithRetry(
           pass2Payload,
           openrouterKey!,
@@ -1662,6 +1690,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           pass2TraceCtx,
           { signal: AbortSignal.timeout(60000) },
         );
+    // Speed-arc A-vs-B diagnostic (lever 2): the WithRetry call returns after the
+    // upstream response HEADERS resolve; reading the body happens at
+    // openaiRes.json() below. Splitting the Pass-2 bracket here isolates hidden
+    // retry/connect time (all before pass2_headers) from trickled-body time
+    // (pass2_headers → pass2_body). Both marks are debug_timing-gated in the
+    // response like every other mark.
+    mark('pass2_headers')
 
     if (!openaiRes.ok) {
       const err = await openaiRes.text();
@@ -1680,6 +1715,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     }
 
     const openaiData = await openaiRes.json();
+    mark('pass2_body')
     m.modelUsed = pass2MetricsModel
     m.tokensIn = (m.tokensIn ?? 0) + (openaiData.usage?.prompt_tokens ?? 0)
     m.tokensOut = (m.tokensOut ?? 0) + (openaiData.usage?.completion_tokens ?? 0)
@@ -1751,7 +1787,14 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
               sessionId: cvSessionId,
               metadata: { cv_model: safeCvModel },
             };
-            const retryRes = safeCvModel === 'sonnet'
+            const retryRes = useAnthropicDirect
+              ? await anthropicChatCompletionWithRetry(
+                  pass3Payload,
+                  anthropicKey!,
+                  pass3TraceCtx,
+                  { signal: AbortSignal.timeout(60000) },
+                )
+              : safeCvModel === 'sonnet'
               ? await openrouterChatCompletionWithRetry(
                   pass3Payload,
                   openrouterKey!,
