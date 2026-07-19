@@ -635,7 +635,14 @@ Deno.serve(async (req) => {
         // table extraction — output is shape-compatible with stages 1+2.
         if (!v4Source && safeJobDescription && safeJobDescription.length >= 200) {
           try {
-            const extractRes = await supabase.functions.invoke("extract-job-requirements", {
+            // extract-job-requirements is SERVICE-ROLE-ONLY (it authorizes only a
+            // bearer/apikey matching SUPABASE_SERVICE_ROLE_KEY, or a service_role
+            // JWT). Invoke it with serviceClient, NOT the user-scoped `supabase`
+            // client — the latter sends the user's authenticated JWT and gets a
+            // 401, which silently dropped stage-3 grounding from 2026-05-26 (#154)
+            // until this fix. The user is already authenticated above; this call
+            // is a trusted server-to-server extraction, so service-role is correct.
+            const extractRes = await serviceClient.functions.invoke("extract-job-requirements", {
               body: { jd_text: safeJobDescription, title: app.role_title || safeTargetRole },
             });
             const extraction = (extractRes.data as { extraction?: Record<string, unknown> } | undefined)?.extraction;
