@@ -24,24 +24,34 @@ The June-10 migration to Sonnet (now the prod default via `cv_model:'sonnet'`) *
 
 ## 2. Anatomy / time budget
 
-Full source map in `generate-tailored-cv/index.ts` (2954 lines). Steady state (English CV, JD present, no retry) = **2 sequential blocking LLM calls**; everything else is sub-second deterministic compute.
+Full source map in `generate-tailored-cv/index.ts` (2954 lines). Steady state (English CV, JD present, no retry) = **2 sequential blocking LLM calls** plus a large tail of non-LLM in-function work.
 
-| Stage                                                              | Lines             | Type                                             | Est. share of p50          |
-| ------------------------------------------------------------------ | ----------------- | ------------------------------------------------ | -------------------------- |
-| Auth + body parse + rate-limit + 4 profile reads (`Promise.all`)   | 306–438           | DB/compute                                       | ~1–2s                      |
-| v4 grounding stage-3 (`extract-job-requirements` LLM)              | 621               | LLM, **first CV per app only**, then cached      | 0 warm / ~5–10s cold       |
-| **Pass 1 — JD keyword extraction (gpt-4o, ~600 out tok)**          | def 143, call 666 | **LLM, sequential**                              | **~3–5s**                  |
-| Story scoring, bucketing, role-lib match, giant prompt build       | 729–1565          | pure compute                                     | ~1s                        |
-| **Pass 2 — CV authoring (sonnet/gpt-4o, ~1600 out tok, 4096 max)** | 1632–1644         | **LLM, dominant**                                | **~30–35s**                |
-| **Pass 3 — coverage retry (same model)**                           | 1733–1745         | **LLM, conditional, strictly after Pass 2**      | +~15–25s **when it fires** |
-| reconcile → guards → anti-fab → page-trim                          | 1826–2636         | pure compute (deterministic)                     | ~1–2s                      |
-| Translation to English (gpt-4o)                                    | 2680–2693         | LLM, **gated on Hebrew — no-op for English CVs** | 0 for most                 |
-| PDF render (`buildCvPdf`, fonts inlined, no network)               | 2738              | pure CPU                                         | ~1s                        |
-| Storage upload + signed URL + DB persist                           | 2749–2888         | Storage/DB                                       | ~1s                        |
+> **CORRECTION (2026-07-19, measured — supersedes the reconstruction below).** With Langfuse access + a live harness, the earlier "output-decode-bound, Pass 2 ≈ 32s" reconstruction is **WRONG**. Measured reality:
 
-**Budget headline:** Pass 2 authoring output-decode is the overwhelming cost (~1600 Sonnet tokens × ~20ms ≈ 32s, which alone ≈ the measured p50). Pass 1 adds a few seconds. Pass 3 roughly adds half-a-Pass-2 when it fires. Everything non-LLM is deterministic and sub-second.
+**Measured per-pass (Langfuse, live harness runs + trace history):**
 
-**Method note (honesty):** Langfuse holds per-call traces but I had no Langfuse API credentials in this environment, and I did not run a live generation (it would mutate a real account and spend LLM budget during an investigation-only phase). The per-pass split above is **reconstructed** from measured token counts (`function_metrics`) × measured per-token latency (the model-split table), and **validated against the measured total** (Pass-2 estimate ≈ measured p50). The exact split can be confirmed in the fix phase by (a) pasting a Langfuse trace / granting API keys, or (b) one instrumented run on a disposable account reading the timestamped boundary logs (`[CV] JD keywords extracted` @672 → `[CV] Retry firing/skipped` @1711/1782 → response).
+| LLM call                                | model                          | in / out tok    | measured duration                                            |
+| --------------------------------------- | ------------------------------ | --------------- | ------------------------------------------------------------ |
+| Pass 1 — JD keywords                    | gpt-4o                         | ~343 / ~190     | **~2.5s** (median 2.8s)                                      |
+| Pass 2 — CV authoring                   | claude-sonnet-4.6 (OpenRouter) | ~17–19k / ~1630 | **~1.6–5.7s** (median 2.3s, max 8.0s)                        |
+| Pass 3 — coverage retry                 | same                           | —               | **never fired** (pass-2/pass-1 trace ratio = 1.000 over 45d) |
+| v4 stage-3 (`extract-job-requirements`) | gpt-4o                         | —               | one-time per app; 401'd in harness (fast)                    |
+
+**Total LLM ≈ 5s median.** Meanwhile the **edge platform's own `execution_time_ms` = 39.2s** and the harness client wall-clock p50 = **39.3s** (warm, disposable account, sonnet; 5 runs 37–46s). Two independent sources (edge platform + Langfuse) agree:
+
+**≈ 34s of every ~39s generation (~85%) is NON-LLM in-function time.** The bottleneck is NOT the LLM and NOT output-decode. Prompt caching / model choice / streaming (levers 1–3) target the ~5s LLM slice and cannot move the ~34s tail.
+
+**Where the tail is NOT:** no untraced network in post-processing (no embeddings, no `fetch` in `cv-antifab.ts` / `reconcile.ts`); the PDF renderer is a **two-pass** measure/draw, not an iterative re-render loop; Pass 3 isn't firing; the warm path skips stage-3. The ~34s is deterministic non-LLM work whose exact location is **not yet pinned** — the post-Pass-2 chain (reconcile → guards → anti-fab → page-line estimate + shrink-to-fit → PDF font-subset + render → storage upload + signed URL → DB persist/dedup) or edge module boot. **Localizing it requires phase timing** (a flag-gated `debug_timing` diagnostic returning per-phase ms, or `console.time` boundaries read from function logs). This is now the top priority — it precedes any of the ranked levers.
+
+**Sampling caveat:** Langfuse holds only ~12 generate-tailored-cv trace pairs over 45d vs 455 `function_metrics` rows, so tracing is sampled/lossy — good for per-call anatomy, not for population rates. The "Pass 3 never fires" and per-pass durations are from that sample + the live harness; the ~85%-non-LLM split is corroborated by the edge platform's own exec time, which is not sampled.
+
+The reconstructed table that follows is retained struck-through for provenance; **do not use it for planning.**
+
+<details><summary>Superseded reconstruction (WRONG — do not plan against this)</summary>
+
+Pass 2 authoring output-decode was assumed the overwhelming cost (~1600 Sonnet tokens × ~20ms ≈ 32s). This was inferred from token counts × per-token latency and validated only against the total — which happened to match by coincidence (the total is real, but it's non-LLM, not decode). The live trace disproved it.
+
+</details>
 
 ## 3. Structural questions
 
@@ -64,6 +74,8 @@ Two independent traces (live-data sweep + full code trace) converge:
 **Root cause of the _report_:** not the deployed generation path. `reconcile.ts:18–21` documents a **historical date-keyed join (replaced by PR #234)** that _did_ collapse a same-company past+current pair — that old bug matches the described symptom exactly. So the observed artifact is most likely (1) a **stale cached PDF / browser-cached Studio render** from before the June reconcile rewrite, or (2) a **local render on the unmerged `eli/cv-studio-writethrough` branch** (new Studio write-through/reorder code, unshipped). **To close:** capture the failing artifact — the `application_cvs.id` or the downloaded PDF, and whether it was seen in a downloaded PDF, the Studio preview, or a local dev build. That one fact discriminates the two, and neither points back at `generate-tailored-cv`.
 
 ## 5. Ranked speed opportunities (est. savings / risk)
+
+> **INVALIDATED by the §2 measured correction.** Every lever below targets the LLM slice (~5s of ~39s). The measured bottleneck is the ~34s non-LLM tail, whose location is not yet pinned. **Do not build any of these until the tail is localized** (phase-timing diagnostic). Prompt caching (lever 1) in particular now saves near-zero. Ranking retained only for reference once the tail is known.
 
 Ordered by (grounded win × inverse risk). All estimates are on the sonnet p50 ~31s real-user baseline.
 
