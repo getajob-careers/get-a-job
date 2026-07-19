@@ -1624,6 +1624,21 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     }
     const pass2Model = safeCvModel === 'sonnet' ? SONNET_OPENROUTER_SLUG : MODEL;
     const pass2MetricsModel = safeCvModel === 'sonnet' ? SONNET_MODEL_USED : MODEL;
+    // Lever 1b — OpenRouter provider preferences on the Sonnet Pass-2/3 call.
+    // The OpenRouter Sonnet transport measured ~24s slower than a direct provider
+    // call (docs/research/cv-generation-speed-investigation.md); pinning a fast
+    // first-party provider and disabling slow fallbacks can recover much of that
+    // without leaving OpenRouter. Env-tunable (OPENROUTER_PROVIDER_PREFS, a JSON
+    // object) so the exact prefs change without a redeploy; defaults to
+    // Anthropic's own endpoint with fallbacks allowed. See OpenRouter's
+    // `provider` routing docs for the accepted shape (order / sort / allow_fallbacks).
+    const openrouterProviderPrefs: Record<string, unknown> = (() => {
+      const raw = Deno.env.get("OPENROUTER_PROVIDER_PREFS");
+      if (raw) {
+        try { return JSON.parse(raw); } catch { /* malformed → fall through to default */ }
+      }
+      return { order: ["Anthropic"], allow_fallbacks: true };
+    })();
     const pass2Payload = {
       model: pass2Model,
       messages: [
@@ -1633,6 +1648,9 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       response_format: { type: "json_object" },
       temperature: 0.2, // lower = less likely to invent metrics
       max_tokens: 4096,
+      // Injected ONLY on the OpenRouter (sonnet) path; the gpt-4o default branch
+      // hits OpenAI directly and must not carry an OpenRouter-only field.
+      ...(safeCvModel === 'sonnet' ? { provider: openrouterProviderPrefs } : {}),
     };
     const pass2TraceCtx = {
       // Pass-2 trace — shares sessionId with pass-1 so both passes group
@@ -1744,6 +1762,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
               response_format: { type: "json_object" },
               temperature: 0.2,
               max_tokens: 4096,
+              ...(safeCvModel === 'sonnet' ? { provider: openrouterProviderPrefs } : {}),
             };
             const pass3TraceCtx = {
               traceName: 'generate-tailored-cv:pass-3-retry',
