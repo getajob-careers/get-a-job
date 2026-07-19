@@ -10,11 +10,15 @@ import React, { useId } from "react";
 // Rendered at `size` (the object floats with a ground shadow from the tile, no
 // card frame). Colors come from CSS vars so the same shapes serve every tool.
 
+// FLAT treatment (Eli's carousel-restore, 2026-07-19): both stops are the flat
+// tint, so the object reads as a flat coloured glyph rather than a soft-3D dome -
+// coherent with the mockup's flat stat-cards / chips language. (Revert to a
+// top-lit dome by setting the first stop back to var(--to-hi).)
 function Defs({ id }) {
   return (
     <defs>
       <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="var(--to-hi)" />
+        <stop offset="0%" stopColor="var(--to-tint)" />
         <stop offset="100%" stopColor="var(--to-tint)" />
       </linearGradient>
     </defs>
@@ -349,7 +353,34 @@ function Chat({ g }) {
   );
 }
 
+// Career - a compass: the career hub's "where next" metaphor. Glaze body, ink
+// needle, a warm-white centre dot to catch the light.
+function Career({ g }) {
+  return (
+    <>
+      <circle
+        cx="14"
+        cy="14"
+        r="10.5"
+        fill={`url(#${g})`}
+        stroke="var(--to-ink)"
+        strokeWidth="1.6"
+      />
+      <path
+        className="ti-ring"
+        d="M14 5.5 L16.6 14 L14 22.5 L11.4 14 Z"
+        fill="var(--to-ink)"
+        stroke="var(--to-ink)"
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
+      <circle cx="14" cy="14" r="1.7" fill="var(--to-hi)" />
+    </>
+  );
+}
+
 const SHAPES = {
+  career: Career,
   coach: Coach,
   chat: Chat,
   skills: Skills,

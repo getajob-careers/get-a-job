@@ -4,7 +4,6 @@ import { Settings } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import CoachDock from "@/components/agent/CoachDock";
 import DepthField from "@/components/redesign/DepthField";
 import GrainGround from "@/components/redesign/GrainGround";
@@ -13,14 +12,11 @@ import CanvasSidebar from "./CanvasSidebar";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 
 // CanvasShell - the redesign app frame (flag ON only), wrapping the REAL routed
-// page in `children`. This is the ported canvas chrome: a non-scrolling
-// h-[100dvh] frame with a top utility bar, a persistent left toolkit rail + coach
-// dock, and a scrolling content column. Providers (auth, react-query, agent
-// drawer, coach) come from Layout above, so routing/auth/data flow unchanged.
-//
-// PR1 scope = the FRAME. The home-route 3-tab pill is a later phase (home
-// content, not chrome). Search is intentionally omitted until it has a real
-// target. Rail-content roster + full top-bar wiring land in PR2.
+// page in `children`. THE CANVAS chrome (Eli's reframe: the canvas is the design,
+// the mockup is colour-only): a non-scrolling h-[100dvh] frame with the top
+// utility bar (brand + settings + account) and the left sidebar (toolkit carousel
+// + coach dock + account chip), then a scrolling content column. Providers (auth,
+// react-query, agent drawer, coach) come from Layout above.
 //
 // `relative isolate` makes this a stacking context - REQUIRED so the -z-10
 // DepthField/GrainGround ground layers paint (see canvas-tokens.md ground spec).
@@ -29,7 +25,6 @@ const selectName = (p) => (p ? { full_name: p.full_name } : p);
 export default function CanvasShell({ children, revealMode }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const agentDrawer = useAgentDrawer();
   const { data: profileName } = useProfileQuery(user?.id, selectName);
 
   const account = {
@@ -56,8 +51,8 @@ export default function CanvasShell({ children, revealMode }) {
         </div>
       )}
 
-      {/* Utility top bar: brand left, actions right. */}
-      <div className="flex items-center justify-between gap-3">
+      {/* Top utility bar: brand left, actions right (the canvas chrome). */}
+      <div className="flex items-center justify-between gap-3 flex-shrink-0">
         <div className="min-w-0">
           <Link
             to={createPageUrl("Home")}
@@ -79,15 +74,11 @@ export default function CanvasShell({ children, revealMode }) {
         </div>
       </div>
 
-      {/* Content row: persistent rail + coach, then the routed page. The <main>
-          is transparent so the ground shows through (flag ON only reaches here).
-          It scrolls on every size so real pages are never clipped. */}
+      {/* Content row: the canvas sidebar, then the routed page. The <main> is
+          transparent so the ground shows through (flag ON only reaches here). It
+          scrolls on every size so real pages are never clipped. */}
       <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
-        <CanvasSidebar
-          coach={<CoachDock />}
-          onOpenChat={() => agentDrawer.open()}
-          account={account}
-        />
+        <CanvasSidebar coach={<CoachDock />} account={account} />
         <main className="legacy-body flex-1 min-w-0 min-h-0 overflow-y-auto pb-16 md:pb-0">
           {children}
         </main>
