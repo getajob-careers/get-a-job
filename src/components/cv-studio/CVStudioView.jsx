@@ -111,7 +111,7 @@ function ExperienceEntry({
   isMaster = false,
 }) {
   return (
-    <div className="group/entry relative pl-5 mb-3.5">
+    <div className="group/entry relative pl-5 mb-3.5" data-entry-id={exp.id}>
       <button
         {...dragHandleProps}
         tabIndex={-1}
@@ -802,6 +802,7 @@ export default function CVStudioView({
                 {cv.education.map((ed) => (
                   <div
                     key={ed.id}
+                    data-entry-id={ed.id}
                     className="group/edu relative flex items-baseline justify-between gap-3 pr-5"
                   >
                     {onDeleteEducation && (
