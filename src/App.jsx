@@ -1,20 +1,25 @@
-import React, { Suspense } from 'react';
-import { Toaster } from "@/components/ui/toaster"
-import { Toaster as SonnerToaster } from "@/components/ui/sonner"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
-import { pagesConfig } from './pages.config'
-import { LAZY_PAGES, LAZY_MAIN_PAGE } from './pages.lazy'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import PostHogProvider from '@/lib/PostHogProvider';
-import CookieConsentBanner from '@/components/consent/CookieConsentBanner';
-import Login from '@/pages/Login';
-import ResetPassword from '@/pages/ResetPassword';
-import Privacy from '@/pages/Privacy';
-import Terms from '@/pages/Terms';
-import FeedbackWidget from '@/components/feedback/FeedbackWidget';
+import React, { Suspense } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClientInstance } from "@/lib/query-client";
+import { pagesConfig } from "./pages.config";
+import { LAZY_PAGES, LAZY_MAIN_PAGE } from "./pages.lazy";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import PageNotFound from "./lib/PageNotFound";
+import { AuthProvider, useAuth } from "@/lib/AuthContext";
+import PostHogProvider from "@/lib/PostHogProvider";
+import CookieConsentBanner from "@/components/consent/CookieConsentBanner";
+import Login from "@/pages/Login";
+import ResetPassword from "@/pages/ResetPassword";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import FeedbackWidget from "@/components/feedback/FeedbackWidget";
 
 // Redesign preview harness. Statically imported, but the route block below
 // registers it ONLY when SHOW_PREVIEW_ROUTES is true — local dev OR a Vercel
@@ -29,29 +34,30 @@ import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 // resolved AFTER Playwright snapshotted the page (Suspense fallback
 // rendered nothing → empty body in screenshots). Eager import sidesteps
 // the race. Bundle cost in prod: ~10–15 KB (cold path; never invoked).
-import OnboardingPreview from '@/pages/_preview/OnboardingPreview';
-import AuthCallback from '@/pages/AuthCallback';
-import ShellPreview from '@/pages/_preview/ShellPreview';
-import HomePreview from '@/pages/_preview/HomePreview';
-import CareerPreview from '@/pages/_preview/CareerPreview';
-import JobsLogoPreview from '@/pages/_preview/JobsLogoPreview';
-import JobsGridPreview from '@/pages/_preview/JobsGridPreview';
-import LandingV2Preview from '@/pages/_preview/LandingV2Preview';
-import CVAgentPreview from '@/pages/_preview/CVAgentPreview';
-import CVAgentLivePreview from '@/pages/_preview/CVAgentLivePreview';
-import Home3TabPreview from '@/pages/_preview/Home3TabPreview';
-import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
-import ProfilePreview from '@/pages/_preview/ProfilePreview';
-import StoryBankPreview from '@/pages/_preview/StoryBankPreview';
-import TasksPreview from '@/pages/_preview/TasksPreview';
-import CalendarPreview from '@/pages/_preview/CalendarPreview';
-import LinkedinPreview from '@/pages/_preview/LinkedinPreview';
-import ChatPreview from '@/pages/_preview/ChatPreview';
-import InternshipPreview from '@/pages/_preview/InternshipPreview';
-import ResourcesPreview from '@/pages/_preview/ResourcesPreview';
-import SettingsPreview from '@/pages/_preview/SettingsPreview';
-import DrawerPreview from '@/pages/_preview/DrawerPreview';
-import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
+import OnboardingPreview from "@/pages/_preview/OnboardingPreview";
+import AuthCallback from "@/pages/AuthCallback";
+import ShellPreview from "@/pages/_preview/ShellPreview";
+import HomePreview from "@/pages/_preview/HomePreview";
+import Home3TabRealPreview from "@/pages/_preview/Home3TabRealPreview";
+import CareerPreview from "@/pages/_preview/CareerPreview";
+import JobsLogoPreview from "@/pages/_preview/JobsLogoPreview";
+import JobsGridPreview from "@/pages/_preview/JobsGridPreview";
+import LandingV2Preview from "@/pages/_preview/LandingV2Preview";
+import CVAgentPreview from "@/pages/_preview/CVAgentPreview";
+import CVAgentLivePreview from "@/pages/_preview/CVAgentLivePreview";
+import Home3TabPreview from "@/pages/_preview/Home3TabPreview";
+import RoadmapPreview from "@/pages/_preview/RoadmapPreview";
+import ProfilePreview from "@/pages/_preview/ProfilePreview";
+import StoryBankPreview from "@/pages/_preview/StoryBankPreview";
+import TasksPreview from "@/pages/_preview/TasksPreview";
+import CalendarPreview from "@/pages/_preview/CalendarPreview";
+import LinkedinPreview from "@/pages/_preview/LinkedinPreview";
+import ChatPreview from "@/pages/_preview/ChatPreview";
+import InternshipPreview from "@/pages/_preview/InternshipPreview";
+import ResourcesPreview from "@/pages/_preview/ResourcesPreview";
+import SettingsPreview from "@/pages/_preview/SettingsPreview";
+import DrawerPreview from "@/pages/_preview/DrawerPreview";
+import RouteFallback, { ChunkErrorBoundary } from "@/components/RouteFallback";
 
 /* global __PREVIEW_ROUTES__ */
 // _preview/* routes render in local dev (import.meta.env.DEV) AND on Vercel
@@ -73,9 +79,12 @@ const { Layout } = pagesConfig;
 const mainPageKey = LAZY_MAIN_PAGE;
 const MainPage = LAZY_PAGES[mainPageKey];
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+const LayoutWrapper = ({ children, currentPageName }) =>
+  Layout ? (
+    <Layout currentPageName={currentPageName}>{children}</Layout>
+  ) : (
+    <>{children}</>
+  );
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isAuthenticated, user } = useAuth();
@@ -110,15 +119,21 @@ const AuthenticatedApp = () => {
       <ChunkErrorBoundary>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
-            <Route path="/" element={
-              <LayoutWrapper currentPageName={mainPageKey}>
-                <MainPage />
-              </LayoutWrapper>
-            } />
+            <Route
+              path="/"
+              element={
+                <LayoutWrapper currentPageName={mainPageKey}>
+                  <MainPage />
+                </LayoutWrapper>
+              }
+            />
             {/* Legacy redirect: /Practicum → /Internship. The page was
                 renamed but old WhatsApp / email links may still hit the
                 old URL. Drop after a few weeks if logs show no traffic. */}
-            <Route path="/Practicum" element={<Navigate to="/Internship" replace />} />
+            <Route
+              path="/Practicum"
+              element={<Navigate to="/Internship" replace />}
+            />
             {Object.entries(LAZY_PAGES).map(([path, Page]) => (
               <Route
                 key={path}
@@ -146,9 +161,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -179,22 +192,19 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/shell/:state"
-                element={<ShellPreview />}
-              />
+              <Route path="/_preview/shell/:state" element={<ShellPreview />} />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route path="/_preview/home/:state" element={<HomePreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
-                path="/_preview/home/:state"
-                element={<HomePreview />}
+                path="/_preview/home3tab-real"
+                element={<Home3TabRealPreview />}
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/career"
-                element={<CareerPreview />}
-              />
+              <Route path="/_preview/career" element={<CareerPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -203,10 +213,7 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/jobs-grid"
-                element={<JobsGridPreview />}
-              />
+              <Route path="/_preview/jobs-grid" element={<JobsGridPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -215,10 +222,7 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/cv-agent"
-                element={<CVAgentPreview />}
-              />
+              <Route path="/_preview/cv-agent" element={<CVAgentPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -227,10 +231,7 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/home-3tab"
-                element={<Home3TabPreview />}
-              />
+              <Route path="/_preview/home-3tab" element={<Home3TabPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -251,10 +252,7 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/tasks/:state"
-                element={<TasksPreview />}
-              />
+              <Route path="/_preview/tasks/:state" element={<TasksPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -269,10 +267,7 @@ function App() {
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/chat/:state"
-                element={<ChatPreview />}
-              />
+              <Route path="/_preview/chat/:state" element={<ChatPreview />} />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route
@@ -309,8 +304,7 @@ function App() {
         <SonnerToaster />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
-
+export default App;
