@@ -65,7 +65,14 @@ function Centered({ children }) {
   );
 }
 
-export default function CVStudioLive() {
+// rightRail / enablePieceRevise are passed ONLY by the flag-on home CV tab
+// (ThreeTabHome). The /CVAgent page renders <CVStudioLive/> with no props, so its
+// View gets no rightRail (keeps the CV Agent panel) and no onRevisePiece (no
+// affordance) - byte-identical to before.
+export default function CVStudioLive({
+  rightRail = null,
+  enablePieceRevise = false,
+} = {}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const {
@@ -1025,6 +1032,86 @@ export default function CVStudioLive() {
     [cvOptions, selectedCvId, persist],
   );
 
+  // Piece-targeted "Revise with AI" (flag-on home tab). Path A: edit-cv has no
+  // target param, so we send the WHOLE cv_data with a targeted instruction, then
+  // apply ONLY the targeted piece's returned value in place - discarding any
+  // incidental drift elsewhere - through the normal patch handlers, so
+  // write-through + undo behave exactly like a manual edit. Throws on failure so
+  // the affordance can show its error state. See generate-tailored-cv's
+  // debug_timing / Path B follow-ups (PR body) for the latency story: edit-cv
+  // regenerates the whole document, so a one-bullet revise can take tens of
+  // seconds.
+  const onRevisePiece = useCallback(
+    async (target, { preset, feedback }) => {
+      const model = modelRef.current;
+      if (!model || !selectedCvId) throw new Error("No CV loaded.");
+
+      let currentText = "";
+      let ctxLabel = "";
+      if (target.kind === "summary") {
+        currentText = model.summary || "";
+        ctxLabel = "the professional summary";
+      } else {
+        const exp = model[target.section]?.find((e) => e.id === target.expId);
+        const bullet = exp?.bullets?.find((b) => b.id === target.bulletId);
+        currentText = bullet?.text || "";
+        ctxLabel = exp
+          ? `one bullet from the "${exp.title}${exp.org ? ` at ${exp.org}` : ""}" experience`
+          : "one bullet";
+      }
+
+      const parts = [
+        `Revise ONLY ${ctxLabel}, and return the COMPLETE CV with every other bullet, section, and field byte-identical.`,
+        `The exact text to revise: "${currentText}".`,
+      ];
+      if (preset) parts.push(preset);
+      if (feedback)
+        parts.push(
+          `The user's feedback on the current version: "${feedback}".`,
+        );
+      const instruction = parts.join(" ");
+
+      const current = cvOptions.find((o) => o.id === selectedCvId);
+      const { data, error } = await supabase.functions.invoke("edit-cv", {
+        body: {
+          cv_data: toCvData(model),
+          instruction,
+          target_role: current?.role ?? "",
+        },
+      });
+      if (error || !data || data.error || !data.cv_data)
+        throw new Error("edit-cv failed");
+
+      // Merge over the pre-edit doc (edit-cv may omit passthrough sections),
+      // then read back ONLY the targeted piece by its position. Reading at the
+      // fixed index is drift-safe: if edit-cv touched a different piece, the
+      // targeted index is unchanged and we apply a no-op rather than the drift.
+      const merged = { ...toCvData(model), ...data.cv_data };
+      const editedModel = fromCvData(merged);
+      if (target.kind === "summary") {
+        const newText = (editedModel.summary || "").trim();
+        if (!newText) throw new Error("Empty revision.");
+        onPatchSummary(newText);
+      } else {
+        const expIdx = model[target.section].findIndex(
+          (e) => e.id === target.expId,
+        );
+        const bulIdx = model[target.section][expIdx]?.bullets.findIndex(
+          (b) => b.id === target.bulletId,
+        );
+        const newText =
+          editedModel[target.section]?.[expIdx]?.bullets?.[
+            bulIdx
+          ]?.text?.trim();
+        if (!newText) throw new Error("Empty revision.");
+        onPatchBullet(target.section, target.expId, target.bulletId, newText);
+      }
+      // Remount so the uncontrolled contentEditable re-seeds with the revision.
+      setEditVersion((v) => v + 1);
+    },
+    [selectedCvId, cvOptions, onPatchSummary, onPatchBullet],
+  );
+
   // Client-side staged progress for the tailoring call. refine-cv is a single
   // blocking request (no streaming), so these stages are timed estimates that
   // show motion rather than a blank spinner. When the user has no master yet,
@@ -1426,6 +1513,8 @@ export default function CVStudioLive() {
         tailorResult={tailorResult}
         onViewTailored={onViewTailored}
         onDownloadTailored={onDownloadTailored}
+        rightRail={rightRail}
+        onRevisePiece={enablePieceRevise ? onRevisePiece : null}
       />
       {noJdOpen && (
         <NoJdCard
