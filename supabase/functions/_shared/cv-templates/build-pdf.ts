@@ -1248,6 +1248,10 @@ export async function buildCvPdf(
   cvData: CvData,
   userContext: UserContext,
   config: TemplateConfig,
+  // Optional diagnostic hook (speed arc): called at internal phase boundaries
+  // (font subsetting, save) so a caller running with debug_timing can split the
+  // PDF cost into font-embed vs layout/render. Undefined in all normal calls.
+  onPhase?: (label: string) => void,
 ): Promise<CvPdfResult> {
   // STEP A (template-id plumbing): the selected template id now arrives here.
   // It is INERT in this step — logged only, never read by any measure/draw
@@ -1277,6 +1281,7 @@ export async function buildCvPdf(
     hebRegular: await pdfDoc.embedFont(DAVID_REGULAR, { subset: true }),
     hebBold: await pdfDoc.embedFont(DAVID_BOLD, { subset: true }),
   };
+  onPhase?.('pdf_fonts_embedded');
 
   // Sanitize chokepoint: strip codepoints NO embedded font can render (cmap-
   // driven) from all drawn strings, so the renderer can't throw on any input.
@@ -1378,6 +1383,8 @@ export async function buildCvPdf(
   renderAllSections(drawCtx, cv, config.sectionOrder);
   fit.lowestY = drawCtx.y;
 
+  onPhase?.('pdf_layout_drawn');
   const bytes = await pdfDoc.save();
+  onPhase?.('pdf_saved');
   return { bytes, fit };
 }

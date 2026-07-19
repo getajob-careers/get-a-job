@@ -274,6 +274,12 @@ import {
 } from "../_shared/cv-antifab.ts";
 import { enforceCvInvariants, scrubCvVoice } from "../_shared/cv-enforce-invariants.ts";
 
+// Speed-arc diagnostic: module-load timestamp. Lets the handler report
+// cold-start age (m.startedAt - HANDLER_MODULE_READY_AT) so a debug_timing run
+// can tell whether the non-LLM tail is in-handler work or edge cold-start/boot.
+// Surfaced only when the request body sets debug_timing:true.
+const HANDLER_MODULE_READY_AT = Date.now();
+
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
   return parseLlmJsonObject(rawContent, label, finishReason);
 }
@@ -289,6 +295,13 @@ Deno.serve(async (req) => {
   let _ok = false
   let _http = 500
   let _err: string | null = null
+
+  // Speed-arc diagnostic: per-phase marks, cumulative ms from handler entry
+  // (m.startedAt). Collected unconditionally (one Date.now()+push each — a few
+  // dozen ns), but RETURNED only when the request body sets debug_timing:true,
+  // so flag-off output is byte-identical. Used to localize the non-LLM tail.
+  const _timing: { label: string; at_ms: number }[] = []
+  const mark = (label: string) => { _timing.push({ label, at_ms: Date.now() - m.startedAt }) }
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -327,6 +340,9 @@ Deno.serve(async (req) => {
       return json({ error: 'Request payload too large.' }, 413);
     }
     const { job_description, target_role, application_id, template_style, cv_model, master } = body;
+    // Speed-arc diagnostic flag (default OFF). When true, the success response
+    // carries a `timing` block of per-phase cumulative ms. No other behavior change.
+    const debugTiming = (body as any)?.debug_timing === true;
     // CV chokepoint opt-in flag (cv_enforce_v2): default OFF — anything but "on"
     // keeps the exact legacy path. Body flag OR the CV_ENFORCE_V2 env fallback.
     const cvEnforceV2 =
@@ -436,6 +452,7 @@ Deno.serve(async (req) => {
       supabase.from("projects").select("*").eq("user_id", user.id),
       supabase.from("certifications").select("*").eq("user_id", user.id),
     ]);
+    mark('input_reads_done')
 
     const profile = profileRes.data;
     if (!profile) {
@@ -657,6 +674,7 @@ Deno.serve(async (req) => {
       }
     }
 
+    mark('grounding_done')
     // ─── Step 1 of two-step tailoring: extract ATS keywords from the JD ───
     // Without explicit keywords injected into the main prompt, the generator
     // produces a generic CV. Pass-through of OPENAI_API_KEY happens inside the
@@ -678,6 +696,7 @@ Deno.serve(async (req) => {
       }));
     }
 
+    mark('pass1_done')
     const trunc = (s: unknown, max: number) => String(s ?? '').slice(0, max);
 
     // ─── Story Bank consumption (Wk 2 Day 4) ──────────────────────────────
@@ -1629,6 +1648,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         has_application_link: !!application_id,
       },
     };
+    mark('pass2_start')
     const openaiRes = safeCvModel === 'sonnet'
       ? await openrouterChatCompletionWithRetry(
           pass2Payload,
@@ -1677,6 +1697,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       return json({ error: msg }, 500);
     }
 
+    mark('pass2_done')
     // ─── Smart retry on low tailoring score ─────────────────────────────
     // If the first pass missed too many of the JD's must-include phrases,
     // call OpenAI a second time with the missed phrases echoed back as a
@@ -1785,6 +1806,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     }
 
     // ─── Server-driven experience fill (index-based join) ───
+    mark('retry_done')
     // The LLM emits only {index, bullets} per experience entry. The
     // server iterates the authoritative per-bucket source list and stamps
     // title / org / dates from the DB onto each output, attaching the
@@ -1853,6 +1875,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       }`);
     }
 
+    mark('reconcile_done')
     // ─── Normalize education + certification date strings to "Mon YYYY" ───
     // The LLM emits mixed formats inside the same CV ("October 2025" vs
     // "Aug 2025") because the prompt doesn't enforce one shape. Normalize
@@ -2298,6 +2321,7 @@ scrubCvVoice(cvData);
       : pct >= 25 ? "Weak"
       : "Not a match";
     cvData.fit_analysis = fa;
+    mark('guards_done')
 
     // ─── Bullet-source validator (quantified-token check) ─────────────
     // Scans every emitted bullet for QUANTIFIED claims — numbers, percentages,
@@ -2483,6 +2507,7 @@ scrubCvVoice(cvData);
       }
     }
 
+    mark('antifab_done')
     // ─── Rough content length estimator + auto-trim ───
     // The LLM is told to respect the ONE PAGE RULE, but we run a cheap
     // safety net to catch cases where it overshoots. One "line" ≈ one
@@ -2635,6 +2660,7 @@ scrubCvVoice(cvData);
       console.log(`[CV] Post-trim estimate: ${estimatedLines} lines`);
     }
 
+    mark('pagefit_done')
     // --- Build DOCX via shared cv-templates engine ---
     // Section order per Eli's design call PR #26: peer top-level sections,
     // no umbrella. The four experience buckets (professional / military /
@@ -2692,6 +2718,7 @@ scrubCvVoice(cvData);
       cvData = await translateCvToEnglish(cvData, translateChat)
     }
 
+    mark('translate_done')
     // ── CV chokepoint (cv_enforce_v2): the LAST transform before this CV leaves
     // the function. Placed BEFORE the render (buildCvPdf below) so the rendered
     // PDF and the persisted cv_data derive from the SAME normalized object —
@@ -2735,12 +2762,14 @@ scrubCvVoice(cvData);
       // CV now renders as PDF via pdf-lib (build-pdf.ts). DOCX renderer
       // (build.ts) remains in the codebase as a fallback but is no longer
       // wired in — see PR / commit message for the rationale.
+      mark('pdf_start')
       const { bytes: cvBytes } = await buildCvPdf(cvData, userContext as any, {
         style: safeTemplateStyle,
         theme: sectorResolution.theme,
         sectionOrder,
         photo: null, // photo embedding still pending — renderer ignores when null
-      })
+      }, mark)
+      mark('pdf_done')
 
       const safeRole = safeTargetRole.replace(/[^a-zA-Z0-9_\-]/g, "_");
       const fileName = `${user.id}/${safeRole}_CV_${Date.now()}.pdf`;
@@ -2765,6 +2794,7 @@ scrubCvVoice(cvData);
       }
       cv_url = signedUrlData.signedUrl;
     }
+    mark('storage_done')
 
     let appRecord;
     let newCvId: string | null = null;
@@ -2886,6 +2916,7 @@ scrubCvVoice(cvData);
     } catch (e) {
       console.error("[CV] application_cvs persist threw (non-fatal):", (e as Error).message);
     }
+    mark('persist_done')
 
     // Collect any profile fields that silently dropped out of the CV because
     // the underlying data is empty — so the user can fix their profile
@@ -2943,6 +2974,16 @@ scrubCvVoice(cvData);
         chars_input: jdInput.length,
       },
       retry_fired: retryFired,
+      // Speed-arc diagnostic: per-phase cumulative timing, present ONLY when the
+      // request set debug_timing:true. module_age_ms distinguishes cold-start
+      // (small = this request paid boot) from warm reuse.
+      ...(debugTiming && {
+        timing: {
+          module_age_ms: m.startedAt - HANDLER_MODULE_READY_AT,
+          total_ms: Date.now() - m.startedAt,
+          marks: _timing,
+        },
+      }),
     });
   } catch (error) {
     console.error("generate-tailored-cv error:", error);
