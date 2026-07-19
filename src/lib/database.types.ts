@@ -2629,6 +2629,112 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      search_new_jobs_by_role_titles: {
+        Args: {
+          p_limit?: number
+          p_max_seniority?: string[]
+          p_offset?: number
+          p_role_titles: string[]
+          p_similarity_threshold?: number
+          p_since: string
+          p_work_types?: string[]
+        }
+        Returns: {
+          application_extras: string[] | null
+          apply_url: string
+          ats_source: string
+          benefits: string[] | null
+          benefits_struct: Json | null
+          bonus_mentioned: boolean | null
+          company_name: string
+          company_size_employees: number | null
+          company_slug: string
+          company_stage: string | null
+          customer_type: string[] | null
+          date_posted: string | null
+          days_in_office: number | null
+          description: string | null
+          description_hash: string | null
+          description_pre_strip: string | null
+          direct_reports_max: number | null
+          direct_reports_min: number | null
+          eligibility_constraints: Json | null
+          equity_mentioned: boolean | null
+          equity_struct: Json | null
+          external_id: string
+          extracted_at: string | null
+          extraction_confidence: number | null
+          extraction_freeform_signals: Json | null
+          extraction_model: string | null
+          extraction_schema_version: number | null
+          extraction_unmapped_skills: string[] | null
+          fetched_at: string
+          first_seen_at: string
+          founded_year: number | null
+          function_family: string | null
+          funding_signals: Json | null
+          id: string
+          il_benefits: Json | null
+          industry: string | null
+          industry_vertical: string[] | null
+          interview_process: Json | null
+          is_active: boolean
+          is_agency: boolean
+          is_il: boolean
+          is_remote: boolean
+          jd_language: string | null
+          last_seen_at: string
+          local_office_city: string | null
+          location_city: string | null
+          location_raw: string | null
+          methodology: string[] | null
+          notable_customers: string[] | null
+          office_policy: Json | null
+          on_call_expected: string | null
+          raw_payload: Json | null
+          rd_local_headcount: number | null
+          reports_to: string | null
+          reports_to_struct: Json | null
+          req_ai_tooling: Json | null
+          req_education_fields: string[] | null
+          req_education_levels: string[] | null
+          req_education_strict: boolean | null
+          req_languages: Json | null
+          req_seniority: string | null
+          req_skill_years: Json | null
+          req_skills_core: string[] | null
+          req_skills_core_raw: string[] | null
+          req_skills_must_have: string[] | null
+          req_skills_must_have_raw: string[] | null
+          req_skills_nice: string[] | null
+          req_skills_nice_raw: string[] | null
+          req_visa_constraint: string | null
+          req_years_max: number | null
+          req_years_min: number | null
+          responsibility_keywords: string[] | null
+          salary_cadence: string | null
+          salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
+          scale_signals: Json | null
+          seniority: string
+          skill_coverage_ratio: number | null
+          team_size: number | null
+          tech_stack: string[] | null
+          title: string
+          track: string | null
+          travel_percentage: string | null
+          travel_struct: Json | null
+          years_experience_max: number | null
+          years_experience_min: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       [_ in never]: never
