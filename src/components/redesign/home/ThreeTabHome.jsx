@@ -1,0 +1,96 @@
+import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { FileUser, Columns3, Compass } from "lucide-react";
+import CVStudioLive from "@/components/cv-studio/CVStudioLive";
+import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
+import HomeTrackerTab from "./HomeTrackerTab";
+
+// ThreeTabHome - the canvas 3-tab home surface (CV | Tracker | Browse Jobs) at /,
+// flag ON. TABS-ONLY: the shell chrome (top bar, sidebar, ground, frame) is
+// already provided by CanvasShell, which wraps this via Layout's flag fork - so
+// this renders only the segmented pill + the three REAL tab bodies. No greeting /
+// hero / stat cards (per Eli's reframe: canvas surface, mockup colour).
+//
+// The tab bodies are the REAL components (fixtures live only in the preview):
+//   CV      -> CVStudioLive (self-fetching, zero props; the canvas right-rail
+//              TopMatchesPanel is a deferred refinement - it diverges from the
+//              tracker's source of truth, see the PR notes).
+//   Tracker -> HomeTrackerTab (the canonical ["applications", uid] pipeline).
+//   Jobs    -> UnifiedJobsFeed (self-fetching; singleColumn for the narrow column).
+
+const TABS = [
+  { id: "cv", label: "CV", icon: FileUser },
+  { id: "tracker", label: "Tracker", icon: Columns3 },
+  { id: "jobs", label: "Browse Jobs", icon: Compass },
+];
+const TAB_IDS = TABS.map((t) => t.id);
+
+export default function ThreeTabHome() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(
+    TAB_IDS.includes(urlTab) ? urlTab : "cv",
+  );
+  const activeIndex = TABS.findIndex((t) => t.id === activeTab);
+
+  const selectTab = (id) => {
+    setActiveTab(id);
+    // Keep the URL in sync so deep-links / the /Jobs redirect land on the tab,
+    // without stacking history entries.
+    const next = new URLSearchParams(searchParams);
+    if (id === "cv") next.delete("tab");
+    else next.set("tab", id);
+    setSearchParams(next, { replace: true });
+  };
+
+  return (
+    <div className="flex flex-col h-full min-h-0">
+      {/* Segmented-pill tabs (canvas comp A): one confident control. */}
+      <div
+        className="relative flex w-full max-w-[440px] mx-auto bg-rd-bg-soft rounded-full p-1 flex-shrink-0"
+        role="tablist"
+      >
+        <span
+          aria-hidden="true"
+          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+          style={{
+            width: "calc((100% - 0.5rem) / 3)",
+            transform: `translateX(${activeIndex * 100}%)`,
+          }}
+        />
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              onClick={() => selectTab(tab.id)}
+              className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-full font-display font-bold rd-t-body-s transition-colors ${
+                active
+                  ? "text-white"
+                  : "text-rd-text-secondary hover:text-rd-text"
+              }`}
+            >
+              <Icon className="w-4 h-4" aria-hidden="true" />
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab body. Scrolls on mobile; each column owns its scroll on desktop. */}
+      <div className="mt-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+        {activeTab === "cv" && (
+          <div className="w-full md:h-full md:overflow-hidden rd-lift rd-r-lg">
+            <CVStudioLive />
+          </div>
+        )}
+        {activeTab === "tracker" && <HomeTrackerTab />}
+        {activeTab === "jobs" && <UnifiedJobsFeed singleColumn />}
+      </div>
+    </div>
+  );
+}

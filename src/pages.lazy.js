@@ -29,16 +29,23 @@ const Career = lazy(() => import("./pages/Career"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const CareerAgent = lazy(() => import("./pages/CareerAgent"));
 const CVAgent = lazy(() => import("./pages/CVAgent"));
-const Home = lazy(() => import("./pages/Home"));
+// `/` + `/Home` and `/Jobs` are FLAG-GATED (each renders the current page
+// flag-off, the redesign flag-on) so the route repoint keeps flag-off
+// byte-identical. Home3Tab stays the "Home" key (so currentPageName is "Home" and
+// the legacy Today highlight is unchanged flag-off). See src/pages/Home3Tab.jsx /
+// JobsRouteGate.jsx.
+const Home3Tab = lazy(() => import("./pages/Home3Tab"));
+const JobsRouteGate = lazy(() => import("./pages/JobsRouteGate"));
 const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
-const Jobs = lazy(() => import("./pages/Jobs"));
 const Linkedin = lazy(() => import("./pages/Linkedin"));
 const Internship = lazy(() => import("./pages/Internship"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
 const Settings = lazy(() => import("./pages/Settings"));
-const SkillDevelopmentAdvisor = lazy(() => import("./pages/SkillDevelopmentAdvisor"));
+const SkillDevelopmentAdvisor = lazy(
+  () => import("./pages/SkillDevelopmentAdvisor"),
+);
 const StoryBank = lazy(() => import("./pages/StoryBank"));
 const Subagents = lazy(() => import("./pages/Subagents"));
 const Tasks = lazy(() => import("./pages/Tasks"));
@@ -60,9 +67,9 @@ export const LAZY_PAGES = {
   Calendar,
   CareerAgent,
   CVAgent,
-  Home,
+  Home: Home3Tab,
   InterviewCoach,
-  Jobs,
+  Jobs: JobsRouteGate,
   Internship,
   Linkedin,
   Onboarding,
