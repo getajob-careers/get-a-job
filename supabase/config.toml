@@ -1,16 +1,29 @@
 project_id = "ilmqmodklutztuybsvwd"
 
-# Functions handle auth themselves via supabase.auth.getUser() using the passed
-# Authorization header. Disable gateway-level JWT verification to avoid
-# UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM errors when the project uses
-# asymmetric JWT signing keys (ES256/EdDSA) that the gateway's HS256 verifier
-# cannot validate.
+# Gateway JWT verification is pinned PER FUNCTION so a plain
+# `supabase functions deploy <slug>` can never silently flip a function's
+# verify_jwt. Unpinned functions ride the Supabase CLI default (true), which is
+# how a routine redeploy of extract-jd-basics flipped it false->true on
+# 2026-07-19. Every deployed function is now pinned at its deliberate live value
+# to end that drift class. When adding a new function, add its
+# [functions.<slug>] pin here at the value you intend, so its gate config is
+# deterministic from the first deploy.
 #
-# This block covers every edge function deployed to this project as of the
-# last audit (11 total). If a new function is added locally, add a matching
-# [functions.<slug>] block here to keep verify_jwt=false locked in.
+# verify_jwt = false: the function authenticates internally via
+# supabase.auth.getUser() on the passed Authorization header (gateway-open +
+# internal gate). Historically false was also a WORKAROUND because the gateway's
+# HS256 verifier could not validate this project's asymmetric ES256 signing
+# keys. That is no longer true: verified 2026-07-19 that an ES256 user token
+# passes a verify_jwt=true gateway (HTTP 200). So the false pins below are now a
+# deliberate design choice, not a technical necessity.
+#
+# verify_jwt = true: the gateway enforces auth before the request reaches the
+# function. Functions that ALSO run an internal getUser() gate get defense in
+# depth (redundant but harmless).
 
-# Local source in supabase/functions/
+# ============================================================================
+# verify_jwt = false  (gateway-open + internal getUser() gate)
+# ============================================================================
 [functions.generate-career-analysis]
 verify_jwt = false
 
@@ -23,6 +36,8 @@ verify_jwt = false
 [functions.generate-tasks]
 verify_jwt = false
 
+# Not currently deployed to this project; pin retained so a future (re)deploy
+# lands at false rather than the CLI default.
 [functions.generate-job-suggestions]
 verify_jwt = false
 
@@ -32,7 +47,6 @@ verify_jwt = false
 [functions.extract-job-requirements]
 verify_jwt = false
 
-# Deployed-only (no local source yet) — still listed so future redeploys don't regress.
 [functions.generate-learning-paths]
 verify_jwt = false
 
@@ -44,3 +58,63 @@ verify_jwt = false
 
 [functions.lookup-role-skills]
 verify_jwt = false
+
+# ============================================================================
+# verify_jwt = true  (gateway enforces auth)
+# ============================================================================
+[functions.extract-jd-basics]
+verify_jwt = true
+
+[functions.extract-story-from-text]
+verify_jwt = true
+
+[functions.extract-cv-text]
+verify_jwt = true
+
+[functions.extract-bullets]
+verify_jwt = true
+
+[functions.render-cv]
+verify_jwt = true
+
+[functions.edit-cv]
+verify_jwt = true
+
+[functions.write-profile-entity]
+verify_jwt = true
+
+[functions.generate-daily-action]
+verify_jwt = true
+
+[functions.cron-generate-daily-action]
+verify_jwt = true
+
+[functions.generate-internship-profile]
+verify_jwt = true
+
+[functions.generate-internship-pitch]
+verify_jwt = true
+
+[functions.match-internship-companies]
+verify_jwt = true
+
+[functions.generate-linkedin-content]
+verify_jwt = true
+
+[functions.generate-linkedin-post]
+verify_jwt = true
+
+[functions.generate-linkedin-comment]
+verify_jwt = true
+
+[functions.generate-linkedin-outreach-message]
+verify_jwt = true
+
+[functions.import-linkedin-archive]
+verify_jwt = true
+
+[functions.send-welcome-email]
+verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true
