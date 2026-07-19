@@ -278,11 +278,7 @@ function LayoutBody({ children, currentPageName }) {
   // left fully intact (its `nextDesign &&` gates are simply dead when off); it
   // dies in the cleanup phase at reveal, not now.
   if (nextDesign) {
-    return (
-      <CanvasShell revealMode={revealMode} currentPageName={currentPageName}>
-        {children}
-      </CanvasShell>
-    );
+    return <CanvasShell revealMode={revealMode}>{children}</CanvasShell>;
   }
 
   return (

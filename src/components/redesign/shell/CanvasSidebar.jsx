@@ -1,9 +1,10 @@
-// Persistent left sidebar (mockup `.side`): brand -> profile-strength chip ->
-// TOOLKIT CAROUSEL (nav) -> coach card. Eli's final nav ruling (2026-07-19):
-// restore the swipe/scroll carousel band with edge chevrons (the labeled grid
-// retired to the graveyard). Roster is the ruled set; every tile is a real route.
+// Persistent left sidebar - THE CANVAS structure (Eli's definitive reframe,
+// 2026-07-19: the canvas redesign is the design; the mockup is colour-only). The
+// TOOLKIT CAROUSEL (top) + the coach dock (fills the rest) + the account chip
+// (bottom). The mockup's profile-strength chip and gradient coach card were
+// reverted; the coach dock is the canvas's own, rethemed by the mockup palette
+// tokens. Roster is the ruled set; every tile is a real route.
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Map,
   User,
@@ -18,9 +19,8 @@ import {
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
-import CanvasLogo from "./CanvasLogo";
 import CanvasToolTile from "./CanvasToolTile";
-import ProfileStrengthChip from "./ProfileStrengthChip";
+import CanvasAvatarChip from "./CanvasAvatarChip";
 import CanvasMobileRail from "./CanvasMobileRail";
 
 const REDUCE =
@@ -127,48 +127,18 @@ function ToolkitRail() {
   );
 }
 
-// Coach card (mockup `.coach`): a warm gradient card frame wrapping the REAL coach
-// node (production CoachDock; the fixture dock in the preview). The dock supplies
-// its own header + expand, so the frame stays header-less to avoid a duplicate.
-function CoachCard({ coach }) {
-  return (
-    <div
-      className="flex-1 min-h-0 flex flex-col rd-r-lg border border-rd-border p-2 overflow-hidden"
-      style={{
-        background:
-          "linear-gradient(160deg, var(--rd-bg-soft), var(--rd-golden-tint))",
-      }}
-    >
-      <div className="flex-1 min-h-0 flex flex-col">
-        {coach || <CoachDock />}
-      </div>
-    </div>
-  );
-}
-
-// `coach` = the dock node. `account` = the mobile-rail avatar. `name` /
-// `profileStrength` power the profile chip (strength waits on the data-source
-// table - null renders a neutral ring, no fabricated %).
-export default function CanvasSidebar({
-  coach,
-  account,
-  name,
-  profileStrength = null,
-}) {
+// `coach` = the dock node (real CoachDock in production; the fixture dock in the
+// preview). `account` powers the avatar chip.
+export default function CanvasSidebar({ coach, account }) {
   return (
     <>
       {/* Desktop: full left sidebar. Hidden below md - content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
-        <Link
-          to={createPageUrl("Home")}
-          aria-label="Get A Job home"
-          className="inline-flex px-1 rd-r-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
-        >
-          <CanvasLogo size={26} />
-        </Link>
-        <ProfileStrengthChip name={name} strength={profileStrength} />
         <ToolkitRail />
-        <CoachCard coach={coach} />
+        <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-rd-bg-sidebar rd-r-lg">
+          {coach || <CoachDock />}
+        </div>
+        <CanvasAvatarChip account={account} />
       </div>
 
       {/* Below md: fixed bottom icon rail (out of flow -> work fills first). */}
