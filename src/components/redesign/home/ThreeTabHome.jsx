@@ -89,7 +89,15 @@ export default function ThreeTabHome() {
           </div>
         )}
         {activeTab === "tracker" && <HomeTrackerTab />}
-        {activeTab === "jobs" && <UnifiedJobsFeed singleColumn />}
+        {/* Jobs owns its own desktop scroll: the tab body is md:overflow-hidden
+            and the feed (60-180 cards) has no internal scroll, so without this
+            the cards below the fold were unreachable on wide desktop. Mobile is
+            unaffected (the tab body already scrolls; this only applies md+). */}
+        {activeTab === "jobs" && (
+          <div className="md:h-full md:overflow-y-auto">
+            <UnifiedJobsFeed singleColumn />
+          </div>
+        )}
       </div>
     </div>
   );
