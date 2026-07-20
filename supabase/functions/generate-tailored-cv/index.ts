@@ -634,6 +634,17 @@ Deno.serve(async (req) => {
         // (jd_text param). Same extractor + same schema as the jobs-
         // table extraction — output is shape-compatible with stages 1+2.
         if (!v4Source && safeJobDescription && safeJobDescription.length >= 200) {
+          // Observability for the stage-3 sub-call. This exact call 401'd
+          // silently for ~7.5 weeks (the user-client bug fixed below) with no
+          // trace in function_metrics, because extract-job-requirements returns
+          // before it writes a metric. Emit a row from the CALLER instead —
+          // function_name 'generate-tailored-cv:stage3-extract', ok/http/error —
+          // so any future failure of stage-3 grounding is visible, never invisible.
+          const s3m = startMetric('generate-tailored-cv:stage3-extract');
+          s3m.userId = user.id;
+          let s3ok = false;
+          let s3http = 0;
+          let s3err: string | null = null;
           try {
             // extract-job-requirements is SERVICE-ROLE-ONLY (it authorizes only a
             // bearer/apikey matching SUPABASE_SERVICE_ROLE_KEY, or a service_role
@@ -645,19 +656,32 @@ Deno.serve(async (req) => {
             const extractRes = await serviceClient.functions.invoke("extract-job-requirements", {
               body: { jd_text: safeJobDescription, title: app.role_title || safeTargetRole },
             });
+            // supabase-js surfaces a non-2xx as FunctionsHttpError with the raw
+            // Response on .context; capture the status for the metric row.
+            s3http = (extractRes.error as { context?: { status?: number } } | null)?.context?.status
+              ?? (extractRes.error ? 500 : 200);
             const extraction = (extractRes.data as { extraction?: Record<string, unknown> } | undefined)?.extraction;
             if (extraction && (
               (Array.isArray(extraction.req_skills_core) && (extraction.req_skills_core as unknown[]).length > 0) ||
               (Array.isArray(extraction.req_skills_nice) && (extraction.req_skills_nice as unknown[]).length > 0)
             )) {
               v4Source = extraction;
+              s3ok = true;
               console.log("[CV] v4 grounding: stage 3 — stateless extraction from JD");
               void supabase.from("applications").update({ req_snapshot: extraction }).eq("id", application_id).then(({ error }) => {
                 if (error) console.warn("[CV] snapshot persist (stage 3) failed:", error.message);
               });
+            } else if (extractRes.error) {
+              s3err = String((extractRes.error as { message?: string } | null)?.message || 'invoke_error');
+              console.warn("[CV] stage-3 extract failed:", s3err, "(http", s3http, ")");
+            } else {
+              s3err = 'empty_extraction';
             }
           } catch (e) {
-            console.warn("[CV] stateless extraction failed:", e instanceof Error ? e.message : String(e));
+            s3err = e instanceof Error ? e.message : String(e);
+            console.warn("[CV] stateless extraction failed:", s3err);
+          } finally {
+            finishMetric(s3m, { ok: s3ok, httpStatus: s3http || (s3ok ? 200 : 500), errorCode: s3err });
           }
         }
 
