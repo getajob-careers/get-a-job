@@ -467,48 +467,54 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1.5 w-[272px] bg-rd-bg-card border border-rd-border rounded-xl shadow-rd p-1 z-50">
-          {options.map((o) => (
-            <div
-              key={o.id}
-              className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-coral-tint/60" : "hover:bg-rd-bg-soft"}`}
-            >
-              <button
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  onChange(o.id);
-                  setOpen(false);
-                }}
-                className="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 text-left"
+          {/* Cap the CV list and let it scroll so a long list (many tailored
+              copies) can't run past the viewport with items unreachable below
+              the fold. The "Tailor for a new job…" footer stays pinned outside
+              this scroll area. */}
+          <div className="max-h-[min(60vh,320px)] overflow-y-auto cv-scroll">
+            {options.map((o) => (
+              <div
+                key={o.id}
+                className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-coral-tint/60" : "hover:bg-rd-bg-soft"}`}
               >
-                <FileText className="w-3.5 h-3.5 text-rd-text-tertiary shrink-0" />
-                <span className="flex-1 min-w-0">
-                  <span className="block text-[12.5px] font-medium text-rd-text truncate">
-                    {o.label}
-                  </span>
-                  <span className="block text-[10.5px] text-rd-text-tertiary truncate">
-                    {o.sub}
-                  </span>
-                </span>
-              </button>
-              <span
-                className={`text-[9px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full shrink-0 mr-1.5 ${onDelete ? "group-hover/cvopt:hidden" : ""} ${o.tag === "Master" ? "bg-rd-golden-tint text-rd-golden-dark" : "bg-rd-teal-tint text-rd-teal-dark"}`}
-              >
-                {o.tag}
-              </span>
-              {onDelete && (
                 <button
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    onDelete(o);
+                    onChange(o.id);
+                    setOpen(false);
                   }}
-                  aria-label={`Delete ${o.label}`}
-                  className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint shrink-0"
+                  className="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 text-left"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <FileText className="w-3.5 h-3.5 text-rd-text-tertiary shrink-0" />
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[12.5px] font-medium text-rd-text truncate">
+                      {o.label}
+                    </span>
+                    <span className="block text-[10.5px] text-rd-text-tertiary truncate">
+                      {o.sub}
+                    </span>
+                  </span>
                 </button>
-              )}
-            </div>
-          ))}
+                <span
+                  className={`text-[9px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full shrink-0 mr-1.5 ${onDelete ? "group-hover/cvopt:hidden" : ""} ${o.tag === "Master" ? "bg-rd-golden-tint text-rd-golden-dark" : "bg-rd-teal-tint text-rd-teal-dark"}`}
+                >
+                  {o.tag}
+                </span>
+                {onDelete && (
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onDelete(o);
+                    }}
+                    aria-label={`Delete ${o.label}`}
+                    className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
           {onTailorNew && (
             <>
               <div className="border-t border-rd-border my-1" />
