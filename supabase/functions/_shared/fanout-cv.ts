@@ -52,6 +52,10 @@ export interface FanoutInputs {
   // deterministic fit inputs
   profileSkills: string[]
   jdSkills: string[]
+  // Test-only fault injection (debug). Any role whose `${bucket}:${index}` is
+  // listed skips its LLM call and goes straight to the source-bullets-verbatim
+  // fallback — used to prove the never-drop fallback fires (fellBack=true).
+  failRoles?: string[]
 }
 
 export interface FanoutResult {
@@ -93,6 +97,10 @@ async function authorRole(
   const sourceBullets = (role.bullets && role.bullets.length
     ? role.bullets
     : String(role.responsibilities || '').split(/\n|(?<=[.;])\s+/).map(s => s.trim()).filter(Boolean))
+  // Test fault injection: force this role to fail → exercise the never-drop fallback.
+  if (inp.failRoles?.includes(`${role.bucket}:${role.index}`)) {
+    return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true }
+  }
   const system = `You rewrite the source responsibilities of ONE role into tightened ATS resume bullets for the target role "${inp.targetRole}".
 RULES:
 - Preserve EVERY source responsibility as a bullet — do not drop content, do not merge two into one. Same count in, same count out.
@@ -188,10 +196,14 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
     professional_experiences: [], military_experiences: [],
     volunteering_experiences: [], leadership_experiences: [],
   }
-  for (const r of inp.roles) {
-    const out = roleResults.find(x => x.index === r.index)
+  // Assemble by POSITION, not by index: roleResults is 1:1 with inp.roles
+  // (Promise.all preserves order), and `index` is per-BUCKET (every bucket
+  // starts at 0), so a find(x => x.index === r.index) collides across buckets —
+  // that bug gave every bucket's index-0 role the professional[0] bullets.
+  inp.roles.forEach((r, i) => {
+    const out = roleResults[i]
     cvData[BUCKET_KEY[r.bucket]].push({ index: r.index, bullets: out?.bullets || (r.bullets || []) })
-  }
+  })
   cvData.summary = about.summary
   if (skills.skills) cvData.skills = skills.skills
   cvData.fit_analysis = computeFit(inp.profileSkills, inp.jdSkills)

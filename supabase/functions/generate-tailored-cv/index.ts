@@ -1732,6 +1732,9 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         baseTrace: { userId: user.id, sessionId: cvSessionId },
         profileSkills: profileSkillsArr,
         jdSkills: jdSkillsArr,
+        failRoles: Array.isArray((body as any)?.cv_fanout_fail_roles)
+          ? (body as any).cv_fanout_fail_roles.map(String)
+          : undefined,
       }, AbortSignal.timeout(60000));
       cvData = fo.cvData;
       fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls };
