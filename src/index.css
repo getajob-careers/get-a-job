@@ -395,10 +395,14 @@
   z-index: -1;
   opacity: 0;
   transition: opacity 0.2s ease;
+  /* Warm token (--rd-golden = the brown family flag-on), not the cold blue-grey
+     accent: at a low opacity the accent was imperceptible over the cream card.
+     The golden reads as a soft warm spotlight - the canvas glow's feel, in the
+     current palette. 240px radius, centred on the cursor via --sx/--sy. */
   background: radial-gradient(
-    220px circle at var(--sx, 50%) var(--sy, 50%),
-    color-mix(in srgb, var(--rd-coral) 13%, transparent),
-    transparent 62%
+    240px circle at var(--sx, 50%) var(--sy, 50%),
+    color-mix(in srgb, var(--rd-golden) 26%, transparent),
+    transparent 60%
   );
 }
 @media (hover: hover) and (pointer: fine) {
