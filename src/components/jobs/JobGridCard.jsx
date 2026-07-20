@@ -15,6 +15,7 @@ import {
 import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
 import { scoringV2Enabled } from "@/lib/flags";
 import { useCountUp } from "@/hooks/useCountUp";
+import { isNextDesign } from "@/lib/nextDesign";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -80,6 +81,11 @@ export default function JobGridCard({
     enabled: animateScore && typeof d.score === "number",
   });
   const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
+  // Batch A (Jobs card material): flag-on, the card adopts the canvas warm
+  // paper-lift (resting + hover elevation, borderless) using the current --rd-*
+  // tokens - palette locked. Flag-off keeps the flat bordered card verbatim
+  // (byte-identical). Applies wherever the card renders flag-on (feed, rail, search).
+  const alive = isNextDesign();
   const fallbackStyle = styles
     ? { background: styles.tint, color: styles.accent }
     : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
@@ -229,7 +235,11 @@ export default function JobGridCard({
             open();
           }
         }}
-        className="group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+        className={
+          alive
+            ? "group cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+            : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+        }
       >
         <div className="flex items-center justify-between gap-1.5 mb-2">
           <CompanyLogo
