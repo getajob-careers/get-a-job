@@ -16,6 +16,7 @@ import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
 import { scoringV2Enabled } from "@/lib/flags";
 import { useCountUp } from "@/hooks/useCountUp";
 import { isNextDesign } from "@/lib/nextDesign";
+import ScoreRing from "@/components/jobs/ScoreRing";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -249,7 +250,20 @@ export default function JobGridCard({
             size={34}
             radius={8}
           />
-          {d.scored && d.bandMeta ? (
+          {alive && d.scored && (d.bandMeta || d.badgeStyle) ? (
+            <ScoreRing
+              pct={
+                d.bandMeta
+                  ? typeof d.attainPct === "number"
+                    ? d.attainPct
+                    : (d.score ?? 0)
+                  : (d.score ?? 0)
+              }
+              fg={d.bandMeta ? d.bandMeta.fg : d.badgeStyle?.color}
+              bg={d.bandMeta ? d.bandMeta.bg : d.badgeStyle?.background}
+              animate={animateScore}
+            />
+          ) : d.scored && d.bandMeta ? (
             <span
               className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2 py-0.5"
               style={{ background: d.bandMeta.bg, color: d.bandMeta.fg }}
