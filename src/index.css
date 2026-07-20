@@ -380,3 +380,34 @@
     transform: none;
   }
 }
+
+/* Job-card spotlight cursor-glow (aliveness). Applied flag-on only, as a direct
+   child of the .group card, which sets --sx/--sy on mousemove (rAF-throttled).
+   z-index:-1 keeps the glow ABOVE the card's own background but BELOW its content
+   (the card is isolate + relative), so it never washes over the text. Warm radial
+   in the CURRENT accent tone (palette locked). Fine-pointer + hover only;
+   reduced-motion removes it entirely. */
+.cx-spot {
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: radial-gradient(
+    220px circle at var(--sx, 50%) var(--sy, 50%),
+    color-mix(in srgb, var(--rd-coral) 13%, transparent),
+    transparent 62%
+  );
+}
+@media (hover: hover) and (pointer: fine) {
+  .group:hover > .cx-spot {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-spot {
+    display: none;
+  }
+}
