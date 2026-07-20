@@ -1767,6 +1767,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls, coverage: fo.coverage };
       m.modelUsed = pass2MetricsModel;
       emitFanoutProgress('assembling', fanoutRoles.length + 2);
+      // Test-only: force a post-authoring throw to prove the terminal 'error'
+      // progress stage lands (so the client never polls a dead generation).
+      if ((body as any)?.cv_fanout_force_error === true) {
+        throw new Error('forced fan-out error (test)');
+      }
       console.log('[CV] fanout subcalls:', JSON.stringify(fo.subcalls));
       // Observability: one function_metrics row PER SUB-CALL so a fan-out run is
       // never invisible (ruling: same principle as the stage-3 fix). latency =
