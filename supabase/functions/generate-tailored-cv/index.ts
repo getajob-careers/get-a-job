@@ -351,10 +351,14 @@ Deno.serve(async (req) => {
     // Speed-arc diagnostic flag (default OFF). When true, the success response
     // carries a `timing` block of per-phase cumulative ms. No other behavior change.
     const debugTiming = (body as any)?.debug_timing === true;
-    // SPIKE flag (opt-in, default OFF). When true, Pass-2 authoring fans out into
-    // parallel per-role + About Me + Skills calls (see _shared/fanout-cv.ts) to
-    // measure the fan-out latency thesis. Default path is byte-identical.
-    const cvFanout = (body as any)?.cv_fanout === true;
+    // Pass-2 fan-out routing (see _shared/fanout-cv.ts). Resolution:
+    //   body.cv_fanout explicit true/false  -> honored (per-request opt-in/opt-out)
+    //   body.cv_fanout absent               -> the CV_FANOUT_DEFAULT env default
+    // So the org-wide default is an env secret (instant rollback: set it to 'off',
+    // no redeploy), and a caller can always opt out with cv_fanout:false. The
+    // single-call path stays intact as the fallback behind the same flag.
+    const cvFanout =
+      ((body as any)?.cv_fanout ?? (Deno.env.get("CV_FANOUT_DEFAULT")?.toLowerCase() === "on")) === true;
     // CV chokepoint opt-in flag (cv_enforce_v2): default OFF — anything but "on"
     // keeps the exact legacy path. Body flag OR the CV_ENFORCE_V2 env fallback.
     const cvEnforceV2 =
