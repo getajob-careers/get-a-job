@@ -32,6 +32,12 @@ import {
 import JobGridCard from "./JobGridCard";
 import JobDetailModal from "./JobDetailModal";
 import JobsSearchTab from "./JobsSearchTab";
+import { isNextDesign } from "@/lib/nextDesign";
+
+// STAGGER_CAP: only the first rows get the entrance + score count-up on the
+// flag-on jobs grid - the feed can render 60-180 cards, and a full-list stagger
+// would jank (binding perf rule from the aliveness plan).
+const STAGGER_CAP = 8;
 
 // Matches feed: fetch a healthy buffer from the DB, reveal it 60 at a time
 // from memory so "Load more" is instant, and refill from the DB before the
@@ -322,23 +328,63 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
   const seniorityIndicator = `Filtered to ${levelLabel(experienceLevel)} roles based on your experience`;
   const countCopy = `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} matched to you`;
+  // Flag-on aliveness: the sliding-pill segmented toggle + card stagger/count-up.
+  // Flag off -> the current color-swap tabs and static cards, byte-identical.
+  const alive = isNextDesign();
 
   return (
     <>
       {/* Two-tab switcher — sticky to the top of the scrolling jobs column
           (Career fixed-shell) so the tabs/filters stay while cards scroll. */}
-      <div className="flex gap-2 mb-5 md:sticky md:top-0 md:z-10 md:bg-rd-bg-page md:pt-1 md:pb-3 md:-mt-1">
-        <UnifiedTabButton
-          label="Top Matches for You"
-          active={unifiedTab === "matches"}
-          onClick={() => setUnifiedTab("matches")}
-        />
-        <UnifiedTabButton
-          label="Search All Jobs"
-          active={unifiedTab === "search"}
-          onClick={() => setUnifiedTab("search")}
-        />
-      </div>
+      {alive ? (
+        <div className="mb-5 md:sticky md:top-0 md:z-10 md:bg-rd-bg-page md:pt-1 md:pb-3 md:-mt-1">
+          <div
+            className="relative flex w-full max-w-[380px] bg-rd-bg-soft rounded-full p-1"
+            role="tablist"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+              style={{
+                width: "calc((100% - 0.5rem) / 2)",
+                transform: `translateX(${unifiedTab === "search" ? 100 : 0}%)`,
+              }}
+            />
+            {[
+              { id: "matches", label: "Top Matches for You" },
+              { id: "search", label: "Search All Jobs" },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={unifiedTab === t.id}
+                onClick={() => setUnifiedTab(t.id)}
+                className={`relative z-10 flex-1 inline-flex items-center justify-center py-1.5 rounded-full font-display font-bold text-[13px] transition-colors ${
+                  unifiedTab === t.id
+                    ? "text-white"
+                    : "text-rd-text-secondary hover:text-rd-text"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="flex gap-2 mb-5 md:sticky md:top-0 md:z-10 md:bg-rd-bg-page md:pt-1 md:pb-3 md:-mt-1">
+          <UnifiedTabButton
+            label="Top Matches for You"
+            active={unifiedTab === "matches"}
+            onClick={() => setUnifiedTab("matches")}
+          />
+          <UnifiedTabButton
+            label="Search All Jobs"
+            active={unifiedTab === "search"}
+            onClick={() => setUnifiedTab("search")}
+          />
+        </div>
+      )}
 
       {unifiedTab === "search" ? (
         <JobsSearchTab
@@ -392,6 +438,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       jobs={sectionedJobs.picks}
                       scoredById={scoredById}
                       unified
+                      alive={alive}
                       singleColumn={singleColumn}
                       onOpen={(j, s, tc) =>
                         setOpenJob({ job: j, scoreResult: s, trackColor: tc })
@@ -416,6 +463,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       jobs={sectionedJobs.stretch}
                       scoredById={scoredById}
                       unified
+                      alive={alive}
                       singleColumn={singleColumn}
                       onOpen={(j, s, tc) =>
                         setOpenJob({ job: j, scoreResult: s, trackColor: tc })
@@ -479,14 +527,17 @@ function UnifiedTabButton({ label, active, onClick }) {
   );
 }
 
-function JobGrid({ jobs, scoredById, unified = false, onOpen }) {
+function JobGrid({ jobs, scoredById, unified = false, onOpen, alive = false }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {jobs.map((job) => {
+      {jobs.map((job, i) => {
         const perJobTrack = scoredById[job.id]?.track;
         const trackRdColor = perJobTrack
           ? TRACK_CONFIG[perJobTrack]?.rdColor
           : null;
+        // Cap entrance + count-up to the first rows (perf). Flag off -> reveal
+        // false everywhere -> no class, no style, static score = byte-identical.
+        const reveal = alive && i < STAGGER_CAP;
         return (
           <JobGridCard
             key={job.id}
@@ -495,6 +546,9 @@ function JobGrid({ jobs, scoredById, unified = false, onOpen }) {
             trackColor={trackRdColor}
             unified={unified}
             onOpen={(j, s) => onOpen?.(j, s, trackRdColor)}
+            className={reveal ? "cx-reveal" : ""}
+            style={reveal ? { animationDelay: `${i * 40}ms` } : undefined}
+            animateScore={reveal}
           />
         );
       })}

@@ -39,9 +39,19 @@ const APPLICATION_STATUS_LABELS = {
   rejected: "Rejected",
 };
 
-function PipelineGuideTile({ tint, accent, head, body, highlight = false }) {
+function PipelineGuideTile({
+  tint,
+  accent,
+  head,
+  body,
+  highlight = false,
+  index = 0,
+}) {
   return (
-    <div className="rd-r-md px-3.5 py-3" style={{ background: tint }}>
+    <div
+      className="cx-reveal rd-r-md px-3.5 py-3"
+      style={{ background: tint, animationDelay: `${index * 40}ms` }}
+    >
       <p
         className="font-display font-bold rd-t-body-s leading-tight inline-flex items-center gap-1.5"
         style={{ color: accent }}
@@ -152,18 +162,30 @@ export default function HomeTrackerTab() {
   return (
     <section aria-label="Pipeline board">
       <div className="flex gap-1.5 mb-4">
-        <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+        <RdFunnelTile
+          label="saved"
+          value={funnelCounts.saved}
+          tone="neutral"
+          animate
+        />
         <RdFunnelTile
           label="applied"
           value={funnelCounts.applied}
           tone="neutral"
+          animate
         />
         <RdFunnelTile
           label="interview"
           value={funnelCounts.interview}
           tone="teal"
+          animate
         />
-        <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+        <RdFunnelTile
+          label="offer"
+          value={funnelCounts.offer}
+          tone="neutral"
+          animate
+        />
       </div>
 
       {!guideDismissed && (
@@ -197,24 +219,28 @@ export default function HomeTrackerTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
             <PipelineGuideTile
+              index={0}
               tint="var(--rd-coral-tint)"
               accent="var(--rd-coral-dark)"
               head="Steps 1-2"
               body="Qualify yourself. Dissect the job description. Know the role before applying."
             />
             <PipelineGuideTile
+              index={1}
               tint="var(--rd-teal-tint)"
               accent="var(--rd-teal-dark)"
               head="Steps 3-5"
               body="Tailor your CV, map skill evidence, and find a referral contact at the company."
             />
             <PipelineGuideTile
+              index={2}
               tint="var(--rd-coral-tint)"
               accent="var(--rd-coral-dark)"
               head="Steps 6-7"
               body="Submit your application, then prep for the interview with STAR-format answers."
             />
             <PipelineGuideTile
+              index={3}
               tint="var(--rd-coral-tint)"
               accent="var(--rd-coral-dark)"
               head="Referral = your biggest edge"
