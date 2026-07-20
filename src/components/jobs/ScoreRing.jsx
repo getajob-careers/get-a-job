@@ -79,7 +79,7 @@ export default function ScoreRing({
 
   return (
     <span
-      className={`relative flex-shrink-0 inline-flex ${interactive ? "cursor-help" : ""}`}
+      className={`relative flex-shrink-0 inline-flex ${interactive ? "cursor-pointer" : ""}`}
       onMouseEnter={interactive ? openLegend : undefined}
       onMouseLeave={interactive ? closeLegend : undefined}
       onClick={
