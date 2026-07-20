@@ -1,0 +1,1447 @@
+<!--
+  VISUAL MOCKUP ONLY -- no real data, no backend calls, no real persistence.
+
+  This is a static, standalone, click-through prototype of the proposed
+  streamlined onboarding flow (6 steps + tutorial -> 4 screens + tutorial),
+  discussed on branch yishai/onboarding-streamline-mockup. It is a DESIGN
+  REFERENCE for a future real implementation in src/components/onboarding/*
+  -- not code to copy-paste as the implementation. No real onboarding
+  component was touched to build this.
+
+  Colors are the live app's actual --rd-* design tokens, copied verbatim
+  from src/index.css and inlined below (this file has no access to that
+  stylesheet at review time, so literal hex values are reproduced instead
+  of left as unresolved var() references). Display font is Rokkitt, loaded
+  the same way the real app loads it (Google Fonts <link> in index.html) --
+  falls back to Georgia automatically if opened offline, matching the real
+  app's own fallback stack (tailwind.config.js: display: ['Rokkitt',
+  'Georgia', 'serif']).
+
+  Persona: "Jack Chiles" -- pulled from Downloads/jack_chiles_senior_pm_cv.docx,
+  the richest of three same-named CVs found on disk (the other two -- an
+  early-career Reichman business-student CV and a wildly unrealistic
+  Fortune-100-bank-CEO CV -- were either missing military service or a
+  mismatch for this product's actual user base). This one is a Senior PM
+  at an Israeli tech company completing an MBA at Reichman (IDC Herzliya)
+  and includes IDF service, matching the target demographic in CLAUDE.md
+  ("career operating system for business students entering the Israeli
+  tech market"). Every field below is transcribed from that document,
+  bucketed into this app's real data model (see comments per section for
+  the source component each screen mirrors).
+
+  Structural sources (read directly from the codebase, not guessed):
+    - Screen 1 mirrors src/components/onboarding/StepResumeUpload.jsx,
+      minus the LinkedIn-export banner (moving to the LinkedIn hub per
+      Phase 2 item D -- simply omitted here).
+    - Screen 2 mirrors src/components/onboarding/StepReview.jsx's section
+      set (Education / Experience / Projects / Certifications / Other
+      skills) restructured with collapsible per-category disclosure, and
+      the 6 skill categories are the real SKILL_BANK from
+      src/components/onboarding/skillBank.js (Tools & software, Domain
+      knowledge, Technical & engineering, Analytical & quantitative,
+      Communication, Leadership & people) -- not invented buckets.
+    - Screen 3 merges src/components/onboarding/StepCareerDirection.jsx +
+      StepConstraints.jsx + StepInternship.jsx per Phase 2 item B. The
+      practicum checkbox-then-inline-expand interaction is the NEW pattern
+      being proposed (today's real StepInternship.jsx is a 3-option-card
+      picker, not a checkbox) -- that change is the point of this review.
+    - Screen 4 reproduces src/components/onboarding/OnboardingTutorial.jsx's
+      6 slides verbatim (copy, order, track cards from src/lib/trackConfig.js,
+      LinkedIn CTA), simplified to skip the setup-progress/returning-user
+      states that don't matter for a flow-review mockup.
+    - The Home banners mirror src/components/dashboard/GoalRefinementNudge.jsx
+      (golden-tint pattern) exactly; the second "Reality check" banner is a
+      new sibling banner using the identical pattern, since Phase 1
+      investigation confirmed the survey fields DO feed generate-tasks
+      (task-count cap) and generate-tailored-cv (anti-fabrication anchor)
+      but tolerate being filled in later -- see the Phase 1 report in
+      conversation. Not required-onboarding-critical; safe to relocate.
+
+  Step counter reads "Step X of 4" per this task's explicit brief (Screens
+  1-4), with the tutorial counted as step 4 -- a deliberate simplification
+  for this review; the live OnboardingShell.jsx excludes the tutorial from
+  its own counter. Home is intentionally unnumbered -- it's the landing
+  surface after the flow, not part of it.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get A Job — Streamlined Onboarding Mockup (design reference only)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ============================================================
+         Design tokens — literal values from src/index.css, inlined
+         so this file has zero external CSS dependencies (font request
+         degrades gracefully offline via the fallback stack below).
+         ============================================================ */
+      :root {
+        --rd-bg-page: #faf6f0;
+        --rd-bg-card: #ffffff;
+        --rd-bg-sidebar: #efe7db;
+        --rd-bg-soft: #f3ece0;
+
+        --rd-border: #f0e7d8;
+        --rd-border-subtle: #ede7dd;
+        --rd-border-hover: #e0d6c4;
+
+        --rd-text: #211d18;
+        --rd-text-secondary: #6e675b;
+        --rd-text-tertiary: #5e584e;
+        --rd-text-eyebrow: #766445;
+
+        --rd-coral: #d6421f;
+        --rd-coral-dark: #b23a17;
+        --rd-coral-tint: #fce6df;
+
+        --rd-teal: #54b5a2;
+        --rd-teal-dark: #2a6e5e;
+        --rd-teal-tint: #dbeee8;
+
+        --rd-golden: #efb23e;
+        --rd-golden-dark: #7a5408;
+        --rd-golden-tint: #fbebc9;
+
+        --rd-peach: #e79b7d;
+
+        --rd-shadow: 0 10px 28px rgba(40, 25, 10, 0.07);
+        --rd-font-display: "Rokkitt", Georgia, "Times New Roman", serif;
+        --rd-font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--rd-bg-page);
+        color: var(--rd-text);
+        font-family: var(--rd-font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      button, select, input, textarea { font-family: inherit; }
+      button { cursor: pointer; background: none; border: none; padding: 0; }
+      h1, h2, h3, p { margin: 0; }
+      ul { margin: 0; padding: 0; list-style: none; }
+      a { color: inherit; }
+
+      .font-display { font-family: var(--rd-font-display); }
+
+      /* ---------- dev review bar (NOT part of the design; clearly
+         separated so it never reads as product chrome) ---------- */
+      .devbar {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: #2a241d;
+        color: #d9d2c4;
+        font-size: 11.5px;
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-family: var(--rd-font-body);
+      }
+      .devbar b { color: #fff; font-weight: 700; margin-right: 4px; }
+      .devbar button {
+        background: rgba(255,255,255,0.08);
+        color: #d9d2c4;
+        border-radius: 999px;
+        padding: 4px 11px;
+        font-size: 11px;
+        font-weight: 600;
+        transition: background-color .15s;
+      }
+      .devbar button:hover { background: rgba(255,255,255,0.18); }
+      .devbar button.active { background: var(--rd-coral); color: #fff; }
+      .devbar .sep { opacity: .3; margin: 0 2px; }
+
+      /* ---------- shared onboarding shell ---------- */
+      .shell-page {
+        min-height: 100vh;
+        background: var(--rd-bg-page);
+        padding: 24px 16px 48px;
+      }
+      .shell-frame {
+        max-width: 640px;
+        margin: 0 auto;
+        border-radius: 26px;
+        padding: 13px;
+        background: var(--rd-peach);
+      }
+      .shell-card {
+        background: var(--rd-bg-card);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .shell-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+      }
+      .brand { display: inline-flex; align-items: center; gap: 8px; }
+      .brand-dots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+      }
+      .brand-dots span { width: 7px; height: 7px; border-radius: 999px; display: block; }
+      .brand-dots span:nth-child(1) { background: var(--rd-coral); }
+      .brand-dots span:nth-child(2) { background: var(--rd-golden); }
+      .brand-dots span:nth-child(3) { background: var(--rd-teal); }
+      .brand-dots span:nth-child(4) { background: var(--rd-text); }
+      .brand-word { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+      .shell-step-meta { text-align: right; }
+      .eyebrow {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        font-weight: 500;
+        color: var(--rd-text-eyebrow);
+      }
+      .eyebrow.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+      .shell-step-label { font-weight: 600; font-size: 14px; margin-top: 2px; }
+      .shell-progress-track { height: 5px; background: var(--rd-border-subtle); }
+      .shell-progress-fill {
+        height: 100%;
+        background: var(--rd-coral);
+        transition: width .5s ease-out;
+      }
+      .shell-main { padding: 32px 24px 40px; }
+      @media (min-width: 640px) { .shell-main { padding: 40px 32px; } }
+
+      .stack-8 > * + * { margin-top: 32px; }
+      .stack-7 > * + * { margin-top: 28px; }
+      .stack-5 > * + * { margin-top: 20px; }
+      .stack-3 > * + * { margin-top: 12px; }
+
+      .screen-title {
+        font-size: 27px;
+        font-weight: 800;
+        line-height: 1.12;
+        letter-spacing: -0.01em;
+        margin-top: 8px;
+      }
+      .screen-sub {
+        font-size: 13.5px;
+        line-height: 1.6;
+        color: var(--rd-text-secondary);
+        margin-top: 12px;
+      }
+
+      .rd-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 10px 20px;
+        background: var(--rd-coral);
+        color: #fff;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: -0.01em;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        transition: background-color .15s, transform .15s;
+      }
+      .rd-btn:hover { background: var(--rd-coral-dark); }
+      .rd-btn:active { transform: scale(0.98); }
+      .rd-btn:disabled { opacity: .5; cursor: not-allowed; }
+      .rd-btn-ghost {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--rd-text-tertiary);
+        transition: color .15s;
+      }
+      .rd-btn-ghost:hover { color: var(--rd-text); }
+      .rd-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--rd-text);
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 999px;
+        padding: 9px 16px;
+        transition: border-color .15s;
+      }
+      .rd-btn-secondary:hover { border-color: var(--rd-border-hover); }
+
+      .nav-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 8px;
+      }
+
+      /* ---------- generic cards / inputs ---------- */
+      .card {
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 14px;
+        padding: 20px;
+      }
+      .card-soft {
+        background: var(--rd-bg-soft);
+        border: 1px solid var(--rd-border);
+        border-radius: 14px;
+        padding: 14px 16px;
+      }
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .field-label .req { color: var(--rd-coral); margin-left: 3px; }
+      .field-hint { font-size: 11.5px; color: var(--rd-text-secondary); margin-top: 6px; }
+      .rd-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card);
+        color: var(--rd-text);
+        font-size: 13.5px;
+        outline: none;
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .rd-input:focus {
+        border-color: var(--rd-coral);
+        box-shadow: 0 0 0 3px var(--rd-coral-tint);
+      }
+      .rd-input::placeholder { color: rgba(110, 103, 91, 0.7); }
+      .rd-textarea { min-height: 84px; resize: vertical; }
+      .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+      @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+      .grid-5 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      @media (min-width: 640px) { .grid-5 { grid-template-columns: repeat(5, 1fr); } }
+      .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      @media (min-width: 640px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+
+      .pill-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 500;
+        background: var(--rd-bg-soft);
+        color: var(--rd-text);
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+      .pill-tag svg { width: 11px; height: 11px; opacity: .55; }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card);
+        color: var(--rd-text-secondary);
+        font-weight: 500;
+        transition: border-color .15s, color .15s, background-color .15s;
+      }
+      .chip:hover { border-color: var(--rd-border-hover); color: var(--rd-text); }
+      .chip.selected {
+        background: var(--rd-coral);
+        border-color: var(--rd-coral);
+        color: #fff;
+      }
+      .chip.selected:hover { background: var(--rd-coral-dark); }
+      .chip.custom-chip {
+        border-style: dashed;
+        border-color: var(--rd-border-hover);
+      }
+
+      .option-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        width: 100%;
+        text-align: left;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card);
+        transition: border-color .15s, box-shadow .15s;
+      }
+      .option-card:hover { border-color: var(--rd-border-hover); }
+      .option-card.selected {
+        border-color: var(--rd-coral);
+        box-shadow: 0 0 0 3px var(--rd-coral-tint);
+      }
+      .option-icon {
+        width: 34px; height: 34px; border-radius: 999px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--rd-bg-soft); color: var(--rd-text-secondary);
+      }
+      .option-card.selected .option-icon { background: var(--rd-coral); color: #fff; }
+      .option-title { font-family: var(--rd-font-display); font-weight: 600; font-size: 14.5px; }
+      .option-desc { font-size: 12.5px; color: var(--rd-text-secondary); line-height: 1.5; margin-top: 4px; }
+
+      .visual-card {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        padding: 12px 8px; border-radius: 14px; border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card); transition: border-color .15s, box-shadow .15s;
+        text-align: center;
+      }
+      .visual-card:hover { border-color: var(--rd-border-hover); }
+      .visual-card.selected { border-color: var(--rd-coral); box-shadow: 0 0 0 3px var(--rd-coral-tint); background: var(--rd-coral-tint); }
+      .visual-icon-circle {
+        width: 36px; height: 36px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
+        background: var(--rd-bg-soft); color: var(--rd-text-secondary);
+      }
+      .visual-card.selected .visual-icon-circle { background: var(--rd-coral); color: #fff; }
+      .visual-label { font-family: var(--rd-font-display); font-weight: 600; font-size: 12px; }
+
+      svg.ic { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+      /* ---------- section headers + collapsibles (Screen 2) ---------- */
+      .section-head {
+        display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+      }
+      .section-icon {
+        width: 32px; height: 32px; border-radius: 8px; background: var(--rd-bg-soft);
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+        color: var(--rd-text-secondary);
+      }
+      .section-title-row { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+      .section-title { font-family: var(--rd-font-display); font-weight: 700; font-size: 17px; }
+      .section-count { font-size: 11.5px; color: var(--rd-text-secondary); font-weight: 500; }
+      .section-sub { font-size: 12px; color: var(--rd-text-secondary); margin-top: 2px; }
+      .chevron { margin-left: auto; color: var(--rd-text-tertiary); transition: transform .18s; flex-shrink: 0; }
+      .chevron.rotated { transform: rotate(180deg); }
+
+      .collapsible-trigger {
+        display: flex; align-items: center; width: 100%; text-align: left; gap: 12px;
+        padding: 4px 0;
+      }
+      .collapsible-body { overflow: hidden; }
+      .collapsible-body.closed { display: none; }
+      .collapsible-body-inner { padding-top: 14px; }
+
+      .nudge-row {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 12px 16px; border-radius: 12px; background: var(--rd-bg-soft);
+        border: 1px dashed var(--rd-border-hover);
+      }
+      .nudge-row .nudge-text { font-size: 12.5px; color: var(--rd-text-secondary); }
+      .nudge-row .nudge-cta { font-size: 12px; font-weight: 600; color: var(--rd-coral-dark); display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+      .entity-card {
+        background: var(--rd-bg-card); border: 1px solid var(--rd-border); border-radius: 14px;
+        padding: 18px; margin-bottom: 12px;
+      }
+      .entity-card:last-child { margin-bottom: 0; }
+      .entity-head { display: flex; align-items: flex-start; justify-content: between; gap: 12px; margin-bottom: 12px; }
+      .entity-title { font-family: var(--rd-font-display); font-weight: 600; font-size: 14px; }
+      .entity-meta { font-size: 11.5px; color: var(--rd-text-secondary); margin-top: 2px; }
+      .entity-badge {
+        font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+        padding: 3px 8px; border-radius: 999px; background: var(--rd-bg-soft); color: var(--rd-text-tertiary);
+        flex-shrink: 0;
+      }
+      .entity-badge.military { background: var(--rd-teal-tint); color: var(--rd-teal-dark); }
+      .entity-body { font-size: 12.5px; color: var(--rd-text-secondary); line-height: 1.6; margin-top: 4px; }
+      .entity-body ul { margin-left: 16px; list-style: disc; }
+      .entity-body li { margin-top: 2px; }
+      .entity-skills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+
+      .summary-banner {
+        display: flex; align-items: center; gap: 10px;
+        background: var(--rd-teal-tint); border: 1px solid rgba(84,181,162,0.4);
+        border-radius: 14px; padding: 11px 14px; font-size: 13px; color: var(--rd-teal-dark);
+      }
+      .summary-banner b { font-family: var(--rd-font-display); font-weight: 600; color: var(--rd-text); }
+
+      .skill-cat-icon-tools { color: #8a6d3b; }
+
+      /* checkbox */
+      .rd-checkbox-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+      .rd-checkbox {
+        width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid var(--rd-border-hover);
+        background: var(--rd-bg-card); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        transition: background-color .15s, border-color .15s;
+      }
+      .rd-checkbox.checked { background: var(--rd-coral); border-color: var(--rd-coral); }
+      .rd-checkbox svg { width: 12px; height: 12px; color: #fff; display: none; }
+      .rd-checkbox.checked svg { display: block; }
+      .rd-checkbox-label { font-family: var(--rd-font-display); font-weight: 600; font-size: 14px; }
+      .rd-checkbox-sub { font-size: 12px; color: var(--rd-text-secondary); margin-top: 2px; }
+
+      .inline-expand { overflow: hidden; max-height: 0; transition: max-height .25s ease; }
+      .inline-expand.open { max-height: 900px; }
+      .inline-expand-inner { padding-top: 14px; }
+
+      /* ---------- goal picker card (Screen 3) ---------- */
+      .goal-picked {
+        display: flex; align-items: flex-start; gap: 10px; padding: 14px;
+        border-radius: 14px; border: 1px solid var(--rd-coral); background: var(--rd-coral-tint);
+        box-shadow: 0 0 0 3px var(--rd-coral-tint);
+      }
+      .goal-picked b { font-family: var(--rd-font-display); font-weight: 600; font-size: 14.5px; }
+      .goal-picked p { font-size: 11.5px; color: var(--rd-text-secondary); margin-top: 3px; }
+
+      /* ---------- tutorial (Screen 4) ---------- */
+      .tutorial-frame { text-align: center; }
+      .tutorial-badge {
+        width: 56px; height: 56px; border-radius: 16px; background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border); display: flex; align-items: center; justify-content: center;
+        margin: 0 auto; box-shadow: var(--rd-shadow); color: var(--rd-coral);
+      }
+      .tutorial-visual { background: var(--rd-bg-soft); border: 1px solid var(--rd-border); border-radius: 18px; padding: 28px 20px; }
+      .tutorial-title { font-family: var(--rd-font-display); font-weight: 800; font-size: 25px; margin-top: 20px; letter-spacing: -0.01em; }
+      .tutorial-desc { font-size: 13.5px; color: var(--rd-text-secondary); line-height: 1.6; margin-top: 8px; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .tutorial-dots { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 28px; }
+      .tutorial-dot { height: 6px; width: 6px; border-radius: 999px; background: var(--rd-border); transition: all .3s; }
+      .tutorial-dot.active { width: 28px; background: var(--rd-coral); }
+      .track-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; text-align: left; max-width: 480px; margin-left: auto; margin-right: auto; }
+      @media (min-width: 640px) { .track-grid { grid-template-columns: repeat(3, 1fr); } }
+      .track-card { background: var(--rd-bg-card); border: 1px solid var(--rd-border); border-radius: 12px; padding: 12px; }
+      .track-num { width: 22px; height: 22px; border-radius: 6px; background: var(--rd-bg-soft); display: flex; align-items: center; justify-content: center; font-family: var(--rd-font-display); font-weight: 700; font-size: 12px; }
+      .track-name { font-family: var(--rd-font-display); font-weight: 600; font-size: 12px; }
+      .track-desc { font-size: 11px; color: var(--rd-text-secondary); line-height: 1.5; margin-top: 6px; }
+      .job-preview-card {
+        margin-top: 18px; max-width: 380px; margin-left: auto; margin-right: auto; text-align: left;
+        background: var(--rd-bg-card); border: 1px solid var(--rd-border); border-radius: 13px; padding: 12px 14px;
+        box-shadow: var(--rd-shadow);
+      }
+      .li-cta {
+        display: inline-flex; align-items: center; gap: 6px; margin-top: 18px; font-family: var(--rd-font-display);
+        font-weight: 600; font-size: 12.5px; background: var(--rd-bg-card); border: 1px solid var(--rd-border);
+        border-radius: 999px; padding: 8px 16px;
+      }
+
+      /* ---------- Home mock ---------- */
+      .home-shell { min-height: 100vh; background: var(--rd-bg-page); padding: 28px 16px 60px; }
+      .home-inner { max-width: 560px; margin: 0 auto; }
+      .home-header { margin-bottom: 22px; }
+      .home-greeting { font-family: var(--rd-font-display); font-weight: 800; font-size: 24px; letter-spacing: -0.01em; }
+      .home-sub { font-size: 13px; color: var(--rd-text-secondary); margin-top: 4px; }
+      .nudge-banner {
+        display: flex; align-items: flex-start; gap: 12px; border-radius: 14px; padding: 12px 14px;
+        border: 1px solid; margin-bottom: 12px;
+      }
+      .nudge-banner.golden { border-color: rgba(239,178,62,0.4); background: var(--rd-golden-tint); }
+      .nudge-icon { width: 28px; height: 28px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #fff; }
+      .nudge-icon.golden { background: var(--rd-golden); }
+      .nudge-title { font-family: var(--rd-font-display); font-weight: 600; font-size: 13px; }
+      .nudge-body { font-size: 11.5px; color: var(--rd-text-secondary); line-height: 1.5; margin-top: 2px; }
+      .nudge-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-top: 1px; }
+      .nudge-link { font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+      .nudge-link.golden-link { color: var(--rd-golden-dark); }
+      .nudge-close { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--rd-text-tertiary); }
+      .nudge-close:hover { background: var(--rd-bg-card); color: var(--rd-text); }
+      .home-placeholder-card {
+        border: 1px dashed var(--rd-border-hover); border-radius: 14px; padding: 24px; text-align: center;
+        color: var(--rd-text-tertiary); font-size: 12.5px; margin-top: 8px;
+      }
+      .caption-note {
+        margin-top: 28px; font-size: 11.5px; color: var(--rd-text-tertiary); line-height: 1.6;
+        border-top: 1px dashed var(--rd-border-hover); padding-top: 16px;
+      }
+
+      .screen { display: none; }
+      .screen.active { display: block; }
+    </style>
+  </head>
+  <body>
+    <!-- ============ DEV REVIEW BAR — not part of the design ============ -->
+    <div class="devbar">
+      <b>Onboarding streamline — mockup</b>
+      <button data-goto="s1" class="navbtn">1 · CV upload</button>
+      <span class="sep">→</span>
+      <button data-goto="s2" class="navbtn">2 · Review &amp; refine</button>
+      <span class="sep">→</span>
+      <button data-goto="s3" class="navbtn">3 · Direction &amp; preferences</button>
+      <span class="sep">→</span>
+      <button data-goto="s4" class="navbtn">4 · Tutorial</button>
+      <span class="sep">→</span>
+      <button data-goto="home" class="navbtn">Home (post-onboarding)</button>
+    </div>
+
+    <!-- ============================================================
+         SCREEN 1 — CV Upload (StepResumeUpload.jsx equivalent)
+         LinkedIn export banner intentionally omitted — moves to the
+         LinkedIn hub per Phase 2 item D.
+         ============================================================ -->
+    <div class="screen active" id="screen-s1">
+      <div class="shell-page">
+        <div class="shell-frame">
+          <div class="shell-card">
+            <div class="shell-topbar">
+              <div class="brand">
+                <div class="brand-dots"><span></span><span></span><span></span><span></span></div>
+                <span class="font-display brand-word">Get A Job</span>
+              </div>
+              <div class="shell-step-meta">
+                <p class="eyebrow">Step 1 of 4</p>
+                <p class="font-display shell-step-label">CV upload</p>
+              </div>
+            </div>
+            <div class="shell-progress-track"><div class="shell-progress-fill" style="width:25%"></div></div>
+            <div class="shell-main">
+              <div class="stack-7">
+                <div>
+                  <p class="eyebrow mono">step 1 of 4 · your cv</p>
+                  <h1 class="font-display screen-title">Let&rsquo;s start with your CV.</h1>
+                  <p class="screen-sub">Drop your CV and we&rsquo;ll extract everything from it &mdash; no manual entry needed.</p>
+                </div>
+
+                <div>
+                  <p class="eyebrow" style="margin-bottom:10px;">Your current situation</p>
+                  <div class="grid-5">
+                    <div class="visual-card selected">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5Zm4 2v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></div>
+                      <span class="visual-label">Student</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                      <span class="visual-label">Have a job</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+                      <span class="visual-label">Looking for a job</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></div>
+                      <span class="visual-label">Unemployed</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.3 4.7.4-3.6 3.1 1.1 4.6L12 13l-4.1 2.4 1.1-4.6-3.6-3.1 4.7-.4L12 3Z"/></svg></div>
+                      <span class="visual-label">Freelancing</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-soft" style="border-style:dashed; border-width:2px; text-align:center; padding:32px; border-color: var(--rd-coral); background: var(--rd-coral-tint);">
+                  <div style="width:56px;height:56px;border-radius:999px;background:var(--rd-coral-tint);display:flex;align-items:center;justify-content:center;margin:0 auto;">
+                    <svg class="ic" viewBox="0 0 24 24" style="width:24px;height:24px;stroke:var(--rd-coral);"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+                  </div>
+                  <p class="font-display" style="font-weight:600;font-size:15px;margin-top:10px;">CV extracted</p>
+                  <p style="font-size:11.5px;color:var(--rd-text-secondary);margin-top:4px;">Jack_Chiles_Senior_PM_CV.docx</p>
+                </div>
+
+                <button type="button" class="rd-btn-ghost" style="display:inline-flex;align-items:center;gap:8px;">
+                  <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M16 8a6 6 0 0 1 6 6v6h-4v-6a2 2 0 0 0-4 0v6h-4v-6a6 6 0 0 1 6-6Z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                  + Add LinkedIn URL (optional)
+                </button>
+
+                <div class="nav-row">
+                  <button class="rd-btn-ghost">&larr; Back</button>
+                  <button class="rd-btn" data-goto="s2">Continue <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SCREEN 2 — Review & Refine (StepReview.jsx, restructured)
+         ============================================================ -->
+    <div class="screen" id="screen-s2">
+      <div class="shell-page">
+        <div class="shell-frame">
+          <div class="shell-card">
+            <div class="shell-topbar">
+              <div class="brand">
+                <div class="brand-dots"><span></span><span></span><span></span><span></span></div>
+                <span class="font-display brand-word">Get A Job</span>
+              </div>
+              <div class="shell-step-meta">
+                <p class="eyebrow">Step 2 of 4</p>
+                <p class="font-display shell-step-label">Review &amp; refine</p>
+              </div>
+            </div>
+            <div class="shell-progress-track"><div class="shell-progress-fill" style="width:50%"></div></div>
+            <div class="shell-main">
+              <div class="stack-8">
+                <div>
+                  <p class="eyebrow mono">step 2 of 4 · review what we extracted</p>
+                  <h1 class="font-display screen-title">Review and refine.</h1>
+                  <p class="screen-sub">Here&rsquo;s what we found in your CV. Edit anything that isn&rsquo;t right, add what&rsquo;s missing, then continue.</p>
+                </div>
+
+                <div class="summary-banner">
+                  <svg class="ic" viewBox="0 0 24 24" style="flex-shrink:0;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+                  <p><b>5 jobs, 33 skills, 5 certifications</b> found &mdash; review, edit, or add more below.</p>
+                </div>
+
+                <!-- EDUCATION -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="edu">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5Zm4 2v5c0 1.5 3 3 6 3s6-1.5 6-3v-5"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Education <span style="color:var(--rd-coral);">*</span></span><span class="section-count">2 found</span></div>
+                      <p class="section-sub">The primary degree powers role-fit scoring.</p>
+                    </div>
+                    <svg class="ic chevron" data-chevron="edu" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="edu">
+                    <div class="collapsible-body-inner">
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Reichman University (IDC Herzliya)</p>
+                            <p class="entity-meta">MBA &mdash; Strategy &amp; Entrepreneurship (in progress) · 2023 &ndash; 2025</p>
+                          </div>
+                          <span class="entity-badge">Current</span>
+                        </div>
+                        <div class="entity-body">
+                          GPA 91/100 · Dean&rsquo;s List<br />
+                          Focus: Product Strategy, Venture Finance, Organisational Behaviour
+                        </div>
+                        <div class="entity-skills">
+                          <span class="pill-tag">Product Strategy</span>
+                          <span class="pill-tag">Venture Finance</span>
+                          <span class="pill-tag">Organisational Behaviour</span>
+                        </div>
+                      </div>
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Technion &mdash; Israel Institute of Technology</p>
+                            <p class="entity-meta">B.Sc. Industrial Engineering &amp; Management · 2016 &ndash; 2020</p>
+                          </div>
+                        </div>
+                        <div class="entity-body">
+                          Graduated with Distinction (GPA 88)<br />
+                          Thesis: Optimising Feature Prioritisation Under Uncertainty Using Bayesian Decision Trees
+                        </div>
+                      </div>
+                      <button class="rd-btn-secondary" style="width:100%;justify-content:center;border-style:dashed;margin-top:4px;">
+                        <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg> Add education
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- EXPERIENCE -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="exp">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Experience</span><span class="section-count">5 found</span></div>
+                      <p class="section-sub">Internships, jobs, volunteering, military service, leadership roles.</p>
+                    </div>
+                    <svg class="ic chevron" data-chevron="exp" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="exp">
+                    <div class="collapsible-body-inner">
+
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Senior Product Manager &mdash; Platform &amp; Growth</p>
+                            <p class="entity-meta">Plantt (AI Revenue Intelligence · YC W21) · Tel Aviv · Aug 2023 &ndash; Present</p>
+                          </div>
+                          <span class="entity-badge">Full-time</span>
+                        </div>
+                        <div class="entity-body">
+                          <ul>
+                            <li>Led 0&rarr;1 launch of Plantt Signals, a churn-risk engine adopted by 80% of customers within 90 days; cut gross churn 14% &rarr; 6%.</li>
+                            <li>Shipped the CRM sync layer, cutting onboarding time 11 days &rarr; 2.5 days and lifting NPS 34 &rarr; 61.</li>
+                            <li>Grew platform ARR $4.2M &rarr; $18M over 18 months; hired and mentored 2 associate PMs.</li>
+                          </ul>
+                        </div>
+                        <div class="entity-skills">
+                          <span class="pill-tag">Product Strategy</span><span class="pill-tag">Roadmapping</span><span class="pill-tag">OKR Design</span><span class="pill-tag">CRM Integration</span>
+                        </div>
+                      </div>
+
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Product Manager &mdash; Fiverr Business (B2B SaaS)</p>
+                            <p class="entity-meta">Fiverr · Tel Aviv · Jan 2022 &ndash; Jul 2023</p>
+                          </div>
+                          <span class="entity-badge">Full-time</span>
+                        </div>
+                        <div class="entity-body">
+                          <ul>
+                            <li>Rebuilt dashboard and order-management flows (React/Node); cut order-to-delivery time 28%.</li>
+                            <li>Ran discovery sprint with 40 enterprise buyers; redesigned onboarding funnel, 3&times; retention lift (8% &rarr; 26%).</li>
+                            <li>Presented quarterly business reviews to C-level stakeholders.</li>
+                          </ul>
+                        </div>
+                        <div class="entity-skills">
+                          <span class="pill-tag">Discovery Research</span><span class="pill-tag">JTBD Framework</span><span class="pill-tag">Stakeholder Updates</span>
+                        </div>
+                      </div>
+
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Associate Product Manager</p>
+                            <p class="entity-meta">monday.com · Tel Aviv · Jun 2020 &ndash; Dec 2021</p>
+                          </div>
+                          <span class="entity-badge">Full-time</span>
+                        </div>
+                        <div class="entity-body">
+                          <ul>
+                            <li>Shipped 14 trigger/action pairs for the Automations feature (600K+ workspaces) in 18 months.</li>
+                            <li>A/B tested a 32-template library; drove a 41% lift in first-automation activation.</li>
+                            <li>Led the GDPR audit for Automations &mdash; zero compliance findings.</li>
+                          </ul>
+                        </div>
+                        <div class="entity-skills">
+                          <span class="pill-tag">A/B Testing</span><span class="pill-tag">Mixpanel</span><span class="pill-tag">BigQuery</span><span class="pill-tag">Compliance</span>
+                        </div>
+                      </div>
+
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Product &amp; Strategy Intern</p>
+                            <p class="entity-meta">Mobileye (Intel) · Jerusalem · Jun 2019 &ndash; May 2020</p>
+                          </div>
+                          <span class="entity-badge">Internship</span>
+                        </div>
+                        <div class="entity-body">
+                          <ul>
+                            <li>Supported 3 OEM partnership workstreams (BMW, NIO, Volkswagen) post-Intel acquisition.</li>
+                            <li>Built a competitive intelligence tracker across 12 ADAS vendors, adopted as the team&rsquo;s standard tool.</li>
+                            <li>Awarded &ldquo;Outstanding Intern&rdquo; &mdash; top 3 of 47 interns.</li>
+                          </ul>
+                        </div>
+                        <div class="entity-skills">
+                          <span class="pill-tag">Competitive Intelligence</span><span class="pill-tag">Product Briefs</span>
+                        </div>
+                      </div>
+
+                      <div class="entity-card">
+                        <div class="entity-head" style="justify-content:space-between;display:flex;">
+                          <div>
+                            <p class="entity-title">Sergeant, Intelligence Corps</p>
+                            <p class="entity-meta">Israel Defense Forces (IDF) · 2014 &ndash; 2016</p>
+                          </div>
+                          <span class="entity-badge military">Military</span>
+                        </div>
+                        <div class="entity-body">
+                          Mandatory service, Intelligence Corps. Awarded an Ops Excellence Citation.
+                        </div>
+                      </div>
+
+                      <button class="rd-btn-secondary" style="width:100%;justify-content:center;border-style:dashed;margin-top:4px;">
+                        <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg> Add experience
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- PROJECTS — deliberately empty, to demo the collapsed nudge -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="proj">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12h6M12 9v6"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Projects</span><span class="section-count" style="color:var(--rd-text-tertiary);">none found &mdash; tap to add</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="proj" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body closed" data-body="proj">
+                    <div class="collapsible-body-inner">
+                      <div class="card-soft" style="margin-bottom:12px;">No projects extracted. Add one if you have any &mdash; this section is optional.</div>
+                      <button class="rd-btn-secondary" style="width:100%;justify-content:center;border-style:dashed;">
+                        <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg> Add project
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- CERTIFICATIONS -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="cert">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5 7 22l5-3 5 3-1.5-8.5"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Certifications</span><span class="section-count">5 found</span></div>
+                      <p class="section-sub">Surfaced in CV generation when relevant.</p>
+                    </div>
+                    <svg class="ic chevron" data-chevron="cert" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="cert">
+                    <div class="collapsible-body-inner">
+                      <div class="entity-card"><p class="entity-title">AWS Certified Cloud Practitioner</p><p class="entity-meta">Amazon Web Services</p></div>
+                      <div class="entity-card"><p class="entity-title">Google Analytics 4 Certified</p><p class="entity-meta">Google</p></div>
+                      <div class="entity-card"><p class="entity-title">HubSpot Product Marketing</p><p class="entity-meta">HubSpot Academy</p></div>
+                      <div class="entity-card"><p class="entity-title">Reforge Product Strategy</p><p class="entity-meta">Reforge</p></div>
+                      <div class="entity-card"><p class="entity-title">Scrum Master (PSM I)</p><p class="entity-meta">Scrum.org</p></div>
+                      <button class="rd-btn-secondary" style="width:100%;justify-content:center;border-style:dashed;margin-top:4px;">
+                        <svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M12 5v14M5 12h14"/></svg> Add certification
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- OTHER SKILLS (catch-all) -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="other">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.3 4.7.4-3.6 3.1 1.1 4.6L12 13l-4.1 2.4 1.1-4.6-3.6-3.1 4.7-.4L12 3Z"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Other skills</span><span class="section-count">3 selected</span></div>
+                      <p class="section-sub">Anything not tied to a specific experience &mdash; languages, self-taught, side learning.</p>
+                    </div>
+                    <svg class="ic chevron" data-chevron="other" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="other">
+                    <div class="collapsible-body-inner">
+                      <div class="card">
+                        <p class="field-label">Selected (3)</p>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                          <span class="pill-tag">Hebrew (Native)</span>
+                          <span class="pill-tag">English (Fluent)</span>
+                          <span class="pill-tag">Spanish (Conversational)</span>
+                        </div>
+                        <input class="rd-input" style="margin-top:14px;" placeholder="Search skills, or type and press Enter to add custom" />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- 6 SKILL_BANK CATEGORIES — each collapsible, populated -->
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-tools">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6 2.6 2.6 6-6a4 4 0 0 0 5.4-5.4l-2.4 2.4-2.6-2.6 2.4-2.4Z"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Tools &amp; software</span><span class="section-count">6 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-tools" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-tools">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">Salesforce</span>
+                        <span class="chip selected">HubSpot</span>
+                        <span class="chip selected">Figma</span>
+                        <span class="chip selected">Jira</span>
+                        <span class="chip selected">Linear</span>
+                        <span class="chip selected custom-chip">Intercom</span>
+                        <span class="chip">Excel</span><span class="chip">Google Sheets</span><span class="chip">PowerPoint</span><span class="chip">Notion</span><span class="chip">Slack</span><span class="chip">Zendesk</span><span class="chip">Asana</span><span class="chip">Airtable</span><span class="chip">Looker Studio</span><span class="chip">Mixpanel</span><span class="chip">Amplitude</span><span class="chip">Loom</span><span class="chip">Webflow</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-domain">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Domain knowledge</span><span class="section-count">4 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-domain" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-domain">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">Product Management</span>
+                        <span class="chip selected">Go-to-Market</span>
+                        <span class="chip selected">UX Research</span>
+                        <span class="chip selected">Compliance</span>
+                        <span class="chip">Customer Success</span><span class="chip">Account Management</span><span class="chip">Marketing Strategy</span><span class="chip">Sales Operations</span><span class="chip">Financial Modeling</span><span class="chip">Market Research</span><span class="chip">HR Operations</span><span class="chip">Supply Chain</span><span class="chip">Contract Negotiation</span><span class="chip">Operations</span><span class="chip">Vendor Management</span><span class="chip">Pricing Strategy</span><span class="chip">Partnership Development</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-tech">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Technical &amp; engineering</span><span class="section-count">5 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-tech" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-tech">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">Python</span>
+                        <span class="chip selected">SQL</span>
+                        <span class="chip selected">REST APIs</span>
+                        <span class="chip selected">React</span>
+                        <span class="chip selected">Node.js</span>
+                        <span class="chip">JavaScript</span><span class="chip">TypeScript</span><span class="chip">GraphQL</span><span class="chip">Git</span><span class="chip">Docker</span><span class="chip">AWS</span><span class="chip">Machine Learning</span><span class="chip">Java</span><span class="chip">C++</span><span class="chip">Ruby</span><span class="chip">Linux/Bash</span><span class="chip">Kubernetes</span><span class="chip">CI/CD</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-analytical">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-7"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Analytical &amp; quantitative</span><span class="section-count">4 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-analytical" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-analytical">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">A/B Testing</span>
+                        <span class="chip selected">Looker</span>
+                        <span class="chip selected">Data Analysis</span>
+                        <span class="chip selected">Dashboard Design</span>
+                        <span class="chip">Forecasting</span><span class="chip">KPI Reporting</span><span class="chip">Cohort Analysis</span><span class="chip">Statistics</span><span class="chip">Business Intelligence</span><span class="chip">Tableau</span><span class="chip">Power BI</span><span class="chip">Excel Modeling</span><span class="chip">Regression Analysis</span><span class="chip">Causal Inference</span><span class="chip">Time-Series Analysis</span><span class="chip">Mixed Methods Research</span><span class="chip">Survey Design</span><span class="chip">Financial Forecasting</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-comm">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Communication</span><span class="section-count">4 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-comm" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-comm">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">Stakeholder Updates</span>
+                        <span class="chip selected">Public Speaking</span>
+                        <span class="chip selected">Workshop Facilitation</span>
+                        <span class="chip selected">Documentation</span>
+                        <span class="chip">Presentations</span><span class="chip">Technical Writing</span><span class="chip">Copywriting</span><span class="chip">Email Outreach</span><span class="chip">Storytelling</span><span class="chip">Cross-Cultural Communication</span><span class="chip">Pitching</span><span class="chip">Negotiation</span><span class="chip">Active Listening</span><span class="chip">Internal Memos</span><span class="chip">Customer Calls</span><span class="chip">Cross-Team Negotiation</span><span class="chip">Conflict De-escalation</span><span class="chip">Speech Writing</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <button class="collapsible-trigger" data-toggle="sk-lead">
+                    <div class="section-icon"><svg class="ic" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                    <div style="flex:1;min-width:0;text-align:left;">
+                      <div class="section-title-row"><span class="section-title">Leadership &amp; people</span><span class="section-count">4 selected</span></div>
+                    </div>
+                    <svg class="ic chevron" data-chevron="sk-lead" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+                  </button>
+                  <div class="collapsible-body" data-body="sk-lead">
+                    <div class="collapsible-body-inner">
+                      <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;">
+                        <span class="chip selected">Mentoring</span>
+                        <span class="chip selected">Cross-functional Collaboration</span>
+                        <span class="chip selected">Hiring</span>
+                        <span class="chip selected">Talent Development</span>
+                        <span class="chip">Coaching</span><span class="chip">Team Coordination</span><span class="chip">Stakeholder Management</span><span class="chip">Onboarding Others</span><span class="chip">Delegation</span><span class="chip">Conflict Resolution</span><span class="chip">Performance Reviews</span><span class="chip">1:1 Management</span><span class="chip">Vision Setting</span><span class="chip">Org Design</span><span class="chip">Strategic Planning</span><span class="chip">Resource Allocation</span><span class="chip">Change Management</span><span class="chip">Career Coaching</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <div class="nav-row">
+                  <button class="rd-btn-ghost" data-goto="s1">&larr; Back</button>
+                  <button class="rd-btn" data-goto="s3">Continue <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SCREEN 3 — Your Direction & Preferences
+         (merges StepCareerDirection.jsx + StepConstraints.jsx +
+         StepInternship.jsx per Phase 2 item B)
+         ============================================================ -->
+    <div class="screen" id="screen-s3">
+      <div class="shell-page">
+        <div class="shell-frame">
+          <div class="shell-card">
+            <div class="shell-topbar">
+              <div class="brand">
+                <div class="brand-dots"><span></span><span></span><span></span><span></span></div>
+                <span class="font-display brand-word">Get A Job</span>
+              </div>
+              <div class="shell-step-meta">
+                <p class="eyebrow">Step 3 of 4</p>
+                <p class="font-display shell-step-label">Direction &amp; preferences</p>
+              </div>
+            </div>
+            <div class="shell-progress-track"><div class="shell-progress-fill" style="width:75%"></div></div>
+            <div class="shell-main">
+              <div class="stack-7">
+                <div>
+                  <p class="eyebrow mono">step 3 of 4 · your direction &amp; preferences</p>
+                  <h1 class="font-display screen-title">Where do you want to go &mdash; and what works for you?</h1>
+                  <p class="screen-sub">Your 5-year goal anchors every recommendation we make. Location and work arrangement factor into track classification.</p>
+                </div>
+
+                <!-- Practicum checkbox — NEW pattern being proposed -->
+                <div class="card-soft">
+                  <label class="rd-checkbox-row" id="practicum-toggle">
+                    <span class="rd-checkbox" id="practicum-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>
+                    <span>
+                      <span class="rd-checkbox-label" style="display:block;">I&rsquo;m enrolled in my university&rsquo;s internship program</span>
+                      <span class="rd-checkbox-sub" style="display:block;">Reichman University runs a faculty-coordinated program &mdash; check this if you&rsquo;re enrolled.</span>
+                    </span>
+                  </label>
+                  <div class="inline-expand" id="practicum-expand">
+                    <div class="inline-expand-inner stack-3">
+                      <div class="option-card" data-radio="practicum" data-value="faculty_assigned">
+                        <div class="option-icon"><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
+                        <div>
+                          <p class="option-title">Yes &mdash; enrolled, placement arranged by faculty</p>
+                          <p class="option-desc">My faculty mentor coordinates the placement; the company is (or will be) assigned by them.</p>
+                        </div>
+                      </div>
+                      <div class="option-card" data-radio="practicum" data-value="self_sourced">
+                        <div class="option-icon"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg></div>
+                        <div>
+                          <p class="option-title">Yes &mdash; enrolled, I source my own placement</p>
+                          <p class="option-desc">I&rsquo;m responsible for sourcing and pitching the company myself, under program oversight.</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Career direction -->
+                <div>
+                  <label class="field-label">5-year goal role</label>
+                  <div class="goal-picked">
+                    <svg class="ic" viewBox="0 0 24 24" style="color:var(--rd-coral);flex-shrink:0;margin-top:2px;"><path d="M20 6 9 17l-5-5"/></svg>
+                    <div style="flex:1;">
+                      <b>VP of Product</b>
+                      <p>Lead / Manager &middot; Product</p>
+                    </div>
+                    <button class="rd-btn-ghost" style="font-size:12px;">Change</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="field-label">Job titles that interest you now</label>
+                  <p class="field-hint" style="margin-top:0;margin-bottom:10px;">Roles you might apply to in the next 3&ndash;6 months.</p>
+                  <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px;">
+                    <span class="pill-tag">Senior Product Manager <svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px;"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+                    <span class="pill-tag">Group Product Manager <svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px;"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+                    <span class="pill-tag">Head of Product <svg class="ic" viewBox="0 0 24 24" style="width:10px;height:10px;"><path d="M18 6 6 18M6 6l12 12"/></svg></span>
+                  </div>
+                </div>
+
+                <!-- Constraints -->
+                <div>
+                  <label class="field-label">Location</label>
+                  <input class="rd-input" value="Tel Aviv, Israel" />
+                </div>
+
+                <div>
+                  <label class="field-label" style="margin-bottom:2px;">Work arrangement</label>
+                  <p class="field-hint" style="margin-top:0;margin-bottom:10px;">Select all arrangements you&rsquo;re open to.</p>
+                  <div class="grid-4">
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20Z"/></svg></div>
+                      <span class="visual-label">Remote</span>
+                    </div>
+                    <div class="visual-card selected">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+                      <span class="visual-label">Hybrid</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M6 12h12M6 22h12"/></svg></div>
+                      <span class="visual-label">On-site</span>
+                    </div>
+                    <div class="visual-card">
+                      <div class="visual-icon-circle"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l1.9 4.3 4.7.4-3.6 3.1 1.1 4.6L12 13l-4.1 2.4 1.1-4.6-3.6-3.1 4.7-.4L12 3Z"/></svg></div>
+                      <span class="visual-label">Flexible</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-soft">
+                  <p class="eyebrow">What happens next</p>
+                  <p class="screen-sub" style="margin-top:6px;">We&rsquo;ll run your career analysis and build your roadmap &mdash; takes about 30 seconds. The reality-check questions moved to Home, whenever you have a minute.</p>
+                </div>
+
+                <div class="nav-row">
+                  <button class="rd-btn-ghost" data-goto="s2">&larr; Back</button>
+                  <button class="rd-btn" data-goto="s4">Continue <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         SCREEN 4 — Tutorial (OnboardingTutorial.jsx, 6 slides, verbatim copy)
+         ============================================================ -->
+    <div class="screen" id="screen-s4">
+      <div class="shell-page">
+        <div class="shell-frame">
+          <div class="shell-card">
+            <div class="shell-topbar">
+              <div class="brand">
+                <div class="brand-dots"><span></span><span></span><span></span><span></span></div>
+                <span class="font-display brand-word">Get A Job</span>
+              </div>
+              <p class="eyebrow">Platform tour · Step 4 of 4</p>
+            </div>
+            <div class="shell-main">
+              <div class="tutorial-frame" style="max-width:520px;margin:0 auto;">
+                <div id="slide-container"></div>
+                <div class="tutorial-dots" id="tutorial-dots"></div>
+                <div class="nav-row" style="margin-top:24px;">
+                  <button class="rd-btn-secondary" id="tut-back"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Back</button>
+                  <button class="rd-btn" id="tut-next">Next <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         HOME (post-onboarding context) — GoalRefinementNudge.jsx pattern
+         + a new sibling banner for the relocated Reality Check survey
+         ============================================================ -->
+    <div class="screen" id="screen-home">
+      <div class="home-shell">
+        <div class="home-inner">
+          <div class="home-header">
+            <h1 class="home-greeting">Welcome back, Jack</h1>
+            <p class="home-sub">Here&rsquo;s what&rsquo;s happening with your search today.</p>
+          </div>
+
+          <div class="nudge-banner golden" id="banner-goal">
+            <div class="nudge-icon golden"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="#fff"/></svg></div>
+            <div style="flex:1;min-width:0;">
+              <p class="nudge-title">Sharpen your 5-year goal</p>
+              <p class="nudge-body">Your goal of &ldquo;VP of Product&rdquo; is broad. A more specific role makes every job-fit score sharper.</p>
+            </div>
+            <div class="nudge-actions">
+              <a href="#" class="nudge-link golden-link">Update goal <svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+              <button class="nudge-close" data-dismiss="banner-goal"><svg class="ic" viewBox="0 0 24 24" style="width:11px;height:11px;"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+
+          <!-- NEW banner — Reality Check survey relocated here per Phase 2 item C -->
+          <div class="nudge-banner golden" id="banner-reality">
+            <div class="nudge-icon golden"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:#fff;"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .8 1.6v.5h5.4v-.5c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3Z"/></svg></div>
+            <div style="flex:1;min-width:0;">
+              <p class="nudge-title">Help us calibrate &mdash; 3 quick questions</p>
+              <p class="nudge-body">Role clarity, biggest challenges, and CV habits sharpen your task list and CV tailoring. Takes under a minute, whenever you&rsquo;re ready.</p>
+            </div>
+            <div class="nudge-actions">
+              <a href="#" class="nudge-link golden-link">Answer now <svg class="ic" viewBox="0 0 24 24" style="width:9px;height:9px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+              <button class="nudge-close" data-dismiss="banner-reality"><svg class="ic" viewBox="0 0 24 24" style="width:11px;height:11px;"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+
+          <div class="home-placeholder-card">
+            Rest of Home (Today&rsquo;s plan, application tracker, roadmap teaser) is unchanged &mdash; not part of this mockup.
+          </div>
+
+          <p class="caption-note">
+            Dismissing either banner above hides it for this preview only (no persistence). In the real
+            implementation both follow the existing sessionStorage dismiss pattern from
+            GoalRefinementNudge.jsx, and stay reachable from My Profile if dismissed.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        // ---------- screen switching ----------
+        var screens = ["s1", "s2", "s3", "s4", "home"];
+        function showScreen(id) {
+          screens.forEach(function (s) {
+            var el = document.getElementById("screen-" + s);
+            if (el) el.classList.toggle("active", s === id);
+          });
+          document.querySelectorAll(".devbar .navbtn").forEach(function (b) {
+            b.classList.toggle("active", b.getAttribute("data-goto") === id);
+          });
+          window.scrollTo(0, 0);
+        }
+        document.querySelectorAll("[data-goto]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            showScreen(btn.getAttribute("data-goto"));
+          });
+        });
+        showScreen("s1");
+
+        // ---------- collapsible sections (Screen 2) ----------
+        document.querySelectorAll("[data-toggle]").forEach(function (trigger) {
+          trigger.addEventListener("click", function () {
+            var key = trigger.getAttribute("data-toggle");
+            var body = document.querySelector('[data-body="' + key + '"]');
+            var chevron = document.querySelector('[data-chevron="' + key + '"]');
+            var isClosed = body.classList.toggle("closed");
+            if (chevron) chevron.classList.toggle("rotated", !isClosed);
+          });
+        });
+
+        // ---------- practicum checkbox → inline expand ----------
+        var practicumToggle = document.getElementById("practicum-toggle");
+        var practicumBox = document.getElementById("practicum-box");
+        var practicumExpand = document.getElementById("practicum-expand");
+        var practicumChecked = false;
+        practicumToggle.addEventListener("click", function () {
+          practicumChecked = !practicumChecked;
+          practicumBox.classList.toggle("checked", practicumChecked);
+          practicumExpand.classList.toggle("open", practicumChecked);
+        });
+        document.querySelectorAll('[data-radio="practicum"]').forEach(function (card) {
+          card.addEventListener("click", function (e) {
+            e.stopPropagation();
+            document.querySelectorAll('[data-radio="practicum"]').forEach(function (c) {
+              c.classList.toggle("selected", c === card);
+            });
+          });
+        });
+
+        // ---------- Home banner dismiss ----------
+        document.querySelectorAll("[data-dismiss]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var el = document.getElementById(btn.getAttribute("data-dismiss"));
+            if (el) el.style.display = "none";
+          });
+        });
+
+        // ---------- Tutorial slides (verbatim from OnboardingTutorial.jsx) ----------
+        var SLIDES = [
+          {
+            title: "Browse jobs",
+            desc: "Score any role for a personalised fit breakdown. Your 5-year goal anchors every match score — sharper goal, sharper signal.",
+            icon: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18M6 12h12M6 22h12"/>',
+            extra: "browse_jobs",
+          },
+          {
+            title: "Application tracker",
+            desc: "Track every application, follow-up, and interview in one place. Status updates, notes, and reminder dates — nothing falls through the cracks.",
+            icon: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+          },
+          {
+            title: "Story bank",
+            desc: "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts — written once, reused everywhere.",
+            icon: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>',
+          },
+          {
+            title: "LinkedIn hub",
+            desc: "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist. Needs your LinkedIn data export — request it now if you haven’t.",
+            icon: '<path d="M16 8a6 6 0 0 1 6 6v6h-4v-6a2 2 0 0 0-4 0v6h-4v-6a6 6 0 0 1 6-6Z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>',
+            extra: "linkedin_hub",
+          },
+          {
+            title: "CV generation",
+            desc: "Tailored CVs per job application in seconds. AI matches your story bank against the job description and produces a one-page CV ready to send.",
+            icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/>',
+          },
+          {
+            title: "Chat agents",
+            desc: "Specialist AI agents for career strategy, application reviews, interview prep, and skill building. Each one knows your full profile.",
+            icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10Z"/>',
+          },
+        ];
+
+        var TRACKS = [
+          { n: 1, name: "Sweet spot", desc: "Roles you're qualified for that match where you want your career to go. Apply to these first." },
+          { n: 2, name: "Detour", desc: "Roles you're qualified for, but they'd take your career in a different direction." },
+          { n: 3, name: "Growth", desc: "Roles that match your direction, but you need more experience or skills first." },
+        ];
+
+        var slideIndex = 0;
+        var container = document.getElementById("slide-container");
+        var dotsWrap = document.getElementById("tutorial-dots");
+
+        function renderDots() {
+          dotsWrap.innerHTML = "";
+          SLIDES.forEach(function (_, i) {
+            var d = document.createElement("span");
+            d.className = "tutorial-dot" + (i === slideIndex ? " active" : "");
+            dotsWrap.appendChild(d);
+          });
+        }
+
+        function renderSlide() {
+          var s = SLIDES[slideIndex];
+          var extraHtml = "";
+          if (s.extra === "browse_jobs") {
+            extraHtml =
+              '<div class="job-preview-card">' +
+                '<div style="display:flex;align-items:center;gap:10px;">' +
+                  '<div style="width:36px;height:36px;border-radius:10px;background:var(--rd-text);display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                    '<span class="font-display" style="color:#fff;font-weight:700;font-size:15px;">m</span>' +
+                  '</div>' +
+                  '<div style="flex:1;min-width:0;">' +
+                    '<div class="font-display" style="font-weight:600;font-size:13.5px;">Associate Product Manager</div>' +
+                    '<div style="font-size:11px;color:var(--rd-text-tertiary);">monday.com &middot; Tel Aviv</div>' +
+                  '</div>' +
+                  '<div style="text-align:right;flex-shrink:0;">' +
+                    '<div class="font-display" style="font-weight:800;font-size:18px;color:var(--rd-coral-dark);line-height:1;">88%</div>' +
+                    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--rd-text-tertiary);margin-top:2px;">Match</div>' +
+                  '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:6px;margin-top:10px;">' +
+                  '<span style="font-size:10px;color:var(--rd-text-secondary);background:var(--rd-bg-soft);border-radius:6px;padding:2px 8px;">Entry-level</span>' +
+                  '<span style="font-size:10px;color:var(--rd-text-secondary);background:var(--rd-bg-soft);border-radius:6px;padding:2px 8px;">Hybrid</span>' +
+                '</div>' +
+              '</div>' +
+              '<div class="track-grid">' +
+                TRACKS.map(function (t) {
+                  return '<div class="track-card"><div style="display:flex;align-items:center;gap:8px;">' +
+                    '<div class="track-num">' + t.n + '</div><div class="track-name">Track ' + t.n + ' &middot; ' + t.name + '</div></div>' +
+                    '<p class="track-desc">' + t.desc + '</p></div>';
+                }).join("") +
+              '</div>';
+          }
+          if (s.extra === "linkedin_hub") {
+            extraHtml =
+              '<a href="#" class="li-cta">Request data export now ' +
+              '<svg class="ic" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg></a>';
+          }
+          container.innerHTML =
+            (slideIndex === 0 ? '<p class="font-display" style="font-weight:700;font-size:13px;color:var(--rd-coral-dark);margin-bottom:14px;">You&rsquo;re all set 🎉</p>' : "") +
+            '<div class="tutorial-visual">' +
+              '<div class="tutorial-badge"><svg class="ic" viewBox="0 0 24 24" style="width:24px;height:24px;">' + s.icon + '</svg></div>' +
+              extraHtml +
+            '</div>' +
+            '<h3 class="tutorial-title">' + s.title + '</h3>' +
+            '<p class="tutorial-desc">' + s.desc + '</p>';
+          renderDots();
+
+          var backBtn = document.getElementById("tut-back");
+          var nextBtn = document.getElementById("tut-next");
+          backBtn.disabled = slideIndex === 0;
+          if (slideIndex === SLIDES.length - 1) {
+            nextBtn.innerHTML = 'Go to platform <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+          } else {
+            nextBtn.innerHTML = 'Next <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+          }
+        }
+
+        document.getElementById("tut-back").addEventListener("click", function () {
+          if (slideIndex > 0) { slideIndex--; renderSlide(); }
+        });
+        document.getElementById("tut-next").addEventListener("click", function () {
+          if (slideIndex < SLIDES.length - 1) { slideIndex++; renderSlide(); }
+          else { showScreen("home"); }
+        });
+
+        renderSlide();
+      })();
+    </script>
+  </body>
+</html>
