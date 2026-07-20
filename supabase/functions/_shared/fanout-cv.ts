@@ -62,6 +62,7 @@ export interface FanoutResult {
   cvData: Record<string, any>
   timing: { label: string; ms: number }[]
   subcalls: { label: string; ok: boolean; fellBack: boolean; ms: number }[]
+  coverage: { target: number; before: number; after: number; retryFired: boolean }
 }
 
 const BUCKET_KEY: Record<string, string> = {
@@ -212,10 +213,38 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
   cvData.fit_analysis = computeFit(inp.profileSkills, inp.jdSkills)
   mark('assembled')
 
+  // Coverage safety-net. Round-robin pre-assignment spreads phrases thin; count
+  // how many must-include phrases actually landed in the RENDERED sections
+  // (About Me + Skills + experience bullets — NOT fit_analysis, which isn't on
+  // the CV), and if below the production target, re-author About Me ONCE
+  // emphasizing the missing phrases — honestly: the call skips any phrase that
+  // doesn't fit the user's real experience (no fabrication). One extra
+  // sequential call, only when it fires.
+  const renderedText = () => [
+    cvData.summary || '',
+    JSON.stringify(cvData.skills || {}),
+    Object.keys(BUCKET_KEY).map(b => (cvData[BUCKET_KEY[b]] || []).flatMap((e: any) => e.bullets || []).join(' ')).join(' '),
+  ].join(' ').toLowerCase()
+  let coverageRetryFired = false
+  const phrases = inp.mustIncludePhrases
+  const target = Math.min(phrases.length, 6)
+  const coveredNow = () => phrases.filter(p => renderedText().includes(String(p).toLowerCase())).length
+  const before = coveredNow()
+  if (phrases.length && before < target) {
+    const missing = phrases.filter(p => !renderedText().includes(String(p).toLowerCase()))
+    const retry = await authorAboutMe(missing, {
+      ...inp,
+      aboutContext: `${inp.aboutContext}\nCOVERAGE EMPHASIS: weave these JD phrases into the About Me ONLY where they honestly describe the user's real experience; SKIP any that do not genuinely apply (never fabricate): ${missing.join('; ')}`,
+    }, signal)
+    if (retry.ok && retry.summary) { cvData.summary = retry.summary; coverageRetryFired = true }
+    mark('coverage_retry')
+  }
+  const coverage = { target, before, after: coveredNow(), retryFired: coverageRetryFired }
+
   const subcalls = [
     ...inp.roles.map((r, i) => ({ label: `role-${r.bucket}-${r.index}`, ok: roleResults[i]?.ok ?? false, fellBack: roleResults[i]?.fellBack ?? true, ms: roleResults[i]?.ms ?? 0 })),
     { label: 'about', ok: about.ok, fellBack: !about.ok, ms: about.ms },
     { label: 'skills', ok: skills.ok, fellBack: !skills.ok, ms: skills.ms },
   ]
-  return { cvData, timing, subcalls }
+  return { cvData, timing, subcalls, coverage }
 }
