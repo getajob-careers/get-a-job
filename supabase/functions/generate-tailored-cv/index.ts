@@ -1788,12 +1788,22 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         sm.userId = user.id;
         sm.startedAt = Date.now() - (sc.ms || 0);
         sm.modelUsed = pass2MetricsModel;
+        sm.tokensIn = sc.ti;   // real per-sub-call tokens → finishMetric computes cost_usd
+        sm.tokensOut = sc.to;
         finishMetric(sm, {
           ok: sc.ok,
           httpStatus: sc.ok ? 200 : 500,
           errorCode: sc.fellBack ? 'fellback_source_bullets' : (sc.ok ? null : 'subcall_error'),
         });
       }
+      // Aggregate the run total onto the MAIN row: Pass-1's tokens are already in
+      // m (added at extraction); add the fan-out sub-call totals so the main
+      // generate-tailored-cv row carries the whole run's tokens + cost (priced at
+      // the Sonnet rate — the tiny gpt-4o Pass-1 slice is a negligible approx).
+      // The per-sub-call rows are the breakdown; the main row is the total — don't
+      // sum across both or you double-count.
+      m.tokensIn = (m.tokensIn ?? 0) + fo.tokensIn;
+      m.tokensOut = (m.tokensOut ?? 0) + fo.tokensOut;
     } else {
       const openaiRes = safeCvModel === 'sonnet'
         ? await openrouterChatCompletionWithRetry(
