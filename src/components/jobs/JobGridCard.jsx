@@ -4,10 +4,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
-import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
-import { prefetchJobDescription, useJobDescription } from "@/lib/queries/useJobDescription";
+import {
+  useCompanyDomains,
+  companyDomainFor,
+} from "@/lib/queries/useCompanyDomains";
+import {
+  prefetchJobDescription,
+  useJobDescription,
+} from "@/lib/queries/useJobDescription";
 import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
 import { scoringV2Enabled } from "@/lib/flags";
+import { useCountUp } from "@/hooks/useCountUp";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -35,17 +42,43 @@ let scrollTrackerInstalled = false;
 function installScrollTracker() {
   if (scrollTrackerInstalled || typeof window === "undefined") return;
   scrollTrackerInstalled = true;
-  const mark = () => { lastScrollAt = Date.now(); };
+  const mark = () => {
+    lastScrollAt = Date.now();
+  };
   window.addEventListener("wheel", mark, { passive: true, capture: true });
   window.addEventListener("scroll", mark, { passive: true, capture: true });
 }
 
-export default function JobGridCard({ job, scoreResult = null, trackColor = null, unified = false, onOpen }) {
+export default function JobGridCard({
+  job,
+  scoreResult = null,
+  trackColor = null,
+  unified = false,
+  onOpen,
+  // Aliveness pass: passed only by the flag-on jobs grid (capped to the first
+  // rows). className/style carry the stagger entrance; animateScore ramps the
+  // match badge. All default to no-op, so flag-off callers stay byte-identical.
+  className = "",
+  style = undefined,
+  animateScore = false,
+}) {
   const queryClient = useQueryClient();
   const { data: companyDomains } = useCompanyDomains();
   const companyDomain = companyDomainFor(companyDomains, job);
 
-  const d = deriveJobDisplay(job, scoreResult, { showAttainabilityBand: unified, trackColor });
+  const d = deriveJobDisplay(job, scoreResult, {
+    showAttainabilityBand: unified,
+    trackColor,
+  });
+  // Count-up the CARD match badge only (not the peek popover). enabled:false
+  // returns the value immediately, so flag-off / uncapped cards are byte-identical.
+  const attainShown = useCountUp(
+    typeof d.attainPct === "number" ? d.attainPct : 0,
+    { enabled: animateScore && typeof d.attainPct === "number" },
+  );
+  const scoreShown = useCountUp(typeof d.score === "number" ? d.score : 0, {
+    enabled: animateScore && typeof d.score === "number",
+  });
   const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
   const fallbackStyle = styles
     ? { background: styles.tint, color: styles.accent }
@@ -67,7 +100,10 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
 
   // Description only needed for the peek snippet — read it once we're peeking
   // (warm from the hover prefetch by then). Seeded if the row carried it.
-  const { data: description } = useJobDescription(job.id, { enabled: peek, seed: job.description });
+  const { data: description } = useJobDescription(job.id, {
+    enabled: peek,
+    seed: job.description,
+  });
 
   const open = () => {
     setPeek(false);
@@ -86,7 +122,10 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
   const tryOpenPeek = () => {
     const sinceScroll = Date.now() - lastScrollAt;
     if (sinceScroll < SCROLL_QUIET_MS) {
-      dwellRef.current = setTimeout(tryOpenPeek, SCROLL_QUIET_MS - sinceScroll + 20);
+      dwellRef.current = setTimeout(
+        tryOpenPeek,
+        SCROLL_QUIET_MS - sinceScroll + 20,
+      );
       return;
     }
     openPeek();
@@ -112,15 +151,25 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     const close = () => {
       setPeek(false);
       clearTimeout(peekRearmTimer);
-      peekRearmTimer = setTimeout(() => { peekArmed = false; }, PEEK_REARM_MS);
+      peekRearmTimer = setTimeout(() => {
+        peekArmed = false;
+      }, PEEK_REARM_MS);
     };
     const TOL = 6;
     const inside = (r, x, y) =>
-      r && x >= r.left - TOL && x <= r.right + TOL && y >= r.top - TOL && y <= r.bottom + TOL;
+      r &&
+      x >= r.left - TOL &&
+      x <= r.right + TOL &&
+      y >= r.top - TOL &&
+      y <= r.bottom + TOL;
     const onMove = (e) => {
       const cardR = wrapRef.current?.getBoundingClientRect();
       const peekR = peekRef.current?.getBoundingClientRect();
-      if (!inside(cardR, e.clientX, e.clientY) && !inside(peekR, e.clientX, e.clientY)) close();
+      if (
+        !inside(cardR, e.clientX, e.clientY) &&
+        !inside(peekR, e.clientX, e.clientY)
+      )
+        close();
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("scroll", close, true);
@@ -147,12 +196,28 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     const spaceAbove = rect.bottom;
     const downward = spaceBelow >= 280 || spaceBelow >= spaceAbove;
     peekStyle = downward
-      ? { left: rect.left, top: rect.top, width: rect.width, maxHeight: Math.max(160, spaceBelow - GAP) }
-      : { left: rect.left, bottom: window.innerHeight - rect.bottom, width: rect.width, maxHeight: Math.max(160, spaceAbove - GAP) };
+      ? {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          maxHeight: Math.max(160, spaceBelow - GAP),
+        }
+      : {
+          left: rect.left,
+          bottom: window.innerHeight - rect.bottom,
+          width: rect.width,
+          maxHeight: Math.max(160, spaceAbove - GAP),
+        };
   }
 
   return (
-    <div ref={wrapRef} className="relative h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div
+      ref={wrapRef}
+      className={className ? `relative h-full ${className}` : "relative h-full"}
+      style={style}
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+    >
       <div
         role="button"
         tabIndex={0}
@@ -179,15 +244,21 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
               className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2 py-0.5"
               style={{ background: d.bandMeta.bg, color: d.bandMeta.fg }}
             >
-              <span className="font-extrabold text-[11px]">{d.bandMeta.label}</span>
-              {d.attainPct != null && <span className="font-semibold text-[10px] opacity-70">{d.attainPct}%</span>}
+              <span className="font-extrabold text-[11px]">
+                {d.bandMeta.label}
+              </span>
+              {d.attainPct != null && (
+                <span className="font-semibold text-[10px] opacity-70">
+                  {attainShown}%
+                </span>
+              )}
             </span>
           ) : d.scored && d.badgeStyle ? (
             <span
               className="flex-shrink-0 inline-flex items-center font-display font-extrabold text-[11px] rounded-full px-2 py-0.5"
               style={d.badgeStyle}
             >
-              {d.score}%
+              {scoreShown}%
             </span>
           ) : null}
         </div>
@@ -196,7 +267,9 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
           {job.title}
         </h3>
         <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
-          {[job.company_name, job.location_city || job.location_raw].filter(Boolean).join(" · ")}
+          {[job.company_name, job.location_city || job.location_raw]
+            .filter(Boolean)
+            .join(" · ")}
         </p>
 
         {/* Component 2b: quiet direction tag. Shown only in the unified for-you
@@ -224,7 +297,10 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
         {d.chips.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {d.chips.map((c, i) => (
-              <span key={i} className="text-[10px] bg-rd-bg-soft text-rd-text-tertiary rounded-[5px] px-1.5 py-0.5">
+              <span
+                key={i}
+                className="text-[10px] bg-rd-bg-soft text-rd-text-tertiary rounded-[5px] px-1.5 py-0.5"
+              >
                 {c}
               </span>
             ))}
@@ -249,64 +325,106 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
       {/* Delayed-hover peek — an expanded version of the card, overlaid OVER
           it, portaled to <body> and positioned with `fixed` so the jobs
           column's overflow scroll can't clip it. Clickable: opens the modal. */}
-      {peek && peekStyle && createPortal(
-        <div
-          ref={peekRef}
-          onClick={open}
-          style={{ position: "fixed", zIndex: 60, ...peekStyle }}
-          className="cursor-pointer overflow-y-auto bg-rd-bg-card border border-rd-border-hover rounded-[14px] shadow-[0_18px_40px_rgba(40,25,10,0.20)] p-3"
-        >
-          <div className="flex items-center justify-between gap-1.5 mb-2">
-            <CompanyLogo domain={companyDomain} companyName={job.company_name} fallbackStyle={fallbackStyle} size={34} radius={8} />
-            {d.scored && d.bandMeta ? (
-              <span className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2 py-0.5" style={{ background: d.bandMeta.bg, color: d.bandMeta.fg }}>
-                <span className="font-extrabold text-[11px]">{d.bandMeta.label}</span>
-                {d.attainPct != null && <span className="font-semibold text-[10px] opacity-70">{d.attainPct}%</span>}
-              </span>
-            ) : d.scored && d.badgeStyle ? (
-              <span className="flex-shrink-0 inline-flex items-center font-display font-extrabold text-[11px] rounded-full px-2 py-0.5" style={d.badgeStyle}>{d.score}%</span>
-            ) : null}
-          </div>
-          <h3 className="font-display font-bold text-[13.5px] leading-[1.18] text-rd-text break-words">{job.title}</h3>
-          <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
-            {[job.company_name, job.location_city || job.location_raw].filter(Boolean).join(" · ")}
-          </p>
-          {job.is_agency && (
-            <div className="mt-1 mb-2">
-              <AgencyBadge isAgency />
+      {peek &&
+        peekStyle &&
+        createPortal(
+          <div
+            ref={peekRef}
+            onClick={open}
+            style={{ position: "fixed", zIndex: 60, ...peekStyle }}
+            className="cursor-pointer overflow-y-auto bg-rd-bg-card border border-rd-border-hover rounded-[14px] shadow-[0_18px_40px_rgba(40,25,10,0.20)] p-3"
+          >
+            <div className="flex items-center justify-between gap-1.5 mb-2">
+              <CompanyLogo
+                domain={companyDomain}
+                companyName={job.company_name}
+                fallbackStyle={fallbackStyle}
+                size={34}
+                radius={8}
+              />
+              {d.scored && d.bandMeta ? (
+                <span
+                  className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2 py-0.5"
+                  style={{ background: d.bandMeta.bg, color: d.bandMeta.fg }}
+                >
+                  <span className="font-extrabold text-[11px]">
+                    {d.bandMeta.label}
+                  </span>
+                  {d.attainPct != null && (
+                    <span className="font-semibold text-[10px] opacity-70">
+                      {d.attainPct}%
+                    </span>
+                  )}
+                </span>
+              ) : d.scored && d.badgeStyle ? (
+                <span
+                  className="flex-shrink-0 inline-flex items-center font-display font-extrabold text-[11px] rounded-full px-2 py-0.5"
+                  style={d.badgeStyle}
+                >
+                  {d.score}%
+                </span>
+              ) : null}
             </div>
-          )}
-          {!job.is_agency && <div className="mb-2" />}
+            <h3 className="font-display font-bold text-[13.5px] leading-[1.18] text-rd-text break-words">
+              {job.title}
+            </h3>
+            <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
+              {[job.company_name, job.location_city || job.location_raw]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+            {job.is_agency && (
+              <div className="mt-1 mb-2">
+                <AgencyBadge isAgency />
+              </div>
+            )}
+            {!job.is_agency && <div className="mb-2" />}
 
-          {d.matchedSkills.length > 0 && (
-            <>
-              <p className="text-[9px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">Your strengths</p>
+            {d.matchedSkills.length > 0 && (
+              <>
+                <p className="text-[9px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">
+                  Your strengths
+                </p>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {d.matchedSkills.slice(0, 5).map((s, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center gap-0.5 text-[10px] bg-rd-teal-tint text-rd-teal-dark rounded-full px-1.5 py-0.5"
+                    >
+                      <Check className="w-2.5 h-2.5" />
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {d.missingCoreSkills.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-2">
-                {d.matchedSkills.slice(0, 5).map((s, i) => (
-                  <span key={i} className="inline-flex items-center gap-0.5 text-[10px] bg-rd-teal-tint text-rd-teal-dark rounded-full px-1.5 py-0.5">
-                    <Check className="w-2.5 h-2.5" />{s}
+                {d.missingCoreSkills.slice(0, 3).map((s, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-0.5 text-[10px] bg-rd-bg-soft text-rd-text-tertiary border border-rd-border rounded-full px-1.5 py-0.5"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                    {s}
                   </span>
                 ))}
               </div>
-            </>
-          )}
-          {d.missingCoreSkills.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
-              {d.missingCoreSkills.slice(0, 3).map((s, i) => (
-                <span key={i} className="inline-flex items-center gap-0.5 text-[10px] bg-rd-bg-soft text-rd-text-tertiary border border-rd-border rounded-full px-1.5 py-0.5">
-                  <X className="w-2.5 h-2.5" />{s}
-                </span>
-              ))}
-            </div>
-          )}
-          <p className="text-[9px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">Description</p>
-          <p className="text-[11px] text-rd-text-secondary leading-[1.55]">
-            {snippet ? `${snippet}${(description || "").length > PEEK_SNIPPET_CHARS ? "…" : ""}` : "Loading preview…"}
-          </p>
-          <p className="text-[10px] text-rd-coral-dark font-medium mt-2">Click for full details →</p>
-        </div>,
-        document.body,
-      )}
+            )}
+            <p className="text-[9px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">
+              Description
+            </p>
+            <p className="text-[11px] text-rd-text-secondary leading-[1.55]">
+              {snippet
+                ? `${snippet}${(description || "").length > PEEK_SNIPPET_CHARS ? "…" : ""}`
+                : "Loading preview…"}
+            </p>
+            <p className="text-[10px] text-rd-coral-dark font-medium mt-2">
+              Click for full details →
+            </p>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
