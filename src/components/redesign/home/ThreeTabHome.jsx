@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FileUser, Columns3, Compass } from "lucide-react";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
@@ -35,6 +35,14 @@ export default function ThreeTabHome() {
     TAB_IDS.includes(urlTab) ? urlTab : "cv",
   );
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
+
+  // Sync the active tab when ?tab changes externally - e.g. Generate CV from a
+  // job card sets ?tab=cv&application_id to open the freshly generated CV.
+  useEffect(() => {
+    if (urlTab && TAB_IDS.includes(urlTab) && urlTab !== activeTab) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab, activeTab]);
 
   const selectTab = (id) => {
     setActiveTab(id);
@@ -94,7 +102,16 @@ export default function ThreeTabHome() {
             />
           </div>
         )}
-        {activeTab === "tracker" && <HomeTrackerTab />}
+        {/* Tracker owns its own desktop scroll (same as jobs): the tab body is
+            md:overflow-hidden and the funnel + guide + kanban have no internal
+            scroll, so without this the content below the fold is unreachable on
+            wide desktop. Pre-existing since #628 (the #638 jobs fix missed it);
+            mobile unaffected (the tab body already scrolls; this is md+ only). */}
+        {activeTab === "tracker" && (
+          <div className="md:h-full md:overflow-y-auto">
+            <HomeTrackerTab />
+          </div>
+        )}
         {/* Jobs owns its own desktop scroll: the tab body is md:overflow-hidden
             and the feed (60-180 cards) has no internal scroll, so without this
             the cards below the fold were unreachable on wide desktop. Mobile is

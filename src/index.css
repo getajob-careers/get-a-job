@@ -415,3 +415,31 @@
     display: none;
   }
 }
+
+/* Job-card hover-actions (Batch C). A direct child of the .group card: the action
+   row slides up + fades in on card hover / focus-within. On touch (no hover) it's
+   always visible. Reduced-motion drops the slide (still reveals). */
+.cx-actions {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+.group:hover > .cx-actions,
+.group:focus-within > .cx-actions {
+  opacity: 1;
+  transform: none;
+}
+@media (hover: none) {
+  .cx-actions {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-actions {
+    transition: none;
+    transform: none;
+  }
+}
