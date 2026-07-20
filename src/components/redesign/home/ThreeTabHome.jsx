@@ -4,6 +4,7 @@ import { FileUser, Columns3, Compass } from "lucide-react";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
 import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
 import HomeTrackerTab from "./HomeTrackerTab";
+import CvMatchedRolesRail from "./CvMatchedRolesRail";
 
 // ThreeTabHome - the canvas 3-tab home surface (CV | Tracker | Browse Jobs) at /,
 // flag ON. TABS-ONLY: the shell chrome (top bar, sidebar, ground, frame) is
@@ -12,9 +13,11 @@ import HomeTrackerTab from "./HomeTrackerTab";
 // hero / stat cards (per Eli's reframe: canvas surface, mockup colour).
 //
 // The tab bodies are the REAL components (fixtures live only in the preview):
-//   CV      -> CVStudioLive (self-fetching, zero props; the canvas right-rail
-//              TopMatchesPanel is a deferred refinement - it diverges from the
-//              tracker's source of truth, see the PR notes).
+//   CV      -> CVStudioLive with the CvMatchedRolesRail as its right rail (each
+//              card Tailors a CV, auto-adding the role to the tracker) and the
+//              per-piece "Revise with AI" affordance on the document. The rail
+//              reads the ["applications"] cache as source of truth (no more stale
+//              Tracked). Both are flag-on props; /CVAgent keeps the CV Agent panel.
 //   Tracker -> HomeTrackerTab (the canonical ["applications", uid] pipeline).
 //   Jobs    -> UnifiedJobsFeed (self-fetching; singleColumn for the narrow column).
 
@@ -85,7 +88,10 @@ export default function ThreeTabHome() {
       <div className="mt-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
         {activeTab === "cv" && (
           <div className="w-full md:h-full md:overflow-hidden rd-lift rd-r-lg">
-            <CVStudioLive />
+            <CVStudioLive
+              rightRail={<CvMatchedRolesRail />}
+              enablePieceRevise
+            />
           </div>
         )}
         {activeTab === "tracker" && <HomeTrackerTab />}

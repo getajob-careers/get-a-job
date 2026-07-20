@@ -43,6 +43,133 @@ const AGENT_CHIPS = [
   "Tailor to a job",
 ];
 
+const REVISE_PRESETS = [
+  {
+    id: "tighten",
+    label: "Tighten",
+    instr: "Make it more concise and punchy without losing any real detail.",
+  },
+  {
+    id: "rewrite",
+    label: "Rewrite",
+    instr: "Rewrite it to read more strongly and specifically.",
+  },
+  {
+    id: "keywords",
+    label: "Add keywords",
+    instr:
+      "Surface relevant skills and keywords already implied by the content - do not invent anything new.",
+  },
+];
+
+// Piece-targeted "Revise with AI" affordance (the LinkedIn-optimizer pattern):
+// the user targets ONE bullet or the summary, optionally picks a preset verb
+// and/or says what's off, and the edit lands in place - undoable like any manual
+// edit. Renders NOTHING when onRevise is absent (the flag-off /CVAgent surface),
+// so it never changes that DOM. onRevise(target, {preset, feedback}) returns a
+// promise; this owns the in-progress + error state so the piece never looks
+// frozen during the (whole-document) regen.
+function PieceRevise({ onRevise, target }) {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
+  if (!onRevise) return null;
+
+  const run = async (preset) => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onRevise(target, {
+        preset: preset?.instr || "",
+        feedback: feedback.trim(),
+      });
+      setOpen(false);
+      setFeedback("");
+    } catch {
+      setError("Couldn't revise that - try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <span className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        disabled={busy}
+        aria-label="Revise with AI"
+        title="Revise with AI"
+        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-medium transition-opacity ${busy ? "opacity-100 text-rd-coral-dark" : "opacity-0 group-hover/bullet:opacity-100 group-hover/piece:opacity-100 focus:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark"}`}
+      >
+        {busy ? (
+          <Loader2 className="w-3 h-3 animate-spin" />
+        ) : (
+          <Sparkles className="w-3 h-3" />
+        )}
+        {busy ? "Revising…" : "Revise"}
+      </button>
+      {open && !busy && (
+        <div
+          className="absolute right-0 top-full mt-1 w-[244px] bg-rd-bg-card border border-rd-border rounded-xl shadow-rd p-2.5 z-50 text-left"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {REVISE_PRESETS.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  run(p);
+                }}
+                className="px-2 py-0.5 rounded-full border border-rd-border bg-rd-bg-card text-[11px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark transition-colors"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={2}
+            placeholder="What's off? e.g. too generic, doesn't show impact"
+            className="w-full text-[12px] rounded-lg border border-rd-border bg-rd-bg-card px-2 py-1.5 focus:outline-none focus:border-rd-coral resize-none"
+          />
+          <div className="flex items-center justify-between mt-2">
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setOpen(false);
+              }}
+              className="text-[11.5px] text-rd-text-tertiary hover:text-rd-text"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                run(null);
+              }}
+              disabled={!feedback.trim()}
+              className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-1 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Sparkles className="w-3 h-3" /> Revise
+            </button>
+          </div>
+          {error && (
+            <p className="text-[11px] text-rd-coral-dark mt-1.5">{error}</p>
+          )}
+        </div>
+      )}
+    </span>
+  );
+}
+
 // Uncontrolled contentEditable — set once on mount, commit on blur. Keyed by the
 // caller (via React key) when the underlying record changes so a CV switch
 // re-seeds the text.
@@ -108,6 +235,8 @@ function ExperienceEntry({
   onAddBullet,
   onRemoveBullet,
   onDelete,
+  onRevisePiece,
+  sectionKey,
   isMaster = false,
 }) {
   return (
@@ -173,6 +302,15 @@ function ExperienceEntry({
               placeholder="Describe an accomplishment…"
               block
             />
+            <PieceRevise
+              onRevise={onRevisePiece}
+              target={{
+                kind: "bullet",
+                section: sectionKey,
+                expId: exp.id,
+                bulletId: b.id,
+              }}
+            />
             <button
               onClick={() => onRemoveBullet(b.id)}
               aria-label="Remove bullet"
@@ -206,6 +344,7 @@ function ExperienceSection({
   onRemoveBullet,
   onDeleteExperience,
   onAddExperience,
+  onRevisePiece,
   isMaster = false,
 }) {
   return (
@@ -230,6 +369,8 @@ function ExperienceSection({
                       <ExperienceEntry
                         exp={exp}
                         isMaster={isMaster}
+                        onRevisePiece={onRevisePiece}
+                        sectionKey={sectionKey}
                         dragHandleProps={p.dragHandleProps}
                         onPatch={(patch) =>
                           onPatchExp(sectionKey, exp.id, patch)
@@ -434,6 +575,12 @@ export default function CVStudioView({
   tailorResult = null, // { cvId, role, company } — the just-finished tailored CV
   onViewTailored, // outcome card "View it" → load the new CV in the editor
   onDownloadTailored, // outcome card "Download" → re-render the new CV's PDF
+  // Flag-on (home CV tab) only. rightRail replaces the CV Agent panel with the
+  // matched-roles rail; onRevisePiece enables the per-piece "Revise with AI"
+  // affordance on bullets + the summary. Both default null → the /CVAgent
+  // surface renders exactly as before (byte-identical).
+  rightRail = null,
+  onRevisePiece = null,
 }) {
   const template = templates.find((t) => t.id === templateId) || templates[0];
   const docStyle = {
@@ -733,19 +880,36 @@ export default function CVStudioView({
               </div>
 
               <SectionLabel>Summary</SectionLabel>
-              <Editable
-                value={cv.summary}
-                onCommit={onPatchSummary}
-                className="cv-summary"
-                block
-                placeholder="Write a short professional summary…"
-              />
+              {onRevisePiece ? (
+                <div className="group/piece relative flex items-start gap-1.5">
+                  <Editable
+                    value={cv.summary}
+                    onCommit={onPatchSummary}
+                    className="cv-summary flex-1"
+                    block
+                    placeholder="Write a short professional summary…"
+                  />
+                  <PieceRevise
+                    onRevise={onRevisePiece}
+                    target={{ kind: "summary" }}
+                  />
+                </div>
+              ) : (
+                <Editable
+                  value={cv.summary}
+                  onCommit={onPatchSummary}
+                  className="cv-summary"
+                  block
+                  placeholder="Write a short professional summary…"
+                />
+              )}
 
               <ExperienceSection
                 label="Experience"
                 sectionKey="experiences"
                 items={cv.experiences}
                 isMaster={isMaster}
+                onRevisePiece={onRevisePiece}
                 onDragEnd={onDragEnd}
                 onPatchExp={onPatchExp}
                 onPatchBullet={onPatchBullet}
@@ -760,6 +924,7 @@ export default function CVStudioView({
                   sectionKey="military"
                   items={cv.military}
                   isMaster={isMaster}
+                  onRevisePiece={onRevisePiece}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -774,6 +939,7 @@ export default function CVStudioView({
                   sectionKey="volunteering"
                   items={cv.volunteering}
                   isMaster={isMaster}
+                  onRevisePiece={onRevisePiece}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -788,6 +954,7 @@ export default function CVStudioView({
                   sectionKey="leadership"
                   items={cv.leadership}
                   isMaster={isMaster}
+                  onRevisePiece={onRevisePiece}
                   onDragEnd={onDragEnd}
                   onPatchExp={onPatchExp}
                   onPatchBullet={onPatchBullet}
@@ -993,105 +1160,115 @@ export default function CVStudioView({
           </div>
         </main>
 
-        {/* CV Agent panel */}
-        <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
-          <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
-              <FileText className="w-3.5 h-3.5 text-rd-coral" />
-            </div>
-            <div className="leading-tight flex-1">
-              <p className="text-[13.5px] font-display font-bold text-rd-text">
-                CV Agent
-              </p>
-              <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" />{" "}
-                Editing this CV with you
-              </p>
-            </div>
-            <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
-          </div>
-          <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
-            {chatMessages.length === 0 &&
-              (coach || (
-                <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
-                  Ask me to rewrite a section or tighten your bullets - I edit
-                  this document directly. To build a version aimed at a specific
-                  job, use Tailor to a job and I&apos;ll author a separate
-                  tailored copy from the job description.
+        {/* Right rail: the matched-roles rail (flag-on home tab) replaces the CV
+            Agent panel; onRevisePiece carries the AI-edit capability the panel
+            used to own onto the document itself. */}
+        {rightRail ? (
+          <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
+            {rightRail}
+          </aside>
+        ) : (
+          <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
+            <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
+                <FileText className="w-3.5 h-3.5 text-rd-coral" />
+              </div>
+              <div className="leading-tight flex-1">
+                <p className="text-[13.5px] font-display font-bold text-rd-text">
+                  CV Agent
                 </p>
+                <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" />{" "}
+                  Editing this CV with you
+                </p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
+            </div>
+            <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
+              {chatMessages.length === 0 &&
+                (coach || (
+                  <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
+                    Ask me to rewrite a section or tighten your bullets - I edit
+                    this document directly. To build a version aimed at a
+                    specific job, use Tailor to a job and I&apos;ll author a
+                    separate tailored copy from the job description.
+                  </p>
+                ))}
+              {chatMessages.map((m) => (
+                <div
+                  key={m.id}
+                  className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
+                >
+                  {m.role !== "user" && (
+                    <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
+                      <FileText className="w-3 h-3 text-rd-coral" />
+                    </div>
+                  )}
+                  <div
+                    className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
+                  >
+                    {m.content}
+                  </div>
+                </div>
               ))}
-            {chatMessages.map((m) => (
-              <div
-                key={m.id}
-                className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
-              >
-                {m.role !== "user" && (
+              {chatBusy && (
+                <div className="flex gap-2.5">
                   <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
                     <FileText className="w-3 h-3 text-rd-coral" />
                   </div>
-                )}
-                <div
-                  className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
-                >
-                  {m.content}
+                  <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
+                  </div>
                 </div>
+              )}
+            </div>
+            <div className="px-4 pt-2 pb-4 border-t border-rd-border">
+              <div className="flex flex-wrap gap-1.5 mb-2.5">
+                {AGENT_CHIPS.map((c) => (
+                  <button
+                    key={c}
+                    // "Tailor to a job" opens the tailoring flow (refine-cv select+
+                    // reword), NOT edit-cv - that engine can't tailor. Others stay edit-cv.
+                    onClick={() =>
+                      c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
+                    }
+                    disabled={
+                      chatBusy || (c === "Tailor to a job" && tailoring)
+                    }
+                    className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {c}
+                  </button>
+                ))}
               </div>
-            ))}
-            {chatBusy && (
-              <div className="flex gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
-                  <FileText className="w-3 h-3 text-rd-coral" />
-                </div>
-                <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="px-4 pt-2 pb-4 border-t border-rd-border">
-            <div className="flex flex-wrap gap-1.5 mb-2.5">
-              {AGENT_CHIPS.map((c) => (
+              <div className="flex items-end gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendChat();
+                    }
+                  }}
+                  placeholder="Ask the CV Agent…"
+                  disabled={chatBusy}
+                  className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
+                />
                 <button
-                  key={c}
-                  // "Tailor to a job" opens the tailoring flow (refine-cv select+
-                  // reword), NOT edit-cv — that engine can't tailor. Others stay edit-cv.
-                  onClick={() =>
-                    c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
-                  }
-                  disabled={chatBusy || (c === "Tailor to a job" && tailoring)}
-                  className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  onClick={() => sendChat()}
+                  disabled={chatBusy || !chatInput.trim()}
+                  aria-label="Send message"
+                  className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {c}
+                  <Send className="w-4 h-4" />
                 </button>
-              ))}
+              </div>
             </div>
-            <div className="flex items-end gap-2">
-              <input
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendChat();
-                  }
-                }}
-                placeholder="Ask the CV Agent…"
-                disabled={chatBusy}
-                className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
-              />
-              <button
-                onClick={() => sendChat()}
-                disabled={chatBusy || !chatInput.trim()}
-                aria-label="Send message"
-                className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </aside>
+          </aside>
+        )}
       </div>
     </div>
   );
