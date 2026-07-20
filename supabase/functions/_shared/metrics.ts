@@ -126,7 +126,13 @@ export function finishMetric(m: Metric, result: MetricResult): void {
   }
 
   // Fire-and-forget. Don't await — observability shouldn't block the response.
-  ;(async () => {
+  // Registered with EdgeRuntime.waitUntil so the insert survives isolate
+  // shutdown after a FAST response: a bare promise loses the shutdown race on
+  // quick-returning invocations (e.g. the fan-out path returning in ~12s while
+  // carrying several other waitUntil'd promises), which silently dropped the
+  // row. waitUntil keeps the isolate alive until the insert commits; falls back
+  // to a bare promise where the global isn't available (local dev).
+  const insertPromise = (async () => {
     try {
       const supabaseSpecifier = 'npm:@supabase/supabase-js@2'
       const { createClient } = await import(supabaseSpecifier)
@@ -137,4 +143,7 @@ export function finishMetric(m: Metric, result: MetricResult): void {
       console.warn(`[metrics] unexpected error for ${m.functionName}:`, (err as Error).message)
     }
   })()
+  // @ts-ignore — EdgeRuntime is a Supabase-specific global, not in stock Deno types.
+  const edgeRuntime = (globalThis as any).EdgeRuntime
+  if (edgeRuntime?.waitUntil) edgeRuntime.waitUntil(insertPromise)
 }

@@ -1740,6 +1740,22 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls };
       m.modelUsed = pass2MetricsModel;
       console.log('[CV] fanout subcalls:', JSON.stringify(fo.subcalls));
+      // Observability: one function_metrics row PER SUB-CALL so a fan-out run is
+      // never invisible (ruling: same principle as the stage-3 fix). latency =
+      // the sub-call's own ms; fellBack surfaces as the error_code. The main
+      // generate-tailored-cv row still lands from the finally (now waitUntil-
+      // reliable). Emitted via finishMetric (waitUntil) so they survive shutdown.
+      for (const sc of fo.subcalls) {
+        const sm = startMetric(`generate-tailored-cv:fanout-${sc.label}`);
+        sm.userId = user.id;
+        sm.startedAt = Date.now() - (sc.ms || 0);
+        sm.modelUsed = pass2MetricsModel;
+        finishMetric(sm, {
+          ok: sc.ok,
+          httpStatus: sc.ok ? 200 : 500,
+          errorCode: sc.fellBack ? 'fellback_source_bullets' : (sc.ok ? null : 'subcall_error'),
+        });
+      }
     } else {
       const openaiRes = safeCvModel === 'sonnet'
         ? await openrouterChatCompletionWithRetry(
