@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { useCountUp } from "@/hooks/useCountUp";
 
 // Flag-on job-card match visual, ported from the canvas "sheen arc": one arc with
@@ -6,11 +6,11 @@ import { useCountUp } from "@/hooks/useCountUp";
 // centered. Palette-locked - fg/bg are the band's OWN tokens (the same colours
 // the flag-off text badge uses), so no new colours enter.
 //
-// Display-only ON PURPOSE: no hover legend / no onClick here (that 3-axis
-// breakdown is a later batch), so the ring never competes with the card's click
-// target or its dwell-peek. Draw-in + centre count-up run only when `animate`
-// (the caller caps this to the first rows); reduced-motion renders the final
-// state instantly (no draw-in, number shown immediately).
+// Draw-in + centre count-up run only when `animate` (the caller caps this to the
+// first rows); reduced-motion renders the final state instantly. When
+// `interactive` (Batch C, once the peek is retired flag-on), hover/tap opens a
+// 3-axis breakdown legend; clicks stopPropagation so the card's own click target
+// is never hijacked.
 
 const RING_TRACK_OPACITY = 0.22;
 const MIN_ARC = 0.07; // a real score always draws a visible arc
@@ -23,17 +23,38 @@ function prefersReducedMotion() {
   );
 }
 
-export default function ScoreRing({ pct, fg, bg, animate = false, size = 42 }) {
+// 3-axis breakdown (0-1 each) from the score result. Skills = matched / (matched
+// + missing); Experience = attainability; Seniority = fit_score.
+function scoreAxes(scoreResult) {
+  const attain = scoreResult?.attainability_score ?? 0;
+  const matched = scoreResult?.signals?.matched_skills?.length ?? 0;
+  const missing = scoreResult?.signals?.missing_core_skills?.length ?? 0;
+  const skill = matched + missing > 0 ? matched / (matched + missing) : 0.65;
+  return { skill, experience: attain, seniority: scoreResult?.fit_score ?? 0 };
+}
+
+export default function ScoreRing({
+  pct,
+  fg,
+  bg,
+  animate = false,
+  size = 42,
+  interactive = false,
+  scoreResult = null,
+}) {
   const gid = "sr" + useId().replace(/:/g, "");
   const reduce = prefersReducedMotion();
   const willAnimate = animate && !reduce;
   const [drawn, setDrawn] = useState(!willAnimate);
+  const [legend, setLegend] = useState(false);
+  const enterTimer = useRef(null);
 
   useEffect(() => {
     if (!willAnimate) return undefined;
     const t = setTimeout(() => setDrawn(true), 40);
     return () => clearTimeout(t);
   }, [willAnimate]);
+  useEffect(() => () => clearTimeout(enterTimer.current), []);
 
   const shown = useCountUp(pct, { enabled: animate });
 
@@ -46,8 +67,30 @@ export default function ScoreRing({ pct, fg, bg, animate = false, size = 42 }) {
   const color = fg || "var(--rd-text)";
   const tint = bg || "var(--rd-bg-soft)";
 
+  const openLegend = () => {
+    clearTimeout(enterTimer.current);
+    enterTimer.current = setTimeout(() => setLegend(true), 120);
+  };
+  const closeLegend = () => {
+    clearTimeout(enterTimer.current);
+    setLegend(false);
+  };
+  const axes = interactive ? scoreAxes(scoreResult) : null;
+
   return (
-    <span className="relative flex-shrink-0 inline-flex">
+    <span
+      className={`relative flex-shrink-0 inline-flex ${interactive ? "cursor-help" : ""}`}
+      onMouseEnter={interactive ? openLegend : undefined}
+      onMouseLeave={interactive ? closeLegend : undefined}
+      onClick={
+        interactive
+          ? (e) => {
+              e.stopPropagation();
+              setLegend((x) => !x);
+            }
+          : undefined
+      }
+    >
       <svg width={size} height={size} role="img" aria-label={`Match ${pct}%`}>
         <defs>
           <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
@@ -104,6 +147,40 @@ export default function ScoreRing({ pct, fg, bg, animate = false, size = 42 }) {
           {shown}
         </text>
       </svg>
+
+      {interactive && legend && axes && (
+        <div
+          className="absolute top-full right-0 mt-1 z-30 w-[150px] rd-r-md rd-lift bg-rd-bg-card p-2 text-left"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
+            Match breakdown
+          </p>
+          {[
+            ["Skills", axes.skill],
+            ["Experience", axes.experience],
+            ["Seniority", axes.seniority],
+          ].map(([label, val]) => (
+            <div key={label} className="mb-1.5 last:mb-0">
+              <div className="flex items-center justify-between rd-t-micro mb-0.5">
+                <span className="text-rd-text-secondary">{label}</span>
+                <span className="font-mono text-rd-text-tertiary">
+                  {Math.round(val * 100)}
+                </span>
+              </div>
+              <div className="h-1 rounded-full bg-rd-bg-soft overflow-hidden">
+                <div
+                  className="h-full rounded-full"
+                  style={{
+                    width: `${Math.round(val * 100)}%`,
+                    background: color,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </span>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FileUser, Columns3, Compass } from "lucide-react";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
@@ -35,6 +35,14 @@ export default function ThreeTabHome() {
     TAB_IDS.includes(urlTab) ? urlTab : "cv",
   );
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
+
+  // Sync the active tab when ?tab changes externally - e.g. Generate CV from a
+  // job card sets ?tab=cv&application_id to open the freshly generated CV.
+  useEffect(() => {
+    if (urlTab && TAB_IDS.includes(urlTab) && urlTab !== activeTab) {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab, activeTab]);
 
   const selectTab = (id) => {
     setActiveTab(id);

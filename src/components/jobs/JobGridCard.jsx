@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
-import { Check, X } from "lucide-react";
+import { Check, X, Plus, Wand2, ExternalLink, Loader2 } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
 import {
@@ -17,6 +17,7 @@ import { scoringV2Enabled } from "@/lib/flags";
 import { useCountUp } from "@/hooks/useCountUp";
 import { isNextDesign } from "@/lib/nextDesign";
 import ScoreRing from "@/components/jobs/ScoreRing";
+import { useJobCardActions } from "@/hooks/useJobCardActions";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -87,6 +88,11 @@ export default function JobGridCard({
   // tokens - palette locked. Flag-off keeps the flat bordered card verbatim
   // (byte-identical). Applies wherever the card renders flag-on (feed, rail, search).
   const alive = isNextDesign();
+  // Batch C (flag-on): the hover-actions (Generate CV / Apply / "+") and their
+  // tracked state. `enabled: alive` keeps the applications fetch off the flag-off
+  // /Jobs surface, which never renders the actions.
+  const { tracked, tracking, tailoring, onTrack, onGenerateCv } =
+    useJobCardActions(job, scoreResult, { enabled: alive });
   const fallbackStyle = styles
     ? { background: styles.tint, color: styles.accent }
     : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
@@ -158,6 +164,9 @@ export default function JobGridCard({
   };
   const handleEnter = () => {
     prefetchJobDescription(queryClient, job.id);
+    // Batch C: the dwell-peek is RETIRED flag-on (hover-actions replace it). We
+    // still prefetch the description for the modal. Flag-off keeps the full peek.
+    if (alive) return;
     clearTimeout(peekRearmTimer);
     clearTimeout(dwellRef.current);
     // No delay once the user is "armed" from a prior peek; full dwell first time.
@@ -284,6 +293,8 @@ export default function JobGridCard({
               fg={d.bandMeta ? d.bandMeta.fg : d.badgeStyle?.color}
               bg={d.bandMeta ? d.bandMeta.bg : d.badgeStyle?.background}
               animate={animateScore}
+              interactive
+              scoreResult={scoreResult}
             />
           ) : d.scored && d.bandMeta ? (
             <span
@@ -364,6 +375,70 @@ export default function JobGridCard({
                 {s}
               </span>
             ))}
+          </div>
+        )}
+
+        {/* Batch C hover-actions (flag-on): Generate CV + Apply + compact "+".
+            Slide up on card hover / focus-within; always visible on touch (.cx-actions).
+            stopPropagation so they don't also open the modal. Replaces the peek. */}
+        {alive && (
+          <div className="cx-actions mt-auto pt-2.5 flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onGenerateCv();
+              }}
+              disabled={tailoring}
+              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-coral text-white hover:bg-rd-coral-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {tailoring ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Wand2 className="w-3 h-3" />
+              )}
+              {tailoring ? "Generating…" : "Generate CV"}
+            </button>
+            {job.apply_url && (
+              <a
+                href={job.apply_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title="Apply on the company site"
+                className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-coral-dark transition-colors"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Apply
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTrack();
+              }}
+              disabled={tracked || tracking}
+              title={tracked ? "In your tracker" : "Add to tracker"}
+              aria-label={tracked ? "In your tracker" : "Add to tracker"}
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-coral-dark disabled:cursor-default transition-colors"
+              style={
+                tracked
+                  ? {
+                      background: "var(--rd-teal-tint)",
+                      color: "var(--rd-teal-dark)",
+                    }
+                  : undefined
+              }
+            >
+              {tracking ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : tracked ? (
+                <Check className="w-3.5 h-3.5" />
+              ) : (
+                <Plus className="w-3.5 h-3.5" />
+              )}
+            </button>
           </div>
         )}
       </div>
