@@ -56,13 +56,16 @@ export interface FanoutInputs {
   // listed skips its LLM call and goes straight to the source-bullets-verbatim
   // fallback — used to prove the never-drop fallback fires (fellBack=true).
   failRoles?: string[]
+  // Progress hook: called once as each authoring sub-call (role / about / skills)
+  // completes, so the caller can advance a {done,total,stage} progress row.
+  onSubcallDone?: () => void
 }
 
 export interface FanoutResult {
   cvData: Record<string, any>
   timing: { label: string; ms: number }[]
   subcalls: { label: string; ok: boolean; fellBack: boolean; ms: number }[]
-  coverage: { target: number; before: number; after: number; retryFired: boolean }
+  coverage: { phrases: number; covered_exact_substring: number; note: string }
 }
 
 const BUCKET_KEY: Record<string, string> = {
@@ -188,9 +191,10 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
   const assigned = assignPhrases(inp.mustIncludePhrases, slotKeys)
   mark('assigned')
 
-  const roleP = inp.roles.map(r => authorRole(r, assigned[`role:${r.bucket}:${r.index}`] || [], inp, signal))
-  const aboutP = authorAboutMe(assigned['about'] || [], inp, signal)
-  const skillsP = authorSkills(assigned['skills'] || [], inp, signal)
+  const tick = <T,>(p: Promise<T>): Promise<T> => p.finally(() => inp.onSubcallDone?.())
+  const roleP = inp.roles.map(r => tick(authorRole(r, assigned[`role:${r.bucket}:${r.index}`] || [], inp, signal)))
+  const aboutP = tick(authorAboutMe(assigned['about'] || [], inp, signal))
+  const skillsP = tick(authorSkills(assigned['skills'] || [], inp, signal))
 
   const [roleResults, about, skills] = await Promise.all([Promise.all(roleP), aboutP, skillsP])
   mark('authored')
@@ -213,33 +217,23 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
   cvData.fit_analysis = computeFit(inp.profileSkills, inp.jdSkills)
   mark('assembled')
 
-  // Coverage safety-net. Round-robin pre-assignment spreads phrases thin; count
-  // how many must-include phrases actually landed in the RENDERED sections
-  // (About Me + Skills + experience bullets — NOT fit_analysis, which isn't on
-  // the CV), and if below the production target, re-author About Me ONCE
-  // emphasizing the missing phrases — honestly: the call skips any phrase that
-  // doesn't fit the user's real experience (no fabrication). One extra
-  // sequential call, only when it fires.
-  const renderedText = () => [
+  // Coverage MEASUREMENT only (observability). The earlier re-author-About-Me
+  // retry was removed after the eval proved it counterproductive: rendered
+  // exact-substring coverage of the internal must-include phrases is inherently
+  // low (the model weaves VARIANTS — "retention" for "renewals" — that exact
+  // match misses), so `covered < target` fired on every run (+~4s each, p50
+  // 12s→16s) AND re-authoring About Me wholesale could DROP a phrase already
+  // present (a run went 3→2). The diagnosis stands: fan-out's rendered coverage
+  // is already >= the single call (no gap to close). This count is retained for
+  // the eval, explicitly labeled: exact-substring, UNDERCOUNTS variants.
+  const renderedText = [
     cvData.summary || '',
     JSON.stringify(cvData.skills || {}),
     Object.keys(BUCKET_KEY).map(b => (cvData[BUCKET_KEY[b]] || []).flatMap((e: any) => e.bullets || []).join(' ')).join(' '),
   ].join(' ').toLowerCase()
-  let coverageRetryFired = false
   const phrases = inp.mustIncludePhrases
-  const target = Math.min(phrases.length, 6)
-  const coveredNow = () => phrases.filter(p => renderedText().includes(String(p).toLowerCase())).length
-  const before = coveredNow()
-  if (phrases.length && before < target) {
-    const missing = phrases.filter(p => !renderedText().includes(String(p).toLowerCase()))
-    const retry = await authorAboutMe(missing, {
-      ...inp,
-      aboutContext: `${inp.aboutContext}\nCOVERAGE EMPHASIS: weave these JD phrases into the About Me ONLY where they honestly describe the user's real experience; SKIP any that do not genuinely apply (never fabricate): ${missing.join('; ')}`,
-    }, signal)
-    if (retry.ok && retry.summary) { cvData.summary = retry.summary; coverageRetryFired = true }
-    mark('coverage_retry')
-  }
-  const coverage = { target, before, after: coveredNow(), retryFired: coverageRetryFired }
+  const covered = phrases.filter(p => renderedText.includes(String(p).toLowerCase())).length
+  const coverage = { phrases: phrases.length, covered_exact_substring: covered, note: 'rendered exact-substring; undercounts variants' }
 
   const subcalls = [
     ...inp.roles.map((r, i) => ({ label: `role-${r.bucket}-${r.index}`, ok: roleResults[i]?.ok ?? false, fellBack: roleResults[i]?.fellBack ?? true, ms: roleResults[i]?.ms ?? 0 })),

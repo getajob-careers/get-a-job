@@ -304,6 +304,13 @@ Deno.serve(async (req) => {
   const _timing: { label: string; at_ms: number }[] = []
   const mark = (label: string) => { _timing.push({ label, at_ms: Date.now() - m.startedAt }) }
 
+  // Fan-out progress emitter, declared out here (no-op default) so the catch
+  // block can emit the terminal 'error' stage. Reassigned inside the try once
+  // user/serviceClient are known.
+  let fanoutTotal = 0
+  let fanoutDone = 0
+  let emitFanoutProgress: (stage: string, done?: number) => void = () => {}
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -1684,6 +1691,23 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         has_application_link: !!application_id,
       },
     };
+    // Fan-out progress emission (cv_generation_progress row, polled by the UI).
+    // {done,total,stage}; total = roles + about + skills + assembly + pdf. Only
+    // for the fan-out path; upserts are fire-and-forget (progress is best-effort,
+    // must never block or fail the generation). PK is user_id (one concurrent
+    // generation per user, last-write-wins — stated v1 limit).
+    emitFanoutProgress = (stage: string, done?: number) => {
+      if (!cvFanout) return;
+      void serviceClient.from('cv_generation_progress').upsert({
+        user_id: user.id,
+        application_id: application_id ?? null,
+        done: done ?? fanoutDone,
+        total: fanoutTotal,
+        stage,
+        updated_at: new Date().toISOString(),
+      }).then(() => {}, () => {});
+    };
+
     mark('pass2_start')
     let cvData: Record<string, any>;
     let fanoutDiag: { timing: { label: string; ms: number }[]; subcalls: any[]; coverage: any } | null = null;
@@ -1718,8 +1742,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         'tools: ' + (jdKeywords?.tools_and_platforms || []).join(', '),
         'domain: ' + (jdKeywords?.domain_terms || []).join(', '),
       ].join(' | ').slice(0, 1500);
+      fanoutTotal = fanoutRoles.length + 4; // roles + about + skills + assembly + pdf
+      emitFanoutProgress('authoring', 0);
       const fo = await runFanout({
         roles: fanoutRoles,
+        onSubcallDone: () => { fanoutDone++; emitFanoutProgress('authoring'); },
         aboutContext: `USER HEADLINE: ${trunc(profile?.headline, 120)}. ROLES: ${fanoutRoles.map((r) => r.title + (r.company ? ' @ ' + r.company : '')).join('; ')}. SKILLS: ${profileSkillsArr.slice(0, 30).join(', ')}`,
         skillsContext: `USER SKILLS: ${profileSkillsArr.join(', ')}`,
         jdKeywordBlock,
@@ -1739,6 +1766,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       cvData = fo.cvData;
       fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls, coverage: fo.coverage };
       m.modelUsed = pass2MetricsModel;
+      emitFanoutProgress('assembling', fanoutRoles.length + 2);
       console.log('[CV] fanout subcalls:', JSON.stringify(fo.subcalls));
       // Observability: one function_metrics row PER SUB-CALL so a fan-out run is
       // never invisible (ruling: same principle as the stage-3 fix). latency =
@@ -2867,6 +2895,7 @@ scrubCvVoice(cvData);
       // (build.ts) remains in the codebase as a fallback but is no longer
       // wired in — see PR / commit message for the rationale.
       mark('pdf_start')
+      emitFanoutProgress('rendering', fanoutTotal - 1);
       const { bytes: cvBytes } = await buildCvPdf(cvData, userContext as any, {
         style: safeTemplateStyle,
         theme: sectorResolution.theme,
@@ -3032,6 +3061,7 @@ scrubCvVoice(cvData);
     if (!linkedinPresent) missing_contact_fields.push("linkedin_url");
 
     _ok = true; _http = 200
+    emitFanoutProgress('done', fanoutTotal);
     return json({
       cv_url,
       cv_id: newCvId,
@@ -3093,6 +3123,8 @@ scrubCvVoice(cvData);
   } catch (error) {
     console.error("generate-tailored-cv error:", error);
     _http = 500; _err = 'unhandled'
+    // Terminal 'error' stage so the client never polls a dead generation forever.
+    emitFanoutProgress('error');
     return json({ error: (error as Error).message }, 500);
   } finally {
     finishMetric(m, { ok: _ok, httpStatus: _http, errorCode: _err })
