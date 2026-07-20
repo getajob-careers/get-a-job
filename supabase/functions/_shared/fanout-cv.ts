@@ -52,6 +52,10 @@ export interface FanoutInputs {
   // deterministic fit inputs
   profileSkills: string[]
   jdSkills: string[]
+  // Test-only fault injection (debug). Any role whose `${bucket}:${index}` is
+  // listed skips its LLM call and goes straight to the source-bullets-verbatim
+  // fallback — used to prove the never-drop fallback fires (fellBack=true).
+  failRoles?: string[]
 }
 
 export interface FanoutResult {
@@ -89,10 +93,15 @@ async function authorRole(
   assigned: string[],
   inp: FanoutInputs,
   signal: AbortSignal,
-): Promise<{ index: number; bullets: string[]; ok: boolean; fellBack: boolean }> {
+): Promise<{ index: number; bullets: string[]; ok: boolean; fellBack: boolean; ms: number }> {
+  const t0 = Date.now()
   const sourceBullets = (role.bullets && role.bullets.length
     ? role.bullets
     : String(role.responsibilities || '').split(/\n|(?<=[.;])\s+/).map(s => s.trim()).filter(Boolean))
+  // Test fault injection: force this role to fail → exercise the never-drop fallback.
+  if (inp.failRoles?.includes(`${role.bucket}:${role.index}`)) {
+    return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0 }
+  }
   const system = `You rewrite the source responsibilities of ONE role into tightened ATS resume bullets for the target role "${inp.targetRole}".
 RULES:
 - Preserve EVERY source responsibility as a bullet — do not drop content, do not merge two into one. Same count in, same count out.
@@ -120,14 +129,15 @@ ${sourceBullets.map((b, i) => `${i + 1}. ${b}`).join('\n')}`
       const data = await res.json()
       const parsed = jsonFrom(data.choices?.[0]?.message?.content || '')
       const bullets = Array.isArray(parsed.bullets) ? parsed.bullets.map((b: any) => String(b)).filter(Boolean) : []
-      if (bullets.length) return { index: role.index, bullets, ok: true, fellBack: false }
+      if (bullets.length) return { index: role.index, bullets, ok: true, fellBack: false, ms: Date.now() - t0 }
     } catch (_) { /* retry */ }
   }
   // never-drop fallback: source bullets verbatim
-  return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true }
+  return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0 }
 }
 
-async function authorAboutMe(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ summary: string; ok: boolean }> {
+async function authorAboutMe(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ summary: string; ok: boolean; ms: number }> {
+  const t0 = Date.now()
   const system = `Write a factual 3-4 sentence About Me for a resume targeting "${inp.targetRole}". Subject is always the USER (their experience/skills), never the target company. Use JD vocabulary where it genuinely applies. Weave in: ${assigned.join('; ') || '(none)'}. No pronouns, no em dash, no filler.
 ${inp.voiceRules}
 Return JSON ONLY: {"summary": string}.`
@@ -136,21 +146,22 @@ Return JSON ONLY: {"summary": string}.`
       { model: inp.model, messages: [{ role: 'system', content: system }, { role: 'user', content: `${inp.aboutContext}\nJD SIGNAL: ${inp.jdKeywordBlock}` }], response_format: { type: 'json_object' }, temperature: 0.2, max_tokens: 500 },
       inp.key, { ...inp.baseTrace, traceName: 'generate-tailored-cv:fanout-about' }, { signal },
     )
-    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.summary) return { summary: String(p.summary), ok: true } }
+    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.summary) return { summary: String(p.summary), ok: true, ms: Date.now() - t0 } }
   } catch (_) { /* fall through */ }
-  return { summary: '', ok: false }
+  return { summary: '', ok: false, ms: Date.now() - t0 }
 }
 
-async function authorSkills(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ skills: any; ok: boolean }> {
+async function authorSkills(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ skills: any; ok: boolean; ms: number }> {
+  const t0 = Date.now()
   const system = `Select and order resume skills for the target role "${inp.targetRole}". Prefer skills the user has that match the JD; do NOT invent skills the user lacks. Include: ${assigned.join('; ') || '(none)'} only if the user genuinely has them. Return JSON ONLY: {"skills": {"domain": string[], "tools": string[], "technical": string[]}}.`
   try {
     const res = await inp.transport(
       { model: inp.model, messages: [{ role: 'system', content: system }, { role: 'user', content: `${inp.skillsContext}\nJD SIGNAL: ${inp.jdKeywordBlock}` }], response_format: { type: 'json_object' }, temperature: 0.2, max_tokens: 600 },
       inp.key, { ...inp.baseTrace, traceName: 'generate-tailored-cv:fanout-skills' }, { signal },
     )
-    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.skills) return { skills: p.skills, ok: true } }
+    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.skills) return { skills: p.skills, ok: true, ms: Date.now() - t0 } }
   } catch (_) { /* fall through */ }
-  return { skills: null, ok: false }
+  return { skills: null, ok: false, ms: Date.now() - t0 }
 }
 
 // Deterministic fit — skill overlap %, band per the same 75/50/25 rubric the
@@ -188,19 +199,23 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
     professional_experiences: [], military_experiences: [],
     volunteering_experiences: [], leadership_experiences: [],
   }
-  for (const r of inp.roles) {
-    const out = roleResults.find(x => x.index === r.index)
+  // Assemble by POSITION, not by index: roleResults is 1:1 with inp.roles
+  // (Promise.all preserves order), and `index` is per-BUCKET (every bucket
+  // starts at 0), so a find(x => x.index === r.index) collides across buckets —
+  // that bug gave every bucket's index-0 role the professional[0] bullets.
+  inp.roles.forEach((r, i) => {
+    const out = roleResults[i]
     cvData[BUCKET_KEY[r.bucket]].push({ index: r.index, bullets: out?.bullets || (r.bullets || []) })
-  }
+  })
   cvData.summary = about.summary
   if (skills.skills) cvData.skills = skills.skills
   cvData.fit_analysis = computeFit(inp.profileSkills, inp.jdSkills)
   mark('assembled')
 
   const subcalls = [
-    ...roleResults.map(r => ({ label: `role-${r.index}`, ok: r.ok, fellBack: r.fellBack, ms: 0 })),
-    { label: 'about', ok: about.ok, fellBack: !about.ok, ms: 0 },
-    { label: 'skills', ok: skills.ok, fellBack: !skills.ok, ms: 0 },
+    ...inp.roles.map((r, i) => ({ label: `role-${r.bucket}-${r.index}`, ok: roleResults[i]?.ok ?? false, fellBack: roleResults[i]?.fellBack ?? true, ms: roleResults[i]?.ms ?? 0 })),
+    { label: 'about', ok: about.ok, fellBack: !about.ok, ms: about.ms },
+    { label: 'skills', ok: skills.ok, fellBack: !skills.ok, ms: skills.ms },
   ]
   return { cvData, timing, subcalls }
 }
