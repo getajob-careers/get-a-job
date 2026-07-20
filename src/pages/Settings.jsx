@@ -37,10 +37,21 @@ export default function Settings() {
     }
     setResetBusy(true);
     setResetError(null);
-    try { localStorage.removeItem(`careerRoles:${user.id}:hadData`); } catch { /* ignore */ }
-    const { error } = await supabase.rpc("reset_user_data", { p_user_id: user.id });
-    if (error) {
-      console.error("[settings] reset_user_data failed:", error);
+    try {
+      localStorage.removeItem(`careerRoles:${user.id}:hadData`);
+    } catch {
+      /* ignore */
+    }
+    // reset_user_data returns { ok, error }: the wipe runs in a DB subtransaction
+    // and returns a status (rather than raising) so the outcome is logged to
+    // reset_audit. Check BOTH the transport error and data.ok — a wipe failure
+    // now comes back as { ok: false } with error null, so checking only `error`
+    // would treat a failed reset as success.
+    const { data, error } = await supabase.rpc("reset_user_data", {
+      p_user_id: user.id,
+    });
+    if (error || !data?.ok) {
+      console.error("[settings] reset_user_data failed:", error || data?.error);
       setResetError("Reset failed. Please try again.");
       setResetBusy(false);
       return;
@@ -67,7 +78,9 @@ export default function Settings() {
     if (!canConfirmDelete || deleteBusy) return;
     setDeleteBusy(true);
     setDeleteError(null);
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session?.access_token) {
       setDeleteError("Not signed in.");
       setDeleteBusy(false);
@@ -78,7 +91,10 @@ export default function Settings() {
     });
     if (error) {
       console.error("[settings] delete-account failed:", error);
-      setDeleteError(data?.error || "Account deletion failed. Please try again or contact support.");
+      setDeleteError(
+        data?.error ||
+          "Account deletion failed. Please try again or contact support.",
+      );
       setDeleteBusy(false);
       return;
     }
@@ -93,28 +109,43 @@ export default function Settings() {
   return (
     <div className="max-w-2xl mx-auto px-6 py-8 space-y-8 bg-rd-bg-page min-h-screen font-body text-rd-text">
       <div>
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">Account</p>
-        <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text">Settings</h1>
-        <p className="text-sm text-rd-text-secondary mt-2">Manage your password, onboarding state, and account.</p>
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">
+          Account
+        </p>
+        <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text">
+          Settings
+        </h1>
+        <p className="text-sm text-rd-text-secondary mt-2">
+          Manage your password, onboarding state, and account.
+        </p>
       </div>
 
       {/* ── Account section: password change ──────────────────────────── */}
       <section className="space-y-3">
-        <h2 className="font-display font-bold text-[14px] text-rd-text">Account</h2>
+        <h2 className="font-display font-bold text-[14px] text-rd-text">
+          Account
+        </h2>
         <PasswordCard />
       </section>
 
       {/* ── Onboarding section: redo onboarding from scratch ───────────── */}
       <section className="space-y-3">
-        <h2 className="font-display font-bold text-[14px] text-rd-text">Onboarding</h2>
+        <h2 className="font-display font-bold text-[14px] text-rd-text">
+          Onboarding
+        </h2>
         <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 shadow-rd">
           <div className="flex items-start gap-3">
             <RotateCcw className="w-4 h-4 text-rd-text-secondary flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-display font-semibold text-rd-text">Reset onboarding</p>
+              <p className="text-sm font-display font-semibold text-rd-text">
+                Reset onboarding
+              </p>
               <p className="text-xs text-rd-text-secondary mt-1 leading-relaxed">
-                Clears your profile, career roadmap, applications, tasks, experiences, projects, and certifications,
-                then sends you back through onboarding. Your account stays - only the data you entered is wiped.
+                Clears everything you've entered and generated - profile, career
+                roadmap, applications and generated CVs, saved stories, tasks
+                and daily actions, LinkedIn drafts, experiences, projects,
+                certifications, and education - then sends you back through
+                onboarding. Your account stays; only your data is wiped.
               </p>
               {resetError && (
                 <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
@@ -131,7 +162,11 @@ export default function Settings() {
                       disabled={resetBusy}
                       className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold"
                     >
-                      {resetBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
+                      {resetBusy ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <RotateCcw className="w-3 h-3" />
+                      )}
                       Confirm reset
                     </Button>
                     <Button
@@ -163,15 +198,24 @@ export default function Settings() {
 
       {/* ── Danger zone: permanent account deletion ──────────────────── */}
       <section className="space-y-3">
-        <h2 className="font-display font-bold text-[14px] text-rd-coral-dark">Danger zone</h2>
+        <h2 className="font-display font-bold text-[14px] text-rd-coral-dark">
+          Danger zone
+        </h2>
         <div className="bg-rd-bg-card border border-rd-coral/30 rounded-[14px] p-5 shadow-rd">
           <div className="flex items-start gap-3">
             <Trash2 className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-display font-semibold text-rd-text">Delete account</p>
+              <p className="text-sm font-display font-semibold text-rd-text">
+                Delete account
+              </p>
               <p className="text-xs text-rd-text-secondary mt-1 leading-relaxed">
-                Permanently removes your account, all data tied to it, and any files you&apos;ve uploaded. This action is
-                immediate and cannot be undone. To confirm, type <code className="bg-rd-bg-soft text-rd-text px-1 py-0.5 rounded text-[11px] font-mono">{DELETE_CONFIRM_PHRASE}</code> below.
+                Permanently removes your account, all data tied to it, and any
+                files you&apos;ve uploaded. This action is immediate and cannot
+                be undone. To confirm, type{" "}
+                <code className="bg-rd-bg-soft text-rd-text px-1 py-0.5 rounded text-[11px] font-mono">
+                  {DELETE_CONFIRM_PHRASE}
+                </code>{" "}
+                below.
               </p>
               {deleteError && (
                 <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
@@ -195,7 +239,11 @@ export default function Settings() {
                   disabled={!canConfirmDelete || deleteBusy}
                   className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold disabled:opacity-40"
                 >
-                  {deleteBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                  {deleteBusy ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3 h-3" />
+                  )}
                   Delete account
                 </Button>
               </div>
