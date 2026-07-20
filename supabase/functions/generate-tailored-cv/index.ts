@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { openrouterChatCompletionWithRetry } from '../_shared/openrouter-chat.ts'
+import { runFanout } from '../_shared/fanout-cv.ts'
 import type { ReconcileWarning } from './reconcile.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
@@ -343,6 +344,10 @@ Deno.serve(async (req) => {
     // Speed-arc diagnostic flag (default OFF). When true, the success response
     // carries a `timing` block of per-phase cumulative ms. No other behavior change.
     const debugTiming = (body as any)?.debug_timing === true;
+    // SPIKE flag (opt-in, default OFF). When true, Pass-2 authoring fans out into
+    // parallel per-role + About Me + Skills calls (see _shared/fanout-cv.ts) to
+    // measure the fan-out latency thesis. Default path is byte-identical.
+    const cvFanout = (body as any)?.cv_fanout === true;
     // CV chokepoint opt-in flag (cv_enforce_v2): default OFF — anything but "on"
     // keeps the exact legacy path. Body flag OR the CV_ENFORCE_V2 env fallback.
     const cvEnforceV2 =
@@ -1680,52 +1685,98 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       },
     };
     mark('pass2_start')
-    const openaiRes = safeCvModel === 'sonnet'
-      ? await openrouterChatCompletionWithRetry(
-          pass2Payload,
-          openrouterKey!,
-          pass2TraceCtx,
-          { signal: AbortSignal.timeout(60000) },
-        )
-      : await openaiChatCompletionWithRetry(
-          pass2Payload,
-          openaiKey,
-          pass2TraceCtx,
-          { signal: AbortSignal.timeout(60000) },
-        );
-
-    if (!openaiRes.ok) {
-      const err = await openaiRes.text();
-      // Source-correct error labels: telemetry that names the actual
-      // upstream so the on-call human doesn't reflexively check the
-      // wrong service's status page. Default branch (gpt-4o) keeps the
-      // "OpenAI error" / "openai_<status>" labels byte-identical to
-      // pre-ramp; the Sonnet branch reports "OpenRouter error" /
-      // "openrouter_<status>" so function_metrics.error_code rolls up
-      // by real upstream during incident triage.
-      const upstream = safeCvModel === 'sonnet' ? 'OpenRouter' : 'OpenAI';
-      const tag = safeCvModel === 'sonnet' ? 'openrouter' : 'openai';
-      _http = 500; _err = `${tag}_${openaiRes.status}`
-      m.modelUsed = pass2MetricsModel
-      return json({ error: `${upstream} error: ${err}` }, 500);
-    }
-
-    const openaiData = await openaiRes.json();
-    m.modelUsed = pass2MetricsModel
-    m.tokensIn = (m.tokensIn ?? 0) + (openaiData.usage?.prompt_tokens ?? 0)
-    m.tokensOut = (m.tokensOut ?? 0) + (openaiData.usage?.completion_tokens ?? 0)
     let cvData: Record<string, any>;
-    try {
-      cvData = parseLlmJson(
-        openaiData.choices?.[0]?.message?.content || "",
-        String(openaiData.choices?.[0]?.finish_reason || ""),
-        `pass2:${safeCvModel}`,
-      );
-    } catch (parseErr) {
-      _http = 500; _err = 'json_parse'
-      const msg = (parseErr as Error)?.message || 'AI returned an invalid response format. Please try again.';
-      console.warn(`[CV] Pass-2 parse failed: ${msg}`);
-      return json({ error: msg }, 500);
+    let fanoutDiag: { timing: { label: string; ms: number }[]; subcalls: any[] } | null = null;
+    if (cvFanout) {
+      // ── SPIKE: fan-out Pass-2 (flag-gated, opt-in; default path untouched). ──
+      // Parallel per-role + About Me + Skills calls, assembled into the SAME
+      // {index, bullets} bucket shape the single call emits, so the reconcile /
+      // guards / anti-fab / PDF downstream below runs unchanged. Uses the same
+      // transport the request selected; fit computed deterministically.
+      const toRole = (arr: any[], bucket: 'professional' | 'military' | 'volunteering' | 'leadership') =>
+        arr.map((e: any) => ({
+          index: e.index, bucket,
+          title: String(e.title || ''), company: String(e.company || ''),
+          dates: [e.start_date, e.end_date].filter(Boolean).join(' - '),
+          responsibilities: String(e.responsibilities || ''),
+          bullets: Array.isArray(e.bullets) ? e.bullets.map((b: any) => String(b)) : [],
+          skills: Array.isArray(e.skills) ? e.skills.map((s: any) => String(s)) : [],
+        }));
+      const fanoutRoles = [
+        ...toRole(professionalExperiences, 'professional'),
+        ...toRole(militaryExperiences, 'military'),
+        ...toRole(volunteeringExperiences, 'volunteering'),
+        ...toRole(leadershipExperiences, 'leadership'),
+      ];
+      const profileSkillsArr = safeArray(profile?.skills).map((s: any) => String(s));
+      const jdSkillsArr = [
+        ...(jdKeywords?.must_include_phrases || []),
+        ...(jdKeywords?.tools_and_platforms || []),
+      ].map(String);
+      const jdKeywordBlock = [
+        (jdKeywords?.must_include_phrases || []).join(', '),
+        'tools: ' + (jdKeywords?.tools_and_platforms || []).join(', '),
+        'domain: ' + (jdKeywords?.domain_terms || []).join(', '),
+      ].join(' | ').slice(0, 1500);
+      const fo = await runFanout({
+        roles: fanoutRoles,
+        aboutContext: `USER HEADLINE: ${trunc(profile?.headline, 120)}. ROLES: ${fanoutRoles.map((r) => r.title + (r.company ? ' @ ' + r.company : '')).join('; ')}. SKILLS: ${profileSkillsArr.slice(0, 30).join(', ')}`,
+        skillsContext: `USER SKILLS: ${profileSkillsArr.join(', ')}`,
+        jdKeywordBlock,
+        mustIncludePhrases: (jdKeywords?.must_include_phrases || []).map(String),
+        targetRole: safeTargetRole,
+        voiceRules: CV_VOICE_RULES,
+        transport: safeCvModel === 'sonnet' ? openrouterChatCompletionWithRetry : openaiChatCompletionWithRetry,
+        key: safeCvModel === 'sonnet' ? openrouterKey! : openaiKey,
+        model: pass2Model,
+        baseTrace: { userId: user.id, sessionId: cvSessionId },
+        profileSkills: profileSkillsArr,
+        jdSkills: jdSkillsArr,
+      }, AbortSignal.timeout(60000));
+      cvData = fo.cvData;
+      fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls };
+      m.modelUsed = pass2MetricsModel;
+      console.log('[CV] fanout subcalls:', JSON.stringify(fo.subcalls));
+    } else {
+      const openaiRes = safeCvModel === 'sonnet'
+        ? await openrouterChatCompletionWithRetry(
+            pass2Payload,
+            openrouterKey!,
+            pass2TraceCtx,
+            { signal: AbortSignal.timeout(60000) },
+          )
+        : await openaiChatCompletionWithRetry(
+            pass2Payload,
+            openaiKey,
+            pass2TraceCtx,
+            { signal: AbortSignal.timeout(60000) },
+          );
+
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        const upstream = safeCvModel === 'sonnet' ? 'OpenRouter' : 'OpenAI';
+        const tag = safeCvModel === 'sonnet' ? 'openrouter' : 'openai';
+        _http = 500; _err = `${tag}_${openaiRes.status}`
+        m.modelUsed = pass2MetricsModel
+        return json({ error: `${upstream} error: ${err}` }, 500);
+      }
+
+      const openaiData = await openaiRes.json();
+      m.modelUsed = pass2MetricsModel
+      m.tokensIn = (m.tokensIn ?? 0) + (openaiData.usage?.prompt_tokens ?? 0)
+      m.tokensOut = (m.tokensOut ?? 0) + (openaiData.usage?.completion_tokens ?? 0)
+      try {
+        cvData = parseLlmJson(
+          openaiData.choices?.[0]?.message?.content || "",
+          String(openaiData.choices?.[0]?.finish_reason || ""),
+          `pass2:${safeCvModel}`,
+        );
+      } catch (parseErr) {
+        _http = 500; _err = 'json_parse'
+        const msg = (parseErr as Error)?.message || 'AI returned an invalid response format. Please try again.';
+        console.warn(`[CV] Pass-2 parse failed: ${msg}`);
+        return json({ error: msg }, 500);
+      }
     }
 
     mark('pass2_done')
@@ -1741,7 +1792,10 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // unified `skills` column. Below that, the role is genuinely a stretch
     // and the thin-source warning UX should fire instead of an LLM retry.
     let retryFired = false;
-    if (jdKeywords && jdKeywords.must_include_phrases.length > 0) {
+    // The single-call coverage retry re-authors the WHOLE CV in one call — it
+    // would undo the fan-out assembly, so it's skipped on the fan-out path
+    // (fan-out meets coverage via phrase pre-assignment instead).
+    if (!cvFanout && jdKeywords && jdKeywords.must_include_phrases.length > 0) {
       const cvLower = JSON.stringify(cvData).toLowerCase();
       const preliminaryMatched = jdKeywords.must_include_phrases.filter(
         (p) => cvLower.includes(String(p).toLowerCase())
@@ -3014,6 +3068,7 @@ scrubCvVoice(cvData);
           total_ms: Date.now() - m.startedAt,
           marks: _timing,
         },
+        ...(fanoutDiag ? { fanout: fanoutDiag } : {}),
       }),
     });
   } catch (error) {
