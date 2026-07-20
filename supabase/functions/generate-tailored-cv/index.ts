@@ -1686,7 +1686,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     };
     mark('pass2_start')
     let cvData: Record<string, any>;
-    let fanoutDiag: { timing: { label: string; ms: number }[]; subcalls: any[] } | null = null;
+    let fanoutDiag: { timing: { label: string; ms: number }[]; subcalls: any[]; coverage: any } | null = null;
     if (cvFanout) {
       // ── SPIKE: fan-out Pass-2 (flag-gated, opt-in; default path untouched). ──
       // Parallel per-role + About Me + Skills calls, assembled into the SAME
@@ -1737,7 +1737,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           : undefined,
       }, AbortSignal.timeout(60000));
       cvData = fo.cvData;
-      fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls };
+      fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls, coverage: fo.coverage };
       m.modelUsed = pass2MetricsModel;
       console.log('[CV] fanout subcalls:', JSON.stringify(fo.subcalls));
       // Observability: one function_metrics row PER SUB-CALL so a fan-out run is
