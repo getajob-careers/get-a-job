@@ -100,9 +100,28 @@ export default function JobGridCard({
   // escapes the jobs column's overflow-y-auto clip (which was cutting the
   // popover off near the bottom of the scroll area).
   const [rect, setRect] = useState(null);
+  // Spotlight cursor-glow (flag-on): track the pointer over the card and write
+  // --sx/--sy for the .cx-spot radial. rAF-throttled, and onMouseMove is per-card
+  // so only the hovered card's handler runs - a long feed stays cheap.
+  const cardRef = useRef(null);
+  const spotRafRef = useRef(0);
+  const onCardMove = (e) => {
+    const el = cardRef.current;
+    if (!el) return;
+    const { clientX, clientY } = e;
+    cancelAnimationFrame(spotRafRef.current);
+    spotRafRef.current = requestAnimationFrame(() => {
+      const r = el.getBoundingClientRect();
+      el.style.setProperty("--sx", `${clientX - r.left}px`);
+      el.style.setProperty("--sy", `${clientY - r.top}px`);
+    });
+  };
   useEffect(() => {
     installScrollTracker();
-    return () => clearTimeout(dwellRef.current);
+    return () => {
+      clearTimeout(dwellRef.current);
+      cancelAnimationFrame(spotRafRef.current);
+    };
   }, []);
 
   // Description only needed for the peek snippet — read it once we're peeking
@@ -226,9 +245,11 @@ export default function JobGridCard({
       onMouseLeave={handleLeave}
     >
       <div
+        ref={cardRef}
         role="button"
         tabIndex={0}
         onClick={open}
+        onMouseMove={alive ? onCardMove : undefined}
         onFocus={() => prefetchJobDescription(queryClient, job.id)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
@@ -238,10 +259,11 @@ export default function JobGridCard({
         }}
         className={
           alive
-            ? "group cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+            ? "group relative isolate cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
             : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
         }
       >
+        {alive && <span className="cx-spot" aria-hidden="true" />}
         <div className="flex items-center justify-between gap-1.5 mb-2">
           <CompanyLogo
             domain={companyDomain}
