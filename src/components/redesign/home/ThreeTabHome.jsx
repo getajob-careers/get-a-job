@@ -102,7 +102,16 @@ export default function ThreeTabHome() {
             />
           </div>
         )}
-        {activeTab === "tracker" && <HomeTrackerTab />}
+        {/* Tracker owns its own desktop scroll (same as jobs): the tab body is
+            md:overflow-hidden and the funnel + guide + kanban have no internal
+            scroll, so without this the content below the fold is unreachable on
+            wide desktop. Pre-existing since #628 (the #638 jobs fix missed it);
+            mobile unaffected (the tab body already scrolls; this is md+ only). */}
+        {activeTab === "tracker" && (
+          <div className="md:h-full md:overflow-y-auto">
+            <HomeTrackerTab />
+          </div>
+        )}
         {/* Jobs owns its own desktop scroll: the tab body is md:overflow-hidden
             and the feed (60-180 cards) has no internal scroll, so without this
             the cards below the fold were unreachable on wide desktop. Mobile is
