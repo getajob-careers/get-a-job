@@ -3,6 +3,7 @@ import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { openrouterChatCompletionWithRetry } from '../_shared/openrouter-chat.ts'
 import { runFanout } from '../_shared/fanout-cv.ts'
+import { stripUnsourcedAudienceTerms } from '../_shared/cv-audience-guard.ts'
 import type { ReconcileWarning } from './reconcile.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
@@ -1258,7 +1259,7 @@ D. What you MAY do:
     • bucket === "military"     → military_experiences[]
     • bucket === "volunteering" → volunteering_experiences[]
     • bucket === "leadership"   → leadership_experiences[]
-- About Me: FACTUAL style with no pronouns and no candidate-speak. The subject of every sentence is the USER (their experience, work, skills) — NOT the target company. JD domain terms, tools, and skill names ARE allowed when they describe the user's real experience. What is NEVER allowed is the company's own MISSION / TAGLINE / MARKETING / SLOGAN language. The path-specific instruction below governs LENGTH and CONTENT — follow it exactly.
+- About Me: FACTUAL style with no pronouns and no candidate-speak. The subject of every sentence is the USER (their experience, work, skills) — NOT the target company. JD domain terms, tools, and skill names ARE allowed when they describe the user's real experience. What is NEVER allowed is the company's own MISSION / TAGLINE / MARKETING / SLOGAN language. AUDIENCE/MARKET CLASS: a market-model term (B2B, B2C, enterprise, SMB, mid-market) or industry from the JD describes the TARGET ROLE you are applying to — NEVER assert it of the USER's own history (do not write "B2B experience", "enterprise accounts", etc.) unless that exact term appears in the user's source data. The path-specific instruction below governs LENGTH and CONTENT — follow it exactly.
 ${ABOUT_ME_RULES}
   BAD: "Excited to join Acme's mission to revolutionize payroll." BAD: "Aligns with the company's vision of seamless workforce solutions." BAD: "Hands-on experience in customer success and process improvement." BAD: "Demonstrated ability to drive results across cross-functional teams."
 - Experience bullets: lead with the ACHIEVEMENT, OUTCOME, or ACTION — never with a tool or instrument. Tools belong mid-sentence as the means, never as the subject of the bullet. PREFER the XYZ structure when the source has measurable outcomes: "Accomplished X (impact Y) by doing Z" — e.g. "Reduced ticket resolution time by 40% by building a triage workflow in Zendesk". The metric Y MUST come verbatim from the user's source data. When source has no metric, fall back to action-verb + concrete-outcome — but still NEVER start with a tool name (NEVER fabricate a number to fit the XYZ shape either — the truthfulness rules above always win).
@@ -2464,6 +2465,21 @@ scrubCvVoice(cvData);
     cvData.fit_analysis = fa;
     mark('guards_done')
 
+    // Audience-class guard (both paths). Strips audience/market-model terms
+    // (B2B/B2C/enterprise/SMB/...) from the About Me when the user's OWN source
+    // never states them — the JD frequently names an audience model and the
+    // authoring can attach it to the user's history (observed: a B2C background
+    // rendered as "high-value B2B accounts"). Numbers/proper-noun anti-fab can't
+    // see this class. A genuinely-sourced term (source says B2B) is kept.
+    const audienceSourceHaystack = (
+      JSON.stringify(experiences ?? []) + ' ' + JSON.stringify(profile?.skills ?? [])
+    ).toLowerCase();
+    const audienceGuard = stripUnsourcedAudienceTerms(cvData.summary, audienceSourceHaystack);
+    if (audienceGuard.stripped.length) {
+      cvData.summary = audienceGuard.text;
+      console.warn('[CV] audience-guard stripped unsourced class terms:', audienceGuard.stripped.join(', '));
+    }
+
     // ─── Bullet-source validator (quantified-token check) ─────────────
     // Scans every emitted bullet for QUANTIFIED claims — numbers, percentages,
     // dollar amounts, named tools/companies — and checks that the same token
@@ -3117,6 +3133,7 @@ scrubCvVoice(cvData);
         chars_input: jdInput.length,
       },
       retry_fired: retryFired,
+      ...(audienceGuard.stripped.length > 0 && { audience_stripped: audienceGuard.stripped }),
       // Speed-arc diagnostic: per-phase cumulative timing, present ONLY when the
       // request set debug_timing:true. module_age_ms distinguishes cold-start
       // (small = this request paid boot) from warm reuse.

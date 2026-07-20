@@ -142,7 +142,7 @@ ${sourceBullets.map((b, i) => `${i + 1}. ${b}`).join('\n')}`
 
 async function authorAboutMe(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ summary: string; ok: boolean; ms: number }> {
   const t0 = Date.now()
-  const system = `Write a factual 3-4 sentence About Me for a resume targeting "${inp.targetRole}". Subject is always the USER (their experience/skills), never the target company. Use JD vocabulary where it genuinely applies. Weave in: ${assigned.join('; ') || '(none)'}. No pronouns, no em dash, no filler.
+  const system = `Write a factual 3-4 sentence About Me for a resume targeting "${inp.targetRole}". Subject is always the USER (their experience/skills), never the target company. Use JD vocabulary where it genuinely applies. AUDIENCE/MARKET CLASS: a market-model term (B2B, B2C, enterprise, SMB, mid-market) or industry describes the TARGET ROLE — NEVER assert it of the USER's own history (no "B2B experience", "enterprise accounts") unless that exact term is in their source. Weave in: ${assigned.join('; ') || '(none)'}. No pronouns, no em dash, no filler.
 ${inp.voiceRules}
 Return JSON ONLY: {"summary": string}.`
   try {
