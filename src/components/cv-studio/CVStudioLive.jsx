@@ -54,6 +54,7 @@ import {
   deleteProfileRow,
   restoreProfileRow,
 } from "@/lib/writeProfileEntity";
+import { createSerializedWriter } from "@/lib/serializedWriteThrough";
 import { useSeededCvModel } from "@/components/cv-studio/useSeededCvModel";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -231,6 +232,13 @@ export default function CVStudioLive({
   // profile_edits. Only master edits mutate source, so only they are undoable.
   const undoStackRef = useRef([]);
   const [canUndo, setCanUndo] = useState(false);
+  // Per-(field, entity) write-through serializer (strict FIFO + burst
+  // coalescing). Without it, two commits to the SAME field/entity can read the
+  // same stale "prior" concurrently and last-write-wins can clobber the newer
+  // edit (the reproduced exp_bullets race). Created once per mount.
+  const serializeWriteRef = useRef(null);
+  if (!serializeWriteRef.current)
+    serializeWriteRef.current = createSerializedWriter();
   useEffect(() => () => clearTimeout(saveTimer.current), []);
   useEffect(() => () => stageTimers.current.forEach(clearTimeout), []);
 
@@ -319,48 +327,60 @@ export default function CVStudioLive({
       field,
       entityId = null,
       newValue,
+      priorOverride,
       prevModel,
       confirmed = false,
       label,
     }) => {
       if (!isMasterCv() || !user?.id) return;
-      const res = await writeProfileEntity(supabase, {
-        userId: user.id,
-        field,
-        entityId,
-        newValue,
-        source: "studio",
-        confirmed,
-        // baseVersion omitted: the Studio edits a re-derived cache and doesn't
-        // hold the source row's load-time version. Concurrency is fail-open
-        // (last-write-wins) here; the coach path - the reason optimistic
-        // concurrency exists - carries versions and is a separate arc.
-      });
-      if (res.conflict) {
-        toast.error(
-          "This changed elsewhere since you opened it - reload to see the latest.",
-        );
-        return;
-      }
-      if (res.needsConfirm) {
-        toast.error("That change needs confirmation and wasn't saved.");
-        return;
-      }
-      if (!res.ok) {
-        setSaveState("error");
-        toast.error(res.error || "Couldn't save that to your profile.");
-        return;
-      }
-      if (res.audit_ok === false)
-        toast("Saved, but the change history couldn't be recorded.");
-      pushUndo({
-        label: label || field,
-        prevModel,
-        revertSource: () =>
-          undoProfileWrite(supabase, {
-            userId: user.id,
-            undoToken: res.undo_token,
-          }),
+      // Serialize per (field, entity): FIFO + coalesce a burst to its latest
+      // request, so an intermediate re-commit can't land after the user's newest
+      // edit. A superseded write is skipped (never touches the DB, never undoes).
+      const key = `${field}:${entityId ?? "profile"}`;
+      return serializeWriteRef.current(key, async () => {
+        const res = await writeProfileEntity(supabase, {
+          userId: user.id,
+          field,
+          entityId,
+          newValue,
+          // Baseline destructive-confirm + the undo token on what the user saw
+          // (the editor's pre-edit value), never the source row, which can be
+          // drifted leaner than cv_data. Guarantees undo restores the pre-edit
+          // cv_data and no empty-prior token is minted off a drifted source.
+          priorOverride,
+          source: "studio",
+          confirmed,
+          // baseVersion omitted: the Studio edits a re-derived cache and doesn't
+          // hold the source row's load-time version. Concurrency is fail-open
+          // (last-write-wins) here; the coach path - the reason optimistic
+          // concurrency exists - carries versions and is a separate arc.
+        });
+        if (res.conflict) {
+          toast.error(
+            "This changed elsewhere since you opened it - reload to see the latest.",
+          );
+          return;
+        }
+        if (res.needsConfirm) {
+          toast.error("That change needs confirmation and wasn't saved.");
+          return;
+        }
+        if (!res.ok) {
+          setSaveState("error");
+          toast.error(res.error || "Couldn't save that to your profile.");
+          return;
+        }
+        if (res.audit_ok === false)
+          toast("Saved, but the change history couldn't be recorded.");
+        pushUndo({
+          label: label || field,
+          prevModel,
+          revertSource: () =>
+            undoProfileWrite(supabase, {
+              userId: user.id,
+              undoToken: res.undo_token,
+            }),
+        });
       });
     },
     [isMasterCv, user, pushUndo],
@@ -420,13 +440,26 @@ export default function CVStudioLive({
     update((m) => ({ ...m, header: { ...m.header, ...patch } }));
     for (const [k, val] of Object.entries(patch)) {
       const field = HEADER_FIELD[k];
-      if (field) writeField({ field, newValue: val, prevModel, label: k });
+      if (field)
+        writeField({
+          field,
+          newValue: val,
+          priorOverride: prevModel?.header?.[k],
+          prevModel,
+          label: k,
+        });
     }
   };
   const onPatchSummary = (v) => {
     const prevModel = modelRef.current;
     update((m) => ({ ...m, summary: v }));
-    writeField({ field: "summary", newValue: v, prevModel, label: "summary" });
+    writeField({
+      field: "summary",
+      newValue: v,
+      priorOverride: prevModel?.summary,
+      prevModel,
+      label: "summary",
+    });
   };
   // Experience handlers are keyed by section ("experiences" | "military" |
   // "volunteering" | "leadership") so the four buckets share one set of logic.
@@ -440,6 +473,7 @@ export default function CVStudioLive({
     if (!next) return;
     const srcId =
       next[section].find((e) => e.id === id)?.__src?.experience_id || null;
+    const prevEntry = prevModel?.[section]?.find((e) => e.id === id);
     for (const [k, val] of Object.entries(patch)) {
       const field = EXP_FIELD[k];
       if (!field) continue;
@@ -449,6 +483,7 @@ export default function CVStudioLive({
           field,
           entityId: eid,
           newValue: val,
+          priorOverride: prevEntry?.[k],
           prevModel,
           label: k,
         });
@@ -473,13 +508,17 @@ export default function CVStudioLive({
     const entry = next[section].find((e) => e.id === expId);
     const eid = attributedId(entry?.__src?.experience_id || null, "role");
     if (!eid) return;
-    const bullets = entry.bullets
-      .map((b) => String(b.text || "").trim())
-      .filter(Boolean);
+    const toBullets = (e) =>
+      (e?.bullets || [])
+        .map((b) => String(b.text || "").trim())
+        .filter(Boolean);
     writeField({
       field: "exp_bullets",
       entityId: eid,
-      newValue: bullets,
+      newValue: toBullets(entry),
+      priorOverride: toBullets(
+        prevModel?.[section]?.find((e) => e.id === expId),
+      ),
       prevModel,
       label: "bullets",
     });
@@ -525,13 +564,17 @@ export default function CVStudioLive({
       return;
     }
     const entry = next[section].find((e) => e.id === expId);
-    const bullets = entry.bullets
-      .map((b) => String(b.text || "").trim())
-      .filter(Boolean);
+    const toBullets = (e) =>
+      (e?.bullets || [])
+        .map((b) => String(b.text || "").trim())
+        .filter(Boolean);
     writeField({
       field: "exp_bullets",
       entityId: srcId,
-      newValue: bullets,
+      newValue: toBullets(entry),
+      priorOverride: toBullets(
+        prevModel?.[section]?.find((e) => e.id === expId),
+      ),
       prevModel,
       confirmed: true,
       label: "bullets",
@@ -598,6 +641,7 @@ export default function CVStudioLive({
     if (!next) return;
     const srcId =
       next.education.find((e) => e.id === id)?.__src?.education_id || null;
+    const prevEntry = prevModel?.education?.find((e) => e.id === id);
     for (const [k, val] of Object.entries(patch)) {
       const field = EDU_FIELD[k];
       if (!field) continue;
@@ -607,6 +651,7 @@ export default function CVStudioLive({
           field,
           entityId: eid,
           newValue: val,
+          priorOverride: prevEntry?.[k],
           prevModel,
           label: k,
         });
@@ -627,6 +672,7 @@ export default function CVStudioLive({
     const srcId =
       next.certifications.find((c) => c.id === id)?.__src?.certification_id ||
       null;
+    const prevEntry = prevModel?.certifications?.find((c) => c.id === id);
     for (const [k, val] of Object.entries(patch)) {
       const field = CERT_FIELD[k];
       if (!field) continue;
@@ -636,6 +682,7 @@ export default function CVStudioLive({
           field,
           entityId: eid,
           newValue: val,
+          priorOverride: prevEntry?.[k],
           prevModel,
           label: k,
         });
@@ -653,6 +700,7 @@ export default function CVStudioLive({
     if (!next) return;
     const srcId =
       next.projects.find((p) => p.id === id)?.__src?.project_id || null;
+    const prevEntry = prevModel?.projects?.find((p) => p.id === id);
     for (const [k, val] of Object.entries(patch)) {
       if (k === "bullets") {
         if (isMasterCv())
@@ -669,6 +717,7 @@ export default function CVStudioLive({
           field,
           entityId: eid,
           newValue: val,
+          priorOverride: prevEntry?.[k],
           prevModel,
           label: k,
         });
@@ -901,7 +950,18 @@ export default function CVStudioLive({
       tools: next.skillsTools,
       technical: next.skillsTechnical,
     });
-    writeField({ field: "skills", newValue: flat, prevModel, label: "skills" });
+    const priorFlat = masterSkillsFlat({
+      domain: prevModel?.skills,
+      tools: prevModel?.skillsTools,
+      technical: prevModel?.skillsTechnical,
+    });
+    writeField({
+      field: "skills",
+      newValue: flat,
+      priorOverride: priorFlat,
+      prevModel,
+      label: "skills",
+    });
   };
   // Languages edit names only; preserve each language's stored proficiency by
   // name-match (profiles.languages is [{language, proficiency}] or bare names).
@@ -916,6 +976,7 @@ export default function CVStudioLive({
     writeField({
       field: "languages",
       newValue: rebuildLanguages(names, profile?.languages),
+      priorOverride: rebuildLanguages(prevModel?.languages, profile?.languages),
       prevModel,
       label: "languages",
     });

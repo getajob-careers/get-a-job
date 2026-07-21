@@ -200,6 +200,15 @@ export interface MediateInput {
   baseVersion?: string | null;
   source: WriteSource;
   confirmed?: boolean;
+  // The baseline for destructive-confirm + the undo token, when the caller's
+  // pre-edit value differs from what the source row currently holds. The client
+  // write-through supplies the editor's pre-edit value (the cv_data the user
+  // actually saw); the source row can be drifted LEANER than cv_data by design
+  // (the generator enriches it), so diffing/undoing against the source would
+  // miss real deletions and mint an undo token that restores the stale, leaner
+  // source -> silent data loss. Omitted on the edge/LLM path, which legitimately
+  // baselines on the source row it is authoring. `undefined` = not provided.
+  priorOverride?: unknown;
 }
 export interface MediateResult {
   ok: boolean;
@@ -230,6 +239,12 @@ export async function runMediatedWrite(db: WriteDb, input: MediateInput): Promis
   if (read.error) return { ok: false, error: read.error };
   if (!read.found) return { ok: false, error: `Row not found for "${input.field}".` };
   const prior = read.value;
+  // Destructive-confirm + the undo token diff against what the CALLER saw
+  // (priorOverride) when supplied, never the source row, which can be drifted
+  // leaner than the editor's cv_data. Concurrency still uses the true source
+  // read below. `undefined` (not provided) falls back to the source read, the
+  // correct baseline for the edge/LLM path that authors the source directly.
+  const baseline = input.priorOverride !== undefined ? input.priorOverride : prior;
 
   if (concurrencyDecision(input.baseVersion, read.version ?? null) === "conflict")
     return {
@@ -248,8 +263,8 @@ export async function runMediatedWrite(db: WriteDb, input: MediateInput): Promis
     valueToWrite = gate.value;
   }
 
-  if (!input.confirmed && isDestructive(prior, valueToWrite))
-    return { ok: false, needsConfirm: true, prior_value: prior, new_value: valueToWrite };
+  if (!input.confirmed && isDestructive(baseline, valueToWrite))
+    return { ok: false, needsConfirm: true, prior_value: baseline, new_value: valueToWrite };
 
   const w = await db.writeRow(table, rowId, input.userId, route.entity, route.column, valueToWrite);
   if (w.error) return { ok: false, error: w.error };
@@ -258,7 +273,7 @@ export async function runMediatedWrite(db: WriteDb, input: MediateInput): Promis
     user_id: input.userId,
     field: input.field,
     entity_id: route.scope === "profile" ? null : rowId,
-    prior_value: prior,
+    prior_value: baseline,
     new_value: valueToWrite,
     source: input.source,
   });
@@ -266,7 +281,7 @@ export async function runMediatedWrite(db: WriteDb, input: MediateInput): Promis
 
   return {
     ok: true,
-    undo_token: { field: input.field, entityId: route.scope === "profile" ? null : rowId, prior },
+    undo_token: { field: input.field, entityId: route.scope === "profile" ? null : rowId, prior: baseline },
     audit_ok: !a.error,
     // Audit failure never fails the write (write already committed) but is NEVER
     // silent — the caller surfaces it. Client audit is best-effort by design
