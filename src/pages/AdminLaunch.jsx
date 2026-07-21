@@ -246,7 +246,16 @@ function FunnelCard() {
           {rows.map((row, i) => (
             <div key={row.stage}>
               <div className="flex items-center justify-between text-[11px] mb-1">
-                <span className="font-medium text-[#0A0A0A]">{row.stage}</span>
+                <span
+                  className="font-medium text-[#0A0A0A]"
+                  title={
+                    row.stage === "Signed in"
+                      ? "Counts auth.users with last_sign_in_at set (has actually signed in), internal/test accounts excluded. This is the honest 'signed in' number and is expected to read lower than the confirmed-email count (a user can confirm email without ever signing in) — not a bug, no 4-user gap to chase."
+                      : undefined
+                  }
+                >
+                  {row.stage}
+                </span>
                 <span className="text-[#525252]">
                   <strong>{row.count}</strong>
                   {i > 0 && row.dropPct > 0 && (
