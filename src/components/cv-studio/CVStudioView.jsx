@@ -749,6 +749,9 @@ export default function CVStudioView({
             >
               <ChevronRight className="w-4 h-4" />
             </button>
+            {/* Active template, designed for the 40px strip: an accent-tinted
+                document glyph + the template name as a vertical label - not a
+                clipped card. */}
             <button
               type="button"
               onClick={() =>
@@ -759,10 +762,23 @@ export default function CVStudioView({
               }
               title={`Template: ${template.name}`}
               aria-label={`Template ${template.name} - expand to change`}
-              style={{ "--cv-accent": template.accent }}
-              className="w-8 rounded-md overflow-hidden ring-1 ring-[color:var(--cv-accent)]"
+              className="flex flex-col items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-rd-bg-soft transition-colors"
             >
-              <TemplateThumb t={template} />
+              <span
+                className="w-7 h-7 rounded-md grid place-items-center ring-1 ring-[color:var(--cv-accent)]"
+                style={{
+                  "--cv-accent": template.accent,
+                  background: `color-mix(in srgb, ${template.accent} 14%, var(--rd-bg-card))`,
+                }}
+              >
+                <FileText
+                  className="w-3.5 h-3.5"
+                  style={{ color: template.accent }}
+                />
+              </span>
+              <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-display font-semibold text-rd-text-secondary tracking-[0.04em]">
+                {template.name}
+              </span>
             </button>
           </aside>
         ) : (

@@ -1547,9 +1547,24 @@ function NoJdCard({
   onClose,
 }) {
   const [jd, setJd] = useState("");
+  // Overlay manners: Esc closes; the backdrop-click handler is on the outer
+  // grid; the panel stops propagation so inner clicks don't dismiss it.
+  useEffect(() => {
+    const onKey = (e) => e.key === "Escape" && onClose?.();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   return (
-    <div className="absolute inset-0 z-40 grid place-items-center bg-rd-text/20 px-4">
-      <div className="w-full max-w-[520px] bg-rd-bg-card border border-rd-border rounded-2xl shadow-rd p-5 max-h-[80%] overflow-y-auto cv-scroll">
+    <div
+      className="absolute inset-0 z-40 grid place-items-center bg-rd-text/20 px-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div
+        className="w-full max-w-[520px] bg-rd-bg-card border border-rd-border rounded-2xl shadow-rd p-5 max-h-[80%] overflow-y-auto cv-scroll"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-start justify-between gap-3 mb-1">
           <p className="font-display font-bold text-rd-text text-[15px]">
             {role
@@ -1561,7 +1576,7 @@ function NoJdCard({
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-rd-text-tertiary hover:text-rd-text"
+            className="flex-shrink-0 -mr-1 -mt-1 p-1.5 rounded-lg text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
