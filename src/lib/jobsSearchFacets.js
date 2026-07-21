@@ -175,7 +175,19 @@ export function searchFacetsKey(facets) {
 // attainability (gettability); within a Function facet, family is constant so
 // fit_score effectively ranks by gettability anyway. Input: scored =
 // [{ job, score }]. Output: same shape, filtered + sorted. Pure — no re-score.
-export function applyFacetsAndRank(scored, facets) {
+// Fit-score bucket width for the flag-on attainability tie-break. Jobs whose
+// fit_score falls in the same 0.005-wide bucket (0.5 fit-points, below any
+// meaningful/display resolution) are ordered by attainability so the card ring
+// reads monotonically where the eye catches it. Measured on real data (41
+// profiles x full corpus): drops visible adjacent ring inversions 5.2% -> 0.8%
+// while never reordering jobs more than 0.5 fit-points apart. See
+// scripts/ring-vs-sort-inversions.ts.
+export const FIT_TIE_EPS = 0.005;
+
+// opts.tieBreakEps (flag-on only): bucket fit_score by that width, then order
+// by attainability within a bucket. Omitted -> pure fit_score sort, so flag-off
+// callers are byte-identical.
+export function applyFacetsAndRank(scored, facets, opts = {}) {
   const f = facets || {};
   const filtered = (Array.isArray(scored) ? scored : []).filter(
     ({ job, score }) =>
@@ -186,7 +198,19 @@ export function applyFacetsAndRank(scored, facets) {
       matchesFamily(job, f.family) &&
       matchesLocation(job, f.location),
   );
-  return filtered.sort(
-    (a, b) => (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0),
-  );
+  const eps = opts.tieBreakEps;
+  if (!eps) {
+    return filtered.sort(
+      (a, b) => (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0),
+    );
+  }
+  return filtered.sort((a, b) => {
+    const fa = a.score?.fit_score ?? 0;
+    const fb = b.score?.fit_score ?? 0;
+    const bucket = Math.round(fb / eps) - Math.round(fa / eps);
+    if (bucket !== 0) return bucket;
+    return (
+      (b.score?.attainability_score ?? 0) - (a.score?.attainability_score ?? 0)
+    );
+  });
 }
