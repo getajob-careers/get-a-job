@@ -259,7 +259,9 @@ export default function EducationTab({ user }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={RD_LABEL}>Institution</label>
+            <label className={RD_LABEL}>
+              Institution <span className="text-rd-coral">*</span>
+            </label>
             <Input
               value={form.institution}
               onChange={(e) =>
@@ -270,7 +272,9 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className={RD_LABEL}>Education Level</label>
+            <label className={RD_LABEL}>
+              Education Level <span className="text-rd-coral">*</span>
+            </label>
             <Select
               value={form.education_level || undefined}
               onValueChange={(v) => setForm({ ...form, education_level: v })}
@@ -316,7 +320,9 @@ export default function EducationTab({ user }) {
             )}
           </div>
           <div>
-            <label className={RD_LABEL}>Field of Study</label>
+            <label className={RD_LABEL}>
+              Field of Study <span className="text-rd-coral">*</span>
+            </label>
             <Input
               value={form.field_of_study}
               onChange={(e) =>
@@ -327,7 +333,9 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className={RD_LABEL}>Start Date</label>
+            <label className={RD_LABEL}>
+              Start Date <span className="text-rd-coral">*</span>
+            </label>
             <Input
               value={form.start_date}
               onChange={(e) => setForm({ ...form, start_date: e.target.value })}

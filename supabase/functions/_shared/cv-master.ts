@@ -250,7 +250,13 @@ export function buildMasterCvData(
 
   // Education entries keep the rich fields the builder used to drop (coursework,
   // academic projects), added only when present so entries stay lean otherwise.
-  const educationEntries = asArray(education).map((ed: any) => {
+  const educationEntries = asArray(education)
+    // Render exclusion (NOT a profile mutation): an education entry with no
+    // institution isn't a renderable CV line — it surfaces as an
+    // "[Institution Name Missing]" placeholder in the Studio. Drop it from the
+    // built CV. The source `education` row is left untouched.
+    .filter((ed: any) => str(ed?.institution).trim())
+    .map((ed: any) => {
     const coursework = asArray(ed?.relevant_coursework)
       .map(str)
       .filter(Boolean);

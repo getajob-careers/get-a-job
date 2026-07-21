@@ -2163,6 +2163,18 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       }
     }
 
+    // ─── Education render exclusion (mirrors cv-master.ts) ───
+    // After the institution guards, any education entry still lacking an
+    // institution isn't a renderable CV line — it surfaces as an
+    // "[Institution Name Missing]" placeholder in the Studio / a blank school
+    // line in the PDF. Drop such entries from the RENDER. The user's
+    // `education` profile rows are never touched here — this only shapes cvData.
+    if (Array.isArray(cvData.education)) {
+      cvData.education = cvData.education.filter(
+        (e: any) => e && String(e?.institution ?? "").trim(),
+      );
+    }
+
     // ─── Honors & Awards: DETERMINISTIC overwrite (provenance guarantee) ───
     // Replace whatever the LLM composed with an aggregate from STORED sources
     // ONLY - education[].honors + experiences[].awards. The model must never
