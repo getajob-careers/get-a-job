@@ -25,6 +25,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from "../_shared/metrics.ts";
 import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
+import { resolveSonnetTransport, type ResolvedSonnetTransport } from "../_shared/sonnet-transport.ts";
 import {
   cvHasHebrew,
   translateCvToEnglish,
@@ -499,7 +500,7 @@ async function callOps(
   masterV: any,
   jdKeywords: JDKeywords,
   jdExcerpt: string,
-  openrouterKey: string,
+  opsTransport: ResolvedSonnetTransport,
   traceCtx: { userId: string; sessionId: string },
   retryHint: string,
   m: Metric,
@@ -519,7 +520,7 @@ ${jdExcerpt}
 MASTER CV (select from this — every experience_id and bullet_id you emit must exist here):
 ${JSON.stringify(masterV)}${retryHint}`;
   const payload = {
-    model: opsModel.slug,
+    model: opsTransport.model,
     messages: [
       { role: "system", content: opsSystemPromptFor(opsVariant, grounding) },
       { role: "user", content: userPrompt },
@@ -528,9 +529,9 @@ ${JSON.stringify(masterV)}${retryHint}`;
     temperature: 0.2,
     max_tokens: 1600,
   };
-  const res = await openrouterChatCompletionWithRetry(
+  const res = await opsTransport.transport(
     payload,
-    openrouterKey,
+    opsTransport.key,
     {
       traceName: "refine-cv:ops",
       userId: traceCtx.userId,
@@ -546,6 +547,9 @@ ${JSON.stringify(masterV)}${retryHint}`;
   m.modelUsed = opsModel.used;
   m.tokensIn = (m.tokensIn ?? 0) + (data.usage?.prompt_tokens ?? 0);
   m.tokensOut = (m.tokensOut ?? 0) + (data.usage?.completion_tokens ?? 0);
+  // Anthropic cache tiers → accurate cost_usd (0 on OpenRouter).
+  m.cacheReadTokens = (m.cacheReadTokens ?? 0) + (data.usage?.cache_read_input_tokens ?? 0);
+  m.cacheWriteTokens = (m.cacheWriteTokens ?? 0) + (data.usage?.cache_creation_input_tokens ?? 0);
   try {
     const parsed = parseLlmJson(
       data.choices?.[0]?.message?.content || "",
@@ -756,10 +760,21 @@ Deno.serve(async (req) => {
 
     // ── 2. JD keywords ──────────────────────────────────────────────────────
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
-    const openrouterKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!openrouterKey) {
+    // Ops transport: only the Sonnet ops model is selector-governed
+    // (SONNET_TRANSPORT_CV / per-request sonnet_transport). Haiku and
+    // gpt-4o-mini ops experiments stay on OpenRouter with their own slug.
+    const opsTransport: ResolvedSonnetTransport =
+      opsModel.used === SONNET_MODEL_USED
+        ? resolveSonnetTransport("cv", (body as any)?.sonnet_transport)
+        : {
+            name: "openrouter",
+            transport: openrouterChatCompletionWithRetry,
+            key: Deno.env.get("OPENROUTER_API_KEY") ?? "",
+            model: opsModel.slug,
+          };
+    if (!opsTransport.key) {
       _http = 500;
-      _err = "no_openrouter_key";
+      _err = `no_${opsTransport.name}_key`;
       return json({ error: "Refine model not configured." }, 500);
     }
     const jdKeywords = openaiKey
@@ -824,7 +839,7 @@ Deno.serve(async (req) => {
         masterV,
         jdKeywords,
         jdExcerpt,
-        openrouterKey,
+        opsTransport,
         { userId: user.id, sessionId },
         retryHint,
         m,

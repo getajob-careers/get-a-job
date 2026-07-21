@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
-import { openrouterChatCompletionWithRetry } from '../_shared/openrouter-chat.ts'
+import { resolveSonnetTransport } from '../_shared/sonnet-transport.ts'
 import { runFanout } from '../_shared/fanout-cv.ts'
 import { stripUnsourcedAudienceTerms } from '../_shared/cv-audience-guard.ts'
 import type { ReconcileWarning } from './reconcile.ts'
@@ -41,7 +41,9 @@ const MODEL = "gpt-4o";
 // exactly. The model identifier surfaced in function_metrics for billing
 // is a different shape (no slash) — see m.modelUsed assignment at the call
 // site. Phase-0 bake-off evidence: docs/research/cv-bakeoff-2026-06.md.
-const SONNET_OPENROUTER_SLUG = "anthropic/claude-sonnet-4.6";
+// Metrics model id (transport-agnostic — the OpenRouter routed slug and the
+// Anthropic Messages id both bill as claude-sonnet-4-6). The per-transport
+// model slug now comes from resolveSonnetTransport.
 const SONNET_MODEL_USED = "claude-sonnet-4-6";
 
 // Helper so every response path picks up CORS headers without having to thread
@@ -1641,12 +1643,16 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // Lookup-then-validate; the default branch never reaches this code path
     // so a missing key cannot break gpt-4o requests. Flag-gated rollout
     // means any user on the Sonnet path is one who explicitly opted in.
-    const openrouterKey = safeCvModel === 'sonnet'
-      ? Deno.env.get("OPENROUTER_API_KEY")
+    // Sonnet transport selection. SONNET_TRANSPORT_CV picks OpenRouter (default,
+    // byte-identical to prior production) or direct Anthropic when flipped; a
+    // per-request `sonnet_transport` override lets the parity eval A/B both on
+    // identical inputs without touching the global default. gpt-4o is untouched.
+    const sonnetT = safeCvModel === 'sonnet'
+      ? resolveSonnetTransport('cv', (body as any)?.sonnet_transport)
       : null;
-    if (safeCvModel === 'sonnet' && !openrouterKey) {
-      _http = 500; _err = 'no_openrouter_key'
-      return json({ error: "OpenRouter API key not configured on server (required for cv_model='sonnet')" }, 500);
+    if (sonnetT && !sonnetT.key) {
+      _http = 500; _err = `no_${sonnetT.name}_key`
+      return json({ error: `Sonnet transport '${sonnetT.name}' has no API key configured on the server (required for cv_model='sonnet').` }, 500);
     }
 
     // Diagnostic: confirm the JD is actually reaching the LLM and the
@@ -1670,7 +1676,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       systemPrompt +=
         '\n\nATTRIBUTION VERIFICATION (this run): for EACH professional_experiences entry, ALSO include a "company_check" field echoing VERBATIM the company from USER DATA.professional_experiences[index].company. This OVERRIDES the "do NOT emit company / any value is discarded" rule above, for the company_check field ONLY. The server verifies company_check names the SAME experience as the index you chose and REJECTS the entry on mismatch — so index and company_check MUST describe the same role. Add no other suppressed field.';
     }
-    const pass2Model = safeCvModel === 'sonnet' ? SONNET_OPENROUTER_SLUG : MODEL;
+    const pass2Model = sonnetT ? sonnetT.model : MODEL;
     const pass2MetricsModel = safeCvModel === 'sonnet' ? SONNET_MODEL_USED : MODEL;
     const pass2Payload = {
       model: pass2Model,
@@ -1758,8 +1764,8 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         mustIncludePhrases: (jdKeywords?.must_include_phrases || []).map(String),
         targetRole: safeTargetRole,
         voiceRules: CV_VOICE_RULES,
-        transport: safeCvModel === 'sonnet' ? openrouterChatCompletionWithRetry : openaiChatCompletionWithRetry,
-        key: safeCvModel === 'sonnet' ? openrouterKey! : openaiKey,
+        transport: sonnetT ? sonnetT.transport : openaiChatCompletionWithRetry,
+        key: sonnetT ? sonnetT.key : openaiKey,
         model: pass2Model,
         baseTrace: { userId: user.id, sessionId: cvSessionId },
         profileSkills: profileSkillsArr,
@@ -1808,6 +1814,8 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         sm.modelUsed = pass2MetricsModel;
         sm.tokensIn = sc.ti;   // real per-sub-call tokens → finishMetric computes cost_usd
         sm.tokensOut = sc.to;
+        sm.cacheReadTokens = sc.cr;   // Anthropic cache tiers priced correctly (0 on OpenRouter)
+        sm.cacheWriteTokens = sc.cw;
         finishMetric(sm, {
           ok: sc.ok,
           httpStatus: sc.ok ? 200 : 500,
@@ -1822,11 +1830,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       // sum across both or you double-count.
       m.tokensIn = (m.tokensIn ?? 0) + fo.tokensIn;
       m.tokensOut = (m.tokensOut ?? 0) + fo.tokensOut;
+      m.cacheReadTokens = (m.cacheReadTokens ?? 0) + fo.cacheReadTokens;
+      m.cacheWriteTokens = (m.cacheWriteTokens ?? 0) + fo.cacheWriteTokens;
     } else {
-      const openaiRes = safeCvModel === 'sonnet'
-        ? await openrouterChatCompletionWithRetry(
+      const openaiRes = sonnetT
+        ? await sonnetT.transport(
             pass2Payload,
-            openrouterKey!,
+            sonnetT.key,
             pass2TraceCtx,
             { signal: AbortSignal.timeout(60000) },
           )
@@ -1839,8 +1849,8 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
 
       if (!openaiRes.ok) {
         const err = await openaiRes.text();
-        const upstream = safeCvModel === 'sonnet' ? 'OpenRouter' : 'OpenAI';
-        const tag = safeCvModel === 'sonnet' ? 'openrouter' : 'openai';
+        const upstream = sonnetT ? sonnetT.name : 'OpenAI';
+        const tag = sonnetT ? sonnetT.name : 'openai';
         _http = 500; _err = `${tag}_${openaiRes.status}`
         m.modelUsed = pass2MetricsModel
         return json({ error: `${upstream} error: ${err}` }, 500);
@@ -1850,6 +1860,10 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       m.modelUsed = pass2MetricsModel
       m.tokensIn = (m.tokensIn ?? 0) + (openaiData.usage?.prompt_tokens ?? 0)
       m.tokensOut = (m.tokensOut ?? 0) + (openaiData.usage?.completion_tokens ?? 0)
+      // Anthropic transport surfaces cache tokens on usage → price the tiers
+      // correctly on the main row (0/undefined for OpenRouter/OpenAI).
+      m.cacheReadTokens = (m.cacheReadTokens ?? 0) + (openaiData.usage?.cache_read_input_tokens ?? 0)
+      m.cacheWriteTokens = (m.cacheWriteTokens ?? 0) + (openaiData.usage?.cache_creation_input_tokens ?? 0)
       try {
         cvData = parseLlmJson(
           openaiData.choices?.[0]?.message?.content || "",
@@ -1921,10 +1935,10 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
               sessionId: cvSessionId,
               metadata: { cv_model: safeCvModel },
             };
-            const retryRes = safeCvModel === 'sonnet'
-              ? await openrouterChatCompletionWithRetry(
+            const retryRes = sonnetT
+              ? await sonnetT.transport(
                   pass3Payload,
-                  openrouterKey!,
+                  sonnetT.key,
                   pass3TraceCtx,
                   { signal: AbortSignal.timeout(60000) },
                 )
@@ -1938,6 +1952,8 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
               const retryData = await retryRes.json();
               m.tokensIn = (m.tokensIn ?? 0) + (retryData.usage?.prompt_tokens ?? 0)
               m.tokensOut = (m.tokensOut ?? 0) + (retryData.usage?.completion_tokens ?? 0)
+              m.cacheReadTokens = (m.cacheReadTokens ?? 0) + (retryData.usage?.cache_read_input_tokens ?? 0)
+              m.cacheWriteTokens = (m.cacheWriteTokens ?? 0) + (retryData.usage?.cache_creation_input_tokens ?? 0)
               const retryParsed = parseLlmJson(
                 retryData.choices?.[0]?.message?.content || "",
                 String(retryData.choices?.[0]?.finish_reason || ""),

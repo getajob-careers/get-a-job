@@ -55,8 +55,15 @@ export interface Metric {
   startedAt: number                   // Date.now() when the request began
   userId?: string | null              // mutable — set when auth resolves
   modelUsed?: string | null           // mutable — set after LLM responds
-  tokensIn?: number | null            // mutable — set after LLM responds
+  tokensIn?: number | null            // mutable — TOTAL input (incl. any cache tokens)
   tokensOut?: number | null           // mutable — set after LLM responds
+  // Anthropic prompt-cache breakdown (subset of tokensIn). Set only on the
+  // direct-Anthropic transport; undefined/0 for OpenAI/OpenRouter, which then
+  // price exactly as before. Cache write bills at 1.25x input, cache read at
+  // 0.1x — so cost_usd stays accurate without a schema change (tokensIn remains
+  // the whole input; the tiers are priced here).
+  cacheReadTokens?: number | null
+  cacheWriteTokens?: number | null
 }
 
 export interface MetricResult {
@@ -74,15 +81,30 @@ export function startMetric(functionName: string): Metric {
   return { functionName, startedAt: Date.now() }
 }
 
+// Anthropic ephemeral-cache price multipliers relative to the base input rate:
+// a 5-minute cache WRITE bills at 1.25x input, a cache READ at 0.1x input.
+const CACHE_WRITE_MULT = 1.25
+const CACHE_READ_MULT = 0.1
+
 export function computeCostUsd(
   model: string | null | undefined,
   tokensIn: number | null | undefined,
-  tokensOut: number | null | undefined
+  tokensOut: number | null | undefined,
+  // Optional Anthropic cache breakdown (a subset of tokensIn). Omitted for
+  // OpenAI/OpenRouter → the whole input prices at the base rate, as before.
+  cache?: { readTokens?: number | null; writeTokens?: number | null },
 ): number | null {
   if (!model || tokensIn == null || tokensOut == null) return null
   const pricing = MODEL_PRICING[model]
   if (!pricing) return 0
-  return (tokensIn * pricing.input + tokensOut * pricing.output) / 1_000_000
+  const cacheRead = Math.max(0, cache?.readTokens ?? 0)
+  const cacheWrite = Math.max(0, cache?.writeTokens ?? 0)
+  const regularIn = Math.max(0, tokensIn - cacheRead - cacheWrite)
+  const inputCost =
+    regularIn * pricing.input +
+    cacheWrite * pricing.input * CACHE_WRITE_MULT +
+    cacheRead * pricing.input * CACHE_READ_MULT
+  return (inputCost + tokensOut * pricing.output) / 1_000_000
 }
 
 /**
@@ -121,7 +143,10 @@ export function finishMetric(m: Metric, result: MetricResult): void {
     model_used: m.modelUsed ?? null,
     tokens_in: m.tokensIn ?? null,
     tokens_out: m.tokensOut ?? null,
-    cost_usd: computeCostUsd(m.modelUsed, m.tokensIn, m.tokensOut),
+    cost_usd: computeCostUsd(m.modelUsed, m.tokensIn, m.tokensOut, {
+      readTokens: m.cacheReadTokens,
+      writeTokens: m.cacheWriteTokens,
+    }),
     http_status: typeof result.httpStatus === 'number' ? result.httpStatus : null,
   }
 
