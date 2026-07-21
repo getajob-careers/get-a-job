@@ -19,6 +19,7 @@ import posthog from "posthog-js";
  */
 export const EVENTS = {
   SIGNUP_COMPLETED: "signup_completed",
+  OAUTH_CALLBACK_FAILED: "oauth_callback_failed",
   ONBOARDING_STARTED: "onboarding_started",
   ONBOARDING_STEP_COMPLETED: "onboarding_step_completed",
   ONBOARDING_COMPLETED: "onboarding_completed",
