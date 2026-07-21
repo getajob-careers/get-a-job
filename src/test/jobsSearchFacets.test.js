@@ -173,6 +173,46 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
     expect(out.map((x) => x.job.id)).toEqual(["d", "b", "c", "a"]);
   });
 
+  it("flag-on tie-break: within a fit bucket orders by attainability; fit stays primary across buckets", () => {
+    const set = [
+      {
+        job: { id: "hi-fit" },
+        score: { fit_score: 0.9, attainability_score: 0.1 },
+      },
+      {
+        job: { id: "tie-lo-attain" },
+        score: { fit_score: 0.7, attainability_score: 0.2 },
+      },
+      {
+        job: { id: "tie-hi-attain" },
+        score: { fit_score: 0.702, attainability_score: 0.9 },
+      },
+    ];
+    // 0.700 and 0.702 land in the same 0.005 bucket -> attainability breaks the
+    // tie (hi first); 0.9 is a higher bucket so it stays on top regardless.
+    const out = applyFacetsAndRank(set, {}, { tieBreakEps: 0.005 }).map(
+      (x) => x.job.id,
+    );
+    expect(out).toEqual(["hi-fit", "tie-hi-attain", "tie-lo-attain"]);
+  });
+
+  it("flag-off (no opts): pure fit_score sort, tie-break inactive", () => {
+    const set = [
+      {
+        job: { id: "higher-fit" },
+        score: { fit_score: 0.702, attainability_score: 0.2 },
+      },
+      {
+        job: { id: "lower-fit" },
+        score: { fit_score: 0.7, attainability_score: 0.9 },
+      },
+    ];
+    expect(applyFacetsAndRank(set, {}).map((x) => x.job.id)).toEqual([
+      "higher-fit",
+      "lower-fit",
+    ]);
+  });
+
   it("AND-composes: Entry + On-site + Track 1 → only 'a'", () => {
     const out = applyFacetsAndRank(corpus, {
       seniorities: ["entry"],

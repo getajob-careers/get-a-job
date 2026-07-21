@@ -18,6 +18,7 @@ import {
   applyFacetsAndRank,
   searchFacetsKey,
   buildLocationOptions,
+  FIT_TIE_EPS,
 } from "@/lib/jobsSearchFacets";
 import { toggleSeniority } from "@/lib/unifiedJobsFilter";
 import {
@@ -205,9 +206,17 @@ export default function JobsSearchTab({
   // 4. Filter + rank over the cached scored set. Re-runs only on facet/scored
   //    change (no re-fetch, no re-score).
   const facets = { keyword, seniorities, workTypes, track, family, location };
+  // Flag-on: bucket near-tied fit_scores and order by attainability within the
+  // bucket so the card ring reads monotonically (ring-vs-sort ruling, option C).
+  // Flag off -> no opts -> pure fit_score sort, byte-identical.
   const ranked = useMemo(
-    () => applyFacetsAndRank(scored, facets),
-    [scored, keyword, seniorities, workTypes, track, family, location],
+    () =>
+      applyFacetsAndRank(
+        scored,
+        facets,
+        alive ? { tieBreakEps: FIT_TIE_EPS } : undefined,
+      ),
+    [scored, keyword, seniorities, workTypes, track, family, location, alive],
   );
 
   // Flag-on sort toggle (Plan 1). "best" = the fit-ranked order above (the

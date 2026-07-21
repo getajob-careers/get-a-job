@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, X, ExternalLink, Plus, Loader2 } from "lucide-react";
+import { Check, X, ExternalLink, Plus, Loader2, Wand2 } from "lucide-react";
+import useJobCardActions from "@/hooks/useJobCardActions";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
 import ScoreRing, { ScoreBreakdown } from "@/components/jobs/ScoreRing";
@@ -55,6 +56,14 @@ export default function JobDetailModal({
   // fade+scale + deferred-unmount. Flag-off both are false -> byte-identical.
   const alive = isNextDesign();
   const animated = alive && !prefersReducedMotion();
+  // Flag-on: the same #635 idempotent Generate-CV flow the card hover-action
+  // and rail use, so the modal offers the product's primary verb at the exact
+  // decision point. `enabled` gates the applications fetch to flag-on only.
+  const { tailoring: generating, onGenerateCv } = useJobCardActions(
+    job,
+    scoreResult,
+    { enabled: alive },
+  );
   // Tightened section-eyebrow recipe (flag-on): crisper + denser than the old
   // label - smaller, a touch more tracking, semibold, tighter bottom margin.
   // Batch D applies this same recipe to the CV-rail headers. Flag off ->
@@ -342,10 +351,29 @@ export default function JobDetailModal({
               href={job.apply_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+              className={
+                alive
+                  ? "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2 transition-colors"
+                  : "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+              }
             >
               Apply <ExternalLink className="w-3.5 h-3.5" />
             </a>
+          )}
+          {alive && (
+            <button
+              type="button"
+              onClick={onGenerateCv}
+              disabled={generating}
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {generating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Wand2 className="w-3.5 h-3.5" />
+              )}
+              Generate CV
+            </button>
           )}
         </div>
       </div>

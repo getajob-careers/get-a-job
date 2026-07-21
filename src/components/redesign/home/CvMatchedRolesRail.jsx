@@ -90,7 +90,9 @@ export default function CvMatchedRolesRail() {
 function MatchSection({ title, jobs, scoredById, onOpen }) {
   return (
     <div>
-      <p className="rd-t-micro uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono mb-1.5 px-0.5">
+      {/* Tightened section-eyebrow recipe (from Batch B's modal headers):
+          crisper + denser - smaller, more tracking, semibold, tighter margin. */}
+      <p className="text-[9.5px] uppercase tracking-[0.12em] font-semibold text-rd-text-eyebrow font-mono mb-1 px-0.5">
         {title}
       </p>
       <div className="flex flex-col gap-2">
