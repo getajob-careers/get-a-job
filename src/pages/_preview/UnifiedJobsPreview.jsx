@@ -306,11 +306,21 @@ export default function UnifiedJobsPreview() {
       },
       byName: {},
     });
-    for (const j of CORPUS)
+    // First job gets a long, multi-paragraph description so the modal body
+    // scroll is exercisable; the rest stay short.
+    const longBody = Array.from(
+      { length: 10 },
+      (_, i) =>
+        `Paragraph ${i + 1}. You'll own real work from day one: scoping features, running user-research interviews, writing SQL against the warehouse, and partnering with senior PMs on weekly funnel reviews. Strong communication and curiosity about workflow tools required.`,
+    ).join("\n\n");
+    CORPUS.forEach((j, idx) =>
       qc.setQueryData(
         jobDescriptionKey(j.id),
-        `${j.title} at ${j.company_name}. Fixture description for the unified-jobs preview.`,
-      );
+        idx === 0
+          ? `${j.title} at ${j.company_name}.\n\n${longBody}`
+          : `${j.title} at ${j.company_name}. Fixture description for the unified-jobs preview.`,
+      ),
+    );
     return qc;
   }, []);
 
@@ -341,7 +351,7 @@ export default function UnifiedJobsPreview() {
               Filters, scroll the list, and narrow the viewport for the drawer.
             </p>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+          <div className="relative flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
             <div className="max-w-[1080px] w-full mx-auto md:h-full md:overflow-y-auto">
               <JobsSearchTab
                 profile={PROFILE}
@@ -350,6 +360,12 @@ export default function UnifiedJobsPreview() {
                 unifiedSurface
               />
             </div>
+            {/* Batch B bottom edge-fade (the real one lives in ThreeTabHome's
+                tab body; mirrored here so the preview shows the effect). */}
+            <div
+              aria-hidden="true"
+              className="hidden md:block pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-rd-bg-page to-transparent"
+            />
           </div>
         </div>
       </AuthContext.Provider>

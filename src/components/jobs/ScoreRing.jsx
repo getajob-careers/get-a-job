@@ -25,12 +25,47 @@ function prefersReducedMotion() {
 
 // 3-axis breakdown (0-1 each) from the score result. Skills = matched / (matched
 // + missing); Experience = attainability; Seniority = fit_score.
-function scoreAxes(scoreResult) {
+export function scoreAxes(scoreResult) {
   const attain = scoreResult?.attainability_score ?? 0;
   const matched = scoreResult?.signals?.matched_skills?.length ?? 0;
   const missing = scoreResult?.signals?.missing_core_skills?.length ?? 0;
   const skill = matched + missing > 0 ? matched / (matched + missing) : 0.65;
   return { skill, experience: attain, seniority: scoreResult?.fit_score ?? 0 };
+}
+
+// The Skills / Experience / Seniority breakdown. Shared so the card's hover
+// popover (below) and the modal's default-visible header show identical numbers
+// + treatment. `color` fills the bars (the band's fg).
+export function ScoreBreakdown({ scoreResult, color, className = "" }) {
+  const axes = scoreAxes(scoreResult);
+  const fill = color || "var(--rd-text)";
+  return (
+    <div className={className}>
+      <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
+        Match breakdown
+      </p>
+      {[
+        ["Skills", axes.skill],
+        ["Experience", axes.experience],
+        ["Seniority", axes.seniority],
+      ].map(([label, val]) => (
+        <div key={label} className="mb-1.5 last:mb-0">
+          <div className="flex items-center justify-between rd-t-micro mb-0.5">
+            <span className="text-rd-text-secondary">{label}</span>
+            <span className="font-mono text-rd-text-tertiary">
+              {Math.round(val * 100)}
+            </span>
+          </div>
+          <div className="h-1 rounded-full bg-rd-bg-soft overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{ width: `${Math.round(val * 100)}%`, background: fill }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function ScoreRing({
@@ -153,32 +188,7 @@ export default function ScoreRing({
           className="absolute top-full right-0 mt-1 z-30 w-[150px] rd-r-md rd-lift bg-rd-bg-card p-2 text-left"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
-            Match breakdown
-          </p>
-          {[
-            ["Skills", axes.skill],
-            ["Experience", axes.experience],
-            ["Seniority", axes.seniority],
-          ].map(([label, val]) => (
-            <div key={label} className="mb-1.5 last:mb-0">
-              <div className="flex items-center justify-between rd-t-micro mb-0.5">
-                <span className="text-rd-text-secondary">{label}</span>
-                <span className="font-mono text-rd-text-tertiary">
-                  {Math.round(val * 100)}
-                </span>
-              </div>
-              <div className="h-1 rounded-full bg-rd-bg-soft overflow-hidden">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.round(val * 100)}%`,
-                    background: color,
-                  }}
-                />
-              </div>
-            </div>
-          ))}
+          <ScoreBreakdown scoreResult={scoreResult} color={color} />
         </div>
       )}
     </span>
