@@ -281,14 +281,12 @@ function RecentSignupsCard() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin_launch_recent_signups"],
     queryFn: async () => {
-      const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(
-          "id, full_name, created_at, onboarding_complete, referral_source",
-        )
-        .gte("created_at", since)
-        .order("created_at", { ascending: false });
+      // Count real signups from auth.users (admin_recent_signups), not profiles
+      // — so confirmed users who never created a profile row (bounced at the
+      // step-0 resume wall) are included instead of silently dropped.
+      const { data, error } = await supabase.rpc("admin_recent_signups", {
+        p_days: 7,
+      });
       if (error) throw error;
       return data || [];
     },
