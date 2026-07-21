@@ -18,7 +18,7 @@ import {
   stripUnbackedCvGenerationClaim,
   enrichApplicationActionsWithJd,
 } from "./prompt-lib.ts";
-import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
+import { resolveSonnetTransport } from "../_shared/sonnet-transport.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -281,13 +281,14 @@ Deno.serve(async (req) => {
         : wantsSonnet
           ? routeFor("chat-agent")
           : null;
-    const callTransport: "openai" | "openrouter" =
-      route?.transport === "openrouter" ? "openrouter" : "openai";
-    const callModel = route?.model ?? MODEL;
+    // Sonnet transport selection (SONNET_TRANSPORT_CHAT): OpenRouter default,
+    // direct Anthropic when the coach fast-follow flips it — one env flip, no
+    // refactor. Non-Sonnet agents (resume-extractor) stay on OpenAI untouched.
+    const chatSonnet = wantsSonnet ? resolveSonnetTransport("chat") : null;
+    const callModel = chatSonnet ? chatSonnet.model : (route?.model ?? MODEL);
     // function_metrics records the dash-form Sonnet name so metrics.ts
-    // MODEL_PRICING (claude-sonnet-4-6) computes cost_usd.
-    const callMetricsModel =
-      callTransport === "openrouter" ? SONNET_MODEL_USED : callModel;
+    // MODEL_PRICING (claude-sonnet-4-6) computes cost_usd regardless of transport.
+    const callMetricsModel = chatSonnet ? SONNET_MODEL_USED : callModel;
     const callTemperature = route?.temperature ?? 0.4;
     const callResponseFormat = route?.response_format;
     const callReasoningEffort = route?.reasoning_effort;
@@ -326,13 +327,8 @@ Deno.serve(async (req) => {
       // Sonnet path uses the OpenRouter retry-parity wrapper (3 retries +
       // exponential backoff) — matches the cv_model ramp hardening so higher
       // drawer concurrency can't cascade a transient 5xx to the user.
-      if (callTransport === "openrouter") {
-        return await openrouterChatCompletionWithRetry(
-          body,
-          openrouterKey!,
-          traceCtx,
-          {},
-        );
+      if (chatSonnet) {
+        return await chatSonnet.transport(body, chatSonnet.key, traceCtx, {});
       }
       return await fetchOpenAIWithRetry(
         body as Parameters<typeof fetchOpenAIWithRetry>[0],
@@ -345,8 +341,8 @@ Deno.serve(async (req) => {
     if (!openaiResponse.ok) {
       const errBody = await openaiResponse.text();
       // Source-correct labels so on-call checks the right upstream status page.
-      const upstream = callTransport === "openrouter" ? "OpenRouter" : "OpenAI";
-      const tag = callTransport === "openrouter" ? "openrouter" : "openai";
+      const upstream = chatSonnet ? (chatSonnet.name === "anthropic" ? "Anthropic" : "OpenRouter") : "OpenAI";
+      const tag = chatSonnet ? chatSonnet.name : "openai";
       console.error(`${upstream} error:`, errBody);
       try {
         await serviceClient.rpc("log_error", {
@@ -383,6 +379,9 @@ Deno.serve(async (req) => {
     m.modelUsed = callMetricsModel;
     m.tokensIn = completion.usage?.prompt_tokens ?? 0;
     m.tokensOut = completion.usage?.completion_tokens ?? 0;
+    // Anthropic cache tiers → accurate cost_usd (0/undefined on OpenAI/OpenRouter).
+    m.cacheReadTokens = completion.usage?.cache_read_input_tokens ?? 0;
+    m.cacheWriteTokens = completion.usage?.cache_creation_input_tokens ?? 0;
 
     if (finishReason === "length") {
       console.warn(
@@ -395,6 +394,8 @@ Deno.serve(async (req) => {
         m.tokensIn = (m.tokensIn ?? 0) + (completion.usage?.prompt_tokens ?? 0);
         m.tokensOut =
           (m.tokensOut ?? 0) + (completion.usage?.completion_tokens ?? 0);
+        m.cacheReadTokens = (m.cacheReadTokens ?? 0) + (completion.usage?.cache_read_input_tokens ?? 0);
+        m.cacheWriteTokens = (m.cacheWriteTokens ?? 0) + (completion.usage?.cache_creation_input_tokens ?? 0);
         if (finishReason === "length") {
           console.warn(
             `[ai-chat] still truncated at max_tokens=${RETRY_MAX_TOKENS}; returning best-effort response`,

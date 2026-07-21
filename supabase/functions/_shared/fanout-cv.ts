@@ -64,10 +64,15 @@ export interface FanoutInputs {
 export interface FanoutResult {
   cvData: Record<string, any>
   timing: { label: string; ms: number }[]
-  subcalls: { label: string; ok: boolean; fellBack: boolean; ms: number; ti: number; to: number }[]
+  // ti/to = input/output tokens; cr/cw = Anthropic cache read/creation tokens
+  // (0 on OpenAI/OpenRouter). Surfaced so the per-sub-call metric rows price
+  // cache tiers correctly on the direct-Anthropic transport.
+  subcalls: { label: string; ok: boolean; fellBack: boolean; ms: number; ti: number; to: number; cr: number; cw: number }[]
   coverage: { phrases: number; covered_exact_substring: number; note: string }
   tokensIn: number
   tokensOut: number
+  cacheReadTokens: number
+  cacheWriteTokens: number
 }
 
 const BUCKET_KEY: Record<string, string> = {
@@ -99,14 +104,14 @@ async function authorRole(
   assigned: string[],
   inp: FanoutInputs,
   signal: AbortSignal,
-): Promise<{ index: number; bullets: string[]; ok: boolean; fellBack: boolean; ms: number; ti: number; to: number }> {
+): Promise<{ index: number; bullets: string[]; ok: boolean; fellBack: boolean; ms: number; ti: number; to: number; cr: number; cw: number }> {
   const t0 = Date.now()
   const sourceBullets = (role.bullets && role.bullets.length
     ? role.bullets
     : String(role.responsibilities || '').split(/\n|(?<=[.;])\s+/).map(s => s.trim()).filter(Boolean))
   // Test fault injection: force this role to fail → exercise the never-drop fallback.
   if (inp.failRoles?.includes(`${role.bucket}:${role.index}`)) {
-    return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0, ti: 0, to: 0 }
+    return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0, ti: 0, to: 0, cr: 0, cw: 0 }
   }
   const system = `You rewrite the source responsibilities of ONE role into tightened ATS resume bullets for the target role "${inp.targetRole}".
 RULES:
@@ -135,14 +140,14 @@ ${sourceBullets.map((b, i) => `${i + 1}. ${b}`).join('\n')}`
       const data = await res.json()
       const parsed = jsonFrom(data.choices?.[0]?.message?.content || '')
       const bullets = Array.isArray(parsed.bullets) ? parsed.bullets.map((b: any) => String(b)).filter(Boolean) : []
-      if (bullets.length) return { index: role.index, bullets, ok: true, fellBack: false, ms: Date.now() - t0, ti: data.usage?.prompt_tokens ?? 0, to: data.usage?.completion_tokens ?? 0 }
+      if (bullets.length) return { index: role.index, bullets, ok: true, fellBack: false, ms: Date.now() - t0, ti: data.usage?.prompt_tokens ?? 0, to: data.usage?.completion_tokens ?? 0, cr: data.usage?.cache_read_input_tokens ?? 0, cw: data.usage?.cache_creation_input_tokens ?? 0 }
     } catch (_) { /* retry */ }
   }
   // never-drop fallback: source bullets verbatim (no LLM tokens spent)
-  return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0, ti: 0, to: 0 }
+  return { index: role.index, bullets: sourceBullets, ok: false, fellBack: true, ms: Date.now() - t0, ti: 0, to: 0, cr: 0, cw: 0 }
 }
 
-async function authorAboutMe(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ summary: string; ok: boolean; ms: number; ti: number; to: number }> {
+async function authorAboutMe(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ summary: string; ok: boolean; ms: number; ti: number; to: number; cr: number; cw: number }> {
   const t0 = Date.now()
   const system = `Write a factual 3-4 sentence About Me for a resume targeting "${inp.targetRole}". Subject is always the USER (their experience/skills), never the target company. Use JD vocabulary where it genuinely applies. AUDIENCE/MARKET CLASS: a market-model term (B2B, B2C, enterprise, SMB, mid-market) or industry describes the TARGET ROLE — NEVER assert it of the USER's own history (no "B2B experience", "enterprise accounts") unless that exact term is in their source. Weave in: ${assigned.join('; ') || '(none)'}. No pronouns, no em dash, no filler.
 ${inp.voiceRules}
@@ -152,12 +157,12 @@ Return JSON ONLY: {"summary": string}.`
       { model: inp.model, messages: [{ role: 'system', content: system }, { role: 'user', content: `${inp.aboutContext}\nJD SIGNAL: ${inp.jdKeywordBlock}` }], response_format: { type: 'json_object' }, temperature: 0.2, max_tokens: 500 },
       inp.key, { ...inp.baseTrace, traceName: 'generate-tailored-cv:fanout-about' }, { signal },
     )
-    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.summary) return { summary: String(p.summary), ok: true, ms: Date.now() - t0, ti: d.usage?.prompt_tokens ?? 0, to: d.usage?.completion_tokens ?? 0 } }
+    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.summary) return { summary: String(p.summary), ok: true, ms: Date.now() - t0, ti: d.usage?.prompt_tokens ?? 0, to: d.usage?.completion_tokens ?? 0, cr: d.usage?.cache_read_input_tokens ?? 0, cw: d.usage?.cache_creation_input_tokens ?? 0 } }
   } catch (_) { /* fall through */ }
-  return { summary: '', ok: false, ms: Date.now() - t0, ti: 0, to: 0 }
+  return { summary: '', ok: false, ms: Date.now() - t0, ti: 0, to: 0, cr: 0, cw: 0 }
 }
 
-async function authorSkills(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ skills: any; ok: boolean; ms: number; ti: number; to: number }> {
+async function authorSkills(assigned: string[], inp: FanoutInputs, signal: AbortSignal): Promise<{ skills: any; ok: boolean; ms: number; ti: number; to: number; cr: number; cw: number }> {
   const t0 = Date.now()
   const system = `Select and order resume skills for the target role "${inp.targetRole}". Prefer skills the user has that match the JD; do NOT invent skills the user lacks. Include: ${assigned.join('; ') || '(none)'} only if the user genuinely has them. Return JSON ONLY: {"skills": {"domain": string[], "tools": string[], "technical": string[]}}.`
   try {
@@ -165,9 +170,9 @@ async function authorSkills(assigned: string[], inp: FanoutInputs, signal: Abort
       { model: inp.model, messages: [{ role: 'system', content: system }, { role: 'user', content: `${inp.skillsContext}\nJD SIGNAL: ${inp.jdKeywordBlock}` }], response_format: { type: 'json_object' }, temperature: 0.2, max_tokens: 600 },
       inp.key, { ...inp.baseTrace, traceName: 'generate-tailored-cv:fanout-skills' }, { signal },
     )
-    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.skills) return { skills: p.skills, ok: true, ms: Date.now() - t0, ti: d.usage?.prompt_tokens ?? 0, to: d.usage?.completion_tokens ?? 0 } }
+    if (res.ok) { const d = await res.json(); const p = jsonFrom(d.choices?.[0]?.message?.content || ''); if (p.skills) return { skills: p.skills, ok: true, ms: Date.now() - t0, ti: d.usage?.prompt_tokens ?? 0, to: d.usage?.completion_tokens ?? 0, cr: d.usage?.cache_read_input_tokens ?? 0, cw: d.usage?.cache_creation_input_tokens ?? 0 } }
   } catch (_) { /* fall through */ }
-  return { skills: null, ok: false, ms: Date.now() - t0, ti: 0, to: 0 }
+  return { skills: null, ok: false, ms: Date.now() - t0, ti: 0, to: 0, cr: 0, cw: 0 }
 }
 
 // Deterministic fit — skill overlap %, band per the same 75/50/25 rubric the
@@ -238,11 +243,13 @@ export async function runFanout(inp: FanoutInputs, signal: AbortSignal): Promise
   const coverage = { phrases: phrases.length, covered_exact_substring: covered, note: 'rendered exact-substring; undercounts variants' }
 
   const subcalls = [
-    ...inp.roles.map((r, i) => ({ label: `role-${r.bucket}-${r.index}`, ok: roleResults[i]?.ok ?? false, fellBack: roleResults[i]?.fellBack ?? true, ms: roleResults[i]?.ms ?? 0, ti: roleResults[i]?.ti ?? 0, to: roleResults[i]?.to ?? 0 })),
-    { label: 'about', ok: about.ok, fellBack: !about.ok, ms: about.ms, ti: about.ti, to: about.to },
-    { label: 'skills', ok: skills.ok, fellBack: !skills.ok, ms: skills.ms, ti: skills.ti, to: skills.to },
+    ...inp.roles.map((r, i) => ({ label: `role-${r.bucket}-${r.index}`, ok: roleResults[i]?.ok ?? false, fellBack: roleResults[i]?.fellBack ?? true, ms: roleResults[i]?.ms ?? 0, ti: roleResults[i]?.ti ?? 0, to: roleResults[i]?.to ?? 0, cr: roleResults[i]?.cr ?? 0, cw: roleResults[i]?.cw ?? 0 })),
+    { label: 'about', ok: about.ok, fellBack: !about.ok, ms: about.ms, ti: about.ti, to: about.to, cr: about.cr, cw: about.cw },
+    { label: 'skills', ok: skills.ok, fellBack: !skills.ok, ms: skills.ms, ti: skills.ti, to: skills.to, cr: skills.cr, cw: skills.cw },
   ]
   const tokensIn = subcalls.reduce((a, s) => a + (s.ti || 0), 0)
   const tokensOut = subcalls.reduce((a, s) => a + (s.to || 0), 0)
-  return { cvData, timing, subcalls, coverage, tokensIn, tokensOut }
+  const cacheReadTokens = subcalls.reduce((a, s) => a + (s.cr || 0), 0)
+  const cacheWriteTokens = subcalls.reduce((a, s) => a + (s.cw || 0), 0)
+  return { cvData, timing, subcalls, coverage, tokensIn, tokensOut, cacheReadTokens, cacheWriteTokens }
 }
