@@ -106,10 +106,12 @@ No-CV users get a **persistent "add your CV" banner on Home, sibling to `GoalRef
 
 Rule: **every screen emits `_viewed` on arrival AND `_completed` on advance; every escape hatch has its own event.** Today only `onboarding_step_completed` fires, so step-0 bounces are inferred, not observed.
 
-- **Screen 1:** `onboarding_screen_viewed{screen:"cv_upload"}` · `onboarding_cv_upload_started` · `resume_uploaded` (exists) · `onboarding_cv_extract_failed{reason}` · `onboarding_cv_skipped` · `onboarding_step_completed{step_index:0}`.
-- **Screen 2 (review):** `onboarding_screen_viewed{screen:"review"}` · `onboarding_section_edited{section}` · `onboarding_step_completed{step_index:1}`.
-- **Screen 3 (direction):** `onboarding_screen_viewed{screen:"direction"}` · `onboarding_step_completed{step_index:2}`.
-- **Screen 4 (springboard):** tutorial events (exist) · `onboarding_completed{duration_ms}` (exists) · `onboarding_launched_to_home`.
+**Indices follow the ACCEPTED reorder — `upload → direction → review → springboard`** (ruling: reorder accepted). `step_index` is the position in the _new_ sequence and `name` carries the semantics; do **not** inherit the mockup-order indices (they would corrupt every funnel query).
+
+- **Screen 0 — CV upload:** `onboarding_screen_viewed{screen:"cv_upload"}` · `onboarding_cv_upload_started` · `resume_uploaded` (exists) · `onboarding_cv_extract_failed{reason}` · `onboarding_cv_skipped` · `onboarding_step_completed{step_index:0, name:"cv_upload"}`.
+- **Screen 1 — Direction & preferences:** `onboarding_screen_viewed{screen:"direction"}` · `onboarding_cv_ready` (background extraction landed) / `onboarding_cv_extract_failed{reason}` (background failure → review shows manual entry) · `onboarding_step_completed{step_index:1, name:"direction"}`.
+- **Screen 2 — Review:** `onboarding_screen_viewed{screen:"review"}` · `onboarding_section_edited{section}` · `onboarding_step_completed{step_index:2, name:"review"}`.
+- **Screen 3 — Springboard:** `onboarding_screen_viewed{screen:"springboard"}` · tutorial events (exist) · `onboarding_completed{duration_ms}` (exists) · `onboarding_launched_to_home` · `onboarding_step_completed{step_index:3, name:"springboard"}`.
 - **Home skip nudge:** `cv_nudge_viewed/clicked/dismissed` + `resume_uploaded{source}` attribution.
 
 ## The three regardless-fixes (status + spec)
