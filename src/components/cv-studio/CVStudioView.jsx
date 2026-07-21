@@ -966,609 +966,638 @@ export default function CVStudioView({
           </aside>
         )}
 
-        {/* Document */}
-        <main className="flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page">
-          {/* Tailoring progress — refine-cv is a single blocking call (~16s), so
+        {/* Document + matched-roles are two sibling lanes (RULED item 3). With
+            the rail present they group into a responsive pair: side by side on
+            wide, matched-roles BELOW the document on narrow. Flag off (no rail)
+            LaneGroup is a Fragment, so the layout is byte-identical. */}
+        <LaneGroup stacked={!!rightRail}>
+          {/* Document */}
+          <main
+            className={
+              rightRail
+                ? "flex-1 min-w-0 min-h-0 overflow-y-auto cv-scroll bg-rd-bg-page"
+                : "flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page"
+            }
+          >
+            {/* Tailoring progress — refine-cv is a single blocking call (~16s), so
               the stage label is a client-side timed estimate that shows motion
               (Reading → Selecting → Rendering), distinct from the chat dots. */}
-          {tailoring && (
-            <div className="max-w-[720px] mx-auto mt-3 px-1">
-              <div className="flex items-center gap-2.5 text-[12.5px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-lg px-3 py-2.5">
-                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                <span>
-                  {tailorStage || `Tailoring your CV to ${tailorLabel}…`}
-                </span>
-              </div>
-            </div>
-          )}
-          {/* Outcome state — a deliberate "it's ready" moment with explicit
-              View / Download choices, instead of silently switching the view. */}
-          {!tailoring && tailorResult && (
-            <div className="max-w-[720px] mx-auto mt-3 px-1">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-rd-teal-tint border border-rd-teal/30 rounded-xl px-4 py-3">
-                <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                  <span className="w-7 h-7 rounded-full bg-rd-teal/20 grid place-items-center shrink-0 mt-0.5">
-                    <Check className="w-4 h-4 text-rd-teal-dark" />
+            {tailoring && (
+              <div className="max-w-[720px] mx-auto mt-3 px-1">
+                <div className="flex items-center gap-2.5 text-[12.5px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-lg px-3 py-2.5">
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>
+                    {tailorStage || `Tailoring your CV to ${tailorLabel}…`}
                   </span>
-                  <div className="min-w-0">
-                    <p className="text-[14px] font-display font-bold text-rd-teal-dark leading-tight">
-                      Your{tailorResult.role ? ` ${tailorResult.role}` : ""} CV
-                      is ready
-                    </p>
-                    {tailorResult.company && (
-                      <p className="text-[12px] text-rd-teal-dark/80 mt-0.5 truncate">
-                        Tailored for {tailorResult.company}
-                      </p>
-                    )}
-                    {tailorResult.fit && (
-                      <p className="text-[12px] text-rd-teal-dark/80 mt-1 leading-snug">
-                        {tailorResult.fit}
-                      </p>
-                    )}
-                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {/* Generation now auto-selects the new row, so by the time this
+              </div>
+            )}
+            {/* Outcome state — a deliberate "it's ready" moment with explicit
+              View / Download choices, instead of silently switching the view. */}
+            {!tailoring && tailorResult && (
+              <div className="max-w-[720px] mx-auto mt-3 px-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-rd-teal-tint border border-rd-teal/30 rounded-xl px-4 py-3">
+                  <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                    <span className="w-7 h-7 rounded-full bg-rd-teal/20 grid place-items-center shrink-0 mt-0.5">
+                      <Check className="w-4 h-4 text-rd-teal-dark" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[14px] font-display font-bold text-rd-teal-dark leading-tight">
+                        Your{tailorResult.role ? ` ${tailorResult.role}` : ""}{" "}
+                        CV is ready
+                      </p>
+                      {tailorResult.company && (
+                        <p className="text-[12px] text-rd-teal-dark/80 mt-0.5 truncate">
+                          Tailored for {tailorResult.company}
+                        </p>
+                      )}
+                      {tailorResult.fit && (
+                        <p className="text-[12px] text-rd-teal-dark/80 mt-1 leading-snug">
+                          {tailorResult.fit}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {/* Generation now auto-selects the new row, so by the time this
                       card shows the CV is already rendered below. In that case
                       "View it" was a no-op that just collapsed the card, so label
                       the button "Done" (it dismisses the card); only offer "View
                       it" in the defensive case where the row isn't the current one. */}
-                  <button
-                    onClick={() => onViewTailored?.(tailorResult.cvId)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-teal-dark text-white text-[13px] font-display font-semibold hover:opacity-90 transition-opacity"
-                  >
-                    {currentCv?.id === tailorResult.cvId ? (
-                      <>
-                        <Check className="w-3.5 h-3.5" /> Done
-                      </>
-                    ) : (
-                      <>
-                        <FileText className="w-3.5 h-3.5" /> View it
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => onDownloadTailored?.(tailorResult.cvId)}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-bg-card border border-rd-teal/40 text-rd-teal-dark text-[13px] font-display font-semibold hover:bg-rd-bg-soft transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" /> Download
-                  </button>
+                    <button
+                      onClick={() => onViewTailored?.(tailorResult.cvId)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-teal-dark text-white text-[13px] font-display font-semibold hover:opacity-90 transition-opacity"
+                    >
+                      {currentCv?.id === tailorResult.cvId ? (
+                        <>
+                          <Check className="w-3.5 h-3.5" /> Done
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="w-3.5 h-3.5" /> View it
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => onDownloadTailored?.(tailorResult.cvId)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-bg-card border border-rd-teal/40 text-rd-teal-dark text-[13px] font-display font-semibold hover:bg-rd-bg-soft transition-colors"
+                    >
+                      <Download className="w-3.5 h-3.5" /> Download
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div className="px-5 pt-3">
-            <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
-              {alive ? (
-                // Treatment B (flag-on): a unified contextual header - the
-                // document's identity plus ONE shared "Generate a job-specific
-                // version" doorway (same verb + flow as the rail's Generate CV).
-                // No second quiet pill competing.
-                <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text min-w-0">
-                    {currentCv?.role ? (
-                      <>
-                        <Check className="w-3.5 h-3.5 text-rd-teal-dark shrink-0" />
-                        <span className="truncate">
-                          Tailored for {currentCv.role}
-                          {currentCv.company ? ` · ${currentCv.company}` : ""}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-3.5 h-3.5 text-rd-golden-dark shrink-0" />
-                        <span>Master CV · your full CV</span>
-                      </>
+            )}
+            <div className="px-5 pt-3">
+              <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
+                {alive ? (
+                  // Treatment B (flag-on): a unified contextual header - the
+                  // document's identity plus ONE shared "Generate a job-specific
+                  // version" doorway (same verb + flow as the rail's Generate CV).
+                  // No second quiet pill competing.
+                  <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text min-w-0">
+                      {currentCv?.role ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-rd-teal-dark shrink-0" />
+                          <span className="truncate">
+                            Tailored for {currentCv.role}
+                            {currentCv.company ? ` · ${currentCv.company}` : ""}
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-3.5 h-3.5 text-rd-golden-dark shrink-0" />
+                          <span>Master CV · your full CV</span>
+                        </>
+                      )}
+                    </span>
+                    {(tailorContext || onTailorNew) && (
+                      <button
+                        onClick={() =>
+                          tailorContext ? onTailorContext?.() : onTailorNew()
+                        }
+                        disabled={tailoring}
+                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                      >
+                        {tailorContext
+                          ? `Generate for ${tailorContext.role}`
+                          : "Generate a job-specific version"}
+                        <span aria-hidden="true">→</span>
+                      </button>
+                    )}
+                  </div>
+                ) : currentCv?.role ? (
+                  <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-teal-dark bg-rd-teal-tint border border-rd-teal/30 rounded-full px-3 py-1">
+                    <Check className="w-3.5 h-3.5" /> Tailored for{" "}
+                    {currentCv.role}
+                    {currentCv.company ? ` · ${currentCv.company}` : ""}
+                  </span>
+                ) : tailorContext ? (
+                  // Master shown as the base for a pending tailor target: make it
+                  // explicit this is the master and offer the tailor CTA.
+                  <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
+                    <Sparkles className="w-3.5 h-3.5" /> This is your master CV
+                    <button
+                      onClick={() => onTailorContext?.()}
+                      disabled={tailoring}
+                      className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Tailor it to {tailorContext.role}
+                    </button>
+                  </span>
+                ) : (
+                  // Plain master, no pending target: keep the informational pill but
+                  // always offer the soft "Tailor to a job…" CTA (never hidden).
+                  <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Master CV
+                    {onTailorNew && (
+                      <button
+                        onClick={() => onTailorNew()}
+                        disabled={tailoring}
+                        className="inline-flex items-center gap-1 rounded-full bg-rd-bg-card border border-rd-golden/40 text-rd-golden-dark text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-bg-soft disabled:opacity-50 transition-colors"
+                      >
+                        Tailor to a job…
+                      </button>
                     )}
                   </span>
-                  {(tailorContext || onTailorNew) && (
-                    <button
-                      onClick={() =>
-                        tailorContext ? onTailorContext?.() : onTailorNew()
-                      }
-                      disabled={tailoring}
-                      className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-                    >
-                      {tailorContext
-                        ? `Generate for ${tailorContext.role}`
-                        : "Generate a job-specific version"}
-                      <span aria-hidden="true">→</span>
-                    </button>
-                  )}
-                </div>
-              ) : currentCv?.role ? (
-                <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-teal-dark bg-rd-teal-tint border border-rd-teal/30 rounded-full px-3 py-1">
-                  <Check className="w-3.5 h-3.5" /> Tailored for{" "}
-                  {currentCv.role}
-                  {currentCv.company ? ` · ${currentCv.company}` : ""}
+                )}
+                <span className="text-[11.5px] text-rd-text-tertiary shrink-0">
+                  {isMaster
+                    ? "Click any text to edit · changes save to your profile"
+                    : "Click any text to edit · changes stay in this copy"}
                 </span>
-              ) : tailorContext ? (
-                // Master shown as the base for a pending tailor target: make it
-                // explicit this is the master and offer the tailor CTA.
-                <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
-                  <Sparkles className="w-3.5 h-3.5" /> This is your master CV
-                  <button
-                    onClick={() => onTailorContext?.()}
-                    disabled={tailoring}
-                    className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Tailor it to {tailorContext.role}
-                  </button>
-                </span>
-              ) : (
-                // Plain master, no pending target: keep the informational pill but
-                // always offer the soft "Tailor to a job…" CTA (never hidden).
-                <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Master CV
-                  {onTailorNew && (
-                    <button
-                      onClick={() => onTailorNew()}
-                      disabled={tailoring}
-                      className="inline-flex items-center gap-1 rounded-full bg-rd-bg-card border border-rd-golden/40 text-rd-golden-dark text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-bg-soft disabled:opacity-50 transition-colors"
-                    >
-                      Tailor to a job…
-                    </button>
-                  )}
-                </span>
-              )}
-              <span className="text-[11.5px] text-rd-text-tertiary shrink-0">
-                {isMaster
-                  ? "Click any text to edit · changes save to your profile"
-                  : "Click any text to edit · changes stay in this copy"}
-              </span>
-            </div>
-          </div>
-
-          <div className="px-5 pb-16">
-            {/* Flag-on (OQ1): the document is a borderless WORKSPACE on the
-                canvas, not a paper print-preview - the page frame (white sheet,
-                shadow, border) is dropped and the content sits on the canvas.
-                The PDF is the deliverable (Download in the header). Flag off:
-                the paper sheet, byte-identical. */}
-            <div
-              className={
-                alive
-                  ? "cv-doc max-w-[720px] mx-auto px-10 py-6"
-                  : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
-              }
-              style={docStyle}
-            >
-              <Editable
-                value={cv.header.name}
-                onCommit={(v) => onPatchHeader({ name: v })}
-                className="cv-name"
-                block
-                placeholder="Your Name"
-              />
-              <Editable
-                value={cv.header.headline}
-                onCommit={(v) => onPatchHeader({ headline: v })}
-                className="cv-headline"
-                block
-              />
-              <div className="cv-contact">
-                <Editable
-                  value={cv.header.email}
-                  onCommit={(v) => onPatchHeader({ email: v })}
-                  readOnly={isMaster}
-                  hint={
-                    isMaster
-                      ? "Email comes from your account and can't be edited here."
-                      : ""
-                  }
-                  placeholder="email"
-                />
-                <span className="cv-dot">·</span>
-                <Editable
-                  value={cv.header.linkedin}
-                  onCommit={(v) => onPatchHeader({ linkedin: v })}
-                  placeholder="LinkedIn/Portfolio"
-                />
-                <span className="cv-dot">·</span>
-                <Editable
-                  value={cv.header.location}
-                  onCommit={(v) => onPatchHeader({ location: v })}
-                  placeholder="Location"
-                />
-                <span className="cv-dot">·</span>
-                <Editable
-                  value={cv.header.phone}
-                  onCommit={(v) => onPatchHeader({ phone: v })}
-                  placeholder="Phone"
-                />
               </div>
+            </div>
 
-              <SectionLabel>Summary</SectionLabel>
-              {onRevisePiece ? (
-                <div className="group/piece relative flex items-start gap-1.5">
+            <div className="px-5 pb-16">
+              {/* Flag-on (OQ1, RULED item 2): the document is a WHITE CARD that
+                sits distinctly ON the canvas ground - white surface, soft lift,
+                rounder than the flag-off paper sheet so it reads as a card in a
+                workspace, not a print-preview page. The PDF is the deliverable
+                (Download in the header). Flag off: the paper sheet, byte-identical. */}
+              <div
+                className={
+                  alive
+                    ? "cv-doc max-w-[720px] mx-auto bg-rd-bg-card rounded-xl shadow-rd border border-rd-border px-12 py-11"
+                    : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
+                }
+                style={docStyle}
+              >
+                <Editable
+                  value={cv.header.name}
+                  onCommit={(v) => onPatchHeader({ name: v })}
+                  className="cv-name"
+                  block
+                  placeholder="Your Name"
+                />
+                <Editable
+                  value={cv.header.headline}
+                  onCommit={(v) => onPatchHeader({ headline: v })}
+                  className="cv-headline"
+                  block
+                />
+                <div className="cv-contact">
+                  <Editable
+                    value={cv.header.email}
+                    onCommit={(v) => onPatchHeader({ email: v })}
+                    readOnly={isMaster}
+                    hint={
+                      isMaster
+                        ? "Email comes from your account and can't be edited here."
+                        : ""
+                    }
+                    placeholder="email"
+                  />
+                  <span className="cv-dot">·</span>
+                  <Editable
+                    value={cv.header.linkedin}
+                    onCommit={(v) => onPatchHeader({ linkedin: v })}
+                    placeholder="LinkedIn/Portfolio"
+                  />
+                  <span className="cv-dot">·</span>
+                  <Editable
+                    value={cv.header.location}
+                    onCommit={(v) => onPatchHeader({ location: v })}
+                    placeholder="Location"
+                  />
+                  <span className="cv-dot">·</span>
+                  <Editable
+                    value={cv.header.phone}
+                    onCommit={(v) => onPatchHeader({ phone: v })}
+                    placeholder="Phone"
+                  />
+                </div>
+
+                <SectionLabel>Summary</SectionLabel>
+                {onRevisePiece ? (
+                  <div className="group/piece relative flex items-start gap-1.5">
+                    <Editable
+                      value={cv.summary}
+                      onCommit={onPatchSummary}
+                      className="cv-summary flex-1"
+                      block
+                      placeholder="Write a short professional summary…"
+                    />
+                    <PieceRevise
+                      onRevise={onRevisePiece}
+                      target={{ kind: "summary" }}
+                    />
+                  </div>
+                ) : (
                   <Editable
                     value={cv.summary}
                     onCommit={onPatchSummary}
-                    className="cv-summary flex-1"
+                    className="cv-summary"
                     block
                     placeholder="Write a short professional summary…"
                   />
-                  <PieceRevise
-                    onRevise={onRevisePiece}
-                    target={{ kind: "summary" }}
+                )}
+
+                <ExperienceSection
+                  label="Experience"
+                  sectionKey="experiences"
+                  items={cv.experiences}
+                  isMaster={isMaster}
+                  onRevisePiece={onRevisePiece}
+                  onDragEnd={onDragEnd}
+                  onPatchExp={onPatchExp}
+                  onPatchBullet={onPatchBullet}
+                  onAddBullet={onAddBullet}
+                  onRemoveBullet={onRemoveBullet}
+                  onDeleteExperience={onDeleteExperience}
+                  onAddExperience={onAddExperience}
+                />
+                {cv.military?.length > 0 && (
+                  <ExperienceSection
+                    label="Military Service"
+                    sectionKey="military"
+                    items={cv.military}
+                    isMaster={isMaster}
+                    onRevisePiece={onRevisePiece}
+                    onDragEnd={onDragEnd}
+                    onPatchExp={onPatchExp}
+                    onPatchBullet={onPatchBullet}
+                    onAddBullet={onAddBullet}
+                    onRemoveBullet={onRemoveBullet}
+                    onDeleteExperience={onDeleteExperience}
                   />
+                )}
+                {cv.volunteering?.length > 0 && (
+                  <ExperienceSection
+                    label="Volunteering"
+                    sectionKey="volunteering"
+                    items={cv.volunteering}
+                    isMaster={isMaster}
+                    onRevisePiece={onRevisePiece}
+                    onDragEnd={onDragEnd}
+                    onPatchExp={onPatchExp}
+                    onPatchBullet={onPatchBullet}
+                    onAddBullet={onAddBullet}
+                    onRemoveBullet={onRemoveBullet}
+                    onDeleteExperience={onDeleteExperience}
+                  />
+                )}
+                {cv.leadership?.length > 0 && (
+                  <ExperienceSection
+                    label="Leadership"
+                    sectionKey="leadership"
+                    items={cv.leadership}
+                    isMaster={isMaster}
+                    onRevisePiece={onRevisePiece}
+                    onDragEnd={onDragEnd}
+                    onPatchExp={onPatchExp}
+                    onPatchBullet={onPatchBullet}
+                    onAddBullet={onAddBullet}
+                    onRemoveBullet={onRemoveBullet}
+                    onDeleteExperience={onDeleteExperience}
+                  />
+                )}
+
+                <SectionLabel>Education</SectionLabel>
+                <div className="space-y-1.5">
+                  {cv.education.map((ed) => (
+                    <div
+                      key={ed.id}
+                      data-entry-id={ed.id}
+                      className="group/edu relative flex items-baseline justify-between gap-3 pr-5"
+                    >
+                      {onDeleteEducation && (
+                        <button
+                          onClick={() => onDeleteEducation(ed.id)}
+                          aria-label="Delete this education entry"
+                          title="Delete this education entry"
+                          className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      <div className="text-[12.5px] min-w-0">
+                        <Editable
+                          value={ed.institution}
+                          onCommit={(v) =>
+                            onPatchEdu(ed.id, { institution: v })
+                          }
+                          className="font-semibold text-[color:var(--cv-ink)]"
+                          placeholder="Institution"
+                        />
+                        <span className="text-[color:var(--cv-muted)] px-1">
+                          ·
+                        </span>
+                        <Editable
+                          value={ed.degree}
+                          onCommit={(v) => onPatchEdu(ed.id, { degree: v })}
+                          className="text-[color:var(--cv-body)]"
+                          placeholder="Degree"
+                        />
+                        {ed.field ? (
+                          <>
+                            <span className="text-[color:var(--cv-muted)] px-1">
+                              ·
+                            </span>
+                            <Editable
+                              value={ed.field}
+                              onCommit={(v) => onPatchEdu(ed.id, { field: v })}
+                              className="text-[color:var(--cv-muted)]"
+                              placeholder="Field"
+                            />
+                          </>
+                        ) : null}
+                      </div>
+                      <Editable
+                        value={ed.dates}
+                        onCommit={(v) => onPatchEdu(ed.id, { dates: v })}
+                        readOnly={isMaster}
+                        hint={
+                          isMaster
+                            ? "Dates come from your profile - edit them in your profile."
+                            : ""
+                        }
+                        className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[80px]"
+                        placeholder="Year"
+                      />
+                    </div>
+                  ))}
                 </div>
-              ) : (
+                {onAddEducation && (
+                  <button
+                    onClick={onAddEducation}
+                    className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+                  >
+                    <Plus className="w-3 h-3" /> Add education entry
+                  </button>
+                )}
+
+                <SectionLabel>Skills</SectionLabel>
                 <Editable
-                  value={cv.summary}
-                  onCommit={onPatchSummary}
+                  value={cv.skills.join(" · ")}
+                  onCommit={onPatchSkills}
                   className="cv-summary"
                   block
-                  placeholder="Write a short professional summary…"
+                  placeholder="Add skills separated by ·"
                 />
-              )}
 
-              <ExperienceSection
-                label="Experience"
-                sectionKey="experiences"
-                items={cv.experiences}
-                isMaster={isMaster}
-                onRevisePiece={onRevisePiece}
-                onDragEnd={onDragEnd}
-                onPatchExp={onPatchExp}
-                onPatchBullet={onPatchBullet}
-                onAddBullet={onAddBullet}
-                onRemoveBullet={onRemoveBullet}
-                onDeleteExperience={onDeleteExperience}
-                onAddExperience={onAddExperience}
-              />
-              {cv.military?.length > 0 && (
-                <ExperienceSection
-                  label="Military Service"
-                  sectionKey="military"
-                  items={cv.military}
-                  isMaster={isMaster}
-                  onRevisePiece={onRevisePiece}
-                  onDragEnd={onDragEnd}
-                  onPatchExp={onPatchExp}
-                  onPatchBullet={onPatchBullet}
-                  onAddBullet={onAddBullet}
-                  onRemoveBullet={onRemoveBullet}
-                  onDeleteExperience={onDeleteExperience}
-                />
-              )}
-              {cv.volunteering?.length > 0 && (
-                <ExperienceSection
-                  label="Volunteering"
-                  sectionKey="volunteering"
-                  items={cv.volunteering}
-                  isMaster={isMaster}
-                  onRevisePiece={onRevisePiece}
-                  onDragEnd={onDragEnd}
-                  onPatchExp={onPatchExp}
-                  onPatchBullet={onPatchBullet}
-                  onAddBullet={onAddBullet}
-                  onRemoveBullet={onRemoveBullet}
-                  onDeleteExperience={onDeleteExperience}
-                />
-              )}
-              {cv.leadership?.length > 0 && (
-                <ExperienceSection
-                  label="Leadership"
-                  sectionKey="leadership"
-                  items={cv.leadership}
-                  isMaster={isMaster}
-                  onRevisePiece={onRevisePiece}
-                  onDragEnd={onDragEnd}
-                  onPatchExp={onPatchExp}
-                  onPatchBullet={onPatchBullet}
-                  onAddBullet={onAddBullet}
-                  onRemoveBullet={onRemoveBullet}
-                  onDeleteExperience={onDeleteExperience}
-                />
-              )}
+                {cv.skillsTools?.length > 0 && (
+                  <p className="cv-summary">
+                    <span className="font-semibold">Tools:</span>{" "}
+                    {cv.skillsTools.join(" · ")}
+                  </p>
+                )}
+                {cv.skillsTechnical?.length > 0 && (
+                  <p className="cv-summary">
+                    <span className="font-semibold">Technical:</span>{" "}
+                    {cv.skillsTechnical.join(" · ")}
+                  </p>
+                )}
 
-              <SectionLabel>Education</SectionLabel>
-              <div className="space-y-1.5">
-                {cv.education.map((ed) => (
-                  <div
-                    key={ed.id}
-                    data-entry-id={ed.id}
-                    className="group/edu relative flex items-baseline justify-between gap-3 pr-5"
-                  >
-                    {onDeleteEducation && (
-                      <button
-                        onClick={() => onDeleteEducation(ed.id)}
-                        aria-label="Delete this education entry"
-                        title="Delete this education entry"
-                        className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    <div className="text-[12.5px] min-w-0">
-                      <Editable
-                        value={ed.institution}
-                        onCommit={(v) => onPatchEdu(ed.id, { institution: v })}
-                        className="font-semibold text-[color:var(--cv-ink)]"
-                        placeholder="Institution"
-                      />
-                      <span className="text-[color:var(--cv-muted)] px-1">
-                        ·
-                      </span>
-                      <Editable
-                        value={ed.degree}
-                        onCommit={(v) => onPatchEdu(ed.id, { degree: v })}
-                        className="text-[color:var(--cv-body)]"
-                        placeholder="Degree"
-                      />
-                      {ed.field ? (
-                        <>
-                          <span className="text-[color:var(--cv-muted)] px-1">
+                <SectionLabel>Languages</SectionLabel>
+                <Editable
+                  value={cv.languages.join(" · ")}
+                  onCommit={onPatchLanguages}
+                  className="cv-summary"
+                  block
+                  placeholder="Languages"
+                />
+
+                {cv.honors?.length > 0 && (
+                  <>
+                    <SectionLabel>Honors &amp; Awards</SectionLabel>
+                    <ul className="cv-summary list-disc pl-4 space-y-0.5">
+                      {cv.honors.map((h, i) => (
+                        <li key={i}>{h}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                {cv.certifications?.length > 0 && (
+                  <>
+                    <SectionLabel>Certifications</SectionLabel>
+                    <div className="space-y-0.5">
+                      {cv.certifications.map((ct) => (
+                        <div
+                          key={ct.id}
+                          className="cv-summary flex items-baseline gap-1 flex-wrap"
+                        >
+                          <Editable
+                            value={ct.name}
+                            onCommit={(v) => onPatchCert(ct.id, { name: v })}
+                            className="font-medium text-[color:var(--cv-ink)]"
+                            placeholder="Certification"
+                          />
+                          <span className="text-[color:var(--cv-muted)]">
                             ·
                           </span>
                           <Editable
-                            value={ed.field}
-                            onCommit={(v) => onPatchEdu(ed.id, { field: v })}
-                            className="text-[color:var(--cv-muted)]"
-                            placeholder="Field"
+                            value={ct.issuer}
+                            onCommit={(v) => onPatchCert(ct.id, { issuer: v })}
+                            placeholder="Issuer"
                           />
-                        </>
-                      ) : null}
+                          <Editable
+                            value={ct.date}
+                            onCommit={(v) => onPatchCert(ct.id, { date: v })}
+                            className="text-[color:var(--cv-muted)]"
+                            placeholder="Year"
+                          />
+                        </div>
+                      ))}
                     </div>
-                    <Editable
-                      value={ed.dates}
-                      onCommit={(v) => onPatchEdu(ed.id, { dates: v })}
-                      readOnly={isMaster}
-                      hint={
-                        isMaster
-                          ? "Dates come from your profile - edit them in your profile."
-                          : ""
-                      }
-                      className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[80px]"
-                      placeholder="Year"
-                    />
-                  </div>
-                ))}
+                  </>
+                )}
+                {cv.projects?.length > 0 && (
+                  <>
+                    <SectionLabel>Projects</SectionLabel>
+                    <div className="space-y-1.5">
+                      {cv.projects.map((p) => (
+                        <div key={p.id} className="text-[12.5px]">
+                          <Editable
+                            value={p.name}
+                            onCommit={(v) => onPatchProject(p.id, { name: v })}
+                            className="font-semibold text-[color:var(--cv-ink)]"
+                            placeholder="Project"
+                          />
+                          <span className="text-[color:var(--cv-muted)]">
+                            {" "}
+                            ·{" "}
+                          </span>
+                          <Editable
+                            value={p.url}
+                            onCommit={(v) => onPatchProject(p.id, { url: v })}
+                            className="text-[color:var(--cv-muted)]"
+                            placeholder="Link"
+                          />
+                          {p.bullets.length > 0 && (
+                            <ul className="cv-summary list-disc pl-4 space-y-0.5 mt-0.5">
+                              {p.bullets.map((b, j) => (
+                                <li key={j}>
+                                  <Editable
+                                    value={b}
+                                    onCommit={(v) =>
+                                      onPatchProject(p.id, {
+                                        bullets: p.bullets.map((x, k) =>
+                                          k === j ? v : x,
+                                        ),
+                                      })
+                                    }
+                                    placeholder="Detail"
+                                    block
+                                  />
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
-              {onAddEducation && (
-                <button
-                  onClick={onAddEducation}
-                  className="mt-1.5 inline-flex items-center gap-1 text-[11.5px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
-                >
-                  <Plus className="w-3 h-3" /> Add education entry
-                </button>
-              )}
-
-              <SectionLabel>Skills</SectionLabel>
-              <Editable
-                value={cv.skills.join(" · ")}
-                onCommit={onPatchSkills}
-                className="cv-summary"
-                block
-                placeholder="Add skills separated by ·"
-              />
-
-              {cv.skillsTools?.length > 0 && (
-                <p className="cv-summary">
-                  <span className="font-semibold">Tools:</span>{" "}
-                  {cv.skillsTools.join(" · ")}
-                </p>
-              )}
-              {cv.skillsTechnical?.length > 0 && (
-                <p className="cv-summary">
-                  <span className="font-semibold">Technical:</span>{" "}
-                  {cv.skillsTechnical.join(" · ")}
-                </p>
-              )}
-
-              <SectionLabel>Languages</SectionLabel>
-              <Editable
-                value={cv.languages.join(" · ")}
-                onCommit={onPatchLanguages}
-                className="cv-summary"
-                block
-                placeholder="Languages"
-              />
-
-              {cv.honors?.length > 0 && (
-                <>
-                  <SectionLabel>Honors &amp; Awards</SectionLabel>
-                  <ul className="cv-summary list-disc pl-4 space-y-0.5">
-                    {cv.honors.map((h, i) => (
-                      <li key={i}>{h}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {cv.certifications?.length > 0 && (
-                <>
-                  <SectionLabel>Certifications</SectionLabel>
-                  <div className="space-y-0.5">
-                    {cv.certifications.map((ct) => (
-                      <div
-                        key={ct.id}
-                        className="cv-summary flex items-baseline gap-1 flex-wrap"
-                      >
-                        <Editable
-                          value={ct.name}
-                          onCommit={(v) => onPatchCert(ct.id, { name: v })}
-                          className="font-medium text-[color:var(--cv-ink)]"
-                          placeholder="Certification"
-                        />
-                        <span className="text-[color:var(--cv-muted)]">·</span>
-                        <Editable
-                          value={ct.issuer}
-                          onCommit={(v) => onPatchCert(ct.id, { issuer: v })}
-                          placeholder="Issuer"
-                        />
-                        <Editable
-                          value={ct.date}
-                          onCommit={(v) => onPatchCert(ct.id, { date: v })}
-                          className="text-[color:var(--cv-muted)]"
-                          placeholder="Year"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-              {cv.projects?.length > 0 && (
-                <>
-                  <SectionLabel>Projects</SectionLabel>
-                  <div className="space-y-1.5">
-                    {cv.projects.map((p) => (
-                      <div key={p.id} className="text-[12.5px]">
-                        <Editable
-                          value={p.name}
-                          onCommit={(v) => onPatchProject(p.id, { name: v })}
-                          className="font-semibold text-[color:var(--cv-ink)]"
-                          placeholder="Project"
-                        />
-                        <span className="text-[color:var(--cv-muted)]">
-                          {" "}
-                          ·{" "}
-                        </span>
-                        <Editable
-                          value={p.url}
-                          onCommit={(v) => onPatchProject(p.id, { url: v })}
-                          className="text-[color:var(--cv-muted)]"
-                          placeholder="Link"
-                        />
-                        {p.bullets.length > 0 && (
-                          <ul className="cv-summary list-disc pl-4 space-y-0.5 mt-0.5">
-                            {p.bullets.map((b, j) => (
-                              <li key={j}>
-                                <Editable
-                                  value={b}
-                                  onCommit={(v) =>
-                                    onPatchProject(p.id, {
-                                      bullets: p.bullets.map((x, k) =>
-                                        k === j ? v : x,
-                                      ),
-                                    })
-                                  }
-                                  placeholder="Detail"
-                                  block
-                                />
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
-          </div>
-        </main>
+          </main>
 
-        {/* Right rail: the matched-roles rail (flag-on home tab) replaces the CV
+          {/* Right rail: the matched-roles rail (flag-on home tab) replaces the CV
             Agent panel; onRevisePiece carries the AI-edit capability the panel
             used to own onto the document itself. */}
-        {rightRail ? (
-          <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
-            {rightRail}
-          </aside>
-        ) : (
-          <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
-            <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
-                <FileText className="w-3.5 h-3.5 text-rd-coral" />
-              </div>
-              <div className="leading-tight flex-1">
-                <p className="text-[13.5px] font-display font-bold text-rd-text">
-                  CV Agent
-                </p>
-                <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" />{" "}
-                  Editing this CV with you
-                </p>
-              </div>
-              <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
-            </div>
-            <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
-              {chatMessages.length === 0 &&
-                (coach || (
-                  <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
-                    Ask me to rewrite a section or tighten your bullets - I edit
-                    this document directly. To build a version aimed at a
-                    specific job, use Tailor to a job and I&apos;ll author a
-                    separate tailored copy from the job description.
+          {rightRail ? (
+            <aside className="w-full lg:w-[336px] shrink-0 max-h-[45vh] lg:max-h-none border-t lg:border-t-0 lg:border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
+              {rightRail}
+            </aside>
+          ) : (
+            <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
+              <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
+                  <FileText className="w-3.5 h-3.5 text-rd-coral" />
+                </div>
+                <div className="leading-tight flex-1">
+                  <p className="text-[13.5px] font-display font-bold text-rd-text">
+                    CV Agent
                   </p>
+                  <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" />{" "}
+                    Editing this CV with you
+                  </p>
+                </div>
+                <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
+              </div>
+              <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
+                {chatMessages.length === 0 &&
+                  (coach || (
+                    <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
+                      Ask me to rewrite a section or tighten your bullets - I
+                      edit this document directly. To build a version aimed at a
+                      specific job, use Tailor to a job and I&apos;ll author a
+                      separate tailored copy from the job description.
+                    </p>
+                  ))}
+                {chatMessages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
+                  >
+                    {m.role !== "user" && (
+                      <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
+                        <FileText className="w-3 h-3 text-rd-coral" />
+                      </div>
+                    )}
+                    <div
+                      className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
+                    >
+                      {m.content}
+                    </div>
+                  </div>
                 ))}
-              {chatMessages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
-                >
-                  {m.role !== "user" && (
+                {chatBusy && (
+                  <div className="flex gap-2.5">
                     <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
                       <FileText className="w-3 h-3 text-rd-coral" />
                     </div>
-                  )}
-                  <div
-                    className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
-                  >
-                    {m.content}
+                    <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
+                    </div>
                   </div>
+                )}
+              </div>
+              <div className="px-4 pt-2 pb-4 border-t border-rd-border">
+                <div className="flex flex-wrap gap-1.5 mb-2.5">
+                  {AGENT_CHIPS.map((c) => (
+                    <button
+                      key={c}
+                      // "Tailor to a job" opens the tailoring flow (refine-cv select+
+                      // reword), NOT edit-cv - that engine can't tailor. Others stay edit-cv.
+                      onClick={() =>
+                        c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
+                      }
+                      disabled={
+                        chatBusy || (c === "Tailor to a job" && tailoring)
+                      }
+                      className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {c}
+                    </button>
+                  ))}
                 </div>
-              ))}
-              {chatBusy && (
-                <div className="flex gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
-                    <FileText className="w-3 h-3 text-rd-coral" />
-                  </div>
-                  <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="px-4 pt-2 pb-4 border-t border-rd-border">
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {AGENT_CHIPS.map((c) => (
+                <div className="flex items-end gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendChat();
+                      }
+                    }}
+                    placeholder="Ask the CV Agent…"
+                    disabled={chatBusy}
+                    className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
+                  />
                   <button
-                    key={c}
-                    // "Tailor to a job" opens the tailoring flow (refine-cv select+
-                    // reword), NOT edit-cv - that engine can't tailor. Others stay edit-cv.
-                    onClick={() =>
-                      c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
-                    }
-                    disabled={
-                      chatBusy || (c === "Tailor to a job" && tailoring)
-                    }
-                    className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    onClick={() => sendChat()}
+                    disabled={chatBusy || !chatInput.trim()}
+                    aria-label="Send message"
+                    className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    {c}
+                    <Send className="w-4 h-4" />
                   </button>
-                ))}
+                </div>
               </div>
-              <div className="flex items-end gap-2">
-                <input
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      sendChat();
-                    }
-                  }}
-                  placeholder="Ask the CV Agent…"
-                  disabled={chatBusy}
-                  className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
-                />
-                <button
-                  onClick={() => sendChat()}
-                  disabled={chatBusy || !chatInput.trim()}
-                  aria-label="Send message"
-                  className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </aside>
-        )}
+            </aside>
+          )}
+        </LaneGroup>
       </div>
+    </div>
+  );
+}
+
+// The document + matched-roles lanes. With a rail present they are a responsive
+// pair (side by side on wide >=lg, matched-roles stacked BELOW the document on
+// narrow); with no rail (flag off) this is a Fragment so main + aside stay
+// direct children of the row and the flag-off layout is byte-identical.
+function LaneGroup({ stacked, children }) {
+  if (!stacked) return <>{children}</>;
+  return (
+    <div className="flex-1 flex flex-col lg:flex-row min-w-0 min-h-0">
+      {children}
     </div>
   );
 }
