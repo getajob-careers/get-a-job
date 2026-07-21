@@ -181,6 +181,13 @@ Deno.serve(async (req) => {
       page_context,
       chat_model,
     } = JSON.parse(rawBody);
+    // Observability: the resume-extractor agent is the onboarding CV-extraction
+    // step, not coach chat — relabel its metric so the extraction pipeline is
+    // queryable by its own name (it was buried under function_name='ai-chat').
+    // finishMetric already writes via EdgeRuntime.waitUntil (metrics.ts), so
+    // this survives the isolate-shutdown race. No double-count: the single
+    // finishMetric in the finally uses this name.
+    if (agent === "resume-extractor") m.functionName = "ai-chat:resume-extractor";
     // Flag-gated model swap for the conversational chat route. chat_model='sonnet'
     // routes conversational agents through routeFor('chat-agent') (claude-sonnet-4.6
     // via OpenRouter); anything else — missing, null, typo — keeps gpt-4o-mini on
