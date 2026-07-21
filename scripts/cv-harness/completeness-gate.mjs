@@ -82,7 +82,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const fs = await import("node:fs");
   const env = Object.fromEntries(
     fs
-      .readFileSync(new URL("../../.env.local", import.meta.url), "utf8")
+      .readFileSync(
+        new globalThis.URL("../../.env.local", import.meta.url),
+        "utf8",
+      )
       .split("\n")
       .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
       .map((l) => {
@@ -90,11 +93,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         return [l.slice(0, i).trim(), l.slice(i + 1).trim()];
       }),
   );
-  const URL = env.VITE_SUPABASE_URL,
+  const BASE = env.VITE_SUPABASE_URL,
     SERVICE = process.env.SERVICE_KEY;
   const q = async (path) =>
     (
-      await fetch(`${URL}/rest/v1/${path}`, {
+      await fetch(`${BASE}/rest/v1/${path}`, {
         headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` },
       })
     ).json();
