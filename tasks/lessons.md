@@ -337,6 +337,7 @@ Rule for next time: any claim about a PR's state (held / merged / open / serving
 ---
 
 ---
+
 2026-07-18 — An in-memory DB mock that returns undefined for a missing column hides a real "column does not exist" bug
 Trigger: S7 cert/project write-through passed all unit tests but did nothing live — the write layer's readRow selected `${column}, updated_at`, and certifications/projects have NO updated_at column, so real Postgres errored the SELECT and the write never fired. The mockSupabase double returns `undefined` for any unrequested/missing column instead of erroring, so every unit test was green.
 What I did wrong: added cert/project routes to a write layer whose readRow assumed every table has `updated_at` (true for profiles/experiences/education after the foundation migration, false for certifications/projects), and trusted green unit tests. The mock is MORE permissive than Postgres (missing column -> undefined, not an error), so the contract mismatch was invisible until the #546 cold-load test ran it against real Supabase.
@@ -344,6 +345,7 @@ Rule for next time: (1) before routing the shared write layer at a NEW table, ve
 ---
 
 ---
+
 2026-07-18 — A "drop blank entries" filter silently orphans an "add blank row" feature
 Trigger: PR-B "Add role" created a real experiences row + a blank editor entry, but the entry vanished on reload and left an orphan DB row. mapExpOut (toCvData) drops fully-blank entries (the F3 "weird extra line in the PDF" fix), so the debounced persist filtered the just-added blank entry out of the master cv_data cache; on reload the model re-seeds from cv_data and the entry is gone, while the source row lingers.
 What I did wrong: added an add-blank-row feature without checking that the cv_data serialization (toCvData) preserves a blank-but-real entry. The blank-filter and the add-blank-row flow are in direct tension and I only saw it in the cold-load reload path.
@@ -351,8 +353,17 @@ Rule for next time: when a "drop empty/blank X" filter exists anywhere in the se
 ---
 
 ---
+
 2026-07-19 — A flag-on route change composed with the landing's auth-redirect into a loop flag-off never saw
 Trigger: PR3 (#628) repointed the home route flag-on; on prod flag-on `/` rendered the shell with a BLANK content area. Flag-off was fine, so it passed the first sanity pass and only broke under the flag.
 What I did wrong: I assumed `/` was the authenticated home and redirected /Home -> / flag-on. But `/` is the PUBLIC landing (LandingV2Preview), which itself redirects authed users to /Home. So /Home -> / -> landing -> /Home looped infinitely flag-on. Flag-off never redirects, so it never exercised the loop - the byte-identity proof (real) masked a flag-on regression I never traced end-to-end.
 Rule for next time: before repointing ANY route, trace the FULL redirect graph including the public landing's authed-user redirect. A flag-on redirect can compose with an existing redirect (landing -> home, tracker -> career, onboarding gate) into a loop. Flag-off byte-identity does NOT cover flag-on route behaviour - run the flag-ON path on prod (or a preview) end-to-end, following every redirect hop, not just the direct URL. `/` here is the landing, not the app home; the authed home is /Home.
+---
+
+---
+
+2026-07-21 - The formatter strips a just-added import; stripped JSX/icon imports evade build+lint
+Trigger: ChevronLeft (and isNextDesign, useJobCardActions, Wand2) reached a browser error boundary ("Something went wrong") on a smoke test after passing npm run build AND npm run lint, ~5 times across one session.
+What I did wrong: added an import in one edit, then added its usage in a later edit. The PostToolUse formatter runs after every edit and prunes the import as unused in the window before the usage exists. Worse, eslint no-undef catches a stripped FUNCTION-CALL import (isNextDesign()) but does NOT flag a stripped JSX-COMPONENT import (lucide icons) - react/jsx-no-undef isn't catching it here - and Vite build never catches a runtime ref. So a stripped icon import passes build+lint green and error-boundaries only in the browser.
+Rule for next time: add an import in the SAME edit as (or after) its first usage so it is never momentarily unused. After adding any import, grep the file to confirm the import line survived; for lucide/JSX-component imports specifically, do a browser smoke on the real route because build+lint will pass a stripped one. Also recorded in persistent memory (formatter-strips-just-added-imports).
 ---

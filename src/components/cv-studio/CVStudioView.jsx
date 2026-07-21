@@ -448,6 +448,149 @@ function TemplateThumb({ t }) {
   );
 }
 
+// CvMiniature (CV RED Phase 1) - a live read-only miniature of the user's OWN
+// CV in a given template, for the Templates picker. A STATIC twin of the
+// document: same model, same .cv-* classes + docStyle vars, but NO Editable /
+// handlers / DragDropContext - so 4 of these mount light (no contentEditable,
+// no dnd contexts) and never steal editing focus. Scaled into a fixed crop
+// window (top of the document) via CSS transform; body text is a silhouette,
+// not readable copy - resemblance, not a pixel promise (OQ1); the PDF is the
+// deliverable. Memoized on (cv ref, template.id): re-renders only on a field
+// blur-commit (model gets a new ref), never per keystroke.
+const CvMiniature = React.memo(
+  /** @param {{ cv: any, template: any }} props */
+  function CvMiniature({ cv, template }) {
+    const style = {
+      "--cv-font": template.font,
+      "--cv-accent": template.accent,
+      "--cv-ink": "#1A1A1A",
+      "--cv-body": "#33312E",
+      "--cv-muted": "#8A8782",
+      "--cv-label-case": template.labelCase,
+    };
+    const Label = ({ children }) => (
+      <div className="cv-section-label">
+        {children}
+        <span className="cv-section-rule" />
+      </div>
+    );
+    const contact = [
+      cv.header.linkedin,
+      cv.header.location,
+      cv.header.phone,
+    ].filter(Boolean);
+    return (
+      <div className="cvm-window" aria-hidden="true">
+        <div className="cvm-page cv-doc" style={style}>
+          <div className="cv-name">{cv.header.name || "Your Name"}</div>
+          {cv.header.headline && (
+            <div className="cv-headline">{cv.header.headline}</div>
+          )}
+          <div className="cv-contact">
+            {cv.header.email && <span>{cv.header.email}</span>}
+            {contact.map((c, i) => (
+              <React.Fragment key={i}>
+                <span className="cv-dot">·</span>
+                <span>{c}</span>
+              </React.Fragment>
+            ))}
+          </div>
+
+          {cv.summary && (
+            <>
+              <Label>Summary</Label>
+              <div className="cv-summary">{cv.summary}</div>
+            </>
+          )}
+
+          {cv.experiences?.length > 0 && (
+            <>
+              <Label>Experience</Label>
+              {cv.experiences.slice(0, 4).map((exp) => (
+                <div key={exp.id} className="pl-5 mb-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <div className="text-[13.5px] min-w-0">
+                      <span className="font-semibold text-[color:var(--cv-ink)]">
+                        {exp.title}
+                      </span>
+                      {exp.org && (
+                        <>
+                          <span className="text-[color:var(--cv-muted)] px-1">
+                            ·
+                          </span>
+                          <span className="text-[color:var(--cv-ink)]">
+                            {exp.org}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <span className="text-[12px] text-[color:var(--cv-muted)] shrink-0">
+                      {exp.dates}
+                    </span>
+                  </div>
+                  <ul className="mt-1.5 space-y-1">
+                    {exp.bullets.slice(0, 4).map((b) => (
+                      <li
+                        key={b.id}
+                        className="flex items-start gap-2 text-[12.5px] leading-[1.5] text-[color:var(--cv-body)]"
+                      >
+                        <span className="cv-bullet-dot" />
+                        <span>{b.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          )}
+
+          {cv.education?.length > 0 && (
+            <>
+              <Label>Education</Label>
+              <div className="space-y-1.5">
+                {cv.education.slice(0, 3).map((ed) => (
+                  <div
+                    key={ed.id}
+                    className="flex items-baseline justify-between gap-3 text-[12.5px]"
+                  >
+                    <div className="min-w-0">
+                      <span className="font-semibold text-[color:var(--cv-ink)]">
+                        {ed.institution}
+                      </span>
+                      {ed.degree && (
+                        <>
+                          <span className="text-[color:var(--cv-muted)] px-1">
+                            ·
+                          </span>
+                          <span className="text-[color:var(--cv-body)]">
+                            {ed.degree}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <span className="text-[12px] text-[color:var(--cv-muted)] shrink-0">
+                      {ed.dates}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {cv.skills?.length > 0 && (
+            <>
+              <Label>Skills</Label>
+              <div className="cv-summary">{cv.skills.join(" · ")}</div>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  },
+  /** @type {(a: any, b: any) => boolean} */
+  (prev, next) => prev.template.id === next.template.id && prev.cv === next.cv,
+);
+
 function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
   const [open, setOpen] = useState(false);
   const current = options.find((o) => o.id === value) || options[0];
@@ -618,7 +761,14 @@ export default function CVStudioView({
             style={{ "--cv-accent": t.accent }}
             className={`w-full text-left rounded-xl border p-2 transition-all ${active ? "border-[color:var(--cv-accent)] ring-1 ring-[color:var(--cv-accent)] bg-rd-bg-soft" : "border-rd-border bg-rd-bg-soft hover:border-rd-text-tertiary"}`}
           >
-            <TemplateThumb t={t} />
+            {/* Flag-on: a live miniature of the user's own CV in this template
+                (resemblance, not a pixel promise). Flag off: the generic
+                skeleton, byte-identical. */}
+            {alive ? (
+              <CvMiniature cv={cv} template={t} />
+            ) : (
+              <TemplateThumb t={t} />
+            )}
             <div className="flex items-center justify-between mt-2 px-0.5">
               <span className="text-[12px] font-display font-semibold text-rd-text">
                 {t.name}
@@ -725,7 +875,9 @@ export default function CVStudioView({
           onClick={onDownload}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
         >
-          <Download className="w-3.5 h-3.5" /> Download
+          {/* Flag-on: the workspace isn't the artifact - name the deliverable. */}
+          <Download className="w-3.5 h-3.5" />{" "}
+          {alive ? "Download PDF" : "Download"}
         </button>
       </header>
 
@@ -968,8 +1120,17 @@ export default function CVStudioView({
           </div>
 
           <div className="px-5 pb-16">
+            {/* Flag-on (OQ1): the document is a borderless WORKSPACE on the
+                canvas, not a paper print-preview - the page frame (white sheet,
+                shadow, border) is dropped and the content sits on the canvas.
+                The PDF is the deliverable (Download in the header). Flag off:
+                the paper sheet, byte-identical. */}
             <div
-              className="cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
+              className={
+                alive
+                  ? "cv-doc max-w-[720px] mx-auto px-10 py-6"
+                  : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
+              }
               style={docStyle}
             >
               <Editable
@@ -1437,6 +1598,9 @@ function CvStudioStyles({ ruleOn }) {
       .tpl-sec { font-size:5.5px; font-weight:700; letter-spacing:.12em; line-height:1; margin-top:7px; }
       .tpl-secrule { height:1px; margin-top:1.5px; opacity:.55; }
       .tpl-line { height:2.5px; background:#ECE9E3; border-radius:2px; margin-top:2.5px; }
+      .cvm-window { position:relative; width:100%; height:116px; overflow:hidden; background:#fff; border-radius:5px; border:1px solid #EAE7E1; }
+      .cvm-window:after { content:""; position:absolute; left:0; right:0; bottom:0; height:24px; background:linear-gradient(to top, #fff, rgba(255,255,255,0)); pointer-events:none; }
+      .cvm-page { width:720px; padding:44px 48px; transform:scale(0.2333); transform-origin:top left; pointer-events:none; }
       .cv-scroll::-webkit-scrollbar { width: 9px; }
       .cv-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,.14); border-radius: 9999px; border: 2px solid transparent; background-clip: content-box; }
       .cv-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,.24); background-clip: content-box; }
