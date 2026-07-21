@@ -11,7 +11,17 @@ code_paths:
 
 # Onboarding redesign — research & build brief
 
-The **five product rulings are LOCKED** (Eli's hub). This doc holds the design/motion/perf/instrumentation research the build plan references per screen. Scope: **onboarding surfaces only** — Home components belong to the redesign lane; anything Home-side here is a _proposed cross-lane contract_, not a build target.
+The **five product rulings are LOCKED**. This doc holds the design/motion/perf/instrumentation research the build plan references per screen. Scope: **onboarding surfaces only** — Home components belong to the redesign lane; anything Home-side here is a _proposed cross-lane contract_, not a build target.
+
+## Locked product rulings (the five)
+
+> Transcribed from the recommendation pass Eli locked. If the hub's canonical wording differs, replace this section verbatim — it is the single source of truth the build plan follows.
+
+1. **Screen 1 — the upload wall.** Keep CV upload the **primary** path; do **not** promote a bare skip or the LinkedIn URL to equal standing (LinkedIn doesn't extract; a bare skip lands users in a broken CV-less state). The linchpin is making **`primary_domain` settable without a CV** (it's CV-extraction-only today and gates the jobs feed) — that is what makes any escape hatch honest. If a skip is offered, its consequence is labeled truthfully.
+2. **Screen 2 — review disclosure.** **Hybrid:** long/confident sections (skills categories) collapsed with count-up headers; **education (required) + experiences expanded**. Not fully-collapsed (rubber-stamp risk), not fully-expanded (overwhelm on the screen where users die).
+3. **Screens 2/3 — merge boundary.** **Keep review its own screen** (the heavy screen kills — don't make it heavier); merge only **direction + constraints** into screen 3. Review is reframed as **confirmation** — one glance + one tap when extraction is clean.
+4. **Survey relocation.** Move survey off the ladder to a **Home banner** (GoalRefinementNudge pattern), **never a popup** — a popup sours the arrival payoff; the fields degrade gracefully and only ~2 users are lost past step 1.
+5. **Practicum.** The `practicum_path` surface + its values (`faculty_assigned`/`self_sourced`) **survive** the screen-3 merge; only the _interaction_ changes (dropdown → checkbox-then-radio). No data-side revisit.
 
 ## Funnel evidence (the base)
 
@@ -55,14 +65,16 @@ The real wow is landing on Home with master CV + job matches + everything popula
 
 Pipeline (`StepResumeUpload.jsx`): upload → `extract-cv-text` (PDF, server) → **`ai-chat` resume-extractor + `extract-proof-signals` run in PARALLEL** (`StepResumeUpload.jsx:100,264,276`) → client parse/skill-resolve → (write deferred to Continue). Timings from `function_metrics` (30d):
 
-| Stage                                      | p50        | p90   | notes                                                            |
-| ------------------------------------------ | ---------- | ----- | ---------------------------------------------------------------- |
-| `extract-cv-text` (PDF parse)              | **2.2s**   | 3.1s  | PDFs only; docx parses client-side (~0)                          |
-| resume-extractor (`ai-chat`, gpt-5.4-mini) | **7.3s**   | 11.0s | parallel                                                         |
-| `extract-proof-signals` (gpt-5.4-mini)     | **11.0s**  | 15.7s | **parallel — the long pole**; reasoning-heavy (avg out 1867 tok) |
-| client parse + skill resolve + write       | sub-second |       | not part of the wait                                             |
+| Stage                                      | p50        | p90       | notes                                                                     |
+| ------------------------------------------ | ---------- | --------- | ------------------------------------------------------------------------- |
+| `extract-cv-text` (PDF parse)              | **2.2s**   | 3.1s      | PDFs only; docx parses client-side (~0)                                   |
+| resume-extractor (`ai-chat`, gpt-5.4-mini) | **7.3s**   | 11.0s     | parallel                                                                  |
+| `extract-proof-signals` (gpt-5.4-mini)     | **11.0s**  | **25.5s** | **parallel — the long pole**; reasoning-heavy; **fat tail (p99 ≈ 48.5s)** |
+| client parse + skill resolve + write       | sub-second |           | not part of the wait                                                      |
 
-**Where the 10–30s goes:** `extract-cv-text` (2.2s, PDF) → **then** the parallel LLM stage, gated by the slower of the two = **`extract-proof-signals` ~11s p50 / ~16s p90**. Total ≈ **13s p50 / ~19s p90** (matches the reported 10–30s; the >20s tail is p90+ proof-signals + PDF parse).
+**Source note (resume-extractor 7.3s):** this figure is from `function_metrics` — the `ai-chat` rows with `model_used='gpt-5.4-mini'` (31 calls, 2026-06-23→07-21, p50 7349ms), attributed to resume-extractor because it's the _only_ ai-chat agent routed to gpt-5.4-mini (`model-routing.ts`). It was **labeled `ai-chat`, not `resume-extractor`** — which is why a name search finds zero rows. A separate held PR relabels it (`ai-chat:resume-extractor`) so the pipeline is queryable by name before the redesign ships. Not a Langfuse trace, not code timing.
+
+**Where the 10–30s goes:** `extract-cv-text` (2.2s, PDF) → **then** the parallel LLM stage, gated by the slower of the two = **`extract-proof-signals`**. Correcting an earlier understatement: proof-signals' true tail (82 calls, all-time) is **p90 ≈ 25.5s / p99 ≈ 48.5s** — the 30d-window p90 of 15.7s was noisy small-n. So the blocking total is ≈ **13s p50 but ~28s p90 and up to ~48s+ at the p99 tail** — the reported "10–30s" is the _middle_; the tail is worse. **This sharpens cut (1):** removing proof-signals from the critical wait doesn't just save ~1.5s at p50, it **cuts off the entire p90 25s / p99 48s tail** — the difference between "brief wait" and "did it freeze?".
 
 **Proposed cuts (ranked):**
 
@@ -102,11 +114,13 @@ Rule: **every screen emits `_viewed` on arrival AND `_completed` on advance; eve
 
 ## The three regardless-fixes (status + spec)
 
-**Status: UNBUILT** — recommended in the funnel investigation, held; no build ruling issued yet. Specs:
+**Status (2026-07-21): (c) and (b) built as held PRs; (a) awaits Eli's test-plan ruling.** Built in Eli's priority order (read-only first, auth-critical last):
 
-1. **Auth-trigger profile row.** Create the `profiles` row via a server-side `handle_new_user` trigger at confirm/OAuth (there is none today; the row is client-side on first Continue). Makes every confirmed user tracked + re-engageable, gives background extraction a write target, and nearly eliminates the "no profile" category (even the OAuth zero-event user gets a row). RLS unaffected (`auth.uid()=id`).
-2. **OAuth callback hardening.** `AuthCallback.jsx` swallows exchange errors into a generic `/login?oauth_error` with no server log — harden + log so the ~1 zero-event failure (and future ones) is visible and recoverable.
-3. **AdminLaunch auth.users stage.** `admin_activation_funnel()` starts at "Started onboarding" from `profiles` — no signed-in top stage, so the step-0 abandoners are invisible. Prepend `COUNT(*) FROM auth.users WHERE last_sign_in_at IS NOT NULL AND NOT is_internal_user(id)`; source "Recent signups" from an auth.users admin RPC. **`is_internal_user` verified complete** (2026-07-21): its 5 UUIDs are Eli, two Isaac accounts, Yishai, and Noms (`90bcf097…`); no bare internal account is uncovered — so the "Noms miss" is _not_ in the function; it's any count surface that fails to _apply_ `is_internal_user`. The fix must apply it to the new stage.
+1. **AdminLaunch auth.users stage — BUILT, held (PR #664).** `admin_activation_funnel()` gains a "Signed in" stage from `auth.users` (`last_sign_in_at IS NOT NULL AND NOT is_internal_user`), moved INVOKER→DEFINER (admin-gated, `search_path=''`, REVOKEd from anon); new `admin_recent_signups(p_days)` RPC + the AdminLaunch card sources from it. **`is_internal_user` verified complete** (its 5 UUIDs = Eli, two Isaac, Yishai, Noms `90bcf097…`; no bare internal uncovered) — the "Noms miss" is not in the function, it's any surface that fails to _apply_ it. Documents the `%+%` plus-addressing tradeoff. Migration NOT applied (Eli applies + regenerates types on merge).
+2. **OAuth callback hardening — BUILT, held (PR #663).** `AuthCallback.jsx` now console.errors + PostHog-captures the real exchange error (+ `oauth_callback_failed` event) instead of swallowing it; user message unchanged.
+3. **Auth-trigger profile row — NOT BUILT; test plan proposed, awaiting Eli's ruling.** Create the `profiles` row via a server-side `handle_new_user` trigger at confirm/OAuth (none today; row is client-side on first Continue). Production-critical auth path (PR #156 lesson) — the client-side insert **stays** as belt-and-braces. Test plan: (a) prove the trigger on a branch DB via end-to-end test signup (email + OAuth) → row exists pre-onboarding; (b) trigger failure mode — a raised exception inside `handle_new_user` must NOT block signup (wrap in exception handler, log, let auth proceed); (c) idempotency vs the surviving client-side insert (trigger `INSERT ... ON CONFLICT (id) DO NOTHING`; client insert already tolerant); (d) RLS unaffected (`auth.uid()=id`). Eli rules on this plan before the trigger is written.
+
+Also built, held: **resume-extractor metric relabel (PR #662)** — makes the extraction pipeline observable by name before the redesign.
 
 ## Cross-lane contracts (relayed via Eli's hub — Home lane owns Home)
 
