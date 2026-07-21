@@ -92,8 +92,9 @@ export default function ThreeTabHome() {
         })}
       </div>
 
-      {/* Tab body. Scrolls on mobile; each column owns its scroll on desktop. */}
-      <div className="mt-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+      {/* Tab body. Scrolls on mobile; each column owns its scroll on desktop.
+          relative so the bottom edge-fade below can pin to it. */}
+      <div className="relative mt-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
         {activeTab === "cv" && (
           <div className="w-full md:h-full md:overflow-hidden rd-lift rd-r-lg">
             <CVStudioLive
@@ -121,6 +122,14 @@ export default function ThreeTabHome() {
             <UnifiedJobsFeed singleColumn />
           </div>
         )}
+        {/* Bottom edge-fade (desktop only, where the columns inner-scroll): the
+            list dissolves into the page at the container's bottom edge instead
+            of hard-clipping. Top is left clean - the sticky filter bar / tab
+            pills already own it. pointer-events-none so it never blocks a card. */}
+        <div
+          aria-hidden="true"
+          className="hidden md:block pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-rd-bg-page to-transparent"
+        />
       </div>
     </div>
   );

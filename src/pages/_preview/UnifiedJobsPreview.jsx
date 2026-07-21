@@ -341,7 +341,7 @@ export default function UnifiedJobsPreview() {
               Filters, scroll the list, and narrow the viewport for the drawer.
             </p>
           </div>
-          <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+          <div className="relative flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
             <div className="max-w-[1080px] w-full mx-auto md:h-full md:overflow-y-auto">
               <JobsSearchTab
                 profile={PROFILE}
@@ -350,6 +350,12 @@ export default function UnifiedJobsPreview() {
                 unifiedSurface
               />
             </div>
+            {/* Batch B bottom edge-fade (the real one lives in ThreeTabHome's
+                tab body; mirrored here so the preview shows the effect). */}
+            <div
+              aria-hidden="true"
+              className="hidden md:block pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-rd-bg-page to-transparent"
+            />
           </div>
         </div>
       </AuthContext.Provider>
