@@ -1,7 +1,7 @@
 ---
 owner: eli
 last_reviewed: 2026-07-21
-status: PLAN - held for ruling (not yet building)
+status: RULED 2026-07-21 - building in phases (OQ1-OQ4 decided, see Rulings)
 code_paths:
   - src/components/cv-studio/CVStudioView.jsx
   - src/components/cv-studio/CVStudioLive.jsx
@@ -19,15 +19,40 @@ treatment-B header, collapse-to-strip Templates, Generate CV everywhere). CV RED
 is the last piece: the editable document itself, its empty-state ladder, the
 final chrome cleanup, and honest generation theater.
 
-**This is a plan held for Eli's ruling.** It builds nothing. Its four open
-questions are Eli's parked rulings; each has a recommendation and the tradeoff.
-Nothing gets built until they are ruled.
+**Ruled 2026-07-21.** The four open questions below are decided (see Rulings);
+each phase now builds against them, held PR + preview + cold-load per standing
+gates. The open-question text is kept as the decision record.
+
+## Rulings (2026-07-21)
+
+- **OQ1 - surface: workspace, not a print preview.** The on-screen document is
+  the editing workspace (borderless-canvas framing), with a **clear Download
+  affordance framing the PDF as the deliverable**. We do not sell the sheet as a
+  WYSIWYG print preview.
+- **OQ2 - empty-state ladder: every rung survives, canvas dress.** All five
+  rungs (signed-out / loading / build-master / no-master / row-loading) keep
+  their guidance and their call-to-action; only the dress becomes
+  canvas-consistent. No state loses its CTA.
+- **OQ3 - chrome minimize: flag-off panel retires at reveal-day, not before.**
+  The CV Agent panel retires for everyone when the flag flips on globally
+  (reveal day), not in this arc. For now: keep flag-off `/CVAgent`
+  byte-identical, and **confirm no flag-on doorway is orphaned pointing at the
+  (flag-on-dead) panel**.
+- **OQ4 - generation theater: the ring consumes REAL events where they exist;
+  checklist fallback for pathless flows; never a timer/estimate.**
+  Card/rail-initiated Generate CV runs through `generate-tailored-cv`, which
+  emits `cv_generation_progress` **today** (fanout) - the ring fills on those
+  real rows. The refine-cv Studio-doorway path emits nothing, so it gets the
+  honest staged checklist; adding backend emission to refine-cv is a **CV-lane
+  follow-up, not this arc**. The `setTimeout` stage fake is deleted. This arc
+  builds: the count-up ring + a read-only poller of `cv_generation_progress`,
+  and the checklist fallback.
 
 ---
 
 ## Ground truth (from the architecture map, all file:line verified)
 
-- **The document is a paper sheet today.** `CVStudioView.jsx:970`  - 
+- **The document is a paper sheet today.** `CVStudioView.jsx:970` -
   `.cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border px-12 py-11`,
   inside a `<main … bg-rd-bg-page>` scroll column. All visual identity lives in
   ONE `<style>` block (`CvStudioStyles`, `CVStudioView.jsx:1415-1445`: the
@@ -76,7 +101,7 @@ Nothing gets built until they are ruled.
 
 ### OQ1 - Document surface: paper sheet vs borderless canvas
 
-The honesty problem first: the sheet is **not** a WYSIWYG preview of the PDF  - 
+The honesty problem first: the sheet is **not** a WYSIWYG preview of the PDF -
 they are different renderers. Whatever we choose must not over-promise.
 
 - **A. Paper sheet (refined).** Keep the white page; make it feel like a real
@@ -161,7 +186,7 @@ ways to get one, in ascending backend cost:
   the `{done,total,stage}` contract but **dormant until (a)/(b) lands**, at which
   point it fills for real. No fabricated stages in the meantime.
 - **Recommendation: design the ring + checklist against the contract now (c),
-  and light the ring up via (a)** when the CV lane enables fanout for tailoring  - 
+  and light the ring up via (a)** when the CV lane enables fanout for tailoring -
   the contract + stages already exist. The plan's deliverable is the honest UI
   (checklist fallback + contract-driven ring), NOT backend emission. **Ruling
   needed:** confirm (c-then-a); and whether the design lane may add the _poller_
