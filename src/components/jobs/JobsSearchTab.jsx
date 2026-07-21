@@ -346,7 +346,9 @@ export default function JobsSearchTab({
           Collapsible to reclaim vertical space for the results. Flag-on the
           inline panel is desktop-only; a phone opens the same controls in a
           drawer (rendered below) so filters don't eat the viewport. */}
-      <div className="md:sticky md:top-[48px] md:z-[9] md:bg-rd-bg-page md:pt-2">
+      <div
+        className={`md:sticky ${alive ? "md:top-0 md:pb-3" : "md:top-[48px]"} md:z-[9] md:bg-rd-bg-page md:pt-2`}
+      >
         <div className="flex items-center justify-between mb-3">
           {alive ? (
             <div className="flex items-center gap-2">
@@ -360,7 +362,7 @@ export default function JobsSearchTab({
                   })
                 }
                 aria-expanded={filtersOpen}
-                className="hidden md:inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+                className="hidden lg:inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
@@ -373,12 +375,13 @@ export default function JobsSearchTab({
                   className={`w-3.5 h-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
                 />
               </button>
-              {/* Mobile: open the filter drawer. */}
+              {/* Below lg: open the filter drawer (the inline bar needs lg width
+                  to sit on one row without colliding with the sort pill). */}
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
                 aria-haspopup="dialog"
-                className="md:hidden inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+                className="lg:hidden inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
@@ -425,17 +428,63 @@ export default function JobsSearchTab({
         </div>
         {filtersOpen &&
           (alive ? (
-            <div className="hidden md:block">{filterControls}</div>
+            <div className="hidden lg:block">{filterControls}</div>
           ) : (
             filterControls
           ))}
+        {/* Flag-on status row: count + Best-match/Newest coral sliding pill,
+            pinned inside the sticky bar so both stay reachable while scrolling. */}
+        {alive && (
+          <div className="mt-1 flex items-center justify-between gap-3 flex-wrap">
+            <p className="font-display font-bold text-[15px] text-rd-text">
+              {isLoading
+                ? "Loading the board…"
+                : hasActiveFacets
+                  ? `${ranked.length} of ${scored.length} roles`
+                  : `${ranked.length} role${ranked.length === 1 ? "" : "s"} matched to you`}
+            </p>
+            <div
+              className="relative flex w-[200px] bg-rd-bg-soft rounded-full p-1"
+              role="tablist"
+              aria-label="Sort jobs"
+            >
+              <span
+                aria-hidden="true"
+                className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+                style={{
+                  width: "calc((100% - 0.5rem) / 2)",
+                  transform: `translateX(${sortMode === "newest" ? 100 : 0}%)`,
+                }}
+              />
+              {[
+                ["best", "Best match"],
+                ["newest", "Newest"],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={sortMode === id}
+                  onClick={() => setSortMode(id)}
+                  className={`relative z-10 flex-1 inline-flex items-center justify-center py-1 rounded-full font-display font-bold text-[12px] transition-colors ${
+                    sortMode === id
+                      ? "text-white"
+                      : "text-rd-text-secondary hover:text-rd-text"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Flag-on mobile filter drawer - the same controls in an off-canvas
-          bottom sheet. md:hidden so desktop never renders it. */}
+          bottom sheet. lg:hidden so the inline bar owns >=lg widths. */}
       {alive && mobileFiltersOpen && (
         <div
-          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end"
+          className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end"
           role="dialog"
           aria-modal="true"
           aria-label="Filters"
@@ -487,53 +536,10 @@ export default function JobsSearchTab({
         </div>
       )}
 
-      {/* Status line + sort. Flag-on: a status line (count, filter-aware) plus
-          the Best-match / Newest sliding-pill sort toggle. Flag off: the
-          original single count line, byte-identical. */}
-      {alive ? (
-        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
-          <p className="font-display font-bold text-[15px] text-rd-text">
-            {isLoading
-              ? "Loading the board…"
-              : hasActiveFacets
-                ? `${ranked.length} of ${scored.length} roles`
-                : `${ranked.length} role${ranked.length === 1 ? "" : "s"} matched to you`}
-          </p>
-          <div
-            className="relative flex w-[188px] bg-rd-bg-soft rounded-full p-0.5"
-            role="tablist"
-            aria-label="Sort jobs"
-          >
-            <span
-              aria-hidden="true"
-              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-rd-bg-card shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
-              style={{
-                width: "calc((100% - 0.25rem) / 2)",
-                transform: `translateX(${sortMode === "newest" ? 100 : 0}%)`,
-              }}
-            />
-            {[
-              ["best", "Best match"],
-              ["newest", "Newest"],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={sortMode === id}
-                onClick={() => setSortMode(id)}
-                className={`relative z-10 flex-1 inline-flex items-center justify-center py-1 rounded-full font-display font-bold text-[12px] transition-colors ${
-                  sortMode === id
-                    ? "text-rd-text"
-                    : "text-rd-text-secondary hover:text-rd-text"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : (
+      {/* Flag off: the original single count line, in its original position,
+          byte-identical. Flag-on the status row (count + sort) lives INSIDE the
+          sticky bar above, so it stays pinned while the list scrolls. */}
+      {!alive && (
         <div className="mb-4">
           <p className="font-display font-bold text-[15px] text-rd-text">
             {isLoading

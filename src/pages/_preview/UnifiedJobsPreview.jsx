@@ -327,22 +327,29 @@ export default function UnifiedJobsPreview() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={authValue}>
-        <div className="min-h-screen bg-rd-bg-page p-6">
-          <div className="max-w-[1080px] mx-auto">
+        {/* Reproduce ThreeTabHome's jobs-tab shell so the sticky filter bar +
+            inner-scroll behavior match the real surface: a fixed-height outer,
+            a md:overflow-hidden tab body, and the md:h-full md:overflow-y-auto
+            jobs wrapper that owns the desktop scroll. */}
+        <div className="h-screen flex flex-col bg-rd-bg-page px-6">
+          <div className="flex-shrink-0 pt-4 pb-2 max-w-[1080px] w-full mx-auto">
             <h1 className="font-display font-extrabold text-[22px] text-rd-text mb-1">
               Unified jobs - Plan 1 (flag-on)
             </h1>
-            <p className="text-[12.5px] text-rd-text-secondary mb-5">
-              One continuous fit-ranked list over the whole corpus. Toggle Best
-              match / Newest (they re-order visibly), open Filters, and narrow
-              the viewport to see the mobile filter drawer.
+            <p className="text-[12.5px] text-rd-text-secondary">
+              Real ThreeTabHome scroll shell. Toggle Best match / Newest, open
+              Filters, scroll the list, and narrow the viewport for the drawer.
             </p>
-            <JobsSearchTab
-              profile={PROFILE}
-              experiences={EXPERIENCES}
-              educations={EDUCATIONS}
-              unifiedSurface
-            />
+          </div>
+          <div className="flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
+            <div className="max-w-[1080px] w-full mx-auto md:h-full md:overflow-y-auto">
+              <JobsSearchTab
+                profile={PROFILE}
+                experiences={EXPERIENCES}
+                educations={EDUCATIONS}
+                unifiedSurface
+              />
+            </div>
           </div>
         </div>
       </AuthContext.Provider>
