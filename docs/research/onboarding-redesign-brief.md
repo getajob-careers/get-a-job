@@ -15,13 +15,13 @@ The **five product rulings are LOCKED**. This doc holds the design/motion/perf/i
 
 ## Locked product rulings (the five)
 
-> Transcribed from the recommendation pass Eli locked. If the hub's canonical wording differs, replace this section verbatim — it is the single source of truth the build plan follows.
+> Canonical text from the hub record (2026-07-21). This is the single source of truth the build plan follows.
 
-1. **Screen 1 — the upload wall.** Keep CV upload the **primary** path; do **not** promote a bare skip or the LinkedIn URL to equal standing (LinkedIn doesn't extract; a bare skip lands users in a broken CV-less state). The linchpin is making **`primary_domain` settable without a CV** (it's CV-extraction-only today and gates the jobs feed) — that is what makes any escape hatch honest. If a skip is offered, its consequence is labeled truthfully.
-2. **Screen 2 — review disclosure.** **Hybrid:** long/confident sections (skills categories) collapsed with count-up headers; **education (required) + experiences expanded**. Not fully-collapsed (rubber-stamp risk), not fully-expanded (overwhelm on the screen where users die).
-3. **Screens 2/3 — merge boundary.** **Keep review its own screen** (the heavy screen kills — don't make it heavier); merge only **direction + constraints** into screen 3. Review is reframed as **confirmation** — one glance + one tap when extraction is clean.
-4. **Survey relocation.** Move survey off the ladder to a **Home banner** (GoalRefinementNudge pattern), **never a popup** — a popup sours the arrival payoff; the fields degrade gracefully and only ~2 users are lost past step 1.
-5. **Practicum.** The `practicum_path` surface + its values (`faculty_assigned`/`self_sourced`) **survive** the screen-3 merge; only the _interaction_ changes (dropdown → checkbox-then-radio). No data-side revisit.
+1. Upload stays primary; skip gets truthful copy; the `primary_domain` linchpin is **IN SCOPE**: `primary_domain` settable without a CV, inferred from situation/goal pickers.
+2. Screen-2 hybrid collapse: skills collapsed behind `useCountUp` headers; education + experience expanded.
+3. Review stays a separate screen; merge only direction + constraints per Yishai's mockup (branch `yishai/onboarding-streamline-mockup` is the structural spec); review reframed as confirmation-with-reward.
+4. The survey relocates to Home as `GoalRefinementNudge` banners, never a popup; nudge events included.
+5. Practicum name and data survive; audience-visibility gate noted for later.
 
 ## Funnel evidence (the base)
 
@@ -72,7 +72,7 @@ Pipeline (`StepResumeUpload.jsx`): upload → `extract-cv-text` (PDF, server) �
 | `extract-proof-signals` (gpt-5.4-mini)     | **11.0s**  | **25.5s** | **parallel — the long pole**; reasoning-heavy; **fat tail (p99 ≈ 48.5s)** |
 | client parse + skill resolve + write       | sub-second |           | not part of the wait                                                      |
 
-**Source note (resume-extractor 7.3s):** this figure is from `function_metrics` — the `ai-chat` rows with `model_used='gpt-5.4-mini'` (31 calls, 2026-06-23→07-21, p50 7349ms), attributed to resume-extractor because it's the _only_ ai-chat agent routed to gpt-5.4-mini (`model-routing.ts`). It was **labeled `ai-chat`, not `resume-extractor`** — which is why a name search finds zero rows. A separate held PR relabels it (`ai-chat:resume-extractor`) so the pipeline is queryable by name before the redesign ships. Not a Langfuse trace, not code timing.
+**Source note (resume-extractor 7.3s):** this figure is from `function_metrics` — the `ai-chat` rows with `model_used='gpt-5.4-mini'` attributed to resume-extractor because it's the _only_ ai-chat agent routed to gpt-5.4-mini (`model-routing.ts`). It was **labeled `ai-chat`, not `resume-extractor`** — which is why a name search finds zero rows. Not a Langfuse trace, not code timing. **Exact filter (reproducible):** `function_name='ai-chat' AND model_used='gpt-5.4-mini' AND created_at > now() - interval '30 days'` → **31 rows, p50 7349ms** — a **30-day, un-scrubbed** window (includes internal/test accounts; it's a latency profile, not a usage count). The hub's all-time figure is **42 raw / 28 internal-scrubbed**; the delta is the window (30d vs all-time) and the internal scrub. Relabel shipped (`ai-chat:resume-extractor`, PR #662, deployed + verified) so the pipeline is now queryable by name.
 
 **Where the 10–30s goes:** `extract-cv-text` (2.2s, PDF) → **then** the parallel LLM stage, gated by the slower of the two = **`extract-proof-signals`**. Correcting an earlier understatement: proof-signals' true tail (82 calls, all-time) is **p90 ≈ 25.5s / p99 ≈ 48.5s** — the 30d-window p90 of 15.7s was noisy small-n. So the blocking total is ≈ **13s p50 but ~28s p90 and up to ~48s+ at the p99 tail** — the reported "10–30s" is the _middle_; the tail is worse. **This sharpens cut (1):** removing proof-signals from the critical wait doesn't just save ~1.5s at p50, it **cuts off the entire p90 25s / p99 48s tail** — the difference between "brief wait" and "did it freeze?".
 
