@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check, X, ExternalLink, Plus, Loader2 } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
-import ScoreRing from "@/components/jobs/ScoreRing";
+import ScoreRing, { ScoreBreakdown } from "@/components/jobs/ScoreRing";
 import {
   useCompanyDomains,
   companyDomainFor,
@@ -105,6 +105,15 @@ export default function JobDetailModal({
   });
   const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
   const companyDomain = companyDomainFor(companyDomains, job);
+  // Flag-on: a faint band-tinted header wash + the always-visible Match
+  // breakdown pinned below the title row (needs a band to colour + read from).
+  const headerTint =
+    alive && d.bandMeta?.bg
+      ? {
+          background: `color-mix(in srgb, ${d.bandMeta.bg} 22%, var(--rd-bg-card))`,
+        }
+      : undefined;
+  const showBreakdown = alive && d.scored && !!d.bandMeta;
   const subLine = [
     job.company_name,
     job.location_city || job.location_raw,
@@ -145,16 +154,16 @@ export default function JobDetailModal({
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header. Flag-on: a faint band-tinted wash for depth. */}
+        {/* Header. Flag-on: a faint band-tinted wash for depth. When the
+            breakdown block follows (flag-on), the border-b moves to it so the
+            header + breakdown read as one pinned unit. */}
         <div
-          className="px-5 pt-4 pb-3.5 border-b border-rd-border flex items-start gap-3"
-          style={
-            alive && d.bandMeta?.bg
-              ? {
-                  background: `color-mix(in srgb, ${d.bandMeta.bg} 22%, var(--rd-bg-card))`,
-                }
-              : undefined
+          className={
+            showBreakdown
+              ? "flex-shrink-0 px-5 pt-4 pb-3.5 flex items-start gap-3"
+              : "flex-shrink-0 px-5 pt-4 pb-3.5 border-b border-rd-border flex items-start gap-3"
           }
+          style={headerTint}
         >
           <CompanyLogo
             domain={companyDomain}
@@ -234,8 +243,25 @@ export default function JobDetailModal({
           </button>
         </div>
 
-        {/* Body */}
-        <div className="px-5 py-4 overflow-y-auto">
+        {/* Flag-on: the Skills / Experience / Seniority breakdown, VISIBLE BY
+            DEFAULT (no hover) - the modal is where the decision happens. Same
+            ScoreBreakdown the card's ring-hover uses, so numbers + treatment
+            are identical. Pinned (flex-shrink-0) with the header wash. */}
+        {showBreakdown && (
+          <div
+            className="flex-shrink-0 px-5 pb-4 border-b border-rd-border"
+            style={headerTint}
+          >
+            <ScoreBreakdown scoreResult={scoreResult} color={d.bandMeta.fg} />
+          </div>
+        )}
+
+        {/* Body. flex-1 + min-h-0 so it can shrink inside the flex-col panel
+            (max-h-[88vh], overflow-hidden) and its own overflow-y-auto engages -
+            without min-h-0 the flexbox min-height:auto floor keeps it at content
+            height and long descriptions get clipped unscrollably. Pre-existing
+            on main; fixed here for both flag states. */}
+        <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto">
           {d.scored && d.reasonText && (
             <p className="text-[12.5px] text-rd-text-secondary leading-[1.55] mb-4">
               {d.reasonText}
@@ -289,7 +315,7 @@ export default function JobDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-rd-border bg-rd-bg-page flex justify-end gap-2.5">
+        <div className="flex-shrink-0 px-5 py-3 border-t border-rd-border bg-rd-bg-page flex justify-end gap-2.5">
           <button
             type="button"
             onClick={handleAdd}
