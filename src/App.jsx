@@ -42,6 +42,7 @@ import Home3TabRealPreview from "@/pages/_preview/Home3TabRealPreview";
 import CareerPreview from "@/pages/_preview/CareerPreview";
 import JobsLogoPreview from "@/pages/_preview/JobsLogoPreview";
 import JobsGridPreview from "@/pages/_preview/JobsGridPreview";
+import UnifiedJobsPreview from "@/pages/_preview/UnifiedJobsPreview";
 import LandingV2Preview from "@/pages/_preview/LandingV2Preview";
 import CVAgentPreview from "@/pages/_preview/CVAgentPreview";
 import CVAgentLivePreview from "@/pages/_preview/CVAgentLivePreview";
@@ -214,6 +215,12 @@ function App() {
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route path="/_preview/jobs-grid" element={<JobsGridPreview />} />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/unified-jobs"
+                element={<UnifiedJobsPreview />}
+              />
             )}
             {SHOW_PREVIEW_ROUTES && (
               <Route

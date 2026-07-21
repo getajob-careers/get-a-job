@@ -35,6 +35,17 @@ import {
 } from "@/components/ui/command";
 import JobGridCard from "./JobGridCard";
 import JobDetailModal from "./JobDetailModal";
+import { isNextDesign } from "@/lib/nextDesign";
+
+// Flag-on aliveness (Plan 1): only the first rows get the entrance + score
+// count-up so a long list doesn't jank (same cap the matches grid uses).
+const STAGGER_CAP = 8;
+
+// Newest-first date value for the flag-on "Newest" sort; missing dates sink.
+function postedTime(job) {
+  const t = job?.date_posted ? Date.parse(job.date_posted) : NaN;
+  return Number.isNaN(t) ? -Infinity : t;
+}
 
 // Tab 2 "Search All Jobs" (PR B). Whole-corpus faceted search, PURE
 // client-side per the locked design:
@@ -97,7 +108,13 @@ export default function JobsSearchTab({
   educations,
   singleColumn = false,
   initialKeyword = "",
+  // Plan 1: when true this component IS the whole flag-on jobs surface (no
+  // Top-Matches / Search split above it), so it renders the sort toggle,
+  // status line, 3-col density, and mobile filter drawer. The additions gate
+  // on `alive` anyway, so flag-off callers stay byte-identical regardless.
+  unifiedSurface = false,
 }) {
+  const alive = isNextDesign() && unifiedSurface;
   // 1. Whole active-IL corpus, light projection, cached. Loaded PROGRESSIVELY
   //    so the user sees results fast instead of waiting for all ~4,200 rows:
   //    a quick first-page query paints in one round-trip (~350ms), while the
@@ -116,7 +133,11 @@ export default function JobsSearchTab({
     return data || [];
   };
 
-  const { data: firstPage = [], isLoading: firstLoading, error: firstError } = useQuery({
+  const {
+    data: firstPage = [],
+    isLoading: firstLoading,
+    error: firstError,
+  } = useQuery({
     queryKey: ["jobsCorpusFirstPage"],
     queryFn: () => fetchPage(0),
     enabled: !!profile,
@@ -171,6 +192,11 @@ export default function JobsSearchTab({
   // Filter bar (search + facets) is collapsible to reclaim vertical space;
   // the open/closed choice persists across remounts (see filtersOpenPref).
   const [filtersOpen, setFiltersOpen] = useState(filtersOpenPref);
+  // Flag-on mobile: the filters live in an off-canvas drawer (they'd eat too
+  // much vertical space inline on a phone). Separate from `filtersOpen` (the
+  // desktop inline collapse) so the desktop default stays "open" while the
+  // drawer starts closed - no scrim popping over results on load.
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   // Location picker options derived from the ALREADY-cached corpus (no extra
   // query): every real city with its live count + the region groups.
@@ -183,6 +209,16 @@ export default function JobsSearchTab({
     () => applyFacetsAndRank(scored, facets),
     [scored, keyword, seniorities, workTypes, track, family, location],
   );
+
+  // Flag-on sort toggle (Plan 1). "best" = the fit-ranked order above (the
+  // single scoring authority); "newest" = the SAME filtered set re-ordered by
+  // date posted. Keyword + facets always apply first, so the toggle only
+  // re-orders, never re-filters. Flag off -> displayRanked === ranked.
+  const [sortMode, setSortMode] = useState("best");
+  const displayRanked = useMemo(() => {
+    if (!alive || sortMode !== "newest") return ranked;
+    return [...ranked].sort((a, b) => postedTime(b.job) - postedTime(a.job));
+  }, [ranked, sortMode, alive]);
 
   // 5. Client-side pagination; reset to the first page when facets change.
   const facetsKey = searchFacetsKey(facets);
@@ -212,52 +248,12 @@ export default function JobsSearchTab({
   useEffect(() => {
     setVisibleCount(SEARCH_PAGE);
   }, [facetsKey]);
-  const visible = ranked.slice(0, visibleCount);
+  const visible = displayRanked.slice(0, visibleCount);
 
-  if (!profile) {
-    return (
-      <div className="rounded-[18px] border border-rd-border bg-rd-bg-soft px-6 py-10 text-center text-[13px] text-rd-text-secondary">
-        Complete your onboarding first so we can rank jobs for you.
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      {/* Search + facets stick to the top of the scrolling jobs column, just
-          below the sticky tab bar, so the filters stay while results scroll.
-          Collapsible to reclaim vertical space for the results. */}
-      <div className="md:sticky md:top-[48px] md:z-[9] md:bg-rd-bg-page md:pt-2">
-      <div className="flex items-center justify-between mb-3">
-        <button
-          type="button"
-          onClick={() => setFiltersOpen((o) => { filtersOpenPref = !o; return !o; })}
-          aria-expanded={filtersOpen}
-          className="inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
-              {activeFilterCount}
-            </span>
-          )}
-          <ChevronDown
-            className={`w-3.5 h-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
-          />
-        </button>
-        {hasActiveFacets && (
-          <button
-            type="button"
-            onClick={clearFacets}
-            className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
-          >
-            Clear filters
-          </button>
-        )}
-      </div>
-      {filtersOpen && (
-      <>
+  // The keyword input + facet chips, shared by the desktop inline panel and the
+  // flag-on mobile drawer so there's one definition of the filter surface.
+  const filterControls = (
+    <>
       {/* Keyword — match-as-you-type over the cached corpus (title + company
           only; description is lazy-loaded, out of scope). AND-composes with
           the facets below. */}
@@ -287,19 +283,16 @@ export default function JobsSearchTab({
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
             Seniority
           </span>
-          {SENIORITY_CHIPS.map(([value, label]) => {
-            const on = seniorities.includes(value);
-            return (
-              <FacetChip
-                key={value}
-                label={label}
-                active={on}
-                onClick={() =>
-                  setSeniorities(toggleSeniority(seniorities, value))
-                }
-              />
-            );
-          })}
+          {SENIORITY_CHIPS.map(([value, label]) => (
+            <FacetChip
+              key={value}
+              label={label}
+              active={seniorities.includes(value)}
+              onClick={() =>
+                setSeniorities(toggleSeniority(seniorities, value))
+              }
+            />
+          ))}
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
@@ -335,18 +328,220 @@ export default function JobsSearchTab({
           />
         </div>
       </div>
-      </>
-      )}
+    </>
+  );
+
+  if (!profile) {
+    return (
+      <div className="rounded-[18px] border border-rd-border bg-rd-bg-soft px-6 py-10 text-center text-[13px] text-rd-text-secondary">
+        Complete your onboarding first so we can rank jobs for you.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Search + facets stick to the top of the scrolling jobs column, just
+          below the sticky tab bar, so the filters stay while results scroll.
+          Collapsible to reclaim vertical space for the results. Flag-on the
+          inline panel is desktop-only; a phone opens the same controls in a
+          drawer (rendered below) so filters don't eat the viewport. */}
+      <div className="md:sticky md:top-[48px] md:z-[9] md:bg-rd-bg-page md:pt-2">
+        <div className="flex items-center justify-between mb-3">
+          {alive ? (
+            <div className="flex items-center gap-2">
+              {/* Desktop: toggle the inline panel. */}
+              <button
+                type="button"
+                onClick={() =>
+                  setFiltersOpen((o) => {
+                    filtersOpenPref = !o;
+                    return !o;
+                  })
+                }
+                aria-expanded={filtersOpen}
+                className="hidden md:inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                    {activeFilterCount}
+                  </span>
+                )}
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {/* Mobile: open the filter drawer. */}
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(true)}
+                aria-haspopup="dialog"
+                className="md:hidden inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                setFiltersOpen((o) => {
+                  filtersOpenPref = !o;
+                  return !o;
+                })
+              }
+              aria-expanded={filtersOpen}
+              className="inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                  {activeFilterCount}
+                </span>
+              )}
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          )}
+          {hasActiveFacets && (
+            <button
+              type="button"
+              onClick={clearFacets}
+              className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
+        {filtersOpen &&
+          (alive ? (
+            <div className="hidden md:block">{filterControls}</div>
+          ) : (
+            filterControls
+          ))}
       </div>
 
-      {/* Count */}
-      <div className="mb-4">
-        <p className="font-display font-bold text-[15px] text-rd-text">
-          {isLoading
-            ? "Loading the board…"
-            : `${ranked.length} job${ranked.length === 1 ? "" : "s"} match, best fit first`}
-        </p>
-      </div>
+      {/* Flag-on mobile filter drawer - the same controls in an off-canvas
+          bottom sheet. md:hidden so desktop never renders it. */}
+      {alive && mobileFiltersOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 flex flex-col justify-end"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Filters"
+        >
+          <button
+            type="button"
+            aria-label="Close filters"
+            onClick={() => setMobileFiltersOpen(false)}
+            className="absolute inset-0"
+            style={{
+              background: "color-mix(in srgb, var(--rd-text) 40%, transparent)",
+            }}
+          />
+          <div className="cx-sheet relative z-10 max-h-[85vh] overflow-y-auto rounded-t-[18px] bg-rd-bg-page px-4 pb-6 pt-4 shadow-rd">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold text-[15px] text-rd-text">
+                Filters
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                aria-label="Close filters"
+                className="p-1 rounded-full hover:bg-rd-bg-soft text-rd-text-tertiary hover:text-rd-text transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {filterControls}
+            <div className="flex items-center gap-2 pt-1">
+              {hasActiveFacets && (
+                <button
+                  type="button"
+                  onClick={clearFacets}
+                  className="font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2.5 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex-1 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2.5 transition-colors"
+              >
+                Show {displayRanked.length} job
+                {displayRanked.length === 1 ? "" : "s"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status line + sort. Flag-on: a status line (count, filter-aware) plus
+          the Best-match / Newest sliding-pill sort toggle. Flag off: the
+          original single count line, byte-identical. */}
+      {alive ? (
+        <div className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+          <p className="font-display font-bold text-[15px] text-rd-text">
+            {isLoading
+              ? "Loading the board…"
+              : hasActiveFacets
+                ? `${ranked.length} of ${scored.length} roles`
+                : `${ranked.length} role${ranked.length === 1 ? "" : "s"} matched to you`}
+          </p>
+          <div
+            className="relative flex w-[188px] bg-rd-bg-soft rounded-full p-0.5"
+            role="tablist"
+            aria-label="Sort jobs"
+          >
+            <span
+              aria-hidden="true"
+              className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-rd-bg-card shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+              style={{
+                width: "calc((100% - 0.25rem) / 2)",
+                transform: `translateX(${sortMode === "newest" ? 100 : 0}%)`,
+              }}
+            />
+            {[
+              ["best", "Best match"],
+              ["newest", "Newest"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={sortMode === id}
+                onClick={() => setSortMode(id)}
+                className={`relative z-10 flex-1 inline-flex items-center justify-center py-1 rounded-full font-display font-bold text-[12px] transition-colors ${
+                  sortMode === id
+                    ? "text-rd-text"
+                    : "text-rd-text-secondary hover:text-rd-text"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="mb-4">
+          <p className="font-display font-bold text-[15px] text-rd-text">
+            {isLoading
+              ? "Loading the board…"
+              : `${ranked.length} job${ranked.length === 1 ? "" : "s"} match, best fit first`}
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
@@ -376,12 +571,18 @@ export default function JobsSearchTab({
       ) : (
         <>
           <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            className={
+              alive
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                : "grid grid-cols-1 sm:grid-cols-2 gap-3"
+            }
           >
-            {visible.map(({ job, score }) => {
+            {visible.map(({ job, score }, i) => {
               const trackRdColor = score?.track
                 ? TRACK_CONFIG[score.track]?.rdColor
                 : null;
+              // Flag-on: entrance + score count-up only for the first rows.
+              const reveal = alive && i < STAGGER_CAP;
               return (
                 <JobGridCard
                   key={job.id}
@@ -389,7 +590,16 @@ export default function JobsSearchTab({
                   scoreResult={score}
                   trackColor={trackRdColor}
                   unified
-                  onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s, trackColor: trackRdColor })}
+                  className={reveal ? "cx-reveal" : ""}
+                  style={reveal ? { animationDelay: `${i * 40}ms` } : undefined}
+                  animateScore={reveal}
+                  onOpen={(j, s) =>
+                    setOpenJob({
+                      job: j,
+                      scoreResult: s,
+                      trackColor: trackRdColor,
+                    })
+                  }
                 />
               );
             })}
