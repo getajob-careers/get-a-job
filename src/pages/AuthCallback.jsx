@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
+import { track, captureException, EVENTS } from "@/lib/analytics";
 
 // OAuth callback. Mounted in the PUBLIC routes block in App.jsx, OUTSIDE
 // AuthenticatedApp: the session does not exist yet when this renders, so
@@ -27,9 +28,23 @@ export default function AuthCallback() {
     const finish = () => {
       if (!cancelled) navigate("/Onboarding", { replace: true });
     };
-    const fail = (msg) => {
+    // Surface the REAL cause server-side (PostHog) before showing the user a
+    // generic message. Previously the exchange error was swallowed into a
+    // generic string with no server-side trail, so a systematic OAuth failure
+    // (e.g. the zero-event no-profile signups) was invisible. `stage` + the
+    // real error are captured; the user still sees a readable, non-technical
+    // message. captureException/track are safe no-ops if PostHog isn't ready.
+    const fail = (userMsg, stage, realError) => {
+      if (realError) {
+        console.error(`[AuthCallback] OAuth ${stage} failed:`, realError);
+        captureException(
+          realError instanceof Error ? realError : new Error(String(realError)),
+          { surface: "auth_callback", stage },
+        );
+      }
+      track(EVENTS.OAUTH_CALLBACK_FAILED, { stage: stage || "unknown" });
       if (!cancelled) {
-        navigate(`/login?oauth_error=${encodeURIComponent(msg)}`, {
+        navigate(`/login?oauth_error=${encodeURIComponent(userMsg)}`, {
           replace: true,
         });
       }
@@ -50,11 +65,19 @@ export default function AuthCallback() {
           // race); if a session exists now, proceed, else surface the error.
           const { data: after } = await supabase.auth.getSession();
           if (after?.session) return finish();
-          return fail("Sign-in could not be completed. Please try again.");
+          return fail(
+            "Sign-in could not be completed. Please try again.",
+            "exchange",
+            error,
+          );
         }
         return finish();
       } catch (err) {
-        return fail(err?.message || "Sign-in could not be completed.");
+        return fail(
+          "Sign-in could not be completed. Please try again.",
+          "unhandled",
+          err,
+        );
       }
     })();
 
