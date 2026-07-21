@@ -2222,6 +2222,18 @@ export type Database = {
           user_id: string;
         }[];
       };
+      admin_recent_signups: {
+        Args: { p_days?: number };
+        Returns: {
+          created_at: string;
+          email: string;
+          full_name: string;
+          has_profile: boolean;
+          id: string;
+          onboarding_complete: boolean;
+          referral_source: string;
+        }[];
+      };
       admin_stories_browse: {
         Args: { p_limit?: number; p_user_id?: string };
         Returns: {
