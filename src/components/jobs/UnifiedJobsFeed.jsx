@@ -76,6 +76,11 @@ const REVEAL_SIZE = 60;
 export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
+  // Flag-on aliveness + the Plan-1 unified surface. Read once at the top so the
+  // matches RPC effect can skip flag-on (the unified surface fetches the whole
+  // corpus through JobsSearchTab, so the role-title spine is redundant - the
+  // corpus is a superset). Flag off -> the current two-tab feed, byte-identical.
+  const alive = isNextDesign();
 
   const { data: profile } = useProfileQuery(user?.id);
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
@@ -288,6 +293,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
       : null;
 
   useEffect(() => {
+    // Flag-on the unified surface (JobsSearchTab) owns the fetch off the full
+    // corpus; skip the role-title matches RPC entirely so nothing double-fires.
+    if (alive) return;
     if (!user?.id) return;
     if (previewForceEmpty) {
       setJobs([]);
@@ -307,7 +315,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
     setOffset(0);
     setVisibleCount(REVEAL_SIZE);
     fetchJobs({ offsetArg: 0, append: false });
-  }, [user?.id, fetchJobs, previewForceEmpty, previewInjectedJobs]);
+  }, [user?.id, fetchJobs, previewForceEmpty, previewInjectedJobs, alive]);
 
   const handleLoadMore = () => {
     // Reveal the next chunk from the in-memory buffer instantly.
@@ -328,9 +336,26 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
   const seniorityIndicator = `Filtered to ${levelLabel(experienceLevel)} roles based on your experience`;
   const countCopy = `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} matched to you`;
-  // Flag-on aliveness: the sliding-pill segmented toggle + card stagger/count-up.
-  // Flag off -> the current color-swap tabs and static cards, byte-identical.
-  const alive = isNextDesign();
+
+  // Plan 1 (flag-on): one continuous, fit-ranked list over the WHOLE active-IL
+  // corpus - no Top-Matches / Search split. JobsSearchTab already fetches the
+  // full corpus, scores every job once, filters by facet, and ranks by fit
+  // (the single scoring authority); the matched roles are present because the
+  // corpus is their superset. It grows a sort toggle + status line + 3-col +
+  // mobile filter drawer under its own `alive` gate. Flag off -> the current
+  // two-tab feed below, byte-identical.
+  if (alive) {
+    return (
+      <JobsSearchTab
+        profile={profile}
+        experiences={experiences}
+        educations={educations}
+        singleColumn={singleColumn}
+        initialKeyword={roleParam}
+        unifiedSurface
+      />
+    );
+  }
 
   return (
     <>

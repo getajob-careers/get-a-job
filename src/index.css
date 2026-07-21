@@ -381,6 +381,24 @@
   }
 }
 
+/* Mobile filter drawer (flag-on jobs surface): the bottom sheet slides up. */
+@keyframes cxSheetUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.cx-sheet {
+  animation: cxSheetUp 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cx-sheet {
+    animation: none;
+  }
+}
+
 /* Job-card spotlight cursor-glow (aliveness). Applied flag-on only, as a direct
    child of the .group card, which sets --sx/--sy on mousemove (rAF-throttled).
    z-index:-1 keeps the glow ABOVE the card's own background but BELOW its content
