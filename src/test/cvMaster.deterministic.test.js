@@ -111,3 +111,49 @@ describe("buildMasterCvData (deterministic master)", () => {
     expect(master.skills.tools).toEqual(["Figma"]);
   });
 });
+
+// P2 fix: an education entry with no institution isn't a renderable CV line —
+// historically it surfaced as a "[Institution Name Missing]" placeholder. The
+// builder now EXCLUDES such entries from the render (never deletes the source
+// profile row). See generate-tailored-cv for the mirrored guard on the LLM path.
+describe("buildMasterCvData — education render exclusion (no institution)", () => {
+  const education = [
+    {
+      institution: "Reichman University",
+      degree_type: "B.A.",
+      field_of_study: "Business Administration",
+      start_date: "2021",
+      end_date: "2024",
+    },
+    // blank institution — must be excluded from render
+    {
+      institution: "",
+      degree_type: "B.Sc.",
+      field_of_study: "Computer Science",
+      start_date: "2020",
+    },
+    // whitespace-only institution — must also be excluded
+    { institution: "   ", degree_type: "M.A.", field_of_study: "Economics" },
+  ];
+
+  it("excludes institution-less entries but keeps the clean one", () => {
+    const cv = buildMasterCvData(
+      { skills: [] },
+      [],
+      education,
+      "t@example.com",
+    );
+    expect(cv.education).toHaveLength(1);
+    expect(cv.education[0].institution).toBe("Reichman University");
+    expect(JSON.stringify(cv)).not.toContain("Institution Name Missing");
+    for (const ed of cv.education) {
+      expect(String(ed.institution ?? "").trim()).not.toBe("");
+    }
+  });
+
+  it("does not mutate the source education array (exclusion, not deletion)", () => {
+    const snapshot = JSON.stringify(education);
+    buildMasterCvData({ skills: [] }, [], education, "t@example.com");
+    expect(JSON.stringify(education)).toBe(snapshot);
+  });
+});

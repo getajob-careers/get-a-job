@@ -376,21 +376,23 @@ export default function Onboarding() {
 
   // Persist any education rows that have been touched. Rows with an id
   // get UPDATEd in place; rows without an id get INSERTed and their new
-  // id is written back into local state for subsequent saves. Empty rows
-  // (no institution, no level, no degree_type) are skipped so initial
-  // blank state during onboarding doesn't write garbage. We do NOT delete
-  // rows here — only AddInformation's editor (post-onboarding) can delete.
+  // id is written back into local state for subsequent saves. Rows with no
+  // institution are skipped — an institution-less education row would render
+  // as an "[Institution Name Missing]" placeholder on the CV, and it's also
+  // the initial blank onboarding state we don't want to persist. We do NOT
+  // delete rows here — only AddInformation's editor (post-onboarding) can.
   const saveEducations = async () => {
     if (!Array.isArray(educations) || educations.length === 0) return;
     const updatedById = {};
     for (let i = 0; i < educations.length; i++) {
       const e = educations[i];
-      const hasContent =
-        (e.institution || "").trim() !== "" ||
-        (e.education_level || "").trim() !== "" ||
-        (e.degree_type || "").trim() !== "" ||
-        (e.field_of_study || "").trim() !== "";
-      if (!hasContent) continue;
+      // Root prevention: an education row without an institution is NOT
+      // persisted — it would surface downstream as an "[Institution Name
+      // Missing]" placeholder on the generated CV. The final review step
+      // hard-gates institution, but saveEducations also runs on every
+      // per-step advance; this closes that path so an extracted row carrying
+      // a degree/field but no school never gets written.
+      if (!(e.institution || "").trim()) continue;
       const row = {
         user_id: user.id,
         institution: e.institution || null,
