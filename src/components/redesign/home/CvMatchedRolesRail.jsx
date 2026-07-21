@@ -17,9 +17,22 @@ import { TRACK_CONFIG } from "@/lib/trackConfig";
 import { useTopMatches } from "./useTopMatches";
 
 export default function CvMatchedRolesRail() {
-  const { picks, stretch, scoredById, isLoading, isError, noRoles } =
+  const { matches, initialShown, scoredById, isLoading, isError, noRoles } =
     useTopMatches();
   const [openJob, setOpenJob] = useState(null);
+  // Reveal `initialShown` (15), load-more to the fetched buffer (30). The
+  // picks/stretch split runs on the revealed slice so both sections grow.
+  const [visibleCount, setVisibleCount] = useState(initialShown);
+  const shown = matches.slice(0, visibleCount);
+  const picks = shown.filter((j) => {
+    const b = scoredById[j.id]?.attainability_band;
+    return b === "strong" || b === "good";
+  });
+  const stretch = shown.filter((j) => {
+    const b = scoredById[j.id]?.attainability_band;
+    return b !== "strong" && b !== "good";
+  });
+  const canShowMore = visibleCount < matches.length;
 
   return (
     <div className="flex flex-col gap-3 h-full overflow-y-auto cv-scroll px-4 py-4">
@@ -70,6 +83,15 @@ export default function CvMatchedRolesRail() {
               scoredById={scoredById}
               onOpen={setOpenJob}
             />
+          )}
+          {canShowMore && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((n) => n + initialShown)}
+              className="mx-auto mt-1 inline-flex items-center font-display font-semibold rd-t-body-s text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2 transition-colors"
+            >
+              Show more roles
+            </button>
           )}
         </>
       )}

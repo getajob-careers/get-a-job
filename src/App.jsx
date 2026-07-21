@@ -43,6 +43,7 @@ import CareerPreview from "@/pages/_preview/CareerPreview";
 import JobsLogoPreview from "@/pages/_preview/JobsLogoPreview";
 import JobsGridPreview from "@/pages/_preview/JobsGridPreview";
 import UnifiedJobsPreview from "@/pages/_preview/UnifiedJobsPreview";
+import CvSurfacePreview from "@/pages/_preview/CvSurfacePreview";
 import LandingV2Preview from "@/pages/_preview/LandingV2Preview";
 import CVAgentPreview from "@/pages/_preview/CVAgentPreview";
 import CVAgentLivePreview from "@/pages/_preview/CVAgentLivePreview";
@@ -220,6 +221,12 @@ function App() {
               <Route
                 path="/_preview/unified-jobs"
                 element={<UnifiedJobsPreview />}
+              />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/cv-surface"
+                element={<CvSurfacePreview />}
               />
             )}
             {SHOW_PREVIEW_ROUTES && (
