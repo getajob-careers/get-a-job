@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/api/supabaseClient";
 import { toast } from "sonner";
 import { Loader2, FileText, X } from "lucide-react";
+import { isNextDesign } from "@/lib/nextDesign";
 import CVStudioView from "@/components/cv-studio/CVStudioView";
 import {
   useApplicationCvs,
@@ -1551,7 +1552,11 @@ function NoJdCard({
       <div className="w-full max-w-[520px] bg-rd-bg-card border border-rd-border rounded-2xl shadow-rd p-5 max-h-[80%] overflow-y-auto cv-scroll">
         <div className="flex items-start justify-between gap-3 mb-1">
           <p className="font-display font-bold text-rd-text text-[15px]">
-            {role ? `No job description for ${role} yet` : "Tailor to a job"}
+            {role
+              ? `No job description for ${role} yet`
+              : isNextDesign()
+                ? "Generate for a job"
+                : "Tailor to a job"}
           </p>
           <button
             onClick={onClose}

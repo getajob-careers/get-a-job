@@ -20,6 +20,8 @@ import {
   X,
   Download,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Sparkles,
   Send,
   Check,
@@ -33,8 +35,13 @@ import {
 // (default `templates` prop) AND re-exported so existing
 // `import { CV_TEMPLATES } from ".../CVStudioView"` call sites keep working.
 import { CV_TEMPLATES } from "./cvTemplates";
+import { isNextDesign } from "@/lib/nextDesign";
 
 export { CV_TEMPLATES };
+
+// Flag-on Templates rail collapse state, persisted across remounts (tab
+// switches unmount the studio) so the choice sticks. Default expanded.
+let templatesOpenPref = true;
 
 const AGENT_CHIPS = [
   "Rewrite my summary",
@@ -527,7 +534,11 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
                 className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-rd-text-secondary hover:bg-rd-bg-soft transition-colors"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
-                <span className="text-[12.5px]">Tailor for a new job…</span>
+                <span className="text-[12.5px]">
+                  {isNextDesign()
+                    ? "Generate for a new job…"
+                    : "Tailor for a new job…"}
+                </span>
               </button>
             </>
           )}
@@ -588,7 +599,42 @@ export default function CVStudioView({
   rightRail = null,
   onRevisePiece = null,
 }) {
+  // Flag-on gates the Batch-D redesign additions (doc-top unified header, the
+  // collapse-to-strip Templates rail). Flag off -> today's pill + always-open
+  // rail, byte-identical.
+  const alive = isNextDesign();
+  const [templatesOpen, setTemplatesOpen] = useState(templatesOpenPref);
   const template = templates.find((t) => t.id === templateId) || templates[0];
+  // Template picker list, shared by the flag-off aside and the flag-on
+  // expanded rail so there's one definition.
+  const templateButtons = (
+    <div className="space-y-2.5">
+      {templates.map((t) => {
+        const active = t.id === templateId;
+        return (
+          <button
+            key={t.id}
+            onClick={() => onTemplateChange?.(t.id)}
+            style={{ "--cv-accent": t.accent }}
+            className={`w-full text-left rounded-xl border p-2 transition-all ${active ? "border-[color:var(--cv-accent)] ring-1 ring-[color:var(--cv-accent)] bg-rd-bg-soft" : "border-rd-border bg-rd-bg-soft hover:border-rd-text-tertiary"}`}
+          >
+            <TemplateThumb t={t} />
+            <div className="flex items-center justify-between mt-2 px-0.5">
+              <span className="text-[12px] font-display font-semibold text-rd-text">
+                {t.name}
+              </span>
+              {active && (
+                <Check
+                  className="w-3.5 h-3.5 text-[color:var(--cv-accent)]"
+                  style={{ "--cv-accent": t.accent }}
+                />
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
   const docStyle = {
     "--cv-font": template.font,
     "--cv-accent": template.accent,
@@ -684,40 +730,73 @@ export default function CVStudioView({
       </header>
 
       <div className="flex-1 flex min-h-0">
-        {/* Templates */}
-        <aside className="w-[216px] shrink-0 border-r border-rd-border bg-rd-bg-card/50 overflow-y-auto cv-scroll">
-          <div className="p-4">
-            <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">
-              Templates
-            </p>
-            <div className="space-y-2.5">
-              {templates.map((t) => {
-                const active = t.id === templateId;
-                return (
+        {/* Templates. Flag-on: collapses to a ~40px strip (active thumbnail +
+            expand chevron), persisted, default expanded. Flag off: the
+            always-open aside, byte-identical. */}
+        {alive && !templatesOpen ? (
+          <aside className="w-11 shrink-0 border-r border-rd-border bg-rd-bg-card/50 flex flex-col items-center gap-2.5 py-3">
+            <button
+              type="button"
+              onClick={() =>
+                setTemplatesOpen(() => {
+                  templatesOpenPref = true;
+                  return true;
+                })
+              }
+              aria-label="Expand templates"
+              aria-expanded={false}
+              className="p-1 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setTemplatesOpen(() => {
+                  templatesOpenPref = true;
+                  return true;
+                })
+              }
+              title={`Template: ${template.name}`}
+              aria-label={`Template ${template.name} - expand to change`}
+              style={{ "--cv-accent": template.accent }}
+              className="w-8 rounded-md overflow-hidden ring-1 ring-[color:var(--cv-accent)]"
+            >
+              <TemplateThumb t={template} />
+            </button>
+          </aside>
+        ) : (
+          <aside className="w-[216px] shrink-0 border-r border-rd-border bg-rd-bg-card/50 overflow-y-auto cv-scroll">
+            <div className="p-4">
+              {alive ? (
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow">
+                    Templates
+                  </p>
                   <button
-                    key={t.id}
-                    onClick={() => onTemplateChange?.(t.id)}
-                    style={{ "--cv-accent": t.accent }}
-                    className={`w-full text-left rounded-xl border p-2 transition-all ${active ? "border-[color:var(--cv-accent)] ring-1 ring-[color:var(--cv-accent)] bg-rd-bg-soft" : "border-rd-border bg-rd-bg-soft hover:border-rd-text-tertiary"}`}
+                    type="button"
+                    onClick={() =>
+                      setTemplatesOpen(() => {
+                        templatesOpenPref = false;
+                        return false;
+                      })
+                    }
+                    aria-label="Collapse templates"
+                    aria-expanded={true}
+                    className="p-0.5 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
                   >
-                    <TemplateThumb t={t} />
-                    <div className="flex items-center justify-between mt-2 px-0.5">
-                      <span className="text-[12px] font-display font-semibold text-rd-text">
-                        {t.name}
-                      </span>
-                      {active && (
-                        <Check
-                          className="w-3.5 h-3.5 text-[color:var(--cv-accent)]"
-                          style={{ "--cv-accent": t.accent }}
-                        />
-                      )}
-                    </div>
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
-                );
-              })}
+                </div>
+              ) : (
+                <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">
+                  Templates
+                </p>
+              )}
+              {templateButtons}
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Document */}
         <main className="flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page">
@@ -792,7 +871,44 @@ export default function CVStudioView({
           )}
           <div className="px-5 pt-3">
             <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
-              {currentCv?.role ? (
+              {alive ? (
+                // Treatment B (flag-on): a unified contextual header - the
+                // document's identity plus ONE shared "Generate a job-specific
+                // version" doorway (same verb + flow as the rail's Generate CV).
+                // No second quiet pill competing.
+                <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+                  <span className="inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text min-w-0">
+                    {currentCv?.role ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-rd-teal-dark shrink-0" />
+                        <span className="truncate">
+                          Tailored for {currentCv.role}
+                          {currentCv.company ? ` · ${currentCv.company}` : ""}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-rd-golden-dark shrink-0" />
+                        <span>Master CV · your full CV</span>
+                      </>
+                    )}
+                  </span>
+                  {(tailorContext || onTailorNew) && (
+                    <button
+                      onClick={() =>
+                        tailorContext ? onTailorContext?.() : onTailorNew()
+                      }
+                      disabled={tailoring}
+                      className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                    >
+                      {tailorContext
+                        ? `Generate for ${tailorContext.role}`
+                        : "Generate a job-specific version"}
+                      <span aria-hidden="true">→</span>
+                    </button>
+                  )}
+                </div>
+              ) : currentCv?.role ? (
                 <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-teal-dark bg-rd-teal-tint border border-rd-teal/30 rounded-full px-3 py-1">
                   <Check className="w-3.5 h-3.5" /> Tailored for{" "}
                   {currentCv.role}
