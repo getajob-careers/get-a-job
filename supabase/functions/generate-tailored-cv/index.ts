@@ -1769,6 +1769,24 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           : undefined,
       }, AbortSignal.timeout(60000));
       cvData = fo.cvData;
+      // Fan-out sub-calls author ONLY the LLM sections (experience bullets,
+      // About Me, Skills). The deterministic sections — education,
+      // certifications, projects — are produced by no sub-call, so populate
+      // them from source here, exactly as the master path does below. Without
+      // this a fan-out tailored CV renders with NO education/certs/projects
+      // (the regression that took tailored CVs to employers with no school).
+      // honors_and_awards is set deterministically downstream for every path,
+      // so it is intentionally not touched here. For master+fan-out the
+      // isMasterMode block re-sets these authoritatively; this stays idempotent.
+      {
+        const detFanout = buildMasterCvData(
+          profile, experiences, profile?.education, user?.email,
+          { projects, certifications },
+        );
+        cvData.education = detFanout.education;
+        if (detFanout.certifications) cvData.certifications = detFanout.certifications;
+        if (detFanout.projects) cvData.projects = detFanout.projects;
+      }
       fanoutDiag = { timing: fo.timing, subcalls: fo.subcalls, coverage: fo.coverage };
       m.modelUsed = pass2MetricsModel;
       emitFanoutProgress('assembling', fanoutRoles.length + 2);
