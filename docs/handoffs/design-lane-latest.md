@@ -35,7 +35,7 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 ## Next actions
 
 1. [DONE] #677 token rename - MERGED (1697063). Merge-forwarded main, re-swept 28 rd-coral occurrences in DirectionScreenV2 (18) + OnboardingV2 (10); zero rd-coral in code repo-wide (docs keep retirement records; trackColor N/A).
-2. [HELD for Eli's eye] Slice 1 dot-grain ground bake-off - `/_preview/canvas-ground`, 3 variants (A fine/faint, B balanced, C warm/open) with mock lane cards showing the lift. Winner becomes a token-level `.rd-ground` on the flag-on canvas. On branch eli/canvas-ground-bakeoff.
+2. [HELD for Eli's eye] Slice 1 dot-grain ground bake-off - PR #678, branch eli/canvas-ground-bakeoff. `/_preview/canvas-ground` (forces data-next-design so it shows the REAL canvas palette), 3 variants (A fine/faint, B balanced, C warm/open) with mock lane cards showing the lift. Verified on the branch preview. Awaiting Eli's pick; winner becomes a token-level `.rd-ground` on the flag-on canvas (replaces the retired `--rd-field` grain).
 3. [LATER, held] arrival moment: Home plays a populated first-landing entrance on `?welcome=1`, no-ops gracefully when absent / flag-off (cross-lane contract with onboarding V2 completion + the onboarding_cv_ready signal).
 
 ## Open questions for the hub
