@@ -124,6 +124,13 @@ export default function StepResumeUpload({
   // identical (proof-signals awaited before onExtracted). See the redesign brief.
   deferProofSignals = false,
   onProofSignals,
+  // Onboarding V2 extraction-status callbacks (optional; V1 passes neither, so
+  // behaviour is byte-identical). onExtractStart fires when extraction begins;
+  // onExtractFailed(reason) fires on the terminal no-usable-output / error
+  // paths. The V2 review screen watches these to show the wait → success /
+  // failure moment and to emit onboarding_cv_extract_failed.
+  onExtractStart,
+  onExtractFailed,
 }) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -232,6 +239,7 @@ export default function StepResumeUpload({
 
       setUploading(false);
       setExtracting(true);
+      onExtractStart?.();
       stage = "parse";
       const tParse = Date.now();
       logOnboardingEvent(0, "parse_attempt", {
@@ -391,6 +399,7 @@ export default function StepResumeUpload({
         detail: { file_type: fileType, ms: Date.now() - tParse },
       });
       setExtracting(false);
+      onExtractFailed?.("extract_none");
       setDone(true);
       if (resilient) {
         setUploadFailMode("extract_none");
@@ -403,6 +412,9 @@ export default function StepResumeUpload({
       console.error("Resume upload error:", err);
       setUploading(false);
       setExtracting(false);
+      onExtractFailed?.(
+        err?.code || (stage === "upload" ? "upload_error" : "edge_error"),
+      );
       logOnboardingEvent(0, `${stage}_failed`, {
         errorCode:
           err.code || (stage === "upload" ? "upload_error" : "edge_error"),
