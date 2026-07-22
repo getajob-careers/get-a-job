@@ -273,7 +273,7 @@ export default function OnboardingV2() {
                   type="button"
                   onClick={advanceFromDirection}
                   disabled={advancing}
-                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60"
                 >
                   Continue
                   <ArrowRight className="w-4 h-4" />
