@@ -7,6 +7,8 @@
 //      undo -> prior value returns -> BOTH writes are audited.
 import { describe, it, expect } from "vitest";
 import { writeProfileEntity, undoProfileWrite } from "@/lib/writeProfileEntity";
+import { createSerializedWriter } from "@/lib/serializedWriteThrough";
+import { revertCvDataField } from "@/lib/revertCvDataField";
 import {
   runMediatedWrite,
   buildAuditRow,
@@ -222,5 +224,263 @@ describe("the summary-loss undo story (the acceptance case)", () => {
         source: "studio",
       }),
     ).toThrow();
+  });
+});
+
+// The CV RED write-layer fix. The Studio's source row can be drifted LEANER than
+// the editor's cv_data (the master build enriches cv_data beyond the source
+// row), so baselining the undo token / destructive-confirm on the SOURCE READ
+// mints an undo token that would restore the stale leaner source (silent data
+// loss) and mis-classifies deletions. priorOverride baselines on the editor's
+// pre-edit value (what the user saw) instead. Plus per-key serialization so two
+// commits to one field can't race and last-write-wins can't clobber the edit.
+describe("CV RED write-layer fix (drift baseline + serialization)", () => {
+  const drifted = () =>
+    mockSupabase({
+      // Source row is drifted EMPTY while the editor holds ["A", "B"] in cv_data.
+      experiences: [{ id: "e1", user_id: "u1", bullets: [], updated_at: "v1" }],
+    });
+
+  it("undo restores the editor's pre-edit cv_data value, NOT the drifted source", async () => {
+    const supabase = drifted();
+    const edit = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "exp_bullets",
+      entityId: "e1",
+      newValue: ["A (edited)", "B"],
+      priorOverride: ["A", "B"], // what the user saw (pre-edit cv_data)
+    });
+    expect(edit.ok).toBe(true);
+    // The undo token carries the pre-edit cv_data, never the drifted-empty read.
+    expect(edit.undo_token.prior).toEqual(["A", "B"]);
+    expect(supabase._tables.experiences[0].bullets).toEqual([
+      "A (edited)",
+      "B",
+    ]);
+
+    const undo = await undoProfileWrite(supabase, {
+      userId: "u1",
+      undoToken: edit.undo_token,
+    });
+    expect(undo.ok).toBe(true);
+    // Undo lands the pre-edit cv_data value, not the stale [] the source held.
+    expect(supabase._tables.experiences[0].bullets).toEqual(["A", "B"]);
+  });
+
+  it("never mints an empty-prior undo token off a drifted source", async () => {
+    const supabase = drifted();
+    const edit = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "exp_bullets",
+      entityId: "e1",
+      newValue: ["A (edited)", "B"],
+      priorOverride: ["A", "B"],
+    });
+    // If this were [] a fired undo would wipe the row -> the exact silent loss.
+    expect(edit.undo_token.prior).not.toEqual([]);
+    expect(edit.undo_token.prior).toEqual(["A", "B"]);
+
+    // Contrast: WITHOUT priorOverride the token carries the empty source read -
+    // the pre-fix hazard this override exists to close.
+    const bare = drifted();
+    const editBare = await writeProfileEntity(bare, {
+      userId: "u1",
+      field: "exp_bullets",
+      entityId: "e1",
+      newValue: ["A (edited)", "B"],
+    });
+    expect(editBare.undo_token.prior).toEqual([]);
+  });
+
+  it("destructive-confirm fires relative to what the user saw, not the source", async () => {
+    const supabase = drifted();
+    // User clears both visible bullets. Against the empty source this looks
+    // additive ([] -> []); against priorOverride it is a removal -> confirm.
+    const cleared = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "exp_bullets",
+      entityId: "e1",
+      newValue: [],
+      priorOverride: ["A", "B"],
+    });
+    expect(cleared.needsConfirm).toBe(true);
+    expect(cleared.prior_value).toEqual(["A", "B"]);
+    // Nothing was written (it awaits confirmation).
+    expect(supabase._tables.experiences[0].bullets).toEqual([]);
+  });
+
+  it("a concurrent double-write to one field serializes and cannot clobber the edit", async () => {
+    const run = createSerializedWriter();
+    const db = { value: null };
+    const order = [];
+    let active = 0;
+    let maxActive = 0;
+    const task = (label, val, delay) => async () => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((r) => setTimeout(r, delay));
+      db.value = val;
+      order.push(label);
+      active -= 1;
+      return { label };
+    };
+    // Same key, fired without awaiting: a stale re-commit then the user's newest
+    // edit. The stale one (superseded) must be skipped, the edit must win.
+    const p1 = run("exp_bullets:e1", task("stale", ["orig"], 20));
+    const p2 = run("exp_bullets:e1", task("user-edit", ["edited"], 5));
+    const [r1] = await Promise.all([p1, p2]);
+    expect(maxActive).toBe(1); // never overlapped (no concurrent prior-read race)
+    expect(r1).toEqual({ skipped: true }); // stale write coalesced away
+    expect(order).toEqual(["user-edit"]); // only the edit touched the DB
+    expect(db.value).toEqual(["edited"]); // and it is the final value
+  });
+
+  it("sequential writes to one field each apply (coalescing never eats a real edit)", async () => {
+    const run = createSerializedWriter();
+    const order = [];
+    await run("k", async () => order.push("first"));
+    await run("k", async () => order.push("second"));
+    expect(order).toEqual(["first", "second"]);
+  });
+
+  it("different fields/entities run independently (keys don't block each other)", async () => {
+    const run = createSerializedWriter();
+    let bStarted = false;
+    const a = run("exp_bullets:e1", async () => {
+      await new Promise((r) => setTimeout(r, 20));
+      return "a-done";
+    });
+    const b = run("summary:profile", async () => {
+      bStarted = true;
+      return "b-done";
+    });
+    await b;
+    expect(bStarted).toBe(true); // b did not wait on a's unrelated key
+    await a;
+  });
+});
+
+// Item 1 (second undo path). The top-bar Undo used to restore the ENTIRE
+// pre-edit model to cv_data, so undoing one field clobbered another field that
+// had drifted from the snapshot (Eli's cert drive: undoing a summary edit reset
+// the bullets to the ancient pre-enrichment value while the source kept his
+// edit). revertCvDataField reverts ONLY the edited field.
+describe("revertCvDataField - single-field undo never clobbers other fields (item 1)", () => {
+  it("undoing summary reverts summary only and keeps the current bullets (the exact cert-drive bug)", () => {
+    // prev = the snapshot captured at the summary edit; its bullets are STALE
+    // (the ancient pre-enrichment value). current = the live model with the
+    // user's real bullet edit still present.
+    const prev = {
+      summary: "Original summary.",
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          bullets: [
+            { id: "b1", text: "I helped vip clients fix their problems" },
+          ],
+        },
+      ],
+    };
+    const current = {
+      summary: "Edited summary.",
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          bullets: [
+            { id: "b1", text: "Improved average answer times by 40 percent" },
+          ],
+        },
+      ],
+    };
+    const next = revertCvDataField(current, prev, "summary", null);
+    expect(next.summary).toBe("Original summary."); // summary reverted
+    // bullets NOT clobbered back to the ancient snapshot:
+    expect(next.experiences[0].bullets[0].text).toBe(
+      "Improved average answer times by 40 percent",
+    );
+  });
+
+  it("undoing exp_bullets reverts that experience's bullets, preserves a later title edit", () => {
+    const prev = {
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          title: "T",
+          bullets: [{ id: "b1", text: "old" }],
+        },
+      ],
+    };
+    const current = {
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          title: "T-edited",
+          bullets: [{ id: "b1", text: "new" }],
+        },
+      ],
+    };
+    const next = revertCvDataField(current, prev, "exp_bullets", "e1");
+    expect(next.experiences[0].bullets[0].text).toBe("old"); // bullets reverted
+    expect(next.experiences[0].title).toBe("T-edited"); // later title edit preserved
+  });
+
+  it("undoing a header field reverts only that key", () => {
+    const prev = { header: { name: "Old Name", headline: "H" }, summary: "s" };
+    const current = {
+      header: { name: "New Name", headline: "H2" },
+      summary: "s2",
+    };
+    const next = revertCvDataField(current, prev, "full_name", null);
+    expect(next.header.name).toBe("Old Name");
+    expect(next.header.headline).toBe("H2"); // untouched
+    expect(next.summary).toBe("s2"); // untouched
+  });
+});
+
+// Item 4. A blur that commits an unedited field logged prior==new rows (nine in
+// Eli's session). Skip the write, the audit, and the undo token when the value
+// is unchanged from what the user saw.
+describe("no-op writes are skipped (item 4)", () => {
+  it("skips the write, the audit row, and the undo token when value == what the user saw", async () => {
+    const supabase = mockSupabase({
+      profiles: [{ id: "u1", summary: "Same summary.", updated_at: "v1" }],
+    });
+    const res = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "summary",
+      newValue: "Same summary.",
+      priorOverride: "Same summary.", // what the user saw == new value
+    });
+    expect(res.ok).toBe(true);
+    expect(res.noop).toBe(true);
+    expect(res.undo_token).toBeUndefined();
+    expect(supabase._tables.profile_edits).toHaveLength(0);
+  });
+
+  it("still writes a genuine edit even when the new value matches a DRIFTED source (noop compares baseline, not source)", async () => {
+    // baseline (what the user saw) = "A"; source drifted to "B"; user types "B".
+    // vs the source this looks like a no-op, but vs what the user saw it is a
+    // real edit, so it must write + log.
+    const supabase = mockSupabase({
+      profiles: [{ id: "u1", summary: "B", updated_at: "v1" }],
+    });
+    const res = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "summary",
+      newValue: "B",
+      priorOverride: "A",
+    });
+    expect(res.noop).toBeFalsy();
+    expect(res.ok).toBe(true);
+    expect(supabase._tables.profile_edits).toHaveLength(1);
+    expect(res.undo_token.prior).toBe("A"); // baselined on what the user saw
   });
 });

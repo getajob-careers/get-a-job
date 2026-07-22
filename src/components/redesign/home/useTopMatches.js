@@ -28,7 +28,10 @@ import {
 } from "@/lib/jobsFeed";
 
 const TOP_MATCHES_FETCH_SIZE = 30;
-const TOP_MATCHES_SHOWN = 6;
+// Rail depth (CV RED): reveal 15 initially, load-more to the fetched 30. The
+// rail scrolls, so a deeper list is fine. Extending the FETCH beyond 30 is a
+// deferred follow-up (would need pagination like the unified feed).
+const TOP_MATCHES_SHOWN = 15;
 
 export function useTopMatches() {
   const { user } = useAuth();
@@ -110,8 +113,11 @@ export function useTopMatches() {
     return out;
   }, [profile, experiences, educations, jobs]);
 
-  const sectioned = useMemo(() => {
-    if (jobs.length === 0 || !profile) return { picks: [], stretch: [] };
+  // The full relevance-gated, ranked match list (capped by the fetch buffer,
+  // TOP_MATCHES_FETCH_SIZE). The rail reveals TOP_MATCHES_SHOWN at a time with
+  // load-more; the picks/stretch split happens on the revealed slice there.
+  const matches = useMemo(() => {
+    if (jobs.length === 0 || !profile) return [];
     const rankRel = { primary: 0, adjacent: 1, unknown: 2 };
     const gated = jobs.filter((job) => {
       const r = scoredById[job.id];
@@ -126,19 +132,12 @@ export function useTopMatches() {
       const ab = scoredById[b.id].attainability_score ?? 0;
       return ab - aa;
     });
-    const shown = gated.slice(0, TOP_MATCHES_SHOWN);
-    const picks = [];
-    const stretch = [];
-    for (const job of shown) {
-      const b = scoredById[job.id]?.attainability_band;
-      if (b === "strong" || b === "good") picks.push(job);
-      else stretch.push(job);
-    }
-    return { picks, stretch };
+    return gated;
   }, [jobs, scoredById, profile]);
 
   return {
-    ...sectioned,
+    matches,
+    initialShown: TOP_MATCHES_SHOWN,
     scoredById,
     isLoading: jobsQuery.isLoading,
     isError: jobsQuery.isError,

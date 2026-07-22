@@ -74,6 +74,9 @@ export async function writeProfileEntity(supabase, opts) {
     baseVersion: opts.baseVersion ?? null,
     source: opts.source ?? "studio",
     confirmed: opts.confirmed ?? false,
+    // Editor's pre-edit value (what the user saw), when the caller supplies it.
+    // Kept `undefined` when absent so the mediation falls back to the source read.
+    priorOverride: opts.priorOverride,
   });
 }
 
