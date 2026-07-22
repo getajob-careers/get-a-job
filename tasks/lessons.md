@@ -371,9 +371,9 @@ Rule for next time: add an import in the SAME edit as (or after) its first usage
 ---
 
 2026-07-22 - A review guide with the wrong flag param burns a cert cycle
-Trigger: CV RED review guides pointed at the flag-on home; the exact flag param is `?nextDesign=1` (isNextDesign reads `nextDesign`), but a guess like `?next=1` (a different, unrelated param) lands on the flag-OFF surface, so the reviewer eye-certs the wrong thing.
-What I did wrong: relied on a remembered/approximate flag param in a hand-off review guide instead of the exact one the guard reads.
-Rule for next time: any review guide or hand-off URL carries the EXACT flag param the code checks (grep isNextDesign / the flag helper to confirm the query key), never a lookalike. The flag-on reveal route is `/Home?nextDesign=1`; the flag-off editor is `/CVAgent` (no param).
+Trigger: CV RED review guides handed Eli `?nextDesign=1` for the flag-on home. But the real param is `?next=1`: the index.html bootstrap reads `URLSearchParams.get("next")` and, on `next=1`, sets localStorage 'nextDesign' + the `data-next-design` attribute that isNextDesign() checks. Nothing reads "nextDesign" as a URL PARAM - that string is the localStorage KEY, not the query key. So `?nextDesign=1` is a no-op lookalike; on a fresh browser (no localStorage set) it lands flag-OFF and the reviewer eye-certs the wrong surface.
+What I did wrong: confused the localStorage key (`nextDesign`) with the URL param (`next`) and put the key in the hand-off URL, without grepping the bootstrap to confirm the query key. My own drives only "worked" because localStorage was already set from an earlier session, masking the no-op.
+Rule for next time: any review guide or hand-off URL carries the EXACT query key the bootstrap reads - grep index.html / the flag bootstrap first. The flag-on reveal route is `/Home?next=1`; `?next=0` clears it; the flag-off editor is `/CVAgent`. Never put the localStorage key (`nextDesign`) in a URL.
 ---
 
 ---
