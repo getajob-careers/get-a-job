@@ -64,7 +64,7 @@ export default function CoachInput({ variant = "dock" }) {
         onKeyDown={handleKey}
         placeholder={isDock ? "Ask about this page…" : "Message your coach…"}
         rows={1}
-        className={`flex-1 ${isDock ? "px-3 py-1.5 text-[12.5px] min-h-[34px] max-h-[160px] rounded-full" : "px-4 py-2.5 text-[14px] min-h-[42px] max-h-[40vh] rounded-full"} border border-rd-border bg-rd-bg-card text-rd-text font-body resize-none placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] transition-colors`}
+        className={`flex-1 ${isDock ? "px-3 py-1.5 text-[12.5px] min-h-[34px] max-h-[160px] rounded-lg" : "px-4 py-2.5 text-[14px] min-h-[42px] max-h-[40vh] rounded-lg"} border border-rd-border bg-rd-bg-card text-rd-text font-body resize-none placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] transition-colors`}
       />
       <button
         type="button"
