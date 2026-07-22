@@ -117,3 +117,26 @@ the flag flips to real signups. Out of 6b scope (entity persistence).
 
 Test users are `+6b-*` on the live DB. Purge before flipping the flag (derive
 the kill set by query: `email LIKE '%+6b-%'`, never a hand-copied list).
+
+---
+
+## Post-drive log (2026-07-22/23)
+
+**Gate + screen-0 fixes shipped to #683 (both verified on the deployed preview):**
+- `bccb85c` — `pages.lazy.js` routed `/Onboarding` through raw V1, not OnboardingEntry, so the V2 flag was dead code since #670. Fixed; flag-on now renders V2, flag-off byte-identical V1.
+- `79a90ed` — V2 screen 0 embedded StepResumeUpload's full V1 page (banner + eyebrow/heading + its own situation row) under the V2 shell + orphan spinner. Fixed via additive `chromeless` prop on StepResumeUpload (V1 byte-identical without it) + removed the orphan ReadingAffordance + mapped V2 situation to `employment_status`. Label-leak sweep: screen 0 was the only leak; screens 1-3 clean.
+
+**Path A (real CV) — FULL PASS (hub-verified on dc078bc4):** onboarding_complete=true, primary_domain_source='extracted', employment_status=['looking_for_job'], skills_canonical=37, exp=7 edu=1 proj=1 cert=0 tasks=3. No persist drops. Console clean.
+
+**OPEN — self-heal / roadmap gap (flip gate; follow-up PR after #683):** V1 writes career_roles in handleSurveyNext (client calls generate-career-analysis then the replace_career_roles RPC). V2 has no survey step, so no career_roles. Home self-heal (Home.jsx:292) only heals qualification_level (it never calls replace_career_roles) — so NOT stamping last_reality_check_date is INSUFFICIENT (roadmap stays empty). Roadmap page does not auto-generate (manual Generate button). RECOMMENDATION: option (b) — fire generate-career-analysis + replace_career_roles in the BACKGROUND at V2 finalise (mirror handleSurveyNext), non-blocking; extract the analysis-invocation (duplicated in handleSurveyNext + Roadmap.jsx) into one helper. Own PR + its own drive (land on Home, confirm career_roles populate).
+
+**OPEN — situation single-select vs V1 XOR (Eli merge-gate ruling):** V1 employment_status permits multi with XOR (unemployed⊕employed, unemployed⊕looking_for_job, employed⊕looking_for_job; student/freelance stack). Common lost combo = student+looking_for_job. Consumed as a JOINED multi-value in career-analysis + generate-tasks prompts (soft LLM-context signal) + generate-tasks `.includes('employed')` staging. #683 improves employment_status from EMPTY to single (net positive); multi is a parity enhancement, not a #683 regression. LEAN: keep-single (V2 situation also feeds single-value primary_domain inference; clean one-tap UX; single is always a valid subset; loss is soft LLM context). Alternative: port XOR-multi. Eli rules.
+
+**Pre-flip polish arc (punch list — DO NOT build now):**
+1. Upload wait: needs a loading treatment between "Upload to continue" and the review screen.
+2. Review screen: verify collapsed-by-default sections actually shipped (vs default-open); "what we found" needs stronger visual hierarchy; page far too long. Report + propose fix scope.
+3. Direction screen: location input needs suggestions/autocomplete; check what V1 uses.
+4. Overall feel (Eli): passes but barely, feels like V1 not V2 — deferred marquee/entrance-motion ruling RE-OPENED for this arc.
+5. Tutorial absent from V2: parked by Eli; pre-flip open question.
+
+Test accounts (purge pre-flip, kill set by `email LIKE '%+6b-%'`): +6b-cv (dc078bc4, PASS), +6b-skip (c558a4a2), +6b-fail (bbc03544).
