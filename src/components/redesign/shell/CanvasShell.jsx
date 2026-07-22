@@ -5,6 +5,7 @@ import { createPageUrl } from "@/utils";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import CoachDock from "@/components/agent/CoachDock";
+import AgentDrawer from "@/components/agent/AgentDrawer";
 import DepthField from "@/components/redesign/DepthField";
 import GroundWash from "@/components/redesign/GroundWash";
 import CanvasLogo from "./CanvasLogo";
@@ -83,6 +84,10 @@ export default function CanvasShell({ children, revealMode }) {
           {children}
         </main>
       </div>
+
+      {/* Expanded coach view - the dock's Maximize2 opens this (flag-on parity
+          with the legacy Layout, which mounts it too). Fixed overlay. */}
+      <AgentDrawer />
     </div>
   );
 }

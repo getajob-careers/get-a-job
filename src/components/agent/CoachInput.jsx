@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 
@@ -16,8 +16,21 @@ import { useCoachConversation } from "@/lib/CoachConversationContext";
 
 export default function CoachInput({ variant = "dock" }) {
   const conv = useCoachConversation();
-  if (!conv) return null;
+  const taRef = useRef(null);
   const isDock = variant === "dock";
+  const maxH = isDock ? 88 : 120;
+
+  // Auto-grow so a long message reveals its full height instead of scrolling
+  // with the top clipped. Reset to auto, grow to content, cap at the variant
+  // max (88 dock / 120 panel); beyond that it scrolls normally.
+  useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, maxH)}px`;
+  }, [conv?.input, maxH]);
+
+  if (!conv) return null;
   const hasText = !!conv.input.trim();
   const canSend = hasText && !conv.sending;
 
@@ -42,6 +55,7 @@ export default function CoachInput({ variant = "dock" }) {
       data-variant={variant}
     >
       <textarea
+        ref={taRef}
         value={conv.input}
         onChange={(e) => conv.setInput(e.target.value)}
         onKeyDown={handleKey}
