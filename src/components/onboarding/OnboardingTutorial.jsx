@@ -112,6 +112,9 @@ export default function OnboardingTutorial({
   // until they click through to the platform.
   const [showComplete, setShowComplete] = useState(false);
   const skipFiredRef = useRef(false);
+  // Which skip surface fired — the returning-user gate vs the fresh-user
+  // in-tour "Skip tour". Read by fireSkip so the SKIPPED event is labelled.
+  const skipReasonRef = useRef("returning_user_skip_gate");
   const startedAtRef = useRef(Date.now());
   const startedEventRef = useRef(false);
   const seenSlidesRef = useRef(new Set());
@@ -166,15 +169,29 @@ export default function OnboardingTutorial({
     if (skipFiredRef.current) return;
     skipFiredRef.current = true;
     track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, {
-      reason: "returning_user_skip_gate",
+      reason: skipReasonRef.current,
     });
     onTutorialEnd({ skipped: true });
   };
 
   const handleSkipGate = () => {
+    skipReasonRef.current = "returning_user_skip_gate";
     // If setup is still running, hand off to the "Finishing setup…" view.
     // The user clicks again from the "Setup complete" view to navigate —
     // we never auto-navigate while they may be on another tab.
+    if (!setupComplete) {
+      setSkipPending(true);
+      return;
+    }
+    fireSkip();
+  };
+
+  // Fresh-user, always-visible skip on the tour itself. Same hold-until-setup
+  // behavior as the returning-user gate: if setup is still running we show the
+  // "Finishing setup…" view (so Home doesn't bounce an incomplete profile),
+  // otherwise we exit immediately.
+  const handleTourSkip = () => {
+    skipReasonRef.current = "fresh_user_skip";
     if (!setupComplete) {
       setSkipPending(true);
       return;
@@ -339,6 +356,16 @@ export default function OnboardingTutorial({
               Next <ArrowRight className="w-4 h-4" />
             </PrimaryButton>
           )}
+        </div>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={handleTourSkip}
+            className="text-[12px] font-medium text-rd-text-tertiary hover:text-rd-text underline underline-offset-2 transition-colors"
+          >
+            Skip tour
+          </button>
         </div>
       </div>
     </FullScreenShell>

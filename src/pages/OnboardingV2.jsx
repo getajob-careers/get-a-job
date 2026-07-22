@@ -20,6 +20,7 @@ import { runPrimaryDomainInference } from "@/lib/inferPrimaryDomainWrite";
 import { persistReviewProfile } from "@/lib/persistOnboardingProfileV2";
 import { saveEducations, handleFinalise } from "@/lib/onboardingPersist";
 import { runCareerAnalysisAndReplaceRoles } from "@/lib/careerAnalysis";
+import OnboardingTutorial from "@/components/onboarding/OnboardingTutorial";
 import { mapExtractedToOnboardingState } from "@/lib/mapExtractedToOnboarding";
 
 // Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
@@ -101,6 +102,9 @@ export default function OnboardingV2() {
   const [finalising, setFinalising] = useState(false);
   const [finaliseError, setFinaliseError] = useState(null);
   const [setupComplete, setSetupComplete] = useState(false);
+  // Tutorial takes over after the springboard launch (Commit B). Fresh V2
+  // completions always see it; has_seen persistence is in handleTutorialEnd.
+  const [showTutorial, setShowTutorial] = useState(false);
   const queryClient = useQueryClient();
   // Minimal profile-shape state so StepResumeUpload's onChange/profileData
   // contract is satisfied; full persistence lands with the review-screen PR.
@@ -175,22 +179,11 @@ export default function OnboardingV2() {
     });
   }, [screen.name, screen.index]);
 
-  // Springboard success: handleFinalise flips setupComplete once the entity
-  // rows + onboarding_complete have landed. Emit the springboard step-completed
-  // + launched events (onboarding_completed itself fires inside handleFinalise)
-  // and hand off to Home with ?welcome=1. That handoff no-ops on the current
-  // Home by design — a forward-looking arrival signal for the redesign lane; it
-  // must never gate this navigation.
-  useEffect(() => {
-    if (!setupComplete) return;
-    track(EVENTS.ONBOARDING_STEP_COMPLETED, {
-      step_index: 3,
-      name: "springboard",
-      flow: "v2",
-    });
-    track(EVENTS.ONBOARDING_LAUNCHED_TO_HOME, { flow: "v2" });
-    navigate("/Home?welcome=1", { replace: true });
-  }, [setupComplete, navigate]);
+  // Navigation is driven by the tutorial (handleTutorialEnd) now, not by a
+  // setupComplete effect: on launch we render OnboardingTutorial immediately and
+  // hold there while the finalise writes run. setupComplete only enables the
+  // tutorial's exit; LAUNCHED_TO_HOME + the /Home?welcome=1 handoff fire when the
+  // user leaves the tutorial.
 
   const advance = () => {
     track(EVENTS.ONBOARDING_STEP_COMPLETED, {
@@ -340,6 +333,16 @@ export default function OnboardingV2() {
   const finaliseAndLaunch = async () => {
     if (finalising) return;
     setFinaliseError(null);
+    // Show the tutorial immediately — it renders the setup-progress bar while
+    // the finalise writes run, then enables "Go to platform" once setupComplete
+    // flips. Springboard STEP_COMPLETED fires here (launch clicked);
+    // LAUNCHED_TO_HOME fires when the user leaves the tutorial.
+    track(EVENTS.ONBOARDING_STEP_COMPLETED, {
+      step_index: 3,
+      name: "springboard",
+      flow: "v2",
+    });
+    setShowTutorial(true);
     const ctx = buildV2PersistCtx();
     try {
       await saveEducations(ctx);
@@ -369,6 +372,26 @@ export default function OnboardingV2() {
       );
   };
 
+  // Tutorial finished (Go to platform, tour-complete, or Skip tour). Persist
+  // has_seen so it doesn't re-show next session (mirrors V1), emit the launched
+  // event, and hand off to Home with ?welcome=1.
+  const handleTutorialEnd = async () => {
+    if (user?.id) {
+      const { error: flagErr } = await supabase
+        .from("profiles")
+        .update({ has_seen_onboarding_tutorial: true })
+        .eq("id", user.id);
+      if (flagErr) {
+        console.warn(
+          "[onboardingV2] could not persist has_seen_onboarding_tutorial:",
+          flagErr.message,
+        );
+      }
+    }
+    track(EVENTS.ONBOARDING_LAUNCHED_TO_HOME, { flow: "v2" });
+    navigate("/Home?welcome=1", { replace: true });
+  };
+
   // Retry = go back to the upload screen to try another file.
   const retryUpload = () => {
     setExtractionStatus(null);
@@ -379,6 +402,35 @@ export default function OnboardingV2() {
     () => `Step ${step + 1} of ${SCREENS.length}`,
     [step],
   );
+
+  // Tutorial takes over the screen once the user launches from the springboard.
+  // It shows the setup-progress bar while the finalise writes settle, then
+  // enables the exit. isReturningUser={false}: V2 completions are always
+  // first-time (the completed-user mount guard redirects returners to Home).
+  if (showTutorial) {
+    return (
+      <>
+        {finaliseError && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
+            <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-primary-dark">
+              <p>{finaliseError}</p>
+              <button
+                onClick={finaliseAndLaunch}
+                className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+        <OnboardingTutorial
+          isReturningUser={false}
+          setupComplete={setupComplete}
+          onTutorialEnd={handleTutorialEnd}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-rd-bg-page text-rd-text flex flex-col">
