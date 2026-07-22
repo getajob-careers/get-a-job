@@ -57,8 +57,13 @@ import TrackerRedirect from "./pages/TrackerRedirect";
 
 // Onboarding stays eager — imported here without lazy() so the
 // shape matches the rest of the map but no chunk fetch happens.
-// See file header comment for rationale.
-import Onboarding from "./pages/Onboarding";
+// See file header comment for rationale. This MUST import OnboardingEntry
+// (the ONBOARDING_V2 flag gate), not the raw V1 Onboarding: App.jsx routes
+// /Onboarding from LAZY_PAGES (this map), NOT from pages.config's PAGES map,
+// so pointing this at ./pages/Onboarding renders V1 unconditionally and the
+// flag gate never runs. OnboardingEntry statically imports both V1 and V2,
+// so the route stays eager either way.
+import Onboarding from "./pages/OnboardingEntry";
 
 export const LAZY_PAGES = {
   Admin,
