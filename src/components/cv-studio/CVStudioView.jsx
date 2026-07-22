@@ -1096,12 +1096,12 @@ export default function CVStudioView({
                           tailorContext ? onTailorContext?.() : onTailorNew()
                         }
                         disabled={tailoring}
-                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                       >
+                        <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
                         {tailorContext
-                          ? `Generate for ${tailorContext.role}`
-                          : "Generate a job-specific version"}
-                        <span aria-hidden="true">→</span>
+                          ? `Tailor for ${tailorContext.role}`
+                          : "Tailor to a job"}
                       </button>
                     )}
                   </div>
