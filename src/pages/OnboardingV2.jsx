@@ -19,6 +19,7 @@ import SpringboardScreenV2 from "@/components/onboarding/SpringboardScreenV2";
 import { runPrimaryDomainInference } from "@/lib/inferPrimaryDomainWrite";
 import { persistReviewProfile } from "@/lib/persistOnboardingProfileV2";
 import { saveEducations, handleFinalise } from "@/lib/onboardingPersist";
+import { runCareerAnalysisAndReplaceRoles } from "@/lib/careerAnalysis";
 import { mapExtractedToOnboardingState } from "@/lib/mapExtractedToOnboarding";
 
 // Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
@@ -348,6 +349,24 @@ export default function OnboardingV2() {
       console.error("[onboardingV2] saveEducations failed (non-fatal):", err);
     }
     await handleFinalise(ctx);
+
+    // Self-heal / roadmap producer: V2 has no survey step, so nothing else
+    // writes career_roles. Fire the shared analysis helper in the BACKGROUND
+    // (non-blocking) so the user lands on Home with the roadmap building →
+    // populating. handleFinalise already stamped last_reality_check_date, so
+    // Home's self-heal won't double-fire — this helper IS the V2 roadmap
+    // producer. Failure is non-fatal: Roadmap's manual Generate is the backstop.
+    runCareerAnalysisAndReplaceRoles({
+      userId: user.id,
+      dreamRoles: profileData.five_year_role
+        ? [profileData.five_year_role]
+        : [],
+      force: true,
+    })
+      .then(() => queryClient.invalidateQueries({ queryKey: ["careerRoles"] }))
+      .catch((err) =>
+        console.error("[onboardingV2] background career analysis failed:", err),
+      );
   };
 
   // Retry = go back to the upload screen to try another file.
