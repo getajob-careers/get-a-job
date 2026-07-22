@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { isNextDesign } from "@/lib/nextDesign";
 import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -386,6 +387,13 @@ export default function CoachThread({ variant = "dock" }) {
   const { data: educations = [] } = useEducationQuery(user?.id);
   const queryClient = useQueryClient();
   const bottomRef = useRef(null);
+  const scrollRef = useRef(null);
+  const pinnedRef = useRef(true);
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 48;
+  };
 
   // Resolve experience_id → "Role at Company" for the add-skill /
   // bullet-capture confirm cards (so they show the exact target).
@@ -398,11 +406,16 @@ export default function CoachThread({ variant = "dock" }) {
   }, [experiences]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // Pin to bottom on new message/sending ONLY if the user is already near
+    // the bottom - otherwise scrolling up to read history is yanked back down.
+    if (pinnedRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }, [conv?.messages.length, conv?.sending]);
 
   if (!conv) return null;
   const isDock = variant === "dock";
+  const alive = isNextDesign();
 
   const expandPanel = () => drawer.open({});
   const padding = isDock ? "px-3 py-3" : "px-4 py-4";
@@ -410,6 +423,8 @@ export default function CoachThread({ variant = "dock" }) {
 
   return (
     <div
+      ref={scrollRef}
+      onScroll={handleScroll}
       className={`flex-1 min-h-0 overflow-y-auto ${padding} space-y-3`}
       style={{ overscrollBehavior: "contain" }}
       data-coach-thread
@@ -450,7 +465,13 @@ export default function CoachThread({ variant = "dock" }) {
         .filter((m) => m.role !== "system")
         .map((msg, i) => (
           <React.Fragment key={msg.id || i}>
-            <MessageBubble message={msg} variant={variant} />
+            {alive ? (
+              <div className="animate-rd-msg-in">
+                <MessageBubble message={msg} variant={variant} />
+              </div>
+            ) : (
+              <MessageBubble message={msg} variant={variant} />
+            )}
             <SuggestionRow
               message={msg}
               conv={conv}
@@ -486,7 +507,7 @@ export default function CoachThread({ variant = "dock" }) {
           <span className="w-[22px] h-[22px] rounded-full bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
             <span className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
           </span>
-          <span className="inline-flex gap-1 items-center px-3 py-2 bg-rd-bg-soft rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
+          <span className={`inline-flex gap-1 items-center px-3 py-2 bg-rd-bg-soft rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]${alive ? " rd-thinking-shimmer" : ""}`}>
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />

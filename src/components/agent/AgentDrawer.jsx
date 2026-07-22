@@ -4,6 +4,7 @@ import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import CoachThread from "./CoachThread";
 import CoachInput from "./CoachInput";
+import { isNextDesign } from "@/lib/nextDesign";
 
 // Agent drawer panel. PR-A3 originally shipped a right-edge floating
 // tab; PR-#295 attempt moved the entry to a Coach sidebar nav item.
@@ -73,7 +74,7 @@ export default function AgentDrawer() {
         aria-hidden={!isOpen}
         aria-modal={isOpen ? "true" : "false"}
         className={[
-          "fixed z-[60] bg-rd-bg-card border-rd-border shadow-xl flex flex-col transition-transform duration-300 ease-out",
+          `fixed z-[60] bg-rd-bg-card border-rd-border shadow-xl flex flex-col transition-transform duration-300 ${isNextDesign() ? "ease-[cubic-bezier(0.34,1.56,0.64,1)]" : "ease-out"}`,
           isMobile
             ? `left-0 right-0 bottom-0 h-[85vh] rounded-t-[18px] border-t ${isOpen ? "translate-y-0" : "translate-y-full"}`
             : `right-0 top-0 h-full w-[520px] max-w-[100vw] border-l ${isOpen ? "translate-x-0" : "translate-x-full"}`,
