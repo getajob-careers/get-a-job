@@ -1158,7 +1158,7 @@ export default function CVStudioView({
                   rightRail
                     ? "cv-doc max-w-[720px] mx-auto px-10 py-8"
                     : alive
-                      ? "cv-doc max-w-[720px] mx-auto bg-rd-bg-card rounded-xl shadow-rd border border-rd-border px-12 py-11"
+                      ? "cv-doc max-w-[720px] mx-auto bg-white rounded-xl shadow-rd border border-rd-border px-12 py-11"
                       : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
                 }
                 style={docStyle}
