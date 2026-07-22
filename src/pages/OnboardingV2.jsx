@@ -9,7 +9,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
+import { useAuth } from "@/lib/AuthContext";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
+import DirectionScreenV2 from "@/components/onboarding/DirectionScreenV2";
+import { runPrimaryDomainInference } from "@/lib/inferPrimaryDomainWrite";
 
 // Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
 //
@@ -81,12 +84,18 @@ function ReadingAffordance() {
 
 export default function OnboardingV2() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [situation, setSituation] = useState(null);
+  const [advancing, setAdvancing] = useState(false);
   // Minimal profile-shape state so StepResumeUpload's onChange/profileData
   // contract is satisfied; full persistence lands with the review-screen PR.
-  const [profileData, setProfileData] = useState({});
-  const [, setExtracted] = useState(null);
+  const [profileData, setProfileData] = useState(
+    /** @type {Record<string, any>} */ ({}),
+  );
+  // `extracted` is read on the direction screen: its primary_domain (if CV
+  // extraction found one) is the CV-first guard for the inference write.
+  const [extracted, setExtracted] = useState(null);
 
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;
@@ -115,6 +124,42 @@ export default function OnboardingV2() {
       return;
     }
     setStep((s) => s + 1);
+  };
+
+  // Direction-screen advance. The goal pick drives the primary_domain inference
+  // write (the CV-less / no-domain fallback) under the precedence invariant —
+  // extraction wins (CV-first client guard) and the DB write only lands in a
+  // null-or-previously-inferred value (server guard). Fires exactly one
+  // audit event carrying the full inference record. The write is a soft gate:
+  // a failure never blocks onboarding, so we advance regardless.
+  const advanceFromDirection = async () => {
+    if (advancing) return;
+    setAdvancing(true);
+    try {
+      const result = await runPrimaryDomainInference({
+        userId: user?.id,
+        goalRoleId: profileData.five_year_goal_role_id,
+        situation,
+        extractedDomain: extracted?.primary_domain || null,
+      });
+      if (result.record) {
+        track(EVENTS.ONBOARDING_PRIMARY_DOMAIN_INFERRED, {
+          step_index: 2,
+          flow: "v2",
+          primary_domain: result.record.primary_domain,
+          source: result.record.source,
+          confidence: result.record.confidence,
+          goal_role_id: result.record.inputs.goalRoleId || null,
+          goal_role_family: result.record.inputs.goalRoleFamily || null,
+          situation: result.record.inputs.situation || null,
+          applied: result.applied,
+          skipped_reason: result.skippedReason,
+        });
+      }
+    } finally {
+      setAdvancing(false);
+    }
+    advance();
   };
 
   const counter = useMemo(
@@ -204,6 +249,35 @@ export default function OnboardingV2() {
                   }
                   onNext={advance}
                 />
+              </div>
+            </>
+          ) : screen.name === "direction" ? (
+            <>
+              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
+                Where are you headed?
+              </h1>
+              <p className="text-[13.5px] text-rd-text-secondary mt-2">
+                A few preferences that shape every recommendation — your goal,
+                where you want to work, and your internship track.
+              </p>
+
+              <div className="mt-6">
+                <DirectionScreenV2
+                  data={profileData}
+                  onChange={(patch) => setProfileData(patch)}
+                />
+              </div>
+
+              <div className="pt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={advanceFromDirection}
+                  disabled={advancing}
+                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </>
           ) : (
