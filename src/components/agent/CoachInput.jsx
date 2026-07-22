@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef, useLayoutEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 
@@ -16,8 +16,24 @@ import { useCoachConversation } from "@/lib/CoachConversationContext";
 
 export default function CoachInput({ variant = "dock" }) {
   const conv = useCoachConversation();
-  if (!conv) return null;
+  const taRef = useRef(null);
   const isDock = variant === "dock";
+
+  // Auto-grow so a long message reveals its full height instead of clipping the
+  // top. Reset to auto, grow to content, cap at the variant max: the DOCK is
+  // sidebar-constrained so a fixed 160px (~8 lines) is predictable; the PANEL
+  // lives in a viewport-height drawer, so a viewport-relative 40vh scales with
+  // the screen while the flex-1 thread takes the remainder. Beyond the cap it
+  // scrolls; the CSS max-h class backstops the cap on resize.
+  useLayoutEffect(() => {
+    const el = taRef.current;
+    if (!el) return;
+    const maxH = isDock ? 160 : Math.round(window.innerHeight * 0.4);
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, maxH)}px`;
+  }, [conv?.input, isDock]);
+
+  if (!conv) return null;
   const hasText = !!conv.input.trim();
   const canSend = hasText && !conv.sending;
 
@@ -42,12 +58,13 @@ export default function CoachInput({ variant = "dock" }) {
       data-variant={variant}
     >
       <textarea
+        ref={taRef}
         value={conv.input}
         onChange={(e) => conv.setInput(e.target.value)}
         onKeyDown={handleKey}
         placeholder={isDock ? "Ask about this page…" : "Message your coach…"}
         rows={1}
-        className={`flex-1 ${isDock ? "px-3 py-1.5 text-[12.5px] min-h-[34px] max-h-[88px] rounded-full" : "px-4 py-2.5 text-[14px] min-h-[42px] max-h-[120px] rounded-full"} border border-rd-border bg-rd-bg-card text-rd-text font-body resize-none placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] transition-colors`}
+        className={`flex-1 ${isDock ? "px-3 py-1.5 text-[12.5px] min-h-[34px] max-h-[160px] rounded-lg" : "px-4 py-2.5 text-[14px] min-h-[42px] max-h-[40vh] rounded-lg"} border border-rd-border bg-rd-bg-card text-rd-text font-body resize-none placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] transition-colors`}
       />
       <button
         type="button"
