@@ -57,11 +57,46 @@ in one pass. The only extra edit is the Tailwind config **keys** (`coral:` / `co
 
 ---
 
-## Slice 1 — ground dial (Option 1: ambient drift + dial lift)
+## Slice 1 — ground texture (WINNER: directional wash — implemented, held for cert)
+
+> **2026-07-22 ruling — PARTICULATE TEXTURE RETIRED AT THE CATEGORY LEVEL.** Rounds 1
+> (dots, #678) and 2 (baked paper grain) were BOTH rejected the same way: Eli's eye reads
+> any high-frequency speckle as a dirty screen. Standing rule: **no dots, no grain, no
+> speckle, no particulate texture on the ground, EVER.** This supersedes the "Option 1
+> dots" ruling at the category level. The round-2 `mix-blend-mode: soft-light` finding
+> (mean-preserving, does not grey the cream) **stays valid and carries forward to anything
+> tonal**.
+>
+> **Round-3 direction (this branch):** if the ground earns any treatment it must be SMOOTH
+> and low-frequency — tonal, not textural. `/_preview/canvas-ground` reworked to a **flat**
+> control that is now a **live candidate** (two rejections mean "nothing" may be the right
+> answer; the variants compete against flat, not against each other) plus three smooth
+> variants:
+>
+> - **Warm mottle** — large, heavily-blurred warm colour blobs (the `DepthField` family,
+>   static): cloud-like tonal depth, zero particles.
+> - **Edge wash** — a soft radial vignette; cream deepens warm toward the edges, centre
+>   breathes.
+> - **Directional wash** — a gentle diagonal, one corner slightly deeper.
+>
+> **Bar:** cream stays WARM (deepen toward warm tones, never grey; mean-preserving blends
+> where blending at all); white cards lift; the ground is **fixed** so nothing shimmers on
+> scroll; and **no visible banding** — dither-free gradients on cream can band, banding is
+> speckle's cousin and equally disqualifying, so the washes are kept low-amplitude +
+> large-scale and must be checked on a real display. **No dither** (dither is speckle).
+> HELD for Eli's eye. The winner — or flat — becomes the token-level ground; the retired
+> dot grid (`GrainGround`) comes out when it ships.
+>
+> **Round 2 (rejected, kept for history):** turbulence noise baked once into a 128px
+> grayscale tile, laid `soft-light` (no runtime feTurbulence). Rejected as particulate. Its
+> generator (`scripts/gen-canvas-grain.mjs`) + tile were removed when the category was
+> retired; the soft-light finding survives.
+
+### Round 1 (SUPERSEDED — dots retired, kept for history)
 
 The flag-on shell already renders two static `-z-10` ground layers: `DepthField` (cream
 `--rd-field` base + two large blurred colour blobs) and `GrainGround` (a dot-grid in the
-line tone). The bones are right; it reads flat. Eli's ruling names two axes:
+line tone). The bones are right; it reads flat. Eli's original (superseded) ruling named two axes:
 
 - **Living** — the two `DepthField` colour blobs drift slowly (40–60s loops, ~20–30px),
   `prefers-reduced-motion` → **fully static**. **Dots stay crisp** (no motion on the grid).
@@ -114,10 +149,26 @@ refresh/back never replays it.
 
 ## Decision log
 
-- **2026-07-22** — Ground fork ruled **Option 1** (ambient drift + dial lift): token-level,
-  flag-on only, dots crisp, 40–60s loops, `prefers-reduced-motion` fully static, **no**
-  `feTurbulence` (the 2026-07-18 retirement stands). Present 2–3 dialed variants on a preview
-  before wiring the canvas.
+- **2026-07-22 (round 3 result)** — **Directional wash WINS** and beat flat on Eli's eye. Flat, warm mottle, and edge wash are out (mottle's cool top-right corner a contributing rejection factor). Implemented in #678: token `--rd-ground-wash` + `.rd-ground`, replacing the `GrainGround` dot grid; the `DepthField` blobs removed. Normal-composite (no blend mode), so the `-z-10` isolate shell can't affect it. Cream + wash only; particulate retirement stands. HELD for Eli's certification on the real flag-on route.
+- **2026-07-22 (round 3)** — **Particulate texture retired at the CATEGORY level.** Round 2's
+  baked paper grain was rejected too — same failure as dots (reads as a dirty screen). Standing
+  rule: no dots, no grain, no speckle, no particulate ground texture, ever. Round 3 = smooth
+  low-frequency tonal only (warm mottle / edge wash / directional wash) against a flat control
+  that is now a **live candidate**; banding is disqualifying (speckle's cousin), no dither. The
+  soft-light mean-preserving finding carries forward to anything tonal. HELD for Eli's eye.
+- **2026-07-22 (round 2, SUPERSEDED by round 3)** — Ground **dot direction retired**: the #678 dot-grain bake-off
+  was rejected wholesale (dots read as a dirty screen, not paper). This **supersedes the dots
+  portion of the Option 1 ruling below** ("dots crisp / grain = the dot-grid texture only").
+  New target: fine organic paper fiber like the pre-retirement grain, reached via a
+  turbulence tile baked **once** to a static image (no runtime feTurbulence, which stays
+  retired) and laid `soft-light` so it does not grey the cream. Bake-off at
+  `/_preview/canvas-ground` — flat control + faint + present — HELD for Eli's eye. Drift/Lift
+  axes unaffected.
+- **2026-07-22** — ~~Ground fork ruled **Option 1** (ambient drift + dial lift): dots crisp,
+  `feTurbulence` retirement stands.~~ **Dots superseded by round-2 above**; the Living
+  (blob drift) + Lift halves stand. token-level, flag-on only, 40–60s loops,
+  `prefers-reduced-motion` fully static. Present 2–3 dialed variants on a preview before
+  wiring the canvas.
 - **2026-07-22** — Token rename ruled **first slice**: `rd-coral*` → `rd-primary*`, role-named,
   zero value change. `#60617D` = canvas primary; `#D6421F` retired.
 - **2026-07-22** — Arrival-moment plan **accepted as specced**, including the bounded wait that

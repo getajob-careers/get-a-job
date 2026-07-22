@@ -383,3 +383,10 @@ Trigger: the Studio top-bar Undo restored the ENTIRE pre-edit model to cv_data v
 What I did wrong: treated undo as "restore the whole snapshot" when every OTHER write in the layer is per-field + mediated + logged. A whole-model write is a second, unmediated path that reintroduces divergence the moment the snapshot is stale in any non-edited field.
 Rule for next time: in the CV write layer, NEVER write the whole model to cv_data (persist(wholePrevModel)). Every mutation - including undo - is a per-field mediated write (revertCvDataField for the cv_data cache + the mediated source revert), so it touches exactly the field it names, is logged, and is serialized. When testing an undo path, drive it AFTER an intervening edit to a different field, not just the immediate single-field case.
 ---
+
+---
+2026-07-22 — `git add` staged only deletions; broken commit reached deploy
+Trigger: Vercel build failed on `./assets/canvas-grain.png` I had already removed; the committed tree still imported it while my working tree did not.
+What I did wrong: ran `git add -A <file> <dir>...` (mixed a modified file with a deleted dir), then committed without checking the staged set. Only the deletions staged; the CanvasGroundPreview rewrite + doc edit stayed unstaged. Local `npm run build` passed because it builds the WORKING tree, so I trusted a green build that did not match the commit.
+Rule for next time: before every commit run `git status --short` and confirm each intended file shows a change in the FIRST column (staged), not just the second (working tree). Local build proves the working tree, never the commit; the deployed build is the real gate, so always poll it after push.
+---

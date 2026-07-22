@@ -1,30 +1,32 @@
 import React from "react";
 
-// GrainGround - the canonical ground TEXTURE (SINGLE SOURCE OF TRUTH). As of
-// 2026-07-18 this is the mockup's DOT GRID, not grain: a subtle radial-gradient
-// dot pattern in the border tone (--rd-border), 1.1px dots on a 26px grid - the
-// exact texture the canonical handoff mockup paints on its content area (see
-// docs/design/reference/app-handoff-mockup.html). The old feTurbulence grain
-// retired to the graveyard: it was greying the cream (Eli's ruling). Painted on a
-// transparent `-z-10` pointer-events-none layer over DepthField, so it never
-// touches text AA or card-vs-ground elevation. Token-driven, so it re-tints.
+// GrainGround - the canonical ground TEXTURE layer (SINGLE SOURCE OF TRUTH),
+// mounted flag-on in Layout + CanvasShell and re-exported as the preview's
+// CanvasTexture. As of 2026-07-22 it renders the DIRECTIONAL WASH (Slice 1
+// winner): a smooth, warm cream deepening along one diagonal, applied via the
+// token-level `.rd-ground` class (`--rd-ground-wash`).
 //
-// (File name kept as GrainGround for now so existing imports/re-exports resolve;
-// a rename to DotGround is a follow-up cleanup. Verify visual changes by
-// pixel-diff, not computed style. See the ground spec in canvas-tokens.md.)
-
-const DOT_GRID =
-  "radial-gradient(var(--rd-border, #E0D2B9) 1.1px, transparent 1.1px)";
+// History: dot grid (2026-07-18) -> retired. feTurbulence grain -> retired.
+// PARTICULATE TEXTURE IS RETIRED AT THE CATEGORY LEVEL (dots + baked grain both
+// read as a dirty screen; Eli 2026-07-22). The wash is the only ground treatment,
+// and it beat a flat ground on Eli's eye. See canvas-tokens.md + the phase-2 plan.
+//
+// The wash is NORMAL-COMPOSITE (a plain alpha gradient, no mix-blend-mode), so it
+// renders identically regardless of the -z-10 isolate stacking context - the
+// blend cannot be occluded/altered the way a blend-mode layer could. Painted on a
+// transparent `-z-10` pointer-events-none layer over DepthField's cream base, so
+// it never touches text AA or card-vs-ground elevation. Fixed to the shell (not
+// the scroll container), so it does not shimmer on scroll.
+//
+// (File name kept as GrainGround so existing imports/re-exports resolve; a rename
+// to GroundWash is a follow-up cleanup. Verify visual changes by pixel-diff, not
+// computed style. See the ground spec in canvas-tokens.md.)
 
 export default function GrainGround() {
   return (
     <div
       aria-hidden="true"
-      className="absolute inset-0 -z-10 pointer-events-none"
-      style={{
-        backgroundImage: DOT_GRID,
-        backgroundSize: "26px 26px",
-      }}
+      className="rd-ground absolute inset-0 -z-10 pointer-events-none"
     />
   );
 }
