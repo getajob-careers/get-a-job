@@ -57,36 +57,40 @@ in one pass. The only extra edit is the Tailwind config **keys** (`coral:` / `co
 
 ---
 
-## Slice 1 — ground texture (ROUND 2: baked paper grain)
+## Slice 1 — ground texture (ROUND 3: smooth tonal, or nothing)
 
-> **2026-07-22 ruling — supersedes the DOTS portion of "Option 1" below.** Round 1's
-> dialed dot-grain variants (#678) were **all rejected** and the **dot direction is
-> retired**: dots read as a dirty screen, not paper. New target: the ground should feel
-> like the canvas grain did _before_ the feTurbulence retirement — fine organic **paper
-> fiber** — reached WITHOUT runtime feTurbulence. This retires "dots crisp / 'grain' =
-> the dot-grid texture only." The separate **Living** (blob drift) and **Lift** axes are
-> unaffected by this ruling.
+> **2026-07-22 ruling — PARTICULATE TEXTURE RETIRED AT THE CATEGORY LEVEL.** Rounds 1
+> (dots, #678) and 2 (baked paper grain) were BOTH rejected the same way: Eli's eye reads
+> any high-frequency speckle as a dirty screen. Standing rule: **no dots, no grain, no
+> speckle, no particulate texture on the ground, EVER.** This supersedes the "Option 1
+> dots" ruling at the category level. The round-2 `mix-blend-mode: soft-light` finding
+> (mean-preserving, does not grey the cream) **stays valid and carries forward to anything
+> tonal**.
 >
-> **Round-2 approach (this branch):** render turbulence-style fractal noise ONCE into a
-> small seamless grayscale tile (`scripts/gen-canvas-grain.mjs` → `canvas-grain.png`,
-> 128px, ~15KB) and tile it as a static `background-image`. At runtime the browser only
-> blits a bitmap — **no feTurbulence is evaluated** (the 2026-07-18 retirement stands).
-> The tile is laid with `mix-blend-mode: soft-light` (mean-preserving), so it modulates
-> the cream WITHOUT greying it — the exact defect that retired the old multiply grain.
-> The ground is **fixed**, so the tile never moves on scroll (no shimmer).
+> **Round-3 direction (this branch):** if the ground earns any treatment it must be SMOOTH
+> and low-frequency — tonal, not textural. `/_preview/canvas-ground` reworked to a **flat**
+> control that is now a **live candidate** (two rejections mean "nothing" may be the right
+> answer; the variants compete against flat, not against each other) plus three smooth
+> variants:
 >
-> **Bake-off** at `/_preview/canvas-ground`: three variants — a completely **flat**
-> untextured ground (the control: does grain earn its place at all?), grain **faint**
-> (soft-light @ 0.5), grain **present** (soft-light @ 0.85). HELD for Eli's eye. The
-> winner becomes a token-level ground treatment replacing the `GrainGround` dot grid on
-> the flag-on canvas.
+> - **Warm mottle** — large, heavily-blurred warm colour blobs (the `DepthField` family,
+>   static): cloud-like tonal depth, zero particles.
+> - **Edge wash** — a soft radial vignette; cream deepens warm toward the edges, centre
+>   breathes.
+> - **Directional wash** — a gentle diagonal, one corner slightly deeper.
 >
-> **Tradeoffs surfaced:** ~15KB grayscale PNG (co-located Vite asset, not a giant inline
-> data-URI); fine grain makes tile repeats invisible without stitching; HiDPI softens the
-> tile slightly (fine for grain; the fixed ground removes scroll moire); `mix-blend-mode`
-> composites correctly in the preview's own stacking context — the production port into
-> the `-z-10` isolate shell must **re-verify the blend** (or bake a normal-composite tile)
-> per the graveyard notes in `canvas-tokens.md`.
+> **Bar:** cream stays WARM (deepen toward warm tones, never grey; mean-preserving blends
+> where blending at all); white cards lift; the ground is **fixed** so nothing shimmers on
+> scroll; and **no visible banding** — dither-free gradients on cream can band, banding is
+> speckle's cousin and equally disqualifying, so the washes are kept low-amplitude +
+> large-scale and must be checked on a real display. **No dither** (dither is speckle).
+> HELD for Eli's eye. The winner — or flat — becomes the token-level ground; the retired
+> dot grid (`GrainGround`) comes out when it ships.
+>
+> **Round 2 (rejected, kept for history):** turbulence noise baked once into a 128px
+> grayscale tile, laid `soft-light` (no runtime feTurbulence). Rejected as particulate. Its
+> generator (`scripts/gen-canvas-grain.mjs`) + tile were removed when the category was
+> retired; the soft-light finding survives.
 
 ### Round 1 (SUPERSEDED — dots retired, kept for history)
 
@@ -145,7 +149,13 @@ refresh/back never replays it.
 
 ## Decision log
 
-- **2026-07-22 (round 2)** — Ground **dot direction retired**: the #678 dot-grain bake-off
+- **2026-07-22 (round 3)** — **Particulate texture retired at the CATEGORY level.** Round 2's
+  baked paper grain was rejected too — same failure as dots (reads as a dirty screen). Standing
+  rule: no dots, no grain, no speckle, no particulate ground texture, ever. Round 3 = smooth
+  low-frequency tonal only (warm mottle / edge wash / directional wash) against a flat control
+  that is now a **live candidate**; banding is disqualifying (speckle's cousin), no dither. The
+  soft-light mean-preserving finding carries forward to anything tonal. HELD for Eli's eye.
+- **2026-07-22 (round 2, SUPERSEDED by round 3)** — Ground **dot direction retired**: the #678 dot-grain bake-off
   was rejected wholesale (dots read as a dirty screen, not paper). This **supersedes the dots
   portion of the Option 1 ruling below** ("dots crisp / grain = the dot-grid texture only").
   New target: fine organic paper fiber like the pre-retirement grain, reached via a

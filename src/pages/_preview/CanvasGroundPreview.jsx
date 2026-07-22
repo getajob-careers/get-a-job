@@ -1,55 +1,95 @@
-// Slice 1 (Phase 2) - canvas ground bake-off, ROUND 2.
+// Slice 1 (Phase 2) - canvas ground bake-off, ROUND 3.
 //
-// Round 1 (#678) tested dialed dot-grain variants. Eli's ruling: all three
-// rejected AND the dot-grain direction retired - dots read as a dirty screen,
-// not paper. (Supersedes the earlier "Option 1 dots" ruling.)
+// Rounds 1 (dots, #678) and 2 (baked grain) were BOTH rejected the same way:
+// Eli's eye reads any high-frequency speckle as a dirty screen. Ruling: no dots,
+// no grain, no speckle, no particulate texture on the ground, EVER. (Logged in
+// docs/design/phase2-canvas-arrival-plan.md, superseding the "Option 1 dots"
+// ruling at the category level.)
 //
-// New target: the ground should feel like the canvas grain did BEFORE the
-// feTurbulence retirement - fine organic PAPER fiber - reached WITHOUT runtime
-// feTurbulence (the retirement stands). Approach: turbulence-style fractal noise
-// baked ONCE into a small seamless grayscale tile (scripts/gen-canvas-grain.mjs
-// -> assets/canvas-grain.png, 128px, ~15KB). At runtime the browser only blits a
-// bitmap; no filter is evaluated. The tile is laid with `mix-blend-mode:
-// soft-light` (mean-preserving), so it modulates the cream WITHOUT greying it -
-// the exact defect that retired the old multiply grain.
+// Round 3: if the ground earns any treatment, it must be SMOOTH and
+// low-frequency - tonal, not textural. Three smooth variants against a FLAT
+// control that is now a live candidate (two rejections mean "nothing" may be the
+// right answer - the variants compete against flat, not against each other):
+//   - flat        : pure cream, no treatment
+//   - mottle      : large, heavily-blurred warm colour blobs (the DepthField
+//                   family, static) - cloud-like tonal variation, zero particles
+//   - vignette    : soft radial edge wash, cream deepening warm toward the edges
+//                   so the centre breathes
+//   - directional : a gentle diagonal wash, one corner slightly deeper
 //
-// Three variants, one of which is a completely FLAT untextured ground, so Eli can
-// judge whether grain earns its place at all. Same bar as round 1: real canvas
-// palette (#F4EBDA ground / #FFFCF4 cards / #60617D primary), white cards lifting
-// off the ground, no shimmer on scroll (the ground is FIXED; content scrolls over
-// it, so the tile never moves). DEV-only, self-contained, no auth.
-//
-// This is the bake-off, not the shipped implementation: once Eli picks a variant,
-// the winner becomes a token-level ground treatment on the flag-on canvas.
+// Bar (unchanged): real canvas palette (#F4EBDA ground / #FFFCF4 cards / #60617D
+// primary), cream stays WARM (deepen toward warm tones, never grey), white cards
+// lift off the ground, no shimmer on scroll (ground is FIXED), and NO visible
+// banding (banding is speckle's cousin and equally disqualifying - washes are
+// kept low-amplitude and large-scale; confirm on a real display). The soft-light
+// (mean-preserving) finding from round 2 carries forward to anything tonal.
+// DEV-only, self-contained, no auth. Bake-off, not the shipped implementation.
 
 import React, { useState, useEffect } from "react";
 import { Download } from "lucide-react";
-import grainUrl from "./assets/canvas-grain.png";
 
-// Each variant = how the baked grain tile is applied over the cream ground.
-// opacity is the ONLY dial (soft-light strength); grain:false = the flat control.
+// Warm deepening tone for the washes = the --rd-shadow hue (warm brown), so the
+// cream deepens without greying. Kept low-alpha + large-scale to avoid banding.
+const WARM = "96, 72, 62";
+
 const VARIANTS = [
   {
     id: "flat",
     label: "Flat",
-    note: "No texture - pure cream ground. The control: does grain earn its place?",
-    grain: false,
+    note: "Pure cream, no treatment. A live candidate: after two rejections, nothing may be right.",
   },
   {
-    id: "faint",
-    label: "Grain - faint",
-    note: "Baked turbulence tile, soft-light @ 0.5 - fiber you feel more than see",
-    grain: true,
-    opacity: 0.5,
+    id: "mottle",
+    label: "Warm mottle",
+    note: "Large blurred warm blobs (DepthField family, static) - cloud-like tonal depth, zero particles",
+    mottle: true,
   },
   {
-    id: "present",
-    label: "Grain - present",
-    note: "Same tile, soft-light @ 0.85 - paper fiber clearly there, cream unchanged",
-    grain: true,
-    opacity: 0.85,
+    id: "vignette",
+    label: "Edge wash",
+    note: "Soft radial vignette - cream deepens warm toward the edges, centre breathes",
+    wash: `radial-gradient(125% 115% at 50% 42%, transparent 52%, rgba(${WARM}, 0.06) 100%)`,
+  },
+  {
+    id: "directional",
+    label: "Directional wash",
+    note: "Gentle diagonal wash - one corner slightly deeper, even and smooth",
+    wash: `linear-gradient(152deg, transparent 42%, rgba(${WARM}, 0.05) 100%)`,
   },
 ];
+
+// The DepthField blobs, mirrored from src/components/redesign/DepthField.jsx
+// (single source of truth) so the bake-off shows the real canonical treatment.
+function MottleLayer() {
+  return (
+    <>
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: 460,
+          height: 460,
+          top: -150,
+          right: -130,
+          background: "var(--rd-primary)",
+          filter: "blur(140px)",
+          opacity: 0.1,
+        }}
+      />
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: 360,
+          height: 360,
+          bottom: -110,
+          left: "30%",
+          background: "var(--rd-teal)",
+          filter: "blur(130px)",
+          opacity: 0.12,
+        }}
+      />
+    </>
+  );
+}
 
 function DocLaneCard() {
   return (
@@ -87,7 +127,7 @@ function DocLaneCard() {
           <p className="text-[13px] text-rd-text leading-[1.6]">
             Business Administration student focused on digital innovation, with
             hands-on product and analytics experience. The document lane is a
-            white card lifting off the textured ground.
+            white card lifting off the ground.
           </p>
         </div>
       </div>
@@ -139,7 +179,7 @@ function CoachCard() {
 }
 
 export default function CanvasGroundPreview() {
-  const [v, setV] = useState("present");
+  const [v, setV] = useState("mottle");
   const variant = VARIANTS.find((x) => x.id === v);
 
   // Force the flag-on canvas palette so the bake-off shows the REAL ground
@@ -153,23 +193,22 @@ export default function CanvasGroundPreview() {
     };
   }, []);
 
+  const isMottle = !!variant.mottle;
+  const washStyle = variant.wash
+    ? { backgroundImage: variant.wash }
+    : undefined;
+
   return (
     <div className="relative min-h-screen">
-      {/* FIXED ground - the cream field + (optionally) the baked grain. Fixed so
-          the tile never moves as content scrolls over it => no shimmer. Grain is
-          a PREVIEW inline treatment; the winner becomes a token (no token yet). */}
-      <div className="fixed inset-0 bg-rd-bg-page" aria-hidden="true">
-        {variant.grain && (
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `url(${grainUrl})`,
-              backgroundRepeat: "repeat",
-              mixBlendMode: "soft-light",
-              opacity: variant.opacity,
-            }}
-          />
-        )}
+      {/* FIXED ground - cream field + (optionally) a smooth tonal wash. Fixed so
+          nothing moves as content scrolls over it => no shimmer. These are
+          PREVIEW inline treatments; the winner (or flat) becomes a token. */}
+      <div
+        className="fixed inset-0 bg-rd-bg-page overflow-hidden"
+        aria-hidden="true"
+      >
+        {isMottle && <MottleLayer />}
+        {washStyle && <div className="absolute inset-0" style={washStyle} />}
       </div>
 
       {/* Content sits above the fixed ground. */}
@@ -177,14 +216,15 @@ export default function CanvasGroundPreview() {
         {/* Controls on a plain card strip so the ground below is a clean canvas. */}
         <div className="border-b border-rd-border bg-rd-bg-card px-6 py-4">
           <h1 className="font-display font-extrabold text-[20px] text-rd-text mb-1">
-            Canvas ground - grain bake-off (round 2)
+            Canvas ground - smooth bake-off (round 3)
           </h1>
-          <p className="text-[12.5px] text-rd-text-secondary mb-3 max-w-[760px]">
-            Dots are retired. This tests baked paper-fiber grain (turbulence
-            rendered once to a tiling image, no runtime feTurbulence) against a
-            completely flat ground. Pick where the white cards lift cleanly, the
-            grain reads as paper (not a screen), and the cream is not greyed.
-            Scroll: the ground is fixed, so grain never shimmers.
+          <p className="text-[12.5px] text-rd-text-secondary mb-3 max-w-[820px]">
+            Particulate texture is retired (dots, then grain, both read as a
+            dirty screen). This tests SMOOTH, low-frequency tonal treatments
+            against a flat ground. Flat is a live candidate - pick a variant
+            only if it clearly earns its place over nothing. Bar: cream stays
+            warm (never grey), white cards lift, no scroll shimmer, no visible
+            banding.
           </p>
           <div className="inline-flex bg-rd-bg-soft rounded-full p-1">
             {VARIANTS.map((o) => (
@@ -215,18 +255,18 @@ export default function CanvasGroundPreview() {
           <RailCard />
         </div>
 
-        {/* Extra height so Eli can scroll and confirm the fixed ground / grain
-            does not shimmer or drift under the content. */}
+        {/* Extra height so Eli can scroll and confirm the fixed ground / wash
+            does not shimmer, drift, or reveal banding under the content. */}
         <div className="px-4 pb-16 flex gap-3">
           <div className="rd-lift rd-r-lg flex-1 p-6">
             <p className="text-[13px] font-display font-bold text-rd-text mb-1">
               Scroll check
             </p>
             <p className="text-[12.5px] text-rd-text-secondary leading-relaxed max-w-[560px]">
-              Scroll this page. The grain belongs to a fixed ground layer, so it
-              stays put while these cards move over it - no moire, no shimmer.
-              White cards keep lifting off the textured cream at any scroll
-              position.
+              Scroll this page. The wash belongs to a fixed ground layer, so it
+              stays put while these cards move over it - no drift, no shimmer.
+              Watch the large open cream areas for banding (smooth stepping in
+              the gradient); there should be none.
             </p>
           </div>
         </div>
