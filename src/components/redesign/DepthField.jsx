@@ -4,7 +4,7 @@ import React from "react";
 // field tone (--rd-field) behind the content, an absolute -z-10 pointer-events-none
 // layer inside the isolate shell. Token-driven, so it re-tints with the palette.
 //
-// The GrainGround layer (now the directional WASH, the Slice 1 winner) composites
+// The GroundWash layer (now the directional WASH, the Slice 1 winner) composites
 // on top of this (render ORDER: DepthField base first, then the wash).
 //
 // The two large blurred colour BLOBS were RETIRED here (2026-07-22): as the round-3

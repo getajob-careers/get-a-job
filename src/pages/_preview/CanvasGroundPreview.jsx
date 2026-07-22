@@ -7,7 +7,7 @@
 // a contributing rejection factor). See docs/design/phase2-canvas-arrival-plan.md.
 //
 // This route now shows the WINNER AS IMPLEMENTED - the real production ground
-// components (`DepthField` cream base + `GrainGround` directional wash, mounted in
+// components (`DepthField` cream base + `GroundWash` directional wash, mounted in
 // a `relative isolate` shell exactly like Layout/CanvasShell), so it is a true
 // regression reference and cannot drift from production. It also proves the wash
 // renders correctly inside the -z-10 isolate stacking context on a non-auth route.
@@ -16,7 +16,7 @@
 import React, { useEffect } from "react";
 import { Download } from "lucide-react";
 import DepthField from "@/components/redesign/DepthField";
-import GrainGround from "@/components/redesign/GrainGround";
+import GroundWash from "@/components/redesign/GroundWash";
 
 function DocLaneCard() {
   return (
@@ -123,7 +123,7 @@ export default function CanvasGroundPreview() {
     // the ground shows through and stays fixed (no scroll shimmer).
     <div className="relative isolate h-screen overflow-hidden bg-rd-bg-page font-body text-rd-text flex flex-col">
       <DepthField />
-      <GrainGround />
+      <GroundWash />
 
       <div className="relative flex-1 overflow-y-auto">
         <div className="border-b border-rd-border bg-rd-bg-card px-6 py-4">
@@ -133,7 +133,7 @@ export default function CanvasGroundPreview() {
           <p className="text-[12.5px] text-rd-text-secondary max-w-[820px]">
             Regression reference, not a bake-off. This is the winning ground as
             shipped: the real <code>DepthField</code> cream base +{" "}
-            <code>GrainGround</code> directional wash, in a production-matching{" "}
+            <code>GroundWash</code> directional wash, in a production-matching{" "}
             <code>relative isolate</code> shell. Warm cream deepening along one
             diagonal, smooth, no particulate, white cards lifting off it.
             Scroll: the ground is fixed, no shimmer, no banding.

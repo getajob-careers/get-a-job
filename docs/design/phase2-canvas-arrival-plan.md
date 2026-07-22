@@ -5,7 +5,7 @@ code_paths:
   - src/index.css
   - tailwind.config.js
   - src/components/redesign/DepthField.jsx
-  - src/components/redesign/GrainGround.jsx
+  - src/components/redesign/GroundWash.jsx
   - src/components/redesign/shell/CanvasShell.jsx
   - src/pages/Home.jsx
   - src/pages/OnboardingV2.jsx

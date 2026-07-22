@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import CoachDock from "@/components/agent/CoachDock";
 import DepthField from "@/components/redesign/DepthField";
-import GrainGround from "@/components/redesign/GrainGround";
+import GroundWash from "@/components/redesign/GroundWash";
 import CanvasLogo from "./CanvasLogo";
 import CanvasSidebar from "./CanvasSidebar";
 import CanvasAvatarChip from "./CanvasAvatarChip";
@@ -19,7 +19,7 @@ import CanvasAvatarChip from "./CanvasAvatarChip";
 // react-query, agent drawer, coach) come from Layout above.
 //
 // `relative isolate` makes this a stacking context - REQUIRED so the -z-10
-// DepthField/GrainGround ground layers paint (see canvas-tokens.md ground spec).
+// DepthField/GroundWash ground layers paint (see canvas-tokens.md ground spec).
 const selectName = (p) => (p ? { full_name: p.full_name } : p);
 
 export default function CanvasShell({ children, revealMode }) {
@@ -41,7 +41,7 @@ export default function CanvasShell({ children, revealMode }) {
       className="relative isolate flex h-[100dvh] max-w-[1400px] mx-auto px-4 md:px-6 py-5 flex-col overflow-hidden min-h-0 bg-rd-bg-page font-body text-rd-text"
     >
       <DepthField />
-      <GrainGround />
+      <GroundWash />
       {!revealMode && (
         <div
           aria-hidden="true"

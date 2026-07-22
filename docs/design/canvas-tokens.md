@@ -34,7 +34,7 @@ Both read the SAME signal: a `data-next-design` attribute on `<html>`, set once
 **Token gating:** `src/index.css` keeps the v1 production values in `:root`
 (byte-identical to old `main`) and puts the Yishai values under
 `:root[data-next-design]` (specificity `(0,1,1)` beats `(0,0,1)`). **Ground
-gating:** `Layout` mounts DepthField + GrainGround and drops the `<main>` bg only
+gating:** `Layout` mounts DepthField + GroundWash and drops the `<main>` bg only
 when `isNextDesign()`; flag-off keeps the opaque `<main>` (no ground to occlude).
 `scripts/check-ground.mjs` understands the flag-off-gated bg.
 
@@ -104,21 +104,21 @@ byte-identity, never on the canvas. Rename was mechanical (zero value change).
 The ground is a **cream base + a smooth DIRECTIONAL WASH**, a `-z-10` stack on the
 isolate shell, in this order:
 **page `#F4EBDA` (fallback) -> DepthField (cream field `--rd-field #F4EBDA`) ->
-directional wash (`GrainGround`, the `.rd-ground` treatment)**.
+directional wash (`GroundWash`, the `.rd-ground` treatment)**.
 
 Particulate texture is **retired at the category level** (dots + baked grain both
 read as a dirty screen - see the graveyard). The blobs are retired too (they lost
 as the round-3 "warm mottle" variant). The winner beat a flat ground on Eli's eye.
 
 **SINGLE SOURCE OF TRUTH:** the base + treatment live in
-`src/components/redesign/DepthField.jsx` + `GrainGround.jsx` (the latter now
+`src/components/redesign/DepthField.jsx` + `GroundWash.jsx` (the latter now
 renders the WASH, not a texture - a rename to `GroundWash` is a follow-up so
 existing imports/re-exports stay valid). The canvas
 (`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them and the
 production shell imports them, so the canvas and the real app render the identical
 ground and cannot fork.
 
-- **Directional wash** (`GrainGround.jsx` -> `.rd-ground`): token
+- **Directional wash** (`GroundWash.jsx` -> `.rd-ground`): token
   `--rd-ground-wash = linear-gradient(152deg, transparent 42%, rgba(96,72,62,0.05)
 100%)` - warm cream deepening along one diagonal. **Normal-composite** (a plain
   alpha gradient, NO `mix-blend-mode`), so it renders identically regardless of the

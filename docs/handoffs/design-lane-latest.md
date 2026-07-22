@@ -9,7 +9,7 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 - **Statusline:** `~/.claude/settings.json` runs `~/.claude/statusline-command.sh`, showing context-usage % first (green `<60`, yellow `60-79`, bold red `>=80`), then model / branch / dir. Derived from the `context_window.used_percentage` stdin field. Proactively offer a handoff at ~80%.
 - **Ledger reports:** end every report with a compact ledger (PR, SHA, state, claims to verify, evidence pointers, open questions) - no narrative recap.
 - **Token tiering (HANDOFF-ONLY, per Eli):** for preview scaffolds + variant iteration, drop a model tier via `/model`; step back up for token-level implementation commits and craft-critical work. `/model` is Eli-driven (the model cannot self-switch). Do NOT mirror this into CLAUDE.md - handoff only.
-- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents, now MERGED to main in `.claude/agents/`). NOTE: freshly-added agents are not invocable mid-session (registry is fixed at session start); they load in a fresh session - smoke them first (see fresh-session tasks).
+- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents, now MERGED to main in `.claude/agents/`). NOTE (corrected 2026-07-22, verified empirically): the agent registry loads at **process start**, and a `/clear` does NOT re-scan `.claude/agents/`. So freshly-added agents need a full Claude Code **quit + relaunch** to become invocable - a `/clear` is not enough. Confirmed: invoking `explorer` in the post-`/clear` session returned `Agent type 'explorer' not found` (list = built-ins only). After a real relaunch they should appear in the Agent tool's available-types list - smoke them first (see fresh-session tasks).
 
 ## Identity
 
@@ -19,13 +19,13 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 ## Owned paths
 
 - CV Studio: `src/components/cv-studio/*` (CVStudioView, CVStudioLive); `src/lib/{writeProfileEntity,serializedWriteThrough,revertCvDataField,cvDataAdapter,useSeededCvModel}`; `supabase/functions/_shared/write-mediation.ts` (client+edge shared write layer).
-- Redesign surface: `src/components/redesign/*` (home: ThreeTabHome, CvMatchedRolesRail, useTopMatches; shell: CanvasShell/Sidebar/CoachDock; ground: DepthField/GrainGround); `src/pages/_preview/*` canvas previews.
+- Redesign surface: `src/components/redesign/*` (home: ThreeTabHome, CvMatchedRolesRail, useTopMatches; shell: CanvasShell/Sidebar/CoachDock; ground: DepthField/GroundWash); `src/pages/_preview/*` canvas previews.
 - Tokens/palette: `src/index.css` (`--rd-*` vars), `tailwind.config.js` (`rd-*` utilities), the `design-craft` skill doc.
 - Home is this lane's - owns the `?welcome=1` arrival moment.
 
 ## Current arc: canvas Phase 2 (Slice 1 DONE)
 
-- **Slice 1 ground = DONE + MERGED.** #678 squash-merged to main (merge SHA **14f0c06**, certified head 6269b15). The ground is the **directional wash**: token `--rd-ground-wash` + `.rd-ground`; `GrainGround.jsx` renders it, `DepthField` blobs removed, cream + wash only. Certified by Eli on the real route `/Home?next=1`. Hub verifies prod deploy goes READY before anything else proceeds.
+- **Slice 1 ground = DONE + MERGED.** #678 squash-merged to main (merge SHA **14f0c06**, certified head 6269b15). The ground is the **directional wash**: token `--rd-ground-wash` + `.rd-ground`; `GroundWash.jsx` (renamed from `GrainGround.jsx`, see below) renders it, `DepthField` blobs removed, cream + wash only. Certified by Eli on the real route `/Home?next=1`. Hub verifies prod deploy goes READY before anything else proceeds.
 - **Subagents = MERGED.** #681 squash-merged to main (merge SHA **6fa5d9d**): `explorer` / `gatekeeper` / `sweeper` in `.claude/agents/` + CLAUDE.md delegation + canary sections.
 - Prior: #659 CV RED Ph1 (6b00d72), #675 onboarding V2 (68c229e), #677 token rename (1697063), #676 lessons (1339ef9) - all merged/live.
 
@@ -47,13 +47,16 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 - **(d) CV-generation ring/theater.** Confirmed in plan, queued behind (a)-(c).
 - **(e) Slice 2 (arrival moment).** Keeps its place in the phase-2 queue. Sequencing of (a)-(d) against it happens at fresh-session start WITH THE HUB.
 
-## Fresh-session first tasks (in order)
+## Fresh-session first tasks - STATUS (post-relaunch session 2026-07-22)
 
-1. **Runtime smoke the three subagents** (now on main): invoke `explorer`, `gatekeeper`, `sweeper` once each with a real task; confirm they run and return the intended tight output. (Could not be done in the authoring session - registry was fixed at start.)
-2. **`GrainGround` -> `GroundWash` naming-only micro-PR** (rename the file/component + re-exports; zero behaviour change; the "grain"/"dot" names are now stale since it renders the wash).
-3. **Queue item (a)** - the CV Studio quick-fix PR.
+Relaunch took: `explorer`/`gatekeeper`/`sweeper` all appear in the Agent available-types list.
 
-Then sequence (b)-(e) with the hub.
+1. **Subagent smoke - DONE, all three healthy.** `explorer` (read-only, path:line + tight conclusion; found primary_domain guard: client `inferPrimaryDomainWrite.js:44-52` + server WHERE-clause `:106-117` + migration CHECK + test). `sweeper` (grep/count only; `rd-coral` = **9 tokens across 5 lines** in `src/components/onboarding/ReviewScreenV2.jsx` + 16 docs refs; trackColor exception clean). `gatekeeper` (Bash/Read; GATE GREEN: lint/typecheck[522-baseline]/build/test[1586] all pass). Each ran on haiku (per its `.claude/agents/*.md`) and respected its allowlist.
+   - **Correction to prior handoff:** the dead `rd-coral` refs are in `src/components/onboarding/ReviewScreenV2.jsx` (the `pages/_preview/ReviewScreenV2.jsx` path did NOT exist). Count is 9 token-occurrences / 5 lines. CV lane removes them in slice 6b.
+2. **`GrainGround` -> `GroundWash` rename micro-PR - HELD (this PR).** File `git mv`'d, component + all imports/re-exports/usages/comments renamed via sed (bypassed the format hook), canvas-tokens.md + phase2 code-path line updated; phase2 historical narrative (lines 88/98/152) kept its then-name deliberately. Zero behaviour change; render byte-identical. Carries the pre-relaunch handoff + lessons doc edits (folded per Eli, not a standalone docs commit). Gated green via gatekeeper; held for hub verify + prod READY.
+3. **Queue item (a) - HELD (PR #685):** CV Studio quick-fix. CTA -> **solid filled** `rd-primary` button (Eli's pick, matches filled button at CVStudioView.jsx:1116); header collision root-caused + fixed (parent `flex-wrap gap-y-2` gated on `alive`, left-cluster internal wrap removed, so the "Click any text to edit" helper drops below instead of overlapping the wrapped CTA). Flag-off byte-identical (parent renders exact original string when !alive; button + cluster live inside the `alive` branch). Applied via text-surgery (no class-sorter). **Not pixel-verified** - auth'd surface, held for Eli's cert on `/Home?next=1` CV tab (or `/CVAgent?next=1`). No sequencing concern vs Slice 2 (different surfaces, zero file overlap).
+
+Then sequence (b)-(e) with the hub. **Next up = (b) coach panel fixes** (expand arrow must actually expand; long input must not hide the top of the user's message); (c) tab-consistency; (d) CV-gen ring; (e) Slice 2 arrival. Slice-2-vs-(b)-(d) priority is Eli's open call.
 
 ## Open questions for the hub
 
