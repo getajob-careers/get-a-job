@@ -1061,13 +1061,19 @@ export default function CVStudioView({
               </div>
             )}
             <div className="px-5 pt-3">
-              <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
+              <div
+                className={
+                  alive
+                    ? "max-w-[720px] mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-3 px-1"
+                    : "max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1"
+                }
+              >
                 {alive ? (
                   // Treatment B (flag-on): a unified contextual header - the
                   // document's identity plus ONE shared "Generate a job-specific
                   // version" doorway (same verb + flow as the rail's Generate CV).
                   // No second quiet pill competing.
-                  <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <span className="inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text min-w-0">
                       {currentCv?.role ? (
                         <>
@@ -1090,7 +1096,7 @@ export default function CVStudioView({
                           tailorContext ? onTailorContext?.() : onTailorNew()
                         }
                         disabled={tailoring}
-                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-primary-dark hover:text-rd-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                       >
                         {tailorContext
                           ? `Generate for ${tailorContext.role}`
