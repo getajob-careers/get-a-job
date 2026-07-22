@@ -96,7 +96,10 @@ export default function ThreeTabHome() {
           relative so the bottom edge-fade below can pin to it. */}
       <div className="relative mt-4 flex-1 min-h-0 overflow-y-auto md:overflow-hidden">
         {activeTab === "cv" && (
-          <div className="w-full md:h-full md:overflow-hidden rd-lift rd-r-lg">
+          // Canvas ground: CVStudioView paints its OWN framed lanes on it (the
+          // document + matched-roles cards; the coach is the shell sidebar), so
+          // there is no single wrapping card here (RULED item 2).
+          <div className="w-full md:h-full md:overflow-hidden">
             <CVStudioLive
               rightRail={<CvMatchedRolesRail />}
               enablePieceRevise

@@ -830,147 +830,151 @@ export default function CVStudioView({
 
   return (
     <div
-      className="h-full flex flex-col bg-rd-bg-page font-body text-rd-text overflow-hidden"
+      className={
+        rightRail
+          ? // Three self-framed lanes on the canvas ground (RULED item 2): the
+            // document lane (this + the header band) and the matched-roles lane
+            // (below) are separate cards with a gap; the coach lane is the shell
+            // sidebar. Flag off keeps the single-surface layout, byte-identical.
+            "h-full flex flex-col xl:flex-row bg-rd-bg-page font-body text-rd-text gap-3 p-3 overflow-hidden"
+          : "h-full flex flex-col bg-rd-bg-page font-body text-rd-text overflow-hidden"
+      }
       style={{ "--cv-accent": template.accent }}
     >
       <CvStudioStyles ruleOn={template.rule} />
 
-      <header className="h-[52px] shrink-0 border-b border-rd-border bg-rd-bg-card flex items-center px-4 gap-3">
-        {/* Pure switcher — tailoring is initiated by the dedicated CTA, not from
+      <DocLane framed={!!rightRail}>
+        <header className="h-[52px] shrink-0 border-b border-rd-border bg-rd-bg-card flex items-center px-4 gap-3">
+          {/* Pure switcher — tailoring is initiated by the dedicated CTA, not from
             inside the CV list. */}
-        <CvSelector
-          options={cvOptions}
-          value={selectedCvId}
-          onChange={onSelectCv}
-          onDelete={onDeleteCv ? handleDelete : null}
-        />
-        <div className="flex-1" />
-        {isMaster && onUndo && (
-          <button
-            onClick={onUndo}
-            disabled={!canUndo}
-            title="Undo your last change to your profile"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] text-rd-text-secondary hover:bg-rd-bg-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          <CvSelector
+            options={cvOptions}
+            value={selectedCvId}
+            onChange={onSelectCv}
+            onDelete={onDeleteCv ? handleDelete : null}
+          />
+          <div className="flex-1" />
+          {isMaster && onUndo && (
+            <button
+              onClick={onUndo}
+              disabled={!canUndo}
+              title="Undo your last change to your profile"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] text-rd-text-secondary hover:bg-rd-bg-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Undo
+            </button>
+          )}
+          <span
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${savePill.cls}`}
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Undo
-          </button>
-        )}
-        <span
-          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${savePill.cls}`}
-        >
-          <span className={`w-1.5 h-1.5 rounded-full ${savePill.dot}`} />{" "}
-          {savePill.text}
-        </span>
-        {onDeleteCv && currentCv && (
+            <span className={`w-1.5 h-1.5 rounded-full ${savePill.dot}`} />{" "}
+            {savePill.text}
+          </span>
+          {onDeleteCv && currentCv && (
+            <button
+              onClick={() => handleDelete(currentCv)}
+              aria-label="Delete this CV"
+              title="Delete this CV"
+              className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
           <button
-            onClick={() => handleDelete(currentCv)}
-            aria-label="Delete this CV"
-            title="Delete this CV"
-            className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors"
+            onClick={onDownload}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
           >
-            <Trash2 className="w-4 h-4" />
+            {/* Flag-on: the workspace isn't the artifact - name the deliverable. */}
+            <Download className="w-3.5 h-3.5" />{" "}
+            {alive ? "Download PDF" : "Download"}
           </button>
-        )}
-        <button
-          onClick={onDownload}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
-        >
-          {/* Flag-on: the workspace isn't the artifact - name the deliverable. */}
-          <Download className="w-3.5 h-3.5" />{" "}
-          {alive ? "Download PDF" : "Download"}
-        </button>
-      </header>
+        </header>
 
-      <div className="flex-1 flex min-h-0">
-        {/* Templates. Flag-on: collapses to a ~40px strip (active thumbnail +
+        <div className="flex-1 flex min-h-0">
+          {/* Templates. Flag-on: collapses to a ~40px strip (active thumbnail +
             expand chevron), persisted, default expanded. Flag off: the
             always-open aside, byte-identical. */}
-        {alive && !templatesOpen ? (
-          <aside className="w-11 shrink-0 border-r border-rd-border bg-rd-bg-card/50 flex flex-col items-center gap-2.5 py-3">
-            <button
-              type="button"
-              onClick={() =>
-                setTemplatesOpen(() => {
-                  templatesOpenPref = true;
-                  return true;
-                })
-              }
-              aria-label="Expand templates"
-              aria-expanded={false}
-              className="p-1 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-            {/* Active template, designed for the 40px strip: an accent-tinted
+          {alive && !templatesOpen ? (
+            <aside className="w-11 shrink-0 border-r border-rd-border bg-rd-bg-card/50 flex flex-col items-center gap-2.5 py-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setTemplatesOpen(() => {
+                    templatesOpenPref = true;
+                    return true;
+                  })
+                }
+                aria-label="Expand templates"
+                aria-expanded={false}
+                className="p-1 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              {/* Active template, designed for the 40px strip: an accent-tinted
                 document glyph + the template name as a vertical label - not a
                 clipped card. */}
-            <button
-              type="button"
-              onClick={() =>
-                setTemplatesOpen(() => {
-                  templatesOpenPref = true;
-                  return true;
-                })
-              }
-              title={`Template: ${template.name}`}
-              aria-label={`Template ${template.name} - expand to change`}
-              className="flex flex-col items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-rd-bg-soft transition-colors"
-            >
-              <span
-                className="w-7 h-7 rounded-md grid place-items-center ring-1 ring-[color:var(--cv-accent)]"
-                style={{
-                  "--cv-accent": template.accent,
-                  background: `color-mix(in srgb, ${template.accent} 14%, var(--rd-bg-card))`,
-                }}
+              <button
+                type="button"
+                onClick={() =>
+                  setTemplatesOpen(() => {
+                    templatesOpenPref = true;
+                    return true;
+                  })
+                }
+                title={`Template: ${template.name}`}
+                aria-label={`Template ${template.name} - expand to change`}
+                className="flex flex-col items-center gap-2 px-1 py-1.5 rounded-lg hover:bg-rd-bg-soft transition-colors"
               >
-                <FileText
-                  className="w-3.5 h-3.5"
-                  style={{ color: template.accent }}
-                />
-              </span>
-              <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-display font-semibold text-rd-text-secondary tracking-[0.04em]">
-                {template.name}
-              </span>
-            </button>
-          </aside>
-        ) : (
-          <aside className="w-[216px] shrink-0 border-r border-rd-border bg-rd-bg-card/50 overflow-y-auto cv-scroll">
-            <div className="p-4">
-              {alive ? (
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow">
+                <span
+                  className="w-7 h-7 rounded-md grid place-items-center ring-1 ring-[color:var(--cv-accent)]"
+                  style={{
+                    "--cv-accent": template.accent,
+                    background: `color-mix(in srgb, ${template.accent} 14%, var(--rd-bg-card))`,
+                  }}
+                >
+                  <FileText
+                    className="w-3.5 h-3.5"
+                    style={{ color: template.accent }}
+                  />
+                </span>
+                <span className="[writing-mode:vertical-rl] rotate-180 text-[11px] font-display font-semibold text-rd-text-secondary tracking-[0.04em]">
+                  {template.name}
+                </span>
+              </button>
+            </aside>
+          ) : (
+            <aside className="w-[216px] shrink-0 border-r border-rd-border bg-rd-bg-card/50 overflow-y-auto cv-scroll">
+              <div className="p-4">
+                {alive ? (
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow">
+                      Templates
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setTemplatesOpen(() => {
+                          templatesOpenPref = false;
+                          return false;
+                        })
+                      }
+                      aria-label="Collapse templates"
+                      aria-expanded={true}
+                      className="p-0.5 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">
                     Templates
                   </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setTemplatesOpen(() => {
-                        templatesOpenPref = false;
-                        return false;
-                      })
-                    }
-                    aria-label="Collapse templates"
-                    aria-expanded={true}
-                    className="p-0.5 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                </div>
-              ) : (
-                <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">
-                  Templates
-                </p>
-              )}
-              {templateButtons}
-            </div>
-          </aside>
-        )}
+                )}
+                {templateButtons}
+              </div>
+            </aside>
+          )}
 
-        {/* Document + matched-roles are two sibling lanes (RULED item 3). With
-            the rail present they group into a responsive pair: side by side on
-            wide, matched-roles BELOW the document on narrow. Flag off (no rail)
-            LaneGroup is a Fragment, so the layout is byte-identical. */}
-        <LaneGroup stacked={!!rightRail}>
           {/* Document */}
           <main
             className={
@@ -1131,16 +1135,17 @@ export default function CVStudioView({
             </div>
 
             <div className="px-5 pb-16">
-              {/* Flag-on (OQ1, RULED item 2): the document is a WHITE CARD that
-                sits distinctly ON the canvas ground - white surface, soft lift,
-                rounder than the flag-off paper sheet so it reads as a card in a
-                workspace, not a print-preview page. The PDF is the deliverable
-                (Download in the header). Flag off: the paper sheet, byte-identical. */}
+              {/* Document surface (RULED item 2). In the three-lane home the
+                DOCUMENT LANE itself is the white card, so the document renders
+                borderless on it. Flag-on /CVAgent (no lanes): the standalone
+                white card on the canvas. Flag off: the paper sheet, byte-identical. */}
               <div
                 className={
-                  alive
-                    ? "cv-doc max-w-[720px] mx-auto bg-rd-bg-card rounded-xl shadow-rd border border-rd-border px-12 py-11"
-                    : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
+                  rightRail
+                    ? "cv-doc max-w-[720px] mx-auto px-10 py-8"
+                    : alive
+                      ? "cv-doc max-w-[720px] mx-auto bg-rd-bg-card rounded-xl shadow-rd border border-rd-border px-12 py-11"
+                      : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
                 }
                 style={docStyle}
               >
@@ -1474,14 +1479,10 @@ export default function CVStudioView({
             </div>
           </main>
 
-          {/* Right rail: the matched-roles rail (flag-on home tab) replaces the CV
-            Agent panel; onRevisePiece carries the AI-edit capability the panel
-            used to own onto the document itself. */}
-          {rightRail ? (
-            <aside className="w-full xl:w-[336px] shrink-0 max-h-[45vh] xl:max-h-none border-t xl:border-t-0 xl:border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
-              {rightRail}
-            </aside>
-          ) : (
+          {/* Flag-on home tab: the matched-roles rail is its OWN framed lane
+            (rendered below, outside the document lane), so the document lane has
+            no right panel. Flag off: the CV Agent panel, byte-identical. */}
+          {rightRail ? null : (
             <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
               <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
@@ -1583,21 +1584,29 @@ export default function CVStudioView({
               </div>
             </aside>
           )}
-        </LaneGroup>
-      </div>
+        </div>
+      </DocLane>
+      {/* Matched-roles lane: its own framed card on the ground, beside the
+          document lane on wide (>=xl) and stacked BELOW it under 1280px (item 3 -
+          the document stays the hero). Its "Your matched roles" banner is the
+          lane header. */}
+      {rightRail && (
+        <aside className="w-full xl:w-[336px] shrink-0 max-h-[45vh] xl:max-h-none flex flex-col min-h-0 rd-lift rd-r-lg overflow-hidden">
+          {rightRail}
+        </aside>
+      )}
     </div>
   );
 }
 
-// The document + matched-roles lanes. With a rail present they are a responsive
-// pair (side by side on wide >=xl, matched-roles stacked BELOW the document
-// under 1280px so the document stays the hero on laptop widths); with no rail
-// (flag off) this is a Fragment so main + aside stay direct children of the row
-// and the flag-off layout is byte-identical.
-function LaneGroup({ stacked, children }) {
-  if (!stacked) return <>{children}</>;
+// The document lane: header band + templates + document. With a rail present it
+// is a self-framed card on the canvas ground (rd-lift, its own header band);
+// with no rail (flag off) it is a Fragment so header + body stay direct children
+// of the single-surface root and the flag-off layout is byte-identical.
+function DocLane({ framed, children }) {
+  if (!framed) return <>{children}</>;
   return (
-    <div className="flex-1 flex flex-col xl:flex-row min-w-0 min-h-0">
+    <div className="flex-1 min-w-0 min-h-0 flex flex-col rd-lift rd-r-lg overflow-hidden">
       {children}
     </div>
   );
