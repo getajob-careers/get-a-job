@@ -20,7 +20,7 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 - #659 CV RED Phase 1 - MERGED (6b00d72), LIVE prod. Write-layer fixes (priorOverride baseline, per-entity serialization, single-field mediated undo via revertCvDataField, no-op skip - UNCONDITIONAL, both flags) + three self-framed lanes (white card #FFFCF4, matched-roles, coach) + rail depth + trash fix, flag-on gated.
 - #676 lessons - MERGED (1339ef9).
 - #675 onboarding V2 direction screen - MERGED (68c229e), hub migration applied. Adds DirectionScreenV2.jsx + OnboardingV2.jsx (19 rd-coral refs).
-- #677 token rename rd-coral*->rd-primary* - OPEN, HELD, being merged NOW. Hub-verified on-branch (zero residual rd-coral except trackColor, hexes preserved, plan doc landed). Must re-sweep after #675 to catch the 19 refs in DirectionScreenV2 + OnboardingV2.
+- #677 token rename rd-coral*->rd-primary* - MERGED (1697063). Re-swept after #675 (DirectionScreenV2 + OnboardingV2). Zero rd-coral in code; docs keep retirement records.
 
 ## Standing rulings / constraints (verbatim)
 
@@ -34,8 +34,8 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 
 ## Next actions
 
-1. [IN PROGRESS] #677: bring current main into the branch (force-push blocked by policy -> merge-forward, not rebase; squash-merge collapses it), re-sweep DirectionScreenV2 + OnboardingV2 (19 rd-coral refs), verify zero rd-coral repo-wide (trackColor excepted), gates green, squash-merge, confirm merged, delete branch, report post-rebase sweep count.
-2. Slice 1: 2-3 dialed dot-grain ground variants on a `/_preview` route -> nominate for Eli's eye.
+1. [DONE] #677 token rename - MERGED (1697063). Merge-forwarded main, re-swept 28 rd-coral occurrences in DirectionScreenV2 (18) + OnboardingV2 (10); zero rd-coral in code repo-wide (docs keep retirement records; trackColor N/A).
+2. [HELD for Eli's eye] Slice 1 dot-grain ground bake-off - `/_preview/canvas-ground`, 3 variants (A fine/faint, B balanced, C warm/open) with mock lane cards showing the lift. Winner becomes a token-level `.rd-ground` on the flag-on canvas. On branch eli/canvas-ground-bakeoff.
 3. [LATER, held] arrival moment: Home plays a populated first-landing entrance on `?welcome=1`, no-ops gracefully when absent / flag-off (cross-lane contract with onboarding V2 completion + the onboarding_cv_ready signal).
 
 ## Open questions for the hub
