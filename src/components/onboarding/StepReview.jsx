@@ -567,6 +567,13 @@ export default function StepReview({
   setCertifications,
   onNext,
   onBack,
+  // Chrome overrides so the V2 review screen can embed this component under its
+  // own shell (progress + count-up reveal). Defaults keep V1 byte-identical.
+  // eyebrow: the step-counter line; pass null to hide it (V2 has its own progress).
+  eyebrow = "step 2 of 6 · review what we extracted",
+  // showExtractedBanner: the "N items pre-filled" teal banner; V2 hides it in
+  // favour of its own count-up reveal.
+  showExtractedBanner = true,
 }) {
   // Ensure at least one (primary) education row exists in state so the
   // user can fill it even when the extractor returned nothing.
@@ -694,9 +701,11 @@ export default function StepReview({
   return (
     <div className="space-y-8">
       <div>
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 2 of 6 · review what we extracted
-        </p>
+        {eyebrow !== null && (
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            {eyebrow}
+          </p>
+        )}
         <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
           Review and refine.
         </h1>
@@ -706,7 +715,7 @@ export default function StepReview({
         </p>
       </div>
 
-      {extractedCount > 0 && (
+      {showExtractedBanner && extractedCount > 0 && (
         <div className="bg-rd-teal-tint border border-rd-teal/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-teal-dark flex items-center gap-2.5">
           <FileText className="w-4 h-4 flex-shrink-0" />
           <p>

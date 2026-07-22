@@ -12,7 +12,10 @@ import { track, EVENTS } from "@/lib/analytics";
 import { useAuth } from "@/lib/AuthContext";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 import DirectionScreenV2 from "@/components/onboarding/DirectionScreenV2";
+import ReviewScreenV2 from "@/components/onboarding/ReviewScreenV2";
 import { runPrimaryDomainInference } from "@/lib/inferPrimaryDomainWrite";
+import { persistReviewProfile } from "@/lib/persistOnboardingProfileV2";
+import { mapExtractedToOnboardingState } from "@/lib/mapExtractedToOnboarding";
 
 // Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
 //
@@ -96,6 +99,17 @@ export default function OnboardingV2() {
   // `extracted` is read on the direction screen: its primary_domain (if CV
   // extraction found one) is the CV-first guard for the inference write.
   const [extracted, setExtracted] = useState(null);
+  // Entity state seeded from extraction on screen 0, edited on the review
+  // screen (reusing StepReview). Entity-TABLE persistence is a later slice
+  // (PR 6); here they feed the review UI + skills_canonical on the profiles
+  // persist.
+  const [educations, setEducations] = useState([]);
+  const [experiences, setExperiences] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [certifications, setCertifications] = useState([]);
+  // Extraction status drives the review screen's watch: null (no upload yet →
+  // treated as skipped on review) | 'extracting' | 'success' | 'failed'.
+  const [extractionStatus, setExtractionStatus] = useState(null);
 
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;
@@ -160,6 +174,48 @@ export default function OnboardingV2() {
       setAdvancing(false);
     }
     advance();
+  };
+
+  // Seed profile + entity state from a successful extraction (shared transform
+  // with V1). Merged over prior so a re-extract (retry) overwrites with the new
+  // CV without dropping unrelated shell state.
+  const seedFromExtraction = (data) => {
+    setExtracted(data);
+    setExtractionStatus("success");
+    const mapped = mapExtractedToOnboardingState(data);
+    setProfileData((prev) => ({ ...prev, ...mapped.profilePatch }));
+    setEducations(mapped.educations);
+    setExperiences(mapped.experiences);
+    setProjects(mapped.projects);
+    setCertifications(mapped.certifications);
+  };
+
+  // Review-screen advance. Persists the profiles ROW (scalar fields +
+  // skills_canonical) and, when a domain was extracted, stamps
+  // primary_domain_source='extracted' — the keystone that makes the direction
+  // screen's inference leave an extracted domain untouched. Soft gate: a write
+  // failure never blocks onboarding. (Entity-TABLE persistence is PR 6.)
+  const advanceFromReview = async () => {
+    if (advancing) return;
+    setAdvancing(true);
+    try {
+      await persistReviewProfile({
+        userId: user?.id,
+        profileData,
+        experiences,
+        educations,
+        projects,
+      });
+    } finally {
+      setAdvancing(false);
+    }
+    advance();
+  };
+
+  // Retry = go back to the upload screen to try another file.
+  const retryUpload = () => {
+    setExtractionStatus(null);
+    setStep(0);
   };
 
   const counter = useMemo(
@@ -242,11 +298,31 @@ export default function OnboardingV2() {
                   onChange={(patch) =>
                     setProfileData((p) => ({ ...p, ...patch }))
                   }
-                  onExtracted={(data) => setExtracted(data)}
+                  onExtractStart={() => setExtractionStatus("extracting")}
+                  onExtracted={seedFromExtraction}
+                  onExtractFailed={(reason) => {
+                    setExtractionStatus("failed");
+                    track(EVENTS.ONBOARDING_CV_EXTRACT_FAILED, {
+                      step_index: 0,
+                      flow: "v2",
+                      reason: reason || "unknown",
+                    });
+                  }}
                   deferProofSignals
-                  onProofSignals={(signals) =>
-                    setExtracted((prev) => ({ ...(prev || {}), ...signals }))
-                  }
+                  onProofSignals={(signals) => {
+                    setExtracted((prev) => ({ ...(prev || {}), ...signals }));
+                    // Backfill the domain into profileData so the review persist
+                    // stamps 'extracted' and the direction guard sees it.
+                    setProfileData((prev) => ({
+                      ...prev,
+                      primary_domain:
+                        signals.primary_domain || prev.primary_domain || null,
+                      proof_signals:
+                        signals.proof_signals || prev.proof_signals || [],
+                      adjacent_fields:
+                        signals.adjacent_fields || prev.adjacent_fields || [],
+                    }));
+                  }}
                   onNext={advance}
                 />
               </div>
@@ -280,6 +356,25 @@ export default function OnboardingV2() {
                 </button>
               </div>
             </>
+          ) : screen.name === "review" ? (
+            <div className="mt-2">
+              <ReviewScreenV2
+                status={extractionStatus || "skipped"}
+                profileData={profileData}
+                onChange={(next) => setProfileData(next)}
+                educations={educations}
+                setEducations={setEducations}
+                experiences={experiences}
+                setExperiences={setExperiences}
+                projects={projects}
+                setProjects={setProjects}
+                certifications={certifications}
+                setCertifications={setCertifications}
+                onContinue={advanceFromReview}
+                onBack={() => setStep(0)}
+                onRetry={retryUpload}
+              />
+            </div>
           ) : (
             <>
               <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
