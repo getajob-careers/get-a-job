@@ -45,11 +45,23 @@ Owned paths: `src/pages/Onboarding.jsx` (V1), `OnboardingV2.jsx`,
   behavior-identity tests + **live 3-run preview drive, hub-verified against the
   live DB** (skip-pickers, real-CV extraction→persist seam, deliberate failure
   floor). **Prod-deploy READY on `25ff5a2` = hub's gate (live signup path).**
-- **PR 6b — NEXT** (see spec below).
+- **PR 6b — BUILT + HELD (#683)** on `eli/cv-lane-6b` (cut from origin/main
+  25ff5a2 + this handoff commit). Two commits: (1) ReviewScreenV2
+  `rd-coral`→`rd-primary` rename-only [9 occ / 5 lines]; (2) V2 entity persist
+  via the shared helper + springboard + `?welcome=1`. HEAD `8fe9f84`. **Gates
+  green (lint / typecheck-baseline / build / 1586 tests) + CI green on #683.**
+  Preview READY: `get-a-job-git-eli-cv-lane-6b-getajob-team.vercel.app`.
+  **In-flow acceptance drive (launch-1 gate) is PENDING Eli** — full guide at
+  `docs/handoffs/6b-acceptance-guide.md`. **OPEN (pre-flip, not a 6b blocker):**
+  V2 runs no career analysis and handleFinalise stamps `last_reality_check_date`,
+  which suppresses Home's roadmap self-heal (`Home.jsx:292`) — V2 users land
+  with no roadmap; needs a V2 analysis trigger before the flag flips live.
 
-## PR 6b spec (start FRESH from this handoff — do NOT carry 6a context)
+## PR 6b spec (BUILT — #683; acceptance guide `docs/handoffs/6b-acceptance-guide.md`)
 
-Three parts, held-for-review, browser-tested on the preview:
+Three parts, held-for-review, browser-tested on the preview. All three BUILT: entity
+persist via saveEducations+handleFinalise (part 1), SpringboardScreenV2 + `?welcome=1`
+(part 2), rd-coral→rd-primary as its own commit (part 3):
 
 1. **V2 entity persist via the SAME helper.** Wire the V2 flow
    (`OnboardingV2.jsx` / `ReviewScreenV2.jsx` / springboard) to call
@@ -85,7 +97,9 @@ this lane until 6b + acceptance are done.**
 
 Live DB `ilmqmodklutztuybsvwd`, exclude by `+6a-` email:
 `+6a-skip-1784737130` (afd99cae…), `+6a-cv-1784738125` (3c07b28b…),
-`+6a-fail-1784738528` (3a874b3b…).
+`+6a-fail-1784738528` (3a874b3b…). The 6b acceptance drive will add `+6b-*`
+users (guide names cv/skip/fail) — purge both `+6a-*` and `+6b-*` pre-flip,
+kill set derived by query (`email LIKE '%+6a-%' OR email LIKE '%+6b-%'`).
 
 ## Reusable techniques + gotchas (from the 6a drive)
 
