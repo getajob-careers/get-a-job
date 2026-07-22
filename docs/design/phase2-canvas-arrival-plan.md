@@ -57,11 +57,42 @@ in one pass. The only extra edit is the Tailwind config **keys** (`coral:` / `co
 
 ---
 
-## Slice 1 — ground dial (Option 1: ambient drift + dial lift)
+## Slice 1 — ground texture (ROUND 2: baked paper grain)
+
+> **2026-07-22 ruling — supersedes the DOTS portion of "Option 1" below.** Round 1's
+> dialed dot-grain variants (#678) were **all rejected** and the **dot direction is
+> retired**: dots read as a dirty screen, not paper. New target: the ground should feel
+> like the canvas grain did _before_ the feTurbulence retirement — fine organic **paper
+> fiber** — reached WITHOUT runtime feTurbulence. This retires "dots crisp / 'grain' =
+> the dot-grid texture only." The separate **Living** (blob drift) and **Lift** axes are
+> unaffected by this ruling.
+>
+> **Round-2 approach (this branch):** render turbulence-style fractal noise ONCE into a
+> small seamless grayscale tile (`scripts/gen-canvas-grain.mjs` → `canvas-grain.png`,
+> 128px, ~15KB) and tile it as a static `background-image`. At runtime the browser only
+> blits a bitmap — **no feTurbulence is evaluated** (the 2026-07-18 retirement stands).
+> The tile is laid with `mix-blend-mode: soft-light` (mean-preserving), so it modulates
+> the cream WITHOUT greying it — the exact defect that retired the old multiply grain.
+> The ground is **fixed**, so the tile never moves on scroll (no shimmer).
+>
+> **Bake-off** at `/_preview/canvas-ground`: three variants — a completely **flat**
+> untextured ground (the control: does grain earn its place at all?), grain **faint**
+> (soft-light @ 0.5), grain **present** (soft-light @ 0.85). HELD for Eli's eye. The
+> winner becomes a token-level ground treatment replacing the `GrainGround` dot grid on
+> the flag-on canvas.
+>
+> **Tradeoffs surfaced:** ~15KB grayscale PNG (co-located Vite asset, not a giant inline
+> data-URI); fine grain makes tile repeats invisible without stitching; HiDPI softens the
+> tile slightly (fine for grain; the fixed ground removes scroll moire); `mix-blend-mode`
+> composites correctly in the preview's own stacking context — the production port into
+> the `-z-10` isolate shell must **re-verify the blend** (or bake a normal-composite tile)
+> per the graveyard notes in `canvas-tokens.md`.
+
+### Round 1 (SUPERSEDED — dots retired, kept for history)
 
 The flag-on shell already renders two static `-z-10` ground layers: `DepthField` (cream
 `--rd-field` base + two large blurred colour blobs) and `GrainGround` (a dot-grid in the
-line tone). The bones are right; it reads flat. Eli's ruling names two axes:
+line tone). The bones are right; it reads flat. Eli's original (superseded) ruling named two axes:
 
 - **Living** — the two `DepthField` colour blobs drift slowly (40–60s loops, ~20–30px),
   `prefers-reduced-motion` → **fully static**. **Dots stay crisp** (no motion on the grid).
@@ -114,10 +145,19 @@ refresh/back never replays it.
 
 ## Decision log
 
-- **2026-07-22** — Ground fork ruled **Option 1** (ambient drift + dial lift): token-level,
-  flag-on only, dots crisp, 40–60s loops, `prefers-reduced-motion` fully static, **no**
-  `feTurbulence` (the 2026-07-18 retirement stands). Present 2–3 dialed variants on a preview
-  before wiring the canvas.
+- **2026-07-22 (round 2)** — Ground **dot direction retired**: the #678 dot-grain bake-off
+  was rejected wholesale (dots read as a dirty screen, not paper). This **supersedes the dots
+  portion of the Option 1 ruling below** ("dots crisp / grain = the dot-grid texture only").
+  New target: fine organic paper fiber like the pre-retirement grain, reached via a
+  turbulence tile baked **once** to a static image (no runtime feTurbulence, which stays
+  retired) and laid `soft-light` so it does not grey the cream. Bake-off at
+  `/_preview/canvas-ground` — flat control + faint + present — HELD for Eli's eye. Drift/Lift
+  axes unaffected.
+- **2026-07-22** — ~~Ground fork ruled **Option 1** (ambient drift + dial lift): dots crisp,
+  `feTurbulence` retirement stands.~~ **Dots superseded by round-2 above**; the Living
+  (blob drift) + Lift halves stand. token-level, flag-on only, 40–60s loops,
+  `prefers-reduced-motion` fully static. Present 2–3 dialed variants on a preview before
+  wiring the canvas.
 - **2026-07-22** — Token rename ruled **first slice**: `rd-coral*` → `rd-primary*`, role-named,
   zero value change. `#60617D` = canvas primary; `#D6421F` retired.
 - **2026-07-22** — Arrival-moment plan **accepted as specced**, including the bounded wait that

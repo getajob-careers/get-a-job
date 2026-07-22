@@ -6,3 +6,9 @@ declare module "*?raw" {
   const content: string;
   export default content;
 }
+
+// Vite resolves static image imports to their served URL string at build time.
+declare module "*.png" {
+  const src: string;
+  export default src;
+}

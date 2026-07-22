@@ -1,43 +1,53 @@
-// Slice 1 (Phase 2) - textured canvas ground bake-off. Renders the canvas ground
-// with 2-3 dialed dot-grain variants + mock lane cards (document / matched-roles
-// / coach) on it, so Eli picks the grain by eye and confirms the white cards
-// (#FFFCF4) lift off the ground (#F4EBDA). DEV-only, self-contained, no auth.
+// Slice 1 (Phase 2) - canvas ground bake-off, ROUND 2.
 //
-// CSS dot-grain only (NO feTurbulence, per ruling): a radial-gradient dot layer
-// over the ground token. The chosen variant becomes a token-level `.rd-ground`
-// treatment on the flag-on canvas surface (flag-on only); this preview is the
-// bake-off, not the shipped implementation.
+// Round 1 (#678) tested dialed dot-grain variants. Eli's ruling: all three
+// rejected AND the dot-grain direction retired - dots read as a dirty screen,
+// not paper. (Supersedes the earlier "Option 1 dots" ruling.)
 //
-// The dot is a warm-brown tint (matches the rd-lift shadow hue, rgba(74,44,22)),
-// so the grain reads as part of the paper world, not a cool grid.
+// New target: the ground should feel like the canvas grain did BEFORE the
+// feTurbulence retirement - fine organic PAPER fiber - reached WITHOUT runtime
+// feTurbulence (the retirement stands). Approach: turbulence-style fractal noise
+// baked ONCE into a small seamless grayscale tile (scripts/gen-canvas-grain.mjs
+// -> assets/canvas-grain.png, 128px, ~15KB). At runtime the browser only blits a
+// bitmap; no filter is evaluated. The tile is laid with `mix-blend-mode:
+// soft-light` (mean-preserving), so it modulates the cream WITHOUT greying it -
+// the exact defect that retired the old multiply grain.
+//
+// Three variants, one of which is a completely FLAT untextured ground, so Eli can
+// judge whether grain earns its place at all. Same bar as round 1: real canvas
+// palette (#F4EBDA ground / #FFFCF4 cards / #60617D primary), white cards lifting
+// off the ground, no shimmer on scroll (the ground is FIXED; content scrolls over
+// it, so the tile never moves). DEV-only, self-contained, no auth.
+//
+// This is the bake-off, not the shipped implementation: once Eli picks a variant,
+// the winner becomes a token-level ground treatment on the flag-on canvas.
 
 import React, { useState, useEffect } from "react";
 import { Download } from "lucide-react";
+import grainUrl from "./assets/canvas-grain.png";
 
-// Each variant = the background-image + background-size applied OVER the ground.
-// dot = radius(px) / opacity / hue; gap = tile size(px). Dialed subtle -> grain,
-// not grid.
+// Each variant = how the baked grain tile is applied over the cream ground.
+// opacity is the ONLY dial (soft-light strength); grain:false = the flat control.
 const VARIANTS = [
   {
-    id: "a",
-    label: "A - Fine & faint",
-    note: "1px dot, 6% warm, 18px tile - subtlest; grain you feel, not see",
-    dot: "radial-gradient(rgba(74,44,22,0.06) 1px, transparent 1.4px)",
-    size: "18px 18px",
+    id: "flat",
+    label: "Flat",
+    note: "No texture - pure cream ground. The control: does grain earn its place?",
+    grain: false,
   },
   {
-    id: "b",
-    label: "B - Balanced",
-    note: "1px dot, 8% warm, 22px tile - present but soft; the safe pick",
-    dot: "radial-gradient(rgba(74,44,22,0.08) 1px, transparent 1.5px)",
-    size: "22px 22px",
+    id: "faint",
+    label: "Grain - faint",
+    note: "Baked turbulence tile, soft-light @ 0.5 - fiber you feel more than see",
+    grain: true,
+    opacity: 0.5,
   },
   {
-    id: "c",
-    label: "C - Warm & open",
-    note: "1.3px dot, 9% deeper-warm, 26px tile - more paper texture, airier",
-    dot: "radial-gradient(rgba(96,58,30,0.09) 1.3px, transparent 1.8px)",
-    size: "26px 26px",
+    id: "present",
+    label: "Grain - present",
+    note: "Same tile, soft-light @ 0.85 - paper fiber clearly there, cream unchanged",
+    grain: true,
+    opacity: 0.85,
   },
 ];
 
@@ -77,7 +87,7 @@ function DocLaneCard() {
           <p className="text-[13px] text-rd-text leading-[1.6]">
             Business Administration student focused on digital innovation, with
             hands-on product and analytics experience. The document lane is a
-            white card on the textured ground.
+            white card lifting off the textured ground.
           </p>
         </div>
       </div>
@@ -129,7 +139,7 @@ function CoachCard() {
 }
 
 export default function CanvasGroundPreview() {
-  const [v, setV] = useState("b");
+  const [v, setV] = useState("present");
   const variant = VARIANTS.find((x) => x.id === v);
 
   // Force the flag-on canvas palette so the bake-off shows the REAL ground
@@ -144,47 +154,82 @@ export default function CanvasGroundPreview() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-rd-bg-page">
-      {/* Controls sit on a plain strip so the ground below is a clean canvas. */}
-      <div className="border-b border-rd-border bg-rd-bg-card px-6 py-4">
-        <h1 className="font-display font-extrabold text-[20px] text-rd-text mb-1">
-          Canvas ground - dot-grain bake-off
-        </h1>
-        <p className="text-[12.5px] text-rd-text-secondary mb-3 max-w-[720px]">
-          Same lanes, three grain variants. Pick the one where the white cards
-          lift cleanly and the grain reads as paper texture, not a grid. The
-          winner becomes a token-level <code>.rd-ground</code> on the flag-on
-          canvas (CSS dots, no feTurbulence).
-        </p>
-        <div className="inline-flex bg-rd-bg-soft rounded-full p-1">
-          {VARIANTS.map((o) => (
-            <button
-              key={o.id}
-              type="button"
-              onClick={() => setV(o.id)}
-              className={`px-4 py-1.5 rounded-full font-display font-bold text-[12.5px] transition-colors ${
-                v === o.id
-                  ? "bg-rd-primary text-white"
-                  : "text-rd-text-secondary hover:text-rd-text"
-              }`}
-            >
-              {o.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[11.5px] text-rd-text-tertiary mt-2 font-mono">
-          {variant.note}
-        </p>
+    <div className="relative min-h-screen">
+      {/* FIXED ground - the cream field + (optionally) the baked grain. Fixed so
+          the tile never moves as content scrolls over it => no shimmer. Grain is
+          a PREVIEW inline treatment; the winner becomes a token (no token yet). */}
+      <div className="fixed inset-0 bg-rd-bg-page" aria-hidden="true">
+        {variant.grain && (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${grainUrl})`,
+              backgroundRepeat: "repeat",
+              mixBlendMode: "soft-light",
+              opacity: variant.opacity,
+            }}
+          />
+        )}
       </div>
 
-      {/* The ground: rd-bg-page + the selected dot-grain, with the lanes on it. */}
-      <div
-        className="p-4 flex gap-3 min-h-[calc(100vh-140px)]"
-        style={{ backgroundImage: variant.dot, backgroundSize: variant.size }}
-      >
-        <CoachCard />
-        <DocLaneCard />
-        <RailCard />
+      {/* Content sits above the fixed ground. */}
+      <div className="relative">
+        {/* Controls on a plain card strip so the ground below is a clean canvas. */}
+        <div className="border-b border-rd-border bg-rd-bg-card px-6 py-4">
+          <h1 className="font-display font-extrabold text-[20px] text-rd-text mb-1">
+            Canvas ground - grain bake-off (round 2)
+          </h1>
+          <p className="text-[12.5px] text-rd-text-secondary mb-3 max-w-[760px]">
+            Dots are retired. This tests baked paper-fiber grain (turbulence
+            rendered once to a tiling image, no runtime feTurbulence) against a
+            completely flat ground. Pick where the white cards lift cleanly, the
+            grain reads as paper (not a screen), and the cream is not greyed.
+            Scroll: the ground is fixed, so grain never shimmers.
+          </p>
+          <div className="inline-flex bg-rd-bg-soft rounded-full p-1">
+            {VARIANTS.map((o) => (
+              <button
+                key={o.id}
+                type="button"
+                onClick={() => setV(o.id)}
+                aria-pressed={v === o.id}
+                className={`rd-press px-4 py-1.5 rounded-full font-display font-bold text-[12.5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 focus-visible:ring-offset-rd-bg-soft ${
+                  v === o.id
+                    ? "bg-rd-primary text-white"
+                    : "text-rd-text-secondary hover:text-rd-text"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[11.5px] text-rd-text-tertiary mt-2 font-mono">
+            {variant.note}
+          </p>
+        </div>
+
+        {/* Lanes on the ground. */}
+        <div className="p-4 flex gap-3">
+          <CoachCard />
+          <DocLaneCard />
+          <RailCard />
+        </div>
+
+        {/* Extra height so Eli can scroll and confirm the fixed ground / grain
+            does not shimmer or drift under the content. */}
+        <div className="px-4 pb-16 flex gap-3">
+          <div className="rd-lift rd-r-lg flex-1 p-6">
+            <p className="text-[13px] font-display font-bold text-rd-text mb-1">
+              Scroll check
+            </p>
+            <p className="text-[12.5px] text-rd-text-secondary leading-relaxed max-w-[560px]">
+              Scroll this page. The grain belongs to a fixed ground layer, so it
+              stays put while these cards move over it - no moire, no shimmer.
+              White cards keep lifting off the textured cream at any scroll
+              position.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
