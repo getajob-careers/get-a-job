@@ -62,7 +62,7 @@
   height: 22px;
   border-radius: 9999px;
   background: var(--rd-bg-card);
-  color: var(--rd-coral);
+  color: var(--rd-primary);
   box-shadow:
     0 1px 2px rgba(74, 44, 22, 0.12),
     0 4px 10px -2px rgba(74, 44, 22, 0.22);

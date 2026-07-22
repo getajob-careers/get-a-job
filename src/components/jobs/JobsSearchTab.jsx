@@ -376,7 +376,7 @@ export default function JobsSearchTab({
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
                 {activeFilterCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-primary-tint text-[10.5px] font-semibold text-rd-primary-dark tabular-nums">
                     {activeFilterCount}
                   </span>
                 )}
@@ -395,7 +395,7 @@ export default function JobsSearchTab({
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
                 {activeFilterCount > 0 && (
-                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                  <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-primary-tint text-[10.5px] font-semibold text-rd-primary-dark tabular-nums">
                     {activeFilterCount}
                   </span>
                 )}
@@ -416,7 +416,7 @@ export default function JobsSearchTab({
               <SlidersHorizontal className="w-3.5 h-3.5" />
               Filters
               {activeFilterCount > 0 && (
-                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-primary-tint text-[10.5px] font-semibold text-rd-primary-dark tabular-nums">
                   {activeFilterCount}
                 </span>
               )}
@@ -429,7 +429,7 @@ export default function JobsSearchTab({
             <button
               type="button"
               onClick={clearFacets}
-              className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
+              className="text-[12px] font-display font-semibold text-rd-primary-dark hover:text-rd-primary underline underline-offset-2"
             >
               Clear filters
             </button>
@@ -459,7 +459,7 @@ export default function JobsSearchTab({
             >
               <span
                 aria-hidden="true"
-                className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+                className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-primary shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
                 style={{
                   width: "calc((100% - 0.5rem) / 2)",
                   transform: `translateX(${sortMode === "newest" ? 100 : 0}%)`,
@@ -535,7 +535,7 @@ export default function JobsSearchTab({
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="flex-1 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2.5 transition-colors"
+                className="flex-1 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2.5 transition-colors"
               >
                 Show {displayRanked.length} job
                 {displayRanked.length === 1 ? "" : "s"}
@@ -575,7 +575,7 @@ export default function JobsSearchTab({
         // Honest-empty for a zero-result facet stack (e.g. Entry + On-site +
         // a thin region in PR C). Same pattern as JobsEmpty.
         <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
-          <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+          <Briefcase className="w-10 h-10 text-rd-primary mx-auto mb-3" />
           <p className="text-[14px] font-display font-bold text-rd-text">
             No jobs match these filters.
           </p>
@@ -669,7 +669,7 @@ function LocationCombobox({ value, onChange, options }) {
         <button
           type="button"
           aria-expanded={open}
-          className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-3 py-1 border border-rd-border hover:border-rd-coral focus:outline-none"
+          className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-3 py-1 border border-rd-border hover:border-rd-primary focus:outline-none"
         >
           {current.label}
           {current.count != null && (
@@ -740,7 +740,7 @@ function FacetSelect({ value, onChange, options }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-2.5 py-1 border border-rd-border focus:outline-none focus:border-rd-coral"
+      className="text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-2.5 py-1 border border-rd-border focus:outline-none focus:border-rd-primary"
     >
       {options.map(([v, label]) => (
         <option key={v} value={v}>
@@ -759,7 +759,7 @@ function FacetChip({ label, active, onClick }) {
       onClick={onClick}
       className={`inline-flex items-center text-[12px] font-display font-semibold rounded-full px-2.5 py-1 transition-colors ${
         active
-          ? "bg-rd-coral text-white"
+          ? "bg-rd-primary text-white"
           : "bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text"
       }`}
     >

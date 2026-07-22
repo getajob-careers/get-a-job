@@ -185,8 +185,8 @@ const INITIAL_MODEL = {
 
 const MockCoach = (
   <div className="flex gap-2.5">
-    <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
-      <FileText className="w-3 h-3 text-rd-coral" />
+    <div className="w-6 h-6 rounded-full bg-rd-primary-tint grid place-items-center shrink-0 mt-0.5">
+      <FileText className="w-3 h-3 text-rd-primary" />
     </div>
     <div className="text-[12.5px] text-rd-text-secondary leading-relaxed space-y-2">
       <p>

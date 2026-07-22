@@ -15,7 +15,7 @@ import { Loader2, Sparkles, Copy, Check, AlertCircle, MessageCircle, RefreshCw }
 //   - Output: 3 options, user picks/edits/copies (option 3A)
 //   - State: ephemeral, no persistence (option 7A)
 
-const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 const POST_TEXT_PLACEHOLDER = `Paste the LinkedIn post here. The AI uses the post text + your real experience to generate 3 substantive comment options you can pick from and edit.
 
@@ -79,7 +79,7 @@ export default function CommentCoach() {
   return (
     <div className="bg-white border border-rd-border rounded-[18px] p-5 sm:p-6 shadow-rd">
       <div className="flex items-center gap-2 mb-1">
-        <MessageCircle className="w-4 h-4 text-rd-coral" />
+        <MessageCircle className="w-4 h-4 text-rd-primary" />
         <h2 className="font-display font-bold text-[15px] text-rd-text">Comment Coach</h2>
       </div>
       <p className="text-[12.5px] text-rd-text-secondary mb-4 leading-snug">
@@ -89,21 +89,21 @@ export default function CommentCoach() {
       <div className="space-y-3">
         <div>
           <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">
-            The post text <span className="text-rd-coral">*</span>
+            The post text <span className="text-rd-primary">*</span>
           </label>
           <textarea
             value={postText}
             onChange={(e) => setPostText(e.target.value.slice(0, 4000))}
             placeholder={POST_TEXT_PLACEHOLDER}
             rows={6}
-            className="w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           />
           <p className="text-[10px] text-rd-text-tertiary mt-1 text-right">{postText.length}/4000</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">
-              Author&apos;s name <span className="text-rd-coral">*</span>
+              Author&apos;s name <span className="text-rd-primary">*</span>
             </label>
             <Input
               value={authorName}
@@ -127,7 +127,7 @@ export default function CommentCoach() {
         </div>
 
         {error && (
-          <div className="px-3 py-2.5 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12.5px] text-rd-coral-dark flex items-start gap-2">
+          <div className="px-3 py-2.5 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[12.5px] text-rd-primary-dark flex items-start gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
             <p>{error}</p>
           </div>
@@ -149,7 +149,7 @@ export default function CommentCoach() {
             onClick={handleGenerate}
             disabled={generating || !postText.trim() || !authorName.trim()}
             data-action="generate-comments"
-            className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors"
           >
             {generating ? (
               <><Loader2 className="w-4 h-4 animate-spin" />Generating…</>
@@ -233,7 +233,7 @@ function CommentOption({ option, index }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={Math.min(8, Math.max(3, Math.ceil(text.length / 80)))}
-        className="w-full text-[13px] bg-white border border-rd-border rounded-[10px] px-3 py-2 text-rd-text focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-none"
+        className="w-full text-[13px] bg-white border border-rd-border rounded-[10px] px-3 py-2 text-rd-text focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] resize-none"
       />
       <div className="flex justify-end mt-2">
         <button

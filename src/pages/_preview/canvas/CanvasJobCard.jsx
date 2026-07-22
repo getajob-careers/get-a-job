@@ -52,7 +52,7 @@ export default function CanvasJobCard({ job, scoreResult, onOpen }) {
           open();
         }
       }}
-      className="cx-card group relative cursor-pointer h-full flex flex-col rd-lift rd-lift-hover rd-r-md p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+      className="cx-card group relative cursor-pointer h-full flex flex-col rd-lift rd-lift-hover rd-r-md p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
     >
       <span className="cx-spot rd-r-md" aria-hidden="true" />
 

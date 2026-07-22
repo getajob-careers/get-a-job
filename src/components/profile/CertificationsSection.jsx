@@ -37,8 +37,8 @@ const EMPTY_FORM = {
 
 const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
 const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
-const RD_INPUT_CLS  = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_INPUT_CLS  = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 
 export default function CertificationsSection({ user }) {
   const queryClient = useQueryClient();
@@ -183,7 +183,7 @@ export default function CertificationsSection({ user }) {
             id="cert_is_current"
             checked={!!form.is_current}
             onCheckedChange={(v) => setForm({ ...form, is_current: !!v })}
-            className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
+            className="border-rd-border data-[state=checked]:bg-rd-primary data-[state=checked]:border-rd-primary"
           />
           <Label htmlFor="cert_is_current" className="text-[12px] text-rd-text-secondary cursor-pointer">
             I&apos;m currently pursuing this
@@ -195,7 +195,7 @@ export default function CertificationsSection({ user }) {
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] resize-y min-h-[110px]"
             rows={4}
             placeholder="What you did or what it covered - e.g. core topics, projects completed, hands-on labs."
           />
@@ -231,7 +231,7 @@ export default function CertificationsSection({ user }) {
         {isLoading && <p className="text-[12px] text-rd-text-tertiary">Loading…</p>}
         {!isLoading && certs.length === 0 && (
           <div className="rounded-[18px] border border-rd-border bg-rd-bg-card text-center py-8 shadow-rd">
-            <Award className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
+            <Award className="w-9 h-9 text-rd-primary mx-auto mb-2.5" />
             <p className="text-[12.5px] text-rd-text-tertiary">
               No certifications yet - add your first one above.
             </p>
@@ -259,7 +259,7 @@ export default function CertificationsSection({ user }) {
               subtitle={subtitleParts.join(" · ")}
               statusBadge={
                 c.is_current ? (
-                  <span className="text-[10px] uppercase tracking-[0.07em] font-mono font-semibold px-2 py-0.5 rounded-full bg-rd-coral-tint text-rd-coral-dark flex-shrink-0">
+                  <span className="text-[10px] uppercase tracking-[0.07em] font-mono font-semibold px-2 py-0.5 rounded-full bg-rd-primary-tint text-rd-primary-dark flex-shrink-0">
                     In progress
                   </span>
                 ) : null

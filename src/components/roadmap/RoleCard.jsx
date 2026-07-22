@@ -12,10 +12,10 @@ import { isLowCoverage } from "@/lib/flags";
 // for non-redesigned consumers (Tracker, JobCard).
 const RD_TRACK_STYLES = {
   coral: {
-    tint:      "var(--rd-coral-tint)",
-    badgeBg:   "var(--rd-coral)",
+    tint:      "var(--rd-primary-tint)",
+    badgeBg:   "var(--rd-primary)",
     badgeText: "#ffffff",
-    accent:    "var(--rd-coral-dark)",
+    accent:    "var(--rd-primary-dark)",
   },
   teal: {
     tint:      "var(--rd-teal-tint)",

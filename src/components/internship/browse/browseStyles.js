@@ -13,9 +13,9 @@
 //   --act-ink-faded     → --rd-text-tertiary
 //   --act-line          → --rd-border
 //   --act-line-soft     → --rd-border-subtle
-//   --act-accent        → --rd-coral
-//   --act-accent-deep   → --rd-coral-dark
-//   --act-accent-tint   → --rd-coral-tint
+//   --act-accent        → --rd-primary
+//   --act-accent-deep   → --rd-primary-dark
+//   --act-accent-tint   → --rd-primary-tint
 //   --act-radius        → 14px (matches Tailwind rounded-[14px] used elsewhere)
 //
 // Kept this as a CSS module rather than migrating .brz-* to Tailwind
@@ -33,8 +33,8 @@ export const BROWSE_CSS = `
 .brz-filter-row-label { font-family: ${MONO_STACK}; font-size: 11px; font-weight: 500; color: var(--rd-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; min-width: 78px; }
 .brz-search-row { display: flex; gap: 10px; align-items: center; }
 .brz-search { flex: 1; max-width: 480px; }
-.brz-clear { font-family: ${MONO_STACK}; font-size: 11px; font-weight: 500; color: var(--rd-coral-dark); letter-spacing: 0.06em; text-transform: uppercase; background: none; border: none; cursor: pointer; padding: 4px 0; }
-.brz-clear:hover { color: var(--rd-coral); }
+.brz-clear { font-family: ${MONO_STACK}; font-size: 11px; font-weight: 500; color: var(--rd-primary-dark); letter-spacing: 0.06em; text-transform: uppercase; background: none; border: none; cursor: pointer; padding: 4px 0; }
+.brz-clear:hover { color: var(--rd-primary); }
 .brz-count { font-family: ${MONO_STACK}; font-size: 11px; color: var(--rd-text-tertiary); margin-left: 6px; opacity: 0.8; }
 
 /* Nudge banner — non-blocking, sits above grid when no internship_profile */
@@ -52,13 +52,13 @@ export const BROWSE_CSS = `
    card is one click target — reset button defaults (no system styling,
    left-aligned, inherit color, pointer cursor, text-align left). */
 .brz-card { background: var(--rd-bg-card); border: 1px solid var(--rd-border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s ease, transform 0.15s ease; min-height: 220px; text-align: left; color: inherit; font: inherit; width: 100%; }
-.brz-card:hover { border-color: var(--rd-coral); }
+.brz-card:hover { border-color: var(--rd-primary); }
 .brz-card-clickable { cursor: pointer; }
-.brz-card-clickable:focus-visible { outline: 2px solid var(--rd-coral); outline-offset: 2px; }
+.brz-card-clickable:focus-visible { outline: 2px solid var(--rd-primary); outline-offset: 2px; }
 .brz-card-clickable:active { transform: scale(0.998); }
 .brz-card-eyebrow { display: flex; align-items: center; gap: 8px; min-height: 16px; }
 .brz-card-origin { font-family: ${MONO_STACK}; font-size: 10.5px; color: var(--rd-text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; }
-.brz-card-live { font-family: ${MONO_STACK}; font-size: 10px; font-weight: 600; color: var(--rd-coral-dark); letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; background: var(--rd-coral-tint); border-radius: 100px; }
+.brz-card-live { font-family: ${MONO_STACK}; font-size: 10px; font-weight: 600; color: var(--rd-primary-dark); letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; background: var(--rd-primary-tint); border-radius: 100px; }
 .brz-card-name { font-family: var(--rd-font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.01em; color: var(--rd-text); margin: 0; line-height: 1.25; }
 .brz-card-meta { font-size: 12.5px; color: var(--rd-text-secondary); line-height: 1.4; }
 .brz-card-meta span + span::before { content: " · "; color: var(--rd-text-tertiary); }
@@ -69,7 +69,7 @@ export const BROWSE_CSS = `
 /* Score chip */
 .brz-score { display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 100px; font-family: ${MONO_STACK}; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; }
 .brz-score-label { font-family: ${MONO_STACK}; font-size: 9.5px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.75; }
-.brz-score-strong { background: var(--rd-coral); color: white; }
+.brz-score-strong { background: var(--rd-primary); color: white; }
 .brz-score-strong .brz-score-label { opacity: 0.85; }
 .brz-score-soft { background: transparent; color: var(--rd-text); border: 1px solid var(--rd-border); }
 .brz-score-weak { background: transparent; color: var(--rd-text-tertiary); }

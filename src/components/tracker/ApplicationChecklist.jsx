@@ -123,7 +123,7 @@ const STEPS = [
 const PHASES = {
   know: { label: "Know the role", color: "var(--rd-golden-dark)" },
   build: { label: "Build your case", color: "var(--rd-teal-dark)" },
-  apply: { label: "Apply & prep", color: "var(--rd-coral-dark)" },
+  apply: { label: "Apply & prep", color: "var(--rd-primary-dark)" },
 };
 const PHASE_ORDER = ["know", "build", "apply"];
 
@@ -304,7 +304,7 @@ export default function ApplicationChecklist({
       <div className="flex items-center gap-2.5 mb-5">
         <div className="flex-1 h-[7px] rounded-full bg-rd-bg-soft overflow-hidden">
           <div
-            className="h-full bg-rd-coral transition-[width] duration-500 ease-out"
+            className="h-full bg-rd-primary transition-[width] duration-500 ease-out"
             style={{ width: `${(completedCount / STEPS.length) * 100}%` }}
           />
         </div>
@@ -424,7 +424,7 @@ function StepRow({
               className={[
                 "inline-flex items-center gap-1.5 font-display font-semibold text-[11.5px] rounded-full px-3 py-1.5 mt-2 transition-colors",
                 isCurrent
-                  ? "bg-rd-coral text-white hover:bg-rd-coral-dark"
+                  ? "bg-rd-primary text-white hover:bg-rd-primary-dark"
                   : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text border border-rd-border",
               ].join(" ")}
             >
@@ -469,7 +469,7 @@ function StepMarker({ done, isCurrent, isLocked, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-label="Mark step incomplete"
-        className={`${base} bg-rd-coral text-white hover:bg-rd-coral-dark`}
+        className={`${base} bg-rd-primary text-white hover:bg-rd-primary-dark`}
       >
         <Check className="w-3.5 h-3.5" strokeWidth={3} />
       </button>
@@ -481,7 +481,7 @@ function StepMarker({ done, isCurrent, isLocked, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-label="Mark step complete"
-        className={`${base} border-2 border-rd-coral bg-white hover:bg-rd-coral-tint`}
+        className={`${base} border-2 border-rd-primary bg-white hover:bg-rd-primary-tint`}
       />
     );
   }
@@ -490,7 +490,7 @@ function StepMarker({ done, isCurrent, isLocked, onToggle }) {
       type="button"
       onClick={onToggle}
       aria-label="Mark step complete"
-      className={`${base} border-[1.5px] border-rd-border bg-white hover:border-rd-coral`}
+      className={`${base} border-[1.5px] border-rd-border bg-white hover:border-rd-primary`}
     />
   );
 }

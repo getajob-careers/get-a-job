@@ -241,9 +241,9 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
 // stale-cache path doesn't render a colorless card.
 const RD_TRACK_STYLES = {
   coral: {
-    tint: "var(--rd-coral-tint)",
-    badgeBg: "var(--rd-coral)",
-    accent: "var(--rd-coral-dark)",
+    tint: "var(--rd-primary-tint)",
+    badgeBg: "var(--rd-primary)",
+    accent: "var(--rd-primary-dark)",
   },
   teal: {
     tint: "var(--rd-teal-tint)",
@@ -258,9 +258,9 @@ const RD_TRACK_STYLES = {
   // Legacy alias support — fall back to coral if a stale cache surface
   // passes the old names.
   green: {
-    tint: "var(--rd-coral-tint)",
-    badgeBg: "var(--rd-coral)",
-    accent: "var(--rd-coral-dark)",
+    tint: "var(--rd-primary-tint)",
+    badgeBg: "var(--rd-primary)",
+    accent: "var(--rd-primary-dark)",
   },
   gray: {
     tint: "var(--rd-teal-tint)",
@@ -294,8 +294,8 @@ const BAND_META = {
   },
   good: {
     label: "Good match",
-    bg: "var(--rd-coral-tint)",
-    fg: "var(--rd-coral-dark)",
+    bg: "var(--rd-primary-tint)",
+    fg: "var(--rd-primary-dark)",
   },
   stretch: {
     label: "Stretch",
@@ -635,7 +635,7 @@ export default function JobCard({
             href={job.apply_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-1.5 transition-colors"
+            className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 transition-colors"
           >
             See Job Posting
             <ExternalLink className="w-3 h-3" />

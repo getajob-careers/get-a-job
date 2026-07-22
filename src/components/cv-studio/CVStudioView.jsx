@@ -109,7 +109,7 @@ function PieceRevise({ onRevise, target }) {
         disabled={busy}
         aria-label="Revise with AI"
         title="Revise with AI"
-        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-medium transition-opacity ${busy ? "opacity-100 text-rd-coral-dark" : "opacity-0 group-hover/bullet:opacity-100 group-hover/piece:opacity-100 focus:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark"}`}
+        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-medium transition-opacity ${busy ? "opacity-100 text-rd-primary-dark" : "opacity-0 group-hover/bullet:opacity-100 group-hover/piece:opacity-100 focus:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark"}`}
       >
         {busy ? (
           <Loader2 className="w-3 h-3 animate-spin" />
@@ -132,7 +132,7 @@ function PieceRevise({ onRevise, target }) {
                   e.preventDefault();
                   run(p);
                 }}
-                className="px-2 py-0.5 rounded-full border border-rd-border bg-rd-bg-card text-[11px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark transition-colors"
+                className="px-2 py-0.5 rounded-full border border-rd-border bg-rd-bg-card text-[11px] text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary-dark transition-colors"
               >
                 {p.label}
               </button>
@@ -143,7 +143,7 @@ function PieceRevise({ onRevise, target }) {
             onChange={(e) => setFeedback(e.target.value)}
             rows={2}
             placeholder="What's off? e.g. too generic, doesn't show impact"
-            className="w-full text-[12px] rounded-lg border border-rd-border bg-rd-bg-card px-2 py-1.5 focus:outline-none focus:border-rd-coral resize-none"
+            className="w-full text-[12px] rounded-lg border border-rd-border bg-rd-bg-card px-2 py-1.5 focus:outline-none focus:border-rd-primary resize-none"
           />
           <div className="flex items-center justify-between mt-2">
             <button
@@ -163,13 +163,13 @@ function PieceRevise({ onRevise, target }) {
                 run(null);
               }}
               disabled={!feedback.trim()}
-              className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-1 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center gap-1 rounded-full bg-rd-primary text-white text-[11.5px] font-display font-semibold px-2.5 py-1 hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Sparkles className="w-3 h-3" /> Revise
             </button>
           </div>
           {error && (
-            <p className="text-[11px] text-rd-coral-dark mt-1.5">{error}</p>
+            <p className="text-[11px] text-rd-primary-dark mt-1.5">{error}</p>
           )}
         </div>
       )}
@@ -261,7 +261,7 @@ function ExperienceEntry({
           onClick={onDelete}
           aria-label="Delete this experience"
           title="Delete this experience"
-          className="absolute right-[-28px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+          className="absolute right-[-28px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark transition-opacity"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>
@@ -321,7 +321,7 @@ function ExperienceEntry({
             <button
               onClick={() => onRemoveBullet(b.id)}
               aria-label="Remove bullet"
-              className="opacity-0 group-hover/bullet:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark mt-0.5 transition-opacity"
+              className="opacity-0 group-hover/bullet:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark mt-0.5 transition-opacity"
             >
               <X className="w-3 h-3" />
             </button>
@@ -602,8 +602,8 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
         onBlur={() => setTimeout(() => setOpen(false), 130)}
         className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-rd-border bg-rd-bg-card hover:bg-rd-bg-soft transition-colors"
       >
-        <span className="w-6 h-6 rounded-md bg-rd-coral-tint grid place-items-center shrink-0">
-          <FileText className="w-3.5 h-3.5 text-rd-coral" />
+        <span className="w-6 h-6 rounded-md bg-rd-primary-tint grid place-items-center shrink-0">
+          <FileText className="w-3.5 h-3.5 text-rd-primary" />
         </span>
         <span className="text-left leading-tight">
           <span className="block text-[13px] font-display font-semibold text-rd-text">
@@ -625,7 +625,7 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
             {options.map((o) => (
               <div
                 key={o.id}
-                className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-coral-tint/60" : "hover:bg-rd-bg-soft"}`}
+                className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-primary-tint/60" : "hover:bg-rd-bg-soft"}`}
               >
                 <button
                   onMouseDown={(e) => {
@@ -657,7 +657,7 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
                       onDelete(o);
                     }}
                     aria-label={`Delete ${o.label}`}
-                    className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint shrink-0"
+                    className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint shrink-0"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -796,8 +796,8 @@ export default function CVStudioView({
   const savePill =
     saveState === "error"
       ? {
-          cls: "bg-rd-coral-tint text-rd-coral-dark",
-          dot: "bg-rd-coral-dark",
+          cls: "bg-rd-primary-tint text-rd-primary-dark",
+          dot: "bg-rd-primary-dark",
           text: "save failed",
         }
       : saveState === "saving"
@@ -875,7 +875,7 @@ export default function CVStudioView({
               onClick={() => handleDelete(currentCv)}
               aria-label="Delete this CV"
               title="Delete this CV"
-              className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors"
+              className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -886,7 +886,7 @@ export default function CVStudioView({
               alive
                 ? // Flag-on: rd- palette coral (not the template accent), so the
                   // primary action matches the canvas tokens.
-                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rd-coral text-white text-[12.5px] font-medium hover:bg-rd-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral-dark/50 transition-colors"
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rd-primary text-white text-[12.5px] font-medium hover:bg-rd-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark/50 transition-colors"
                 : "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
             }
           >
@@ -996,7 +996,7 @@ export default function CVStudioView({
               (Reading → Selecting → Rendering), distinct from the chat dots. */}
             {tailoring && (
               <div className="max-w-[720px] mx-auto mt-3 px-1">
-                <div className="flex items-center gap-2.5 text-[12.5px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-lg px-3 py-2.5">
+                <div className="flex items-center gap-2.5 text-[12.5px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-lg px-3 py-2.5">
                   <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                   <span>
                     {tailorStage || `Tailoring your CV to ${tailorLabel}…`}
@@ -1090,7 +1090,7 @@ export default function CVStudioView({
                           tailorContext ? onTailorContext?.() : onTailorNew()
                         }
                         disabled={tailoring}
-                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                        className="inline-flex items-center gap-1 text-[12px] font-display font-semibold text-rd-primary-dark hover:text-rd-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
                       >
                         {tailorContext
                           ? `Generate for ${tailorContext.role}`
@@ -1113,7 +1113,7 @@ export default function CVStudioView({
                     <button
                       onClick={() => onTailorContext?.()}
                       disabled={tailoring}
-                      className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="inline-flex items-center gap-1 rounded-full bg-rd-primary text-white text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Tailor it to {tailorContext.role}
                     </button>
@@ -1300,7 +1300,7 @@ export default function CVStudioView({
                           onClick={() => onDeleteEducation(ed.id)}
                           aria-label="Delete this education entry"
                           title="Delete this education entry"
-                          className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+                          className="absolute right-[-4px] top-0 opacity-0 group-hover/edu:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark transition-opacity"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1493,8 +1493,8 @@ export default function CVStudioView({
           {rightRail ? null : (
             <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
               <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
-                  <FileText className="w-3.5 h-3.5 text-rd-coral" />
+                <div className="w-7 h-7 rounded-full bg-rd-primary-tint grid place-items-center">
+                  <FileText className="w-3.5 h-3.5 text-rd-primary" />
                 </div>
                 <div className="leading-tight flex-1">
                   <p className="text-[13.5px] font-display font-bold text-rd-text">
@@ -1523,12 +1523,12 @@ export default function CVStudioView({
                     className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
                   >
                     {m.role !== "user" && (
-                      <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
-                        <FileText className="w-3 h-3 text-rd-coral" />
+                      <div className="w-6 h-6 rounded-full bg-rd-primary-tint grid place-items-center shrink-0 mt-0.5">
+                        <FileText className="w-3 h-3 text-rd-primary" />
                       </div>
                     )}
                     <div
-                      className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
+                      className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-primary text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
                     >
                       {m.content}
                     </div>
@@ -1536,8 +1536,8 @@ export default function CVStudioView({
                 ))}
                 {chatBusy && (
                   <div className="flex gap-2.5">
-                    <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
-                      <FileText className="w-3 h-3 text-rd-coral" />
+                    <div className="w-6 h-6 rounded-full bg-rd-primary-tint grid place-items-center shrink-0 mt-0.5">
+                      <FileText className="w-3 h-3 text-rd-primary" />
                     </div>
                     <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
                       <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
@@ -1560,7 +1560,7 @@ export default function CVStudioView({
                       disabled={
                         chatBusy || (c === "Tailor to a job" && tailoring)
                       }
-                      className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {c}
                     </button>
@@ -1578,13 +1578,13 @@ export default function CVStudioView({
                     }}
                     placeholder="Ask the CV Agent…"
                     disabled={chatBusy}
-                    className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
+                    className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-primary disabled:opacity-60"
                   />
                   <button
                     onClick={() => sendChat()}
                     disabled={chatBusy || !chatInput.trim()}
                     aria-label="Send message"
-                    className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="w-[38px] h-[38px] rounded-full bg-rd-primary text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Send className="w-4 h-4" />
                   </button>

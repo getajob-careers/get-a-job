@@ -120,7 +120,7 @@ function OptionCard({ icon: Icon, title, description, selected, onClick }) {
         "w-full text-left flex items-start gap-4 p-4 rounded-[14px] transition-[border-color,background-color,box-shadow] duration-150",
         "border bg-rd-bg-card",
         selected
-          ? "border-rd-coral shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+          ? "border-rd-primary shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           : "border-rd-border hover:border-rd-border-hover",
       ].join(" ")}
       data-selected={selected}
@@ -129,7 +129,7 @@ function OptionCard({ icon: Icon, title, description, selected, onClick }) {
         className={[
           "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
           selected
-            ? "bg-rd-coral text-white"
+            ? "bg-rd-primary text-white"
             : "bg-rd-bg-soft text-rd-text-secondary",
         ].join(" ")}
       >

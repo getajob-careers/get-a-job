@@ -24,7 +24,7 @@ function Pill({ active, count, onClick, children }) {
       className={[
         "inline-flex items-center gap-1 px-3 py-1 rounded-full border font-body text-[12px] cursor-pointer transition-colors whitespace-nowrap",
         active
-          ? "bg-rd-coral text-white border-rd-coral font-display font-semibold"
+          ? "bg-rd-primary text-white border-rd-primary font-display font-semibold"
           : "bg-rd-bg-card text-rd-text-secondary border-rd-border font-medium hover:border-rd-border-hover hover:text-rd-text",
       ].join(" ")}
       data-selected={active ? "true" : "false"}
@@ -101,7 +101,7 @@ export default function CompanyBrowseFilters({
           />
           <input
             type="search"
-            className="w-full px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="w-full px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
             placeholder="Search by name, sector, or industry"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

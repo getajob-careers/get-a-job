@@ -40,7 +40,7 @@ export default function SidebarFooter({ profileFullName = null, onNavigate }) {
               onClick={onNavigate}
               aria-label="Open Settings"
               title="Settings"
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1"
               style={{ background: "var(--rd-peach)" }}
             >
               <span className="font-display text-[12px] font-bold text-white">

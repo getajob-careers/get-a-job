@@ -89,7 +89,7 @@ export default function AddApplicationDialog({ open, onOpenChange, onAdded }) {
             <input
               value={newApp.role_title}
               onChange={(e) => setNewApp({ ...newApp, role_title: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
               placeholder="e.g. Junior Data Analyst"
             />
           </div>
@@ -100,7 +100,7 @@ export default function AddApplicationDialog({ open, onOpenChange, onAdded }) {
             <input
               value={newApp.company}
               onChange={(e) => setNewApp({ ...newApp, company: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
               placeholder="e.g. Google"
             />
           </div>
@@ -116,7 +116,7 @@ export default function AddApplicationDialog({ open, onOpenChange, onAdded }) {
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Paste the job description here..."
               rows={5}
-              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
+              className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] resize-y min-h-[110px]"
             />
             {!jobDescription && (
               <p className="text-[11px] text-rd-text-secondary mt-1.5 leading-snug">
@@ -137,7 +137,7 @@ export default function AddApplicationDialog({ open, onOpenChange, onAdded }) {
             type="button"
             onClick={handleAdd}
             disabled={addingApp || !newApp.role_title}
-            className="inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2 transition-colors"
+            className="inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2 transition-colors"
           >
             {addingApp ? (
               <><Loader2 className="w-3.5 h-3.5 animate-spin" />Analysing…</>

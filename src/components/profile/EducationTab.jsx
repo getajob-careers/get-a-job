@@ -75,9 +75,9 @@ const RD_CARD_LG =
 const RD_LABEL =
   "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
 const RD_INPUT_CLS =
-  "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+  "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 const RD_BTN_PRIMARY =
-  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_GHOST =
   "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
 
@@ -260,7 +260,7 @@ export default function EducationTab({ user }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={RD_LABEL}>
-              Institution <span className="text-rd-coral">*</span>
+              Institution <span className="text-rd-primary">*</span>
             </label>
             <Input
               value={form.institution}
@@ -273,7 +273,7 @@ export default function EducationTab({ user }) {
           </div>
           <div>
             <label className={RD_LABEL}>
-              Education Level <span className="text-rd-coral">*</span>
+              Education Level <span className="text-rd-primary">*</span>
             </label>
             <Select
               value={form.education_level || undefined}
@@ -321,7 +321,7 @@ export default function EducationTab({ user }) {
           </div>
           <div>
             <label className={RD_LABEL}>
-              Field of Study <span className="text-rd-coral">*</span>
+              Field of Study <span className="text-rd-primary">*</span>
             </label>
             <Input
               value={form.field_of_study}
@@ -334,7 +334,7 @@ export default function EducationTab({ user }) {
           </div>
           <div>
             <label className={RD_LABEL}>
-              Start Date <span className="text-rd-coral">*</span>
+              Start Date <span className="text-rd-primary">*</span>
             </label>
             <Input
               value={form.start_date}
@@ -386,7 +386,7 @@ export default function EducationTab({ user }) {
             onCheckedChange={(v) =>
               setForm({ ...form, is_current: !!v, ...(v && { end_date: "" }) })
             }
-            className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
+            className="border-rd-border data-[state=checked]:bg-rd-primary data-[state=checked]:border-rd-primary"
           />
           <Label
             htmlFor="is_current"
@@ -461,7 +461,7 @@ export default function EducationTab({ user }) {
         )}
         {!isLoading && educations.length === 0 && (
           <div className={`${RD_CARD} text-center py-8`}>
-            <GraduationCap className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
+            <GraduationCap className="w-9 h-9 text-rd-primary mx-auto mb-2.5" />
             <p className="text-[12.5px] text-rd-text-tertiary">
               No education entries yet - add your first one above.
             </p>

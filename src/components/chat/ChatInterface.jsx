@@ -53,7 +53,7 @@ function TaskSuggestionCard({ messageId, tasks, addedTaskSets, onAdd }) {
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <ListTodo className="w-3.5 h-3.5 text-rd-coral" />
+        <ListTodo className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">Suggested tasks</p>
       </div>
       <ul className="space-y-2">
@@ -70,7 +70,7 @@ function TaskSuggestionCard({ messageId, tasks, addedTaskSets, onAdd }) {
             ) : (
               <button
                 onClick={() => onAdd(messageId, task, i)}
-                className="text-[11px] font-display font-semibold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3 py-1 shrink-0 transition-colors"
+                className="text-[11px] font-display font-semibold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3 py-1 shrink-0 transition-colors"
               >
                 Add
               </button>
@@ -97,7 +97,7 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Route className="w-3.5 h-3.5 text-rd-coral" />
+        <Route className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed roadmap changes</p>
       </div>
       <ul className="space-y-2 mb-3">
@@ -121,7 +121,7 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, changes)}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         Apply changes
       </Button>
@@ -143,7 +143,7 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Briefcase className="w-3.5 h-3.5 text-rd-coral" />
+        <Briefcase className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed application changes</p>
       </div>
       <ul className="space-y-2 mb-3">
@@ -167,7 +167,7 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, actions)}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         Apply changes
       </Button>
@@ -202,7 +202,7 @@ function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Briefcase className="w-3.5 h-3.5 text-rd-coral" />
+        <Briefcase className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed internship changes</p>
       </div>
       <ul className="space-y-2 mb-3">
@@ -233,7 +233,7 @@ function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, actions)}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         Apply changes
       </Button>
@@ -295,8 +295,8 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
     const alignClass =
       alignment === "Strong" ? "text-rd-teal-dark"
       : alignment === "Moderate" ? "text-rd-golden-dark"
-      : alignment === "Weak" ? "text-rd-coral-dark"
-      : alignment === "Not a match" ? "text-rd-coral-dark"
+      : alignment === "Weak" ? "text-rd-primary-dark"
+      : alignment === "Not a match" ? "text-rd-primary-dark"
       : "text-rd-text-secondary";
     return (
       <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
@@ -346,7 +346,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
                 toast.error(`Download failed: ${err?.message || "unknown error"}`);
               }
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full px-3.5 py-2 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-display font-bold bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full px-3.5 py-2 transition-colors"
           >
             <Download className="w-3.5 h-3.5" />
             Download CV (.pdf)
@@ -360,7 +360,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
                     `?application_id=${encodeURIComponent(application_id)}`,
                 )
               }
-              className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-3.5 py-2 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-rd-primary bg-rd-bg-card border border-rd-primary/40 hover:bg-rd-primary-tint rounded-full px-3.5 py-2 transition-colors"
             >
               Open in Studio
               <ArrowRight className="w-3.5 h-3.5" />
@@ -389,7 +389,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <FileText className="w-3.5 h-3.5 text-rd-coral" />
+        <FileText className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">Generate tailored CV</p>
       </div>
       <ul className="space-y-1 mb-3 text-xs text-rd-text-secondary">
@@ -400,13 +400,13 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
         )}
       </ul>
       {error && (
-        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">Couldn&apos;t generate the CV this time. Tap Try again.</p>
+        <p className="text-[11px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-[8px] px-2 py-1 mb-2">Couldn&apos;t generate the CV this time. Tap Try again.</p>
       )}
       <Button
         size="sm"
         onClick={() => onGenerate()}
         disabled={status === "generating"}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         {status === "generating" ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Generating…</>
@@ -1289,7 +1289,7 @@ export default function ChatInterface({
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); deleteConversation(c.id); }}
-                    className="p-1 rounded hover:bg-rd-coral-tint text-rd-text-tertiary hover:text-rd-coral-dark flex-shrink-0"
+                    className="p-1 rounded hover:bg-rd-primary-tint text-rd-text-tertiary hover:text-rd-primary-dark flex-shrink-0"
                     aria-label="Delete conversation"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -1328,7 +1328,7 @@ export default function ChatInterface({
                     type="button"
                     onClick={() => sendMessage(prompt)}
                     disabled={sending}
-                    className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-rd-bg-card border border-rd-border text-rd-text-secondary font-body text-[12.5px] font-medium hover:bg-rd-coral-tint hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-rd-bg-card border border-rd-border text-rd-text-secondary font-body text-[12.5px] font-medium hover:bg-rd-primary-tint hover:border-rd-primary hover:text-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {prompt}
                   </button>
@@ -1430,8 +1430,8 @@ export default function ChatInterface({
         {/* Typing indicator — coral-tint avatar + warm bubble dots */}
         {sending && (
           <div className="flex gap-3">
-            <div className="w-[26px] h-[26px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
-              <div className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
+            <div className="w-[26px] h-[26px] rounded-full bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
+              <div className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
             </div>
             <div className="inline-flex gap-1 items-center px-3.5 py-2.5 bg-[#F3ECE0] rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]">
               <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
@@ -1463,14 +1463,14 @@ export default function ChatInterface({
             onKeyDown={handleKeyDown}
             placeholder="Message your agent…"
             rows={1}
-            className="flex-1 px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] min-h-[42px] max-h-[120px] resize-none transition-colors placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="flex-1 px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] min-h-[42px] max-h-[120px] resize-none transition-colors placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           />
           <button
             type="button"
             onClick={() => sendMessage()}
             disabled={sending || !input.trim()}
             aria-label="Send message"
-            className="w-[42px] h-[42px] rounded-full bg-rd-coral hover:bg-rd-coral-dark text-white border-0 inline-flex items-center justify-center cursor-pointer flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97] transition-all"
+            className="w-[42px] h-[42px] rounded-full bg-rd-primary hover:bg-rd-primary-dark text-white border-0 inline-flex items-center justify-center cursor-pointer flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97] transition-all"
           >
             {sending ? (
               <Loader2 className="w-4 h-4 animate-spin" />

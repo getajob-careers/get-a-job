@@ -128,11 +128,11 @@ export default function OnboardingPreview() {
               </h1>
               <p className="text-[13px] text-rd-text-secondary mt-2 leading-snug">
                 RdSkillTagInput rendered with{" "}
-                <code className="text-rd-coral-dark">
+                <code className="text-rd-primary-dark">
                   suggestionType=&quot;library_skills&quot;
                 </code>{" "}
                 — the 595 canonical library names from{" "}
-                <code className="text-rd-coral-dark">
+                <code className="text-rd-primary-dark">
                   skillIdsGenerated.json
                 </code>
                 . The runner types into this field before screenshotting so the

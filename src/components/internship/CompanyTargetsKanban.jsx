@@ -18,7 +18,7 @@ const STATUS_BADGE_CLS = {
   info:    "bg-rd-teal-tint text-rd-teal-dark",
   warning: "bg-rd-golden-tint text-rd-golden-dark",
   success: "bg-rd-teal-tint text-rd-teal-dark",
-  error:   "bg-rd-coral-tint text-rd-coral-dark",
+  error:   "bg-rd-primary-tint text-rd-primary-dark",
 };
 const STATUS_BADGE_BASE = "inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-medium tracking-[0.04em] uppercase";
 
@@ -119,7 +119,7 @@ export default function CompanyTargetsKanban({ targets, onCardClick }) {
                     className={[
                       "flex flex-col gap-2 p-3 rounded-[14px] min-h-[200px] transition-colors",
                       snapshot.isDraggingOver
-                        ? "bg-rd-coral-tint shadow-[inset_0_0_0_2px_var(--rd-coral)]"
+                        ? "bg-rd-primary-tint shadow-[inset_0_0_0_2px_var(--rd-primary)]"
                         : "bg-rd-bg-soft",
                     ].join(" ")}
                     data-dragover={snapshot.isDraggingOver}

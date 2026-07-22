@@ -65,7 +65,7 @@ export default function CanvasAvatarChip({ compact = false, account }) {
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Account menu"
-          className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold rd-t-body-m hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+          className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-primary-tint text-rd-primary font-display font-bold rd-t-body-m hover:bg-rd-primary hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
         >
           {initial}
         </button>
@@ -76,9 +76,9 @@ export default function CanvasAvatarChip({ compact = false, account }) {
           onClick={toggle}
           aria-haspopup="menu"
           aria-expanded={open}
-          className="flex-shrink-0 flex items-center gap-2 w-full rd-r-md bg-rd-bg-card border border-rd-border px-2.5 py-2 hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+          className="flex-shrink-0 flex items-center gap-2 w-full rd-r-md bg-rd-bg-card border border-rd-border px-2.5 py-2 hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
         >
-          <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold rd-t-body-s">
+          <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-primary-tint text-rd-primary font-display font-bold rd-t-body-s">
             {initial}
           </span>
           <span className="flex-1 min-w-0 text-left">

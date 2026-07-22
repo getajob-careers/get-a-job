@@ -113,10 +113,10 @@ const VALID_TABS = ["profile", "education", "goals", "self-assessment", "project
 // these in their own files.
 const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 sm:p-6 shadow-rd";
 const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
-const RD_INPUT      = "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_INPUT      = "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
 const RD_EYEBROW    = "text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_OUTLINE = "inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-3.5 py-2 transition-colors";
 const RD_BTN_GHOST   = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
 
@@ -161,7 +161,7 @@ function TagEditor({ tags, onChange, placeholder }) {
               <button
                 type="button"
                 onClick={() => remove(t)}
-                className="text-rd-text-tertiary hover:text-rd-coral transition-colors"
+                className="text-rd-text-tertiary hover:text-rd-primary transition-colors"
                 aria-label={`Remove ${t}`}
               >
                 <Trash2 className="w-3 h-3" />
@@ -252,7 +252,7 @@ function StackedRadio({ options, value, onChange }) {
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="hover:text-rd-coral-tint"
+            className="hover:text-rd-primary-tint"
             aria-label="Clear custom answer"
           >
             <X className="w-3 h-3" />
@@ -883,7 +883,7 @@ export default function Profile() {
                   type="checkbox"
                   checked={profileForm.open_to_lateral}
                   onChange={(e) => setField("open_to_lateral", e.target.checked)}
-                  className="rounded accent-rd-coral"
+                  className="rounded accent-rd-primary"
                 />
                 <div>
                   <p className="text-[13px] text-rd-text font-display font-semibold">Open to lateral roles</p>
@@ -895,7 +895,7 @@ export default function Profile() {
                   type="checkbox"
                   checked={profileForm.open_to_outside_degree}
                   onChange={(e) => setField("open_to_outside_degree", e.target.checked)}
-                  className="rounded accent-rd-coral"
+                  className="rounded accent-rd-primary"
                 />
                 <div>
                   <p className="text-[13px] text-rd-text font-display font-semibold">Open to roles outside my degree field</p>
@@ -949,7 +949,7 @@ export default function Profile() {
                   {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).map((c) => (
                     <span key={c} className="inline-flex items-center gap-1.5 bg-rd-text text-white text-[12px] px-2.5 py-1 rounded-full">
                       {c}
-                      <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-rd-coral-tint" aria-label={`Remove ${c}`}>
+                      <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-rd-primary-tint" aria-label={`Remove ${c}`}>
                         <X className="w-3 h-3" />
                       </button>
                     </span>
@@ -1080,8 +1080,8 @@ export default function Profile() {
             {/* Story Bank summary — links to /StoryBank for full management */}
             <div className={`${RD_CARD} flex items-center justify-between gap-3 flex-wrap`}>
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-9 h-9 rounded-[12px] bg-rd-coral-tint flex items-center justify-center flex-shrink-0">
-                  <BookText className="w-4 h-4 text-rd-coral-dark" />
+                <div className="w-9 h-9 rounded-[12px] bg-rd-primary-tint flex items-center justify-center flex-shrink-0">
+                  <BookText className="w-4 h-4 text-rd-primary-dark" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-[13.5px] font-display font-bold text-rd-text">
@@ -1206,7 +1206,7 @@ export default function Profile() {
                           className={[
                             "inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-mono font-semibold text-[10.5px] tracking-[0.04em] transition-colors",
                             count > 0
-                              ? "bg-rd-coral-tint text-rd-coral-dark hover:bg-rd-coral-tint/80"
+                              ? "bg-rd-primary-tint text-rd-primary-dark hover:bg-rd-primary-tint/80"
                               : "bg-rd-bg-soft text-rd-text-tertiary hover:bg-rd-border",
                           ].join(" ")}
                           title={count > 0 ? "View stories in Story Bank" : "Capture a story for this experience"}
@@ -1353,7 +1353,7 @@ function UnmappedSkillsSection({ profile, profileForm, setProfileForm }) {
                 <button
                   type="button"
                   onClick={() => removeLabel(label)}
-                  className="text-[11px] text-rd-text-tertiary hover:text-rd-coral-dark transition-colors"
+                  className="text-[11px] text-rd-text-tertiary hover:text-rd-primary-dark transition-colors"
                 >
                   Remove
                 </button>

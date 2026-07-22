@@ -30,7 +30,7 @@ const ratio = (a, b) => {
 };
 
 const BANDS = [
-  ["good", "--rd-coral-dark", "--rd-coral-tint"],
+  ["good", "--rd-primary-dark", "--rd-primary-tint"],
   ["strong", "--rd-teal-dark", "--rd-teal-tint"],
   ["stretch", "--rd-golden-dark", "--rd-golden-tint"],
 ];

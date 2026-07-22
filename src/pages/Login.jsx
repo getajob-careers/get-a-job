@@ -32,7 +32,7 @@ function BrandMark() {
   return (
     <div className="inline-flex items-center gap-2.5 select-none">
       <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
@@ -254,8 +254,8 @@ export default function Login() {
           {/* Top: scarcity eyebrow (signup only) + brand */}
           <div className="flex flex-col gap-4">
             {mode === "signup" && (
-              <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-coral-dark bg-rd-coral-tint rounded-full px-2.5 py-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
+              <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-primary-dark bg-rd-primary-tint rounded-full px-2.5 py-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
                 Pilot phase
               </span>
             )}
@@ -278,7 +278,7 @@ export default function Login() {
               reachable above the fold, mirroring the live page's behavior. */}
           <ul className="hidden md:flex flex-col gap-2.5 m-0 p-0 list-none">
             <li className="flex items-center gap-2.5 font-display font-semibold text-[13.5px] text-rd-text">
-              <span className="w-2 h-2 rounded-full bg-rd-coral flex-shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-rd-primary flex-shrink-0" />
               Roles that fit you
             </li>
             <li className="flex items-center gap-2.5 font-display font-semibold text-[13.5px] text-rd-text">
@@ -308,7 +308,7 @@ export default function Login() {
               {error && (
                 <div
                   role="alert"
-                  className="text-[13px] leading-snug rounded-xl px-3.5 py-2.5 bg-rd-coral-tint text-rd-coral-dark border border-rd-coral/40"
+                  className="text-[13px] leading-snug rounded-xl px-3.5 py-2.5 bg-rd-primary-tint text-rd-primary-dark border border-rd-primary/40"
                 >
                   {error}
                 </div>
@@ -333,7 +333,7 @@ export default function Login() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] font-semibold hover:border-rd-coral transition-[border-color] duration-150 disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] font-semibold hover:border-rd-primary transition-[border-color] duration-150 disabled:opacity-60"
                 >
                   <GoogleGlyph />
                   Continue with Google
@@ -382,7 +382,7 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => switchMode("forgot")}
-                        className="text-[11.5px] font-semibold text-rd-coral hover:text-rd-coral-dark"
+                        className="text-[11.5px] font-semibold text-rd-primary hover:text-rd-primary-dark"
                       >
                         Forgot?
                       </button>
@@ -412,21 +412,21 @@ export default function Login() {
                     type="checkbox"
                     checked={consent}
                     onChange={(e) => setConsent(e.target.checked)}
-                    className="mt-[1px] w-[15px] h-[15px] flex-shrink-0 accent-rd-coral cursor-pointer"
+                    className="mt-[1px] w-[15px] h-[15px] flex-shrink-0 accent-rd-primary cursor-pointer"
                     required
                   />
                   <span>
                     I agree to the{" "}
                     <Link
                       to="/terms"
-                      className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                      className="text-rd-primary hover:text-rd-primary-dark font-semibold"
                     >
                       Terms
                     </Link>{" "}
                     &amp;{" "}
                     <Link
                       to="/privacy"
-                      className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                      className="text-rd-primary hover:text-rd-primary-dark font-semibold"
                     >
                       Privacy Policy
                     </Link>
@@ -467,7 +467,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => switchMode(switchTarget)}
-                className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                className="text-rd-primary hover:text-rd-primary-dark font-semibold"
               >
                 {switchAction}
               </button>
@@ -477,7 +477,7 @@ export default function Login() {
               <button
                 type="button"
                 onClick={() => switchMode("signin")}
-                className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                className="text-rd-primary hover:text-rd-primary-dark font-semibold"
               >
                 ← Back to sign in
               </button>
@@ -519,7 +519,7 @@ function Input(props) {
         "text-[13.5px] font-body",
         "placeholder:text-rd-text-secondary/70",
         "outline-none transition-[border-color,box-shadow] duration-150",
-        "focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]",
+        "focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]",
         props.className || "",
       ].join(" ")}
     />

@@ -67,7 +67,7 @@ const FAMILY_OPTIONS = Array.from(new Set(ROLE_LOOKUP.map((r) => r.role_family))
   .sort((a, b) => familyLabel(a).localeCompare(familyLabel(b)));
 
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 export default function StepCareerDirection({ data, onChange, onNext, onBack }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -244,7 +244,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           {!chosenRole && (
             <div className="mb-2 text-[11.5px] leading-snug text-rd-text-secondary bg-rd-bg-soft border border-rd-border rounded-[10px] px-3 py-2">
               <span className="text-rd-text-tertiary">e.g.</span>{" "}
-              <span className="text-rd-coral-dark font-medium">Senior Product Manager</span>{" "}
+              <span className="text-rd-primary-dark font-medium">Senior Product Manager</span>{" "}
               <span className="text-rd-text-tertiary">scores better than</span>{" "}
               <span className="font-medium">PM</span>
               <span className="text-rd-text-tertiary">. Specific roles map to library entries; vague ones fall back to keyword search.</span>
@@ -252,8 +252,8 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           )}
 
           {chosenRole ? (
-            <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]">
-              <Check className="w-4 h-4 text-rd-coral mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]">
+              <Check className="w-4 h-4 text-rd-primary mt-0.5 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="font-display font-semibold text-[14.5px] text-rd-text">
                   {chosenRole.title}
@@ -265,7 +265,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
               <button
                 type="button"
                 onClick={clearPick}
-                className="text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-coral transition-colors"
+                className="text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-primary transition-colors"
               >
                 Change
               </button>
@@ -287,7 +287,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
                     type="button"
                     onClick={() => { setQuery(""); setDebouncedQuery(""); }}
                     aria-label="Clear search"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-rd-text-secondary hover:text-rd-coral transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-rd-text-secondary hover:text-rd-primary transition-colors"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -299,7 +299,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
                 <select
                   value={familyFilter}
                   onChange={(e) => setFamilyFilter(e.target.value)}
-                  className="text-[12px] px-2.5 py-1.5 rounded-[8px] border border-rd-border bg-rd-bg-card text-rd-text outline-none focus:border-rd-coral focus:shadow-[0_0_0_2px_var(--rd-coral-tint)]"
+                  className="text-[12px] px-2.5 py-1.5 rounded-[8px] border border-rd-border bg-rd-bg-card text-rd-text outline-none focus:border-rd-primary focus:shadow-[0_0_0_2px_var(--rd-primary-tint)]"
                 >
                   <option value="">All areas</option>
                   {FAMILY_OPTIONS.map((f) => (
@@ -310,7 +310,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
                   <button
                     type="button"
                     onClick={() => setFamilyFilter("")}
-                    className="text-[11.5px] text-rd-text-tertiary hover:text-rd-coral transition-colors"
+                    className="text-[11.5px] text-rd-text-tertiary hover:text-rd-primary transition-colors"
                   >
                     Clear
                   </button>
@@ -327,7 +327,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
                       onMouseEnter={() => setHighlightedIndex(idx)}
                       className={`w-full text-left px-3.5 py-2.5 transition-colors ${
                         idx === highlightedIndex
-                          ? "bg-rd-coral-tint"
+                          ? "bg-rd-primary-tint"
                           : "hover:bg-rd-bg-soft"
                       }`}
                     >

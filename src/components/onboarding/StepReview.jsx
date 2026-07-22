@@ -74,7 +74,7 @@ const OTHER_LEVELS = [
 ];
 
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 const EMPTY_EXP = {
   title: "",
@@ -97,7 +97,7 @@ function Label({ children, required = false }) {
   return (
     <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
       {children}
-      {required ? <span className="text-rd-coral ml-1">*</span> : null}
+      {required ? <span className="text-rd-primary ml-1">*</span> : null}
     </label>
   );
 }
@@ -111,7 +111,7 @@ function SectionHeader({ icon: Icon, title, subtitle, required }) {
       <div className="min-w-0 flex-1">
         <h2 className="font-display font-bold text-[17px] leading-tight text-rd-text">
           {title}
-          {required ? <span className="text-rd-coral ml-1.5">*</span> : null}
+          {required ? <span className="text-rd-primary ml-1.5">*</span> : null}
         </h2>
         {subtitle && (
           <p className="text-[12px] text-rd-text-secondary mt-0.5 leading-snug">
@@ -146,12 +146,12 @@ function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
   if (!suggestion || remainingIds.length === 0) return null;
 
   return (
-    <div className="rounded-[12px] border border-dashed border-rd-coral/40 bg-rd-coral-tint/40 p-3">
+    <div className="rounded-[12px] border border-dashed border-rd-primary/40 bg-rd-primary-tint/40 p-3">
       <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-3.5 h-3.5 text-rd-coral-dark" />
+        <Sparkles className="w-3.5 h-3.5 text-rd-primary-dark" />
         <p className="text-[12px] font-display font-semibold text-rd-text">
           Common skills for{" "}
-          <span className="text-rd-coral-dark">{suggestion.roleTitle}</span>
+          <span className="text-rd-primary-dark">{suggestion.roleTitle}</span>
         </p>
       </div>
       <p className="text-[11px] text-rd-text-secondary mb-2.5 leading-snug">
@@ -166,7 +166,7 @@ function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
               key={id}
               type="button"
               onClick={() => onAccept(display)}
-              className="inline-flex items-center gap-1 text-[12px] bg-rd-bg-card text-rd-text-secondary px-2.5 py-1 rounded-full border border-dashed border-rd-coral/50 hover:border-rd-coral hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors font-medium"
+              className="inline-flex items-center gap-1 text-[12px] bg-rd-bg-card text-rd-text-secondary px-2.5 py-1 rounded-full border border-dashed border-rd-primary/50 hover:border-rd-primary hover:text-rd-primary-dark hover:bg-rd-primary-tint transition-colors font-medium"
             >
               <Plus className="w-3 h-3" />
               {display}
@@ -254,7 +254,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
           <button
             type="button"
             onClick={onRemove}
-            className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors"
+            className="text-rd-primary-dark hover:text-rd-primary p-1.5 rounded-md border border-rd-primary-tint hover:bg-rd-primary-tint transition-colors"
             aria-label="Remove experience"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -283,7 +283,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
           <button
             type="button"
             onClick={onRemove}
-            className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors"
+            className="text-rd-primary-dark hover:text-rd-primary p-1.5 rounded-md border border-rd-primary-tint hover:bg-rd-primary-tint transition-colors"
             aria-label="Remove experience"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -361,7 +361,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
             type="checkbox"
             checked={!!exp.is_current}
             onChange={(e) => set("is_current", e.target.checked)}
-            className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+            className="w-[15px] h-[15px] accent-rd-primary cursor-pointer"
           />
           Currently working here
         </label>
@@ -370,7 +370,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
             type="checkbox"
             checked={!!exp.managed_people}
             onChange={(e) => set("managed_people", e.target.checked)}
-            className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+            className="w-[15px] h-[15px] accent-rd-primary cursor-pointer"
           />
           Managed people
         </label>
@@ -379,7 +379,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
             type="checkbox"
             checked={!!exp.cross_functional}
             onChange={(e) => set("cross_functional", e.target.checked)}
-            className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+            className="w-[15px] h-[15px] accent-rd-primary cursor-pointer"
           />
           Cross-functional
         </label>
@@ -392,7 +392,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
           onChange={(e) => set("responsibilities", e.target.value)}
           rows={4}
           placeholder="Describe what you did and any measurable outcomes…"
-          className="border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] focus-visible:ring-rd-coral"
+          className="border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] focus-visible:ring-rd-primary"
         />
       </div>
 
@@ -431,7 +431,7 @@ function ProjectCard({ proj, onChange, onRemove }) {
         <button
           type="button"
           onClick={onRemove}
-          className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors flex-shrink-0"
+          className="text-rd-primary-dark hover:text-rd-primary p-1.5 rounded-md border border-rd-primary-tint hover:bg-rd-primary-tint transition-colors flex-shrink-0"
           aria-label="Remove project"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -455,7 +455,7 @@ function ProjectCard({ proj, onChange, onRemove }) {
           onChange={(e) => set("description", e.target.value)}
           rows={3}
           placeholder="What you built and what it achieved."
-          className="border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] focus-visible:ring-rd-coral"
+          className="border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] focus-visible:ring-rd-primary"
         />
       </div>
 
@@ -493,7 +493,7 @@ function CertificationCard({ cert, onChange, onRemove }) {
         <button
           type="button"
           onClick={onRemove}
-          className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors flex-shrink-0"
+          className="text-rd-primary-dark hover:text-rd-primary p-1.5 rounded-md border border-rd-primary-tint hover:bg-rd-primary-tint transition-colors flex-shrink-0"
           aria-label="Remove certification"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -538,7 +538,7 @@ function AddCardButton({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-rd-border-hover rounded-[14px] text-[13px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral hover:bg-rd-coral-tint transition-colors bg-rd-bg-card"
+      className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-rd-border-hover rounded-[14px] text-[13px] text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary hover:bg-rd-primary-tint transition-colors bg-rd-bg-card"
     >
       <Plus className="w-4 h-4" />
       {label}
@@ -765,7 +765,7 @@ export default function StepReview({
                     className={[
                       "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                       isSelected
-                        ? "border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                        ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                         : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
                     ].join(" ")}
                   >
@@ -773,7 +773,7 @@ export default function StepReview({
                       className={[
                         "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
                         isSelected
-                          ? "bg-rd-coral text-white"
+                          ? "bg-rd-primary text-white"
                           : "bg-rd-bg-soft text-rd-text-secondary",
                       ].join(" ")}
                     >
@@ -894,7 +894,7 @@ export default function StepReview({
               id="review-edu-is-current"
               checked={!!primary.is_current}
               onChange={(e) => setIsCurrent(e.target.checked)}
-              className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+              className="w-[15px] h-[15px] accent-rd-primary cursor-pointer"
             />
             <label
               htmlFor="review-edu-is-current"
@@ -923,7 +923,7 @@ export default function StepReview({
           />
 
           {dateError && (
-            <p className="text-[12px] text-rd-coral-dark">
+            <p className="text-[12px] text-rd-primary-dark">
               Enter an end date or check &ldquo;I&apos;m currently
               studying&rdquo;
             </p>

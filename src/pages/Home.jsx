@@ -87,7 +87,7 @@ const ATTENTION_STYLES = {
 // (interview_prep / clarity_positioning fold into application).
 const TASK_CATEGORY_STYLES = {
   skill: { icon: GraduationCap, bg: "bg-rd-teal-tint", fg: "text-rd-teal-dark" },
-  project: { icon: Rocket, bg: "bg-rd-coral-tint", fg: "text-rd-coral-dark" },
+  project: { icon: Rocket, bg: "bg-rd-primary-tint", fg: "text-rd-primary-dark" },
   networking: { icon: Users, bg: "bg-rd-golden-tint", fg: "text-rd-golden-dark" },
   cv: { icon: FileText, bg: "bg-rd-bg-soft", fg: "text-rd-text-secondary" },
   application: { icon: Send, bg: "bg-rd-teal-tint", fg: "text-rd-teal-dark" },
@@ -660,9 +660,9 @@ export default function Home() {
           first CV. Routes to Career (matched roles + live jobs) to pick one. */}
       {roles.length >= 1 && !hasAnyCv && (
         <div className="mt-6">
-          <RdCard className="p-5 bg-rd-coral-tint border-rd-coral/30 flex items-center gap-4 flex-wrap">
+          <RdCard className="p-5 bg-rd-primary-tint border-rd-primary/30 flex items-center gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
-              <p className="font-display font-semibold text-[11px] uppercase tracking-[0.04em] text-rd-coral-dark">
+              <p className="font-display font-semibold text-[11px] uppercase tracking-[0.04em] text-rd-primary-dark">
                 Your next step
               </p>
               <p className="font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 text-rd-text">
@@ -676,7 +676,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => navigate(createPageUrl("Career"))}
-              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors"
             >
               Generate my first CV
               <ArrowRight className="w-3.5 h-3.5" />
@@ -694,7 +694,7 @@ export default function Home() {
         className={[
           "group rounded-[18px] mt-6 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4",
           "transition-colors duration-200",
-          heroDone ? "bg-rd-teal-tint" : "bg-rd-coral-tint",
+          heroDone ? "bg-rd-teal-tint" : "bg-rd-primary-tint",
         ].join(" ")}
       >
         <button
@@ -706,8 +706,8 @@ export default function Home() {
           className={[
             "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
             "transition-colors duration-150",
-            "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2",
-            heroDone ? "bg-rd-teal border-rd-teal" : "border-rd-coral bg-transparent",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2",
+            heroDone ? "bg-rd-teal border-rd-teal" : "border-rd-primary bg-transparent",
           ].join(" ")}
         >
           {heroDone && <Check className="w-4 h-4 text-white" />}
@@ -715,10 +715,10 @@ export default function Home() {
         <button
           type="button"
           onClick={() => navigate(focusDestination)}
-          className="flex-1 flex items-center gap-4 text-left min-w-0 rounded-[12px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+          className="flex-1 flex items-center gap-4 text-left min-w-0 rounded-[12px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
         >
           <div className="flex-1 min-w-0">
-            <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-coral-dark"}`}>
+            <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-primary-dark"}`}>
               {heroDone ? "done, nice work" : "today's focus"}
             </p>
             <p className={`font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 ${heroDone ? "line-through text-rd-teal-dark" : "text-rd-text"}`}>
@@ -735,7 +735,7 @@ export default function Home() {
             className={[
               "w-[50px] h-[50px] rounded-full flex items-center justify-center flex-shrink-0",
               "transition-transform duration-150",
-              heroDone ? "bg-rd-teal" : "bg-rd-coral group-hover:translate-x-0.5",
+              heroDone ? "bg-rd-teal" : "bg-rd-primary group-hover:translate-x-0.5",
             ].join(" ")}
           >
             <ArrowRight className="w-[22px] h-[22px] text-white" />
@@ -808,7 +808,7 @@ export default function Home() {
           )}
           <Link
             to={createPageUrl("Tasks")}
-            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
+            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-primary-dark hover:text-rd-text transition-colors"
           >
             All tasks <ChevronRight className="w-3.5 h-3.5" />
           </Link>
@@ -819,8 +819,8 @@ export default function Home() {
           <QuickTile
             to={createPageUrl("StoryBank")}
             icon={Bookmark}
-            tint="bg-rd-coral-tint"
-            ink="text-rd-coral-dark"
+            tint="bg-rd-primary-tint"
+            ink="text-rd-primary-dark"
             label="Story Bank"
             meta={
               stories.length === 0
@@ -906,7 +906,7 @@ export default function Home() {
           </div>
           <Link
             to={`${createPageUrl("Career")}?pipeline=open`}
-            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
+            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-primary-dark hover:text-rd-text transition-colors"
           >
             Open pipeline <ChevronRight className="w-3.5 h-3.5" />
           </Link>
@@ -916,7 +916,7 @@ export default function Home() {
       {/* Coach band — teal zone, one sentence, one action. */}
       <div className="bg-rd-teal-tint rounded-[20px] mt-4 px-5 py-4 flex items-center gap-3.5 flex-wrap">
         <span className="w-[34px] h-[34px] rounded-full bg-rd-text flex items-center justify-center flex-shrink-0">
-          <Sparkles className="w-4 h-4 text-rd-coral" />
+          <Sparkles className="w-4 h-4 text-rd-primary" />
         </span>
         <div className="flex-1 min-w-[180px]">
           <p className="font-display font-bold text-[14px] text-rd-text">{coach.headline}</p>
@@ -957,7 +957,7 @@ function StatBlock({ label, value, suffix = "", to }) {
   return (
     <Link to={to} className="block min-w-0 border-b-[1.5px] border-rd-border-subtle pb-2 group">
       <span className="text-[12px] text-rd-text-secondary">{label}</span>
-      <span className="block font-display font-extrabold text-[26px] sm:text-[28px] leading-tight text-rd-text mt-1 group-hover:text-rd-coral-dark transition-colors">
+      <span className="block font-display font-extrabold text-[26px] sm:text-[28px] leading-tight text-rd-text mt-1 group-hover:text-rd-primary-dark transition-colors">
         {value}
         {suffix && <span className="text-rd-text-tertiary text-[17px]">{suffix}</span>}
       </span>

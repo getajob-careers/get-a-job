@@ -57,10 +57,12 @@
     --rd-text-tertiary: #5e584e;
     --rd-text-eyebrow: #766445;
 
-    /* Coral (primary) */
-    --rd-coral: #d6421f;
-    --rd-coral-dark: #b23a17;
-    --rd-coral-tint: #fce6df;
+    /* Primary — RETIRED value (#D6421F true coral). Kept only for the
+       flag-OFF pre-reveal palette's byte-identity; the canvas primary is
+       #60617D, defined in the reveal block below. See canvas-tokens.md. */
+    --rd-primary: #d6421f;
+    --rd-primary-dark: #b23a17;
+    --rd-primary-tint: #fce6df;
 
     /* Teal */
     --rd-teal: #54b5a2;
@@ -105,10 +107,10 @@
     --rd-text-tertiary: #a6957f; /* --ink-faint EXACT (accepted faint-meta tier, sub-AA) */
     --rd-text-eyebrow: #60617d; /* --accent (.h section eyebrow) */
 
-    /* Primary (the `coral` slot = mockup blue accent) */
-    --rd-coral: #60617d; /* --accent */
-    --rd-coral-dark: #4b4c66; /* --accent-deep */
-    --rd-coral-tint: #e3e3ec; /* --accent-tint */
+    /* Primary — the canvas accent (mockup blue). Role-named, not "coral". */
+    --rd-primary: #60617d; /* --accent — THE canvas primary */
+    --rd-primary-dark: #4b4c66; /* --accent-deep */
+    --rd-primary-tint: #e3e3ec; /* --accent-tint */
 
     /* Strong band (the `teal` slot = mockup mauve) */
     --rd-teal: #9b7d8a; /* --mauve */

@@ -197,7 +197,7 @@ export default function PostPreview({
   };
 
   const charCount = editedText.length;
-  const charClass = charCount > 3000 ? "text-rd-coral-dark" : charCount > 2500 ? "text-rd-golden-dark" : "text-rd-text-tertiary";
+  const charClass = charCount > 3000 ? "text-rd-primary-dark" : charCount > 2500 ? "text-rd-golden-dark" : "text-rd-text-tertiary";
 
   const previewName = identity?.full_name || "Your name";
   const previewHeadline = identity?.headline || "Add a headline in the Profile tab";
@@ -303,7 +303,7 @@ export default function PostPreview({
           data-action="copy-post"
           className={[
             "inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] rounded-full px-3.5 py-[7px] transition-colors text-white",
-            copied ? "bg-rd-teal-dark hover:bg-rd-teal-dark" : "bg-rd-coral hover:bg-rd-coral-dark",
+            copied ? "bg-rd-teal-dark hover:bg-rd-teal-dark" : "bg-rd-primary hover:bg-rd-primary-dark",
           ].join(" ")}
         >
           {copied ? (
@@ -322,7 +322,7 @@ export default function PostPreview({
             onChange={(e) => setRefineInstruction(e.target.value.slice(0, 600))}
             disabled={refining}
             placeholder="Optional: how to improve the post. e.g. 'make it shorter and punchier', 'lead with the metric not the context', 'less corporate-sounding'. Leave blank to regenerate with a different angle."
-            className="w-full text-[13px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary resize-none focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] disabled:opacity-60"
+            className="w-full text-[13px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary resize-none focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] disabled:opacity-60"
             rows={3}
             autoFocus
           />
@@ -341,7 +341,7 @@ export default function PostPreview({
                 type="button"
                 onClick={handleRefine}
                 disabled={refining}
-                className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors"
               >
                 {refining ? (
                   <><Loader2 className="w-3 h-3 animate-spin" />Refining…</>
@@ -352,7 +352,7 @@ export default function PostPreview({
             </div>
           </div>
           {refineError && (
-            <div className="mt-2 px-3 py-2 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[11.5px] text-rd-coral-dark flex items-start gap-1.5">
+            <div className="mt-2 px-3 py-2 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[11.5px] text-rd-primary-dark flex items-start gap-1.5">
               <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-[1px]" />
               <span>{refineError}</span>
             </div>

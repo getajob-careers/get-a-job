@@ -191,7 +191,7 @@ export default function OnboardingTutorial({
       return (
         <FullScreenShell>
           <div className="max-w-md mx-auto text-center space-y-6">
-            <Loader2 className="w-10 h-10 animate-spin mx-auto text-rd-coral" />
+            <Loader2 className="w-10 h-10 animate-spin mx-auto text-rd-primary" />
             <div>
               <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
                 Finishing setup…
@@ -212,7 +212,7 @@ export default function OnboardingTutorial({
     return (
       <FullScreenShell>
         <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-full bg-rd-primary-tint text-rd-primary flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-7 h-7" />
           </div>
           <div>
@@ -245,7 +245,7 @@ export default function OnboardingTutorial({
     return (
       <FullScreenShell>
         <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
+          <div className="w-14 h-14 rounded-full bg-rd-primary-tint text-rd-primary flex items-center justify-center mx-auto">
             <RotateCcw className="w-6 h-6" />
           </div>
           <div>
@@ -303,7 +303,7 @@ export default function OnboardingTutorial({
               className={[
                 "h-1.5 rounded-full transition-all duration-300 cursor-pointer",
                 i === slideIndex
-                  ? "w-7 bg-rd-coral"
+                  ? "w-7 bg-rd-primary"
                   : "w-1.5 bg-rd-border hover:bg-rd-border-hover",
               ].join(" ")}
             />
@@ -353,7 +353,7 @@ export function OnboardingCompleteStep({ onDone }) {
   return (
     <FullScreenShell>
       <div className="max-w-md mx-auto text-center space-y-6">
-        <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
+        <div className="w-14 h-14 rounded-full bg-rd-primary-tint text-rd-primary flex items-center justify-center mx-auto">
           <CheckCircle2 className="w-7 h-7" />
         </div>
         <div>
@@ -387,14 +387,14 @@ function Slide({ slide, isFirstSlide }) {
   return (
     <div className="text-center">
       {isFirstSlide && (
-        <p className="font-display font-bold text-[13px] text-rd-coral-dark mb-3.5">
+        <p className="font-display font-bold text-[13px] text-rd-primary-dark mb-3.5">
           You&apos;re all set 🎉
         </p>
       )}
 
       <div className="bg-rd-bg-soft border border-rd-border rounded-[18px] px-5 py-7 sm:px-7">
         <div className="w-14 h-14 rounded-2xl bg-rd-bg-card border border-rd-border flex items-center justify-center mx-auto shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
-          <Icon className="w-6 h-6 text-rd-coral" />
+          <Icon className="w-6 h-6 text-rd-primary" />
         </div>
         {isBrowseJobs && (
           <div className="mt-5 max-w-md mx-auto bg-rd-bg-card border border-rd-border rounded-[13px] px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
@@ -413,7 +413,7 @@ function Slide({ slide, isFirstSlide }) {
                 </div>
               </div>
               <div className="text-right flex-shrink-0">
-                <div className="font-display font-extrabold text-[18px] text-rd-coral-dark leading-none">
+                <div className="font-display font-extrabold text-[18px] text-rd-primary-dark leading-none">
                   88%
                 </div>
                 <div className="text-[9px] tracking-[0.04em] uppercase text-rd-text-tertiary mt-0.5">
@@ -485,7 +485,7 @@ function ProgressBar({ percent }) {
     >
       <div
         className="h-full transition-[width] duration-500 ease-out"
-        style={{ width: `${percent}%`, background: "var(--rd-coral)" }}
+        style={{ width: `${percent}%`, background: "var(--rd-primary)" }}
       />
     </div>
   );
@@ -495,7 +495,7 @@ function BrandMark() {
   return (
     <div className="inline-flex items-center gap-2 select-none">
       <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
@@ -511,7 +511,7 @@ function PrimaryButton({ children, ...props }) {
   return (
     <button
       {...props}
-      className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {children}
     </button>

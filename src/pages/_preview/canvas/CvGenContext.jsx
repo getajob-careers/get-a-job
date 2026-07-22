@@ -44,7 +44,7 @@ function ProgressRing({ progress, size = 96, stroke = 7 }) {
         cy={size / 2}
         r={r}
         fill="none"
-        stroke="var(--rd-coral)"
+        stroke="var(--rd-primary)"
         strokeWidth={stroke}
         strokeLinecap="round"
         strokeDasharray={c}
@@ -133,7 +133,7 @@ export function CvGenProvider({ onStart, onDone, children }) {
                       {st === "done" ? (
                         <CheckCircle2 className="w-4 h-4 text-rd-teal flex-shrink-0" />
                       ) : st === "active" ? (
-                        <Loader2 className="w-4 h-4 text-rd-coral flex-shrink-0 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-rd-primary flex-shrink-0 animate-spin" />
                       ) : (
                         <Circle className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
                       )}

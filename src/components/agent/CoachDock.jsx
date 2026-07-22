@@ -58,7 +58,7 @@ export default function CoachDock() {
             badge), "Coach" in font-display, expand right, hairline below.
             One row ~32px. */}
         <div className="flex items-center gap-2 px-3 h-8 border-b border-rd-border-subtle">
-          <Sparkles className="w-3.5 h-3.5 text-rd-coral flex-shrink-0" aria-hidden="true" strokeWidth={2} />
+          <Sparkles className="w-3.5 h-3.5 text-rd-primary flex-shrink-0" aria-hidden="true" strokeWidth={2} />
           <span className="flex-1 font-display font-bold text-[12.5px] tracking-tight text-rd-text leading-none">
             Coach
           </span>

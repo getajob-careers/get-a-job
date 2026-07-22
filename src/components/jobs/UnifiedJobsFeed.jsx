@@ -369,7 +369,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
           >
             <span
               aria-hidden="true"
-              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-primary shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
               style={{
                 width: "calc((100% - 0.5rem) / 2)",
                 transform: `translateX(${unifiedTab === "search" ? 100 : 0}%)`,
@@ -543,7 +543,7 @@ function UnifiedTabButton({ label, active, onClick }) {
       aria-pressed={active}
       className={`inline-flex items-center font-display font-bold text-[13px] rounded-full px-4 py-1.5 transition-colors ${
         active
-          ? "bg-rd-coral text-white"
+          ? "bg-rd-primary text-white"
           : "bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text"
       }`}
     >
@@ -622,7 +622,7 @@ function JobsEmpty({
   const trackCfg = TRACK_CONFIG[selectedTrack];
   return (
     <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
-      <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+      <Briefcase className="w-10 h-10 text-rd-primary mx-auto mb-3" />
       {emptyReason === "no_roles" ? (
         <>
           <p className="text-[14px] font-display font-bold text-rd-text">
@@ -634,7 +634,7 @@ function JobsEmpty({
           </p>
           <Link
             to={createPageUrl("Roadmap")}
-            className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+            className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
           >
             Go to Career Roadmap
           </Link>

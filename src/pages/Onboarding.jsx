@@ -1082,7 +1082,7 @@ export default function Onboarding() {
   if (checkingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-rd-bg-page">
-        <Loader2 className="w-6 h-6 animate-spin text-rd-coral" />
+        <Loader2 className="w-6 h-6 animate-spin text-rd-primary" />
       </div>
     );
   }
@@ -1097,9 +1097,9 @@ export default function Onboarding() {
       <>
         {finaliseError && (
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
-            <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-coral-dark">
+            <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-primary-dark">
               <p>{finaliseError}</p>
-              <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2">
+              <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2">
                 Retry
               </button>
             </div>
@@ -1117,7 +1117,7 @@ export default function Onboarding() {
   if (finalising) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-rd-bg-page px-6">
-        <Loader2 className="w-9 h-9 animate-spin text-rd-coral" />
+        <Loader2 className="w-9 h-9 animate-spin text-rd-primary" />
         <div className="text-center">
           <p className="font-display font-extrabold text-[22px] leading-tight text-rd-text">
             Initialising your platform…
@@ -1133,14 +1133,14 @@ export default function Onboarding() {
   return (
     <OnboardingShell currentStep={step}>
       {saveError && (
-        <div className="mb-4 bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-coral-dark">
+        <div className="mb-4 bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-primary-dark">
           {saveError}
         </div>
       )}
       {finaliseError && (
-        <div className="mb-4 bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-coral-dark">
+        <div className="mb-4 bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-primary-dark">
           <p>{finaliseError}</p>
-          <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2">
+          <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2">
             Retry
           </button>
         </div>

@@ -14,12 +14,12 @@ import CompanyLogo from "@/components/jobs/CompanyLogo";
 // in ApplicationRow.jsx but inlined here so the kanban card is
 // self-contained.
 const TRACK_RD_TINT = {
-  coral:  "var(--rd-coral-tint)",
+  coral:  "var(--rd-primary-tint)",
   teal:   "var(--rd-teal-tint)",
   golden: "var(--rd-golden-tint)",
 };
 const TRACK_RD_ACCENT = {
-  coral:  "var(--rd-coral-dark)",
+  coral:  "var(--rd-primary-dark)",
   teal:   "var(--rd-teal-dark)",
   golden: "var(--rd-golden-dark)",
 };
@@ -63,8 +63,8 @@ const COLUMN_DOT = {
   preparing:    "bg-rd-golden",
   applied:      "bg-rd-golden",
   interviewing: "bg-rd-teal",
-  offer:        "bg-rd-coral",
-  accepted:     "bg-rd-coral",
+  offer:        "bg-rd-primary",
+  accepted:     "bg-rd-primary",
   rejected:     "bg-rd-text-tertiary",
 };
 
@@ -74,8 +74,8 @@ const LOGO_TILE_TONE = {
   preparing:    { bg: "bg-rd-golden-tint", fg: "text-rd-golden-dark" },
   applied:      { bg: "bg-rd-golden-tint", fg: "text-rd-golden-dark" },
   interviewing: { bg: "bg-rd-teal-tint",   fg: "text-rd-teal-dark" },
-  offer:        { bg: "bg-rd-coral-tint",  fg: "text-rd-coral-dark" },
-  accepted:     { bg: "bg-rd-coral-tint",  fg: "text-rd-coral-dark" },
+  offer:        { bg: "bg-rd-primary-tint",  fg: "text-rd-primary-dark" },
+  accepted:     { bg: "bg-rd-primary-tint",  fg: "text-rd-primary-dark" },
   rejected:     { bg: "bg-rd-bg-soft",    fg: "text-rd-text-tertiary" },
 };
 
@@ -174,7 +174,7 @@ export default function ApplicationsKanban({
                     className={[
                       "flex-1 min-w-0 flex flex-col gap-1.5 p-2 rounded-[12px] min-h-[220px] transition-colors",
                       snapshot.isDraggingOver
-                        ? "bg-rd-coral-tint shadow-[inset_0_0_0_2px_var(--rd-coral)]"
+                        ? "bg-rd-primary-tint shadow-[inset_0_0_0_2px_var(--rd-primary)]"
                         : "bg-rd-bg-soft",
                     ].join(" ")}
                     data-dragover={snapshot.isDraggingOver}
@@ -263,7 +263,7 @@ function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={handleKeyDown}
-      className="bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 cursor-grab text-left transition-[transform,border-color] duration-150 hover:-translate-y-[2px] hover:border-rd-border-hover focus:outline-none focus:ring-2 focus:ring-rd-coral/40 w-full"
+      className="bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 cursor-grab text-left transition-[transform,border-color] duration-150 hover:-translate-y-[2px] hover:border-rd-border-hover focus:outline-none focus:ring-2 focus:ring-rd-primary/40 w-full"
     >
       <div className="flex items-center justify-between gap-2">
         <CompanyLogo
@@ -332,7 +332,7 @@ function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
                 window.open(app.url, "_blank", "noopener,noreferrer");
               }
             }}
-            className="inline-flex items-center gap-1 text-[9.5px] font-display font-semibold text-rd-coral hover:text-rd-coral-dark cursor-pointer"
+            className="inline-flex items-center gap-1 text-[9.5px] font-display font-semibold text-rd-primary hover:text-rd-primary-dark cursor-pointer"
             title="Open the original job listing in a new tab"
           >
             View listing

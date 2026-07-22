@@ -37,7 +37,7 @@ export default function CanvasCvDocument() {
         <h1 className="cx-cv-name font-display font-extrabold rd-t-display-l text-rd-text leading-tight">
           {p.full_name}
         </h1>
-        <p className="cx-cv-headline rd-t-body-m text-rd-coral font-display font-semibold mt-0.5">
+        <p className="cx-cv-headline rd-t-body-m text-rd-primary font-display font-semibold mt-0.5">
           {p.headline}
         </p>
         <div className="cx-cv-contact flex flex-wrap gap-x-4 gap-y-1 mt-2.5 rd-t-body-s text-rd-text-secondary">
@@ -91,7 +91,7 @@ export default function CanvasCvDocument() {
                     key={i}
                     className="flex gap-2 rd-t-body-s text-rd-text-secondary leading-[1.5]"
                   >
-                    <span className="text-rd-coral mt-[3px] flex-shrink-0">
+                    <span className="text-rd-primary mt-[3px] flex-shrink-0">
                       ▪
                     </span>
                     <span>{b}</span>

@@ -52,7 +52,7 @@ const FILTER_LABELS = {
 };
 
 const RD_BTN_PRIMARY =
-  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_GHOST =
   "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-3 py-1.5 transition-colors";
 const RD_LABEL =
@@ -335,7 +335,7 @@ export default function StoryBank() {
                 className={[
                   "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
                   selected
-                    ? "bg-rd-coral text-white"
+                    ? "bg-rd-primary text-white"
                     : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
                 ].join(" ")}
               >
@@ -373,7 +373,7 @@ export default function StoryBank() {
         </div>
       ) : stories.length === 0 ? (
         <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-12 shadow-rd text-center">
-          <BookText className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+          <BookText className="w-10 h-10 text-rd-primary mx-auto mb-3" />
           <p className="font-display font-bold text-[15px] text-rd-text">
             No stories captured yet.
           </p>
@@ -399,7 +399,7 @@ export default function StoryBank() {
               Add an experience on your{" "}
               <a
                 href="/Profile?tab=experience"
-                className="underline hover:text-rd-coral-dark"
+                className="underline hover:text-rd-primary-dark"
               >
                 Profile
               </a>{" "}
@@ -458,7 +458,7 @@ export default function StoryBank() {
             );
             setStoryModal({ source: "manual_quick_add" });
           }}
-          className="fixed bottom-6 right-6 px-4 py-3 rounded-full bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold text-[13.5px] inline-flex items-center gap-1.5 shadow-rd hover:shadow-[0_12px_32px_rgba(40,25,10,0.16)] transition-all z-40"
+          className="fixed bottom-6 right-6 px-4 py-3 rounded-full bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold text-[13.5px] inline-flex items-center gap-1.5 shadow-rd hover:shadow-[0_12px_32px_rgba(40,25,10,0.16)] transition-all z-40"
           aria-label="Quick-add a story"
         >
           <Plus className="w-4 h-4" />
@@ -479,7 +479,7 @@ export default function StoryBank() {
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-rd-bg-card border border-rd-border rounded-[18px]">
           <DialogHeader>
             <DialogTitle className="font-display font-extrabold text-[18px] text-rd-text flex items-center gap-2">
-              <BookText className="w-4 h-4 text-rd-coral" />
+              <BookText className="w-4 h-4 text-rd-primary" />
               Add a story
             </DialogTitle>
           </DialogHeader>

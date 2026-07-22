@@ -115,7 +115,7 @@ export function CanvasJobsFeed() {
       <div className="relative flex w-full max-w-[360px] bg-rd-bg-soft rounded-full p-1">
         <span
           aria-hidden="true"
-          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out"
+          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-primary shadow-rd transition-transform duration-200 ease-out"
           style={{
             width: "calc(50% - 0.25rem)",
             transform: mode === "all" ? "translateX(100%)" : "translateX(0)",

@@ -180,7 +180,7 @@ export default function CanvasJobModal({
             href={job.apply_url || "#"}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 font-display font-semibold rd-t-body-s text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+            className="inline-flex items-center gap-1.5 font-display font-semibold rd-t-body-s text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
           >
             Apply <ExternalLink className="w-3.5 h-3.5" />
           </a>

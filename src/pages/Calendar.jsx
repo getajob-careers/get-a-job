@@ -53,13 +53,13 @@ const CATEGORY_LABELS = {
 };
 const CATEGORY_DOT = {
   apply:     "var(--rd-teal-dark)",
-  interview: "var(--rd-coral)",
+  interview: "var(--rd-primary)",
   followup:  "var(--rd-text-secondary)",
   task:      "var(--rd-golden-dark)",
 };
 const CATEGORY_CHIP_TONE = {
   apply:     { bg: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
-  interview: { bg: "var(--rd-coral-tint)",  fg: "var(--rd-coral-dark)" },
+  interview: { bg: "var(--rd-primary-tint)",  fg: "var(--rd-primary-dark)" },
   followup:  { bg: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
   task:      { bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
 };
@@ -83,7 +83,7 @@ function safeParseDate(value) {
 
 // rd-token class strings (shared across Calendar's children).
 const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-4 shadow-rd";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_OUTLINE_SM = "inline-flex items-center justify-center gap-1 font-display font-semibold text-[12px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-2.5 py-1.5 transition-colors";
 
 export default function Calendar() {
@@ -275,7 +275,7 @@ export default function Calendar() {
   return (
     <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
       {eventsError && (
-        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark mb-6">
+        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark mb-6">
           Could not load calendar events. Please refresh the page to try again.
         </div>
       )}
@@ -355,7 +355,7 @@ export default function Calendar() {
                 className={[
                   "inline-flex items-center font-display font-bold text-[12px] rounded-full px-3 py-1 transition-colors duration-150 whitespace-nowrap",
                   selected
-                    ? "bg-rd-coral text-white"
+                    ? "bg-rd-primary text-white"
                     : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
                 ].join(" ")}
               >
@@ -511,7 +511,7 @@ function DayCell({ day, inMonth, items, selected, isToday, onClick, compact }) {
         "flex flex-col items-stretch text-left rounded-[10px] p-1.5 transition-colors min-h-[72px]",
         compact ? "min-h-[120px]" : "min-h-[72px] sm:min-h-[88px]",
         selected
-          ? "bg-rd-coral-tint border-2 border-rd-coral"
+          ? "bg-rd-primary-tint border-2 border-rd-primary"
           : isToday
           ? "bg-rd-golden-tint/40 border border-rd-golden/40 hover:border-rd-golden"
           : "bg-rd-bg-card border border-rd-border-subtle hover:border-rd-border-hover",
@@ -521,7 +521,7 @@ function DayCell({ day, inMonth, items, selected, isToday, onClick, compact }) {
       <span
         className={[
           "text-[11px] font-display font-bold mb-1",
-          isToday && !selected ? "text-rd-coral-dark" : "text-rd-text",
+          isToday && !selected ? "text-rd-primary-dark" : "text-rd-text",
         ].filter(Boolean).join(" ")}
       >
         {format(day, "d")}

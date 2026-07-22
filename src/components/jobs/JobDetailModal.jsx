@@ -354,7 +354,7 @@ export default function JobDetailModal({
               className={
                 alive
                   ? "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2 transition-colors"
-                  : "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+                  : "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
               }
             >
               Apply <ExternalLink className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export default function JobDetailModal({
               type="button"
               onClick={onGenerateCv}
               disabled={generating}
-              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {generating ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -42,7 +42,7 @@ export default function StoryBankSidebar({ attachedStoryId, onAttach, onDetach }
   return (
     <div className="bg-white border border-rd-border rounded-[18px] p-4 shadow-rd sticky top-4">
       <div className="flex items-center gap-2 mb-3">
-        <BookMarked className="w-4 h-4 text-rd-coral" />
+        <BookMarked className="w-4 h-4 text-rd-primary" />
         <h3 className="font-display font-bold text-[13.5px] text-rd-text">Attach a story</h3>
         <span className="text-[11px] text-rd-text-tertiary ml-auto">(optional)</span>
       </div>

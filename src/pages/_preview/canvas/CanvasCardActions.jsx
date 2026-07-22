@@ -34,7 +34,7 @@ function IconAction({ icon: Icon, label, onClick }) {
         e.stopPropagation();
         onClick();
       }}
-      className="group/act relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
+      className="group/act relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-primary hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
     >
       <Icon className="w-3.5 h-3.5" aria-hidden="true" />
       {/* Styled hover-intent tooltip (300ms to show, instant to hide). */}
@@ -58,7 +58,7 @@ export default function CanvasCardActions({ job }) {
       <button
         type="button"
         onClick={stop(() => gen?.start(`${job.company_name} · ${job.title}`))}
-        className="inline-flex items-center gap-1 font-display font-semibold rd-t-micro text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 rd-press rd-btn-sheen focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
+        className="inline-flex items-center gap-1 font-display font-semibold rd-t-micro text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-2.5 py-1 rd-press rd-btn-sheen focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1"
       >
         <Wand2 className="w-3 h-3" aria-hidden="true" />
         Tailor CV

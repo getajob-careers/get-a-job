@@ -226,7 +226,7 @@ export default function AddOwnCompanyModal({ open, onClose }) {
             size="sm"
             onClick={handleSubmit}
             disabled={submitting || !name.trim()}
-            className="bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full"
+            className="bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full"
           >
             {submitting ? (
               <><Loader2 className="w-3 h-3 animate-spin mr-1.5" /> Adding…</>
@@ -245,7 +245,7 @@ function Field({ label, required, children }) {
     <div>
       <label className="block text-[11px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-1">
         {label}
-        {required && <span className="text-rd-coral ml-0.5">*</span>}
+        {required && <span className="text-rd-primary ml-0.5">*</span>}
       </label>
       {children}
     </div>

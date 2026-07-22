@@ -232,7 +232,7 @@ export default function Internship() {
                   className={[
                     "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-body text-[12.5px] cursor-pointer transition-colors whitespace-nowrap",
                     selected
-                      ? "bg-rd-coral text-white border border-rd-coral font-display font-semibold"
+                      ? "bg-rd-primary text-white border border-rd-primary font-display font-semibold"
                       : "bg-rd-bg-card text-rd-text-secondary border border-rd-border font-medium hover:border-rd-border-hover hover:text-rd-text",
                   ].join(" ")}
                   data-selected={selected ? "true" : "false"}
@@ -351,7 +351,7 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab,
             <button
               type="button"
               onClick={onAddOwn}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-display font-bold bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Add my own company

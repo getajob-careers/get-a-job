@@ -54,16 +54,16 @@ const DEFAULT_DOCK_PROMPTS = [
 function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy, downloadUrl, downloadName, studioAppId }) {
   const navigate = useNavigate();
   return (
-    <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-coral-tint rounded-[10px] px-3 py-2">
+    <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-primary-tint rounded-[10px] px-3 py-2">
       <div className="flex items-center gap-1.5">
-        {KindIcon && <KindIcon className="w-2.5 h-2.5 text-rd-coral-dark flex-shrink-0" aria-hidden="true" />}
-        <p className="text-[10px] uppercase tracking-[0.07em] font-display font-bold text-rd-coral-dark">
+        {KindIcon && <KindIcon className="w-2.5 h-2.5 text-rd-primary-dark flex-shrink-0" aria-hidden="true" />}
+        <p className="text-[10px] uppercase tracking-[0.07em] font-display font-bold text-rd-primary-dark">
           {kind}
         </p>
       </div>
       <p className="text-[11.5px] text-rd-text leading-snug mt-0.5">{title}</p>
       {error && (
-        <p className="text-[10.5px] text-rd-coral-dark mt-1 inline-flex items-center gap-1">
+        <p className="text-[10.5px] text-rd-primary-dark mt-1 inline-flex items-center gap-1">
           <AlertCircle className="w-2.5 h-2.5" />
           {error}
         </p>
@@ -81,7 +81,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                     toast.error(`Download failed: ${err?.message || "unknown error"}`);
                   }
                 }}
-                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
+                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 active:brightness-95"
               >
                 <Download className="w-2.5 h-2.5" />
                 Download CV
@@ -95,7 +95,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                         `?application_id=${encodeURIComponent(studioAppId)}`,
                     )
                   }
-                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-primary bg-rd-bg-card border border-rd-primary/40 hover:bg-rd-primary-tint rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 active:brightness-95"
                 >
                   Open in Studio
                 </button>
@@ -110,7 +110,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                         `?app=${encodeURIComponent(studioAppId)}`,
                     )
                   }
-                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 active:brightness-95"
                 >
                   <Briefcase className="w-2.5 h-2.5" />
                   Tracker
@@ -130,7 +130,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                 type="button"
                 onClick={onApply}
                 disabled={busy}
-                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-2.5 py-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {busy ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : null}
                 {action}
@@ -437,7 +437,7 @@ export default function CoachThread({ variant = "dock" }) {
                 type="button"
                 onClick={() => conv.sendMessage(p)}
                 disabled={conv.sending}
-                className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark font-display font-semibold hover:bg-rd-coral hover:border-rd-coral hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark font-display font-semibold hover:bg-rd-primary hover:border-rd-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
               >
                 {p}
               </button>
@@ -483,8 +483,8 @@ export default function CoachThread({ variant = "dock" }) {
 
       {conv.sending && (
         <div className="flex gap-2">
-          <span className="w-[22px] h-[22px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
-            <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
+          <span className="w-[22px] h-[22px] rounded-full bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
           </span>
           <span className="inline-flex gap-1 items-center px-3 py-2 bg-rd-bg-soft rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing" />

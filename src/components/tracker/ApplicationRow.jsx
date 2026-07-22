@@ -61,8 +61,8 @@ const STATUS_LABELS = {
   },
   offer: {
     label: "Offer",
-    bg: "var(--rd-coral-tint)",
-    fg: "var(--rd-coral-dark)",
+    bg: "var(--rd-primary-tint)",
+    fg: "var(--rd-primary-dark)",
   },
   accepted: {
     label: "Accepted",
@@ -81,9 +81,9 @@ const STATUS_LABELS = {
 // reading TRACK_CONFIG.color (legacy green/gray/amber).
 const RD_TRACK_STYLES = {
   coral: {
-    tint: "var(--rd-coral-tint)",
-    badgeBg: "var(--rd-coral)",
-    accent: "var(--rd-coral-dark)",
+    tint: "var(--rd-primary-tint)",
+    badgeBg: "var(--rd-primary)",
+    accent: "var(--rd-primary-dark)",
   },
   teal: {
     tint: "var(--rd-teal-tint)",
@@ -363,7 +363,7 @@ export default function ApplicationRow({
                     window.open(app.url, "_blank", "noopener,noreferrer");
                   }
                 }}
-                className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-coral hover:text-rd-coral-dark mt-1 cursor-pointer"
+                className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-primary hover:text-rd-primary-dark mt-1 cursor-pointer"
                 title="Open the original job listing in a new tab"
               >
                 View listing
@@ -455,7 +455,7 @@ export default function ApplicationRow({
                     handleDelete(e);
                   }
                 }}
-                className="text-[11.5px] font-display font-bold text-rd-coral-dark hover:text-rd-coral cursor-pointer"
+                className="text-[11.5px] font-display font-bold text-rd-primary-dark hover:text-rd-primary cursor-pointer"
                 title="Confirm delete"
               >
                 Delete?
@@ -490,7 +490,7 @@ export default function ApplicationRow({
                   handleDelete(e);
                 }
               }}
-              className="text-rd-text-tertiary hover:text-rd-coral transition-colors cursor-pointer"
+              className="text-rd-text-tertiary hover:text-rd-primary transition-colors cursor-pointer"
               title="Delete application"
               aria-label="Delete application"
             >
@@ -540,7 +540,7 @@ export default function ApplicationRow({
                   className={[
                     "pb-2.5 -mb-px font-display font-semibold text-[12.5px] whitespace-nowrap transition-colors duration-150 inline-flex items-center gap-1.5",
                     active
-                      ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                      ? "text-rd-text border-b-[2.5px] border-rd-primary"
                       : "text-rd-text-tertiary hover:text-rd-text border-b-[2.5px] border-transparent",
                   ].join(" ")}
                 >
@@ -648,12 +648,12 @@ export default function ApplicationRow({
                     onChange={(e) => setJdText(e.target.value)}
                     placeholder="Paste the job description here..."
                     rows={6}
-                    className="text-[13px] border-rd-border bg-rd-bg-card focus-visible:ring-rd-coral focus-visible:ring-offset-0"
+                    className="text-[13px] border-rd-border bg-rd-bg-card focus-visible:ring-rd-primary focus-visible:ring-offset-0"
                   />
                   <button
                     type="button"
                     onClick={handleSaveJobDescription}
-                    className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark underline underline-offset-2 transition-colors"
+                    className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-primary-dark underline underline-offset-2 transition-colors"
                   >
                     Save job description
                   </button>
@@ -668,7 +668,7 @@ export default function ApplicationRow({
                   <button
                     type="button"
                     onClick={handleOpenCVAgent}
-                    className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold text-rd-text hover:text-rd-primary-dark transition-colors"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     Chat with CV Agent for this role
@@ -704,7 +704,7 @@ export default function ApplicationRow({
                     type="date"
                     value={appliedDate}
                     onChange={(e) => setAppliedDate(e.target.value)}
-                    className="w-full max-w-[220px] px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] outline-none transition-[border-color,box-shadow] duration-150"
+                    className="w-full max-w-[220px] px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] outline-none transition-[border-color,box-shadow] duration-150"
                   />
                 </div>
                 <div>
@@ -715,21 +715,21 @@ export default function ApplicationRow({
                     value={cvVersionUsed}
                     onChange={(e) => setCvVersionUsed(e.target.value)}
                     placeholder="e.g. Customer Success CV - Monday"
-                    className="w-full px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] placeholder:text-rd-text-tertiary focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] outline-none transition-[border-color,box-shadow] duration-150"
+                    className="w-full px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] placeholder:text-rd-text-tertiary focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] outline-none transition-[border-color,box-shadow] duration-150"
                   />
                 </div>
                 <label className="inline-flex items-center gap-2 text-[13px] text-rd-text-secondary">
                   <Checkbox
                     checked={referralAttached}
                     onCheckedChange={setReferralAttached}
-                    className="accent-rd-coral"
+                    className="accent-rd-primary"
                   />
                   Referral attached
                 </label>
                 <button
                   type="button"
                   onClick={handleSaveApplicationDetails}
-                  className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark underline underline-offset-2 transition-colors"
+                  className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-primary-dark underline underline-offset-2 transition-colors"
                 >
                   Save application details
                 </button>

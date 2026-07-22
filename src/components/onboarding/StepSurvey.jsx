@@ -41,13 +41,13 @@ const CLARITY_OPTIONS = [
 ];
 
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 const OPTION_BTN = (isSelected) =>
   [
     "w-full text-left text-[13.5px] px-4 py-3 rounded-[12px] border transition-[border-color,background-color,box-shadow] duration-150",
     isSelected
-      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+      ? "border-rd-primary bg-rd-primary-tint text-rd-text shadow-[0_0_0_3px_var(--rd-primary-tint)]"
       : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
   ].join(" ");
 
@@ -119,7 +119,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
                   className={[
                     "flex flex-col items-center justify-center gap-1 py-4 px-1 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                     isSelected
-                      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      ? "border-rd-primary bg-rd-primary-tint text-rd-text shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                       : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
                   ].join(" ")}
                 >
@@ -170,7 +170,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
                   <button
                     type="button"
                     onClick={() => removeChallenge(c)}
-                    className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+                    className="text-rd-text-secondary hover:text-rd-primary transition-colors"
                     aria-label={`Remove ${c}`}
                   >
                     <X className="w-3 h-3" />
@@ -253,7 +253,7 @@ function SingleSelect({
           <button
             type="button"
             onClick={onClear}
-            className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+            className="text-rd-text-secondary hover:text-rd-primary transition-colors"
             aria-label="Remove custom answer"
           >
             <X className="w-3 h-3" />

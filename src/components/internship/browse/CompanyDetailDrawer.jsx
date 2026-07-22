@@ -190,7 +190,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-rd-coral hover:text-rd-coral-dark mt-1.5"
+                className="inline-flex items-center gap-1 text-xs text-rd-primary hover:text-rd-primary-dark mt-1.5"
               >
                 {company.domain}
                 <ExternalLink className="w-3 h-3" />
@@ -241,7 +241,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
                 "w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-display font-bold rounded-full transition-colors disabled:cursor-not-allowed",
                 alreadyInPipeline
                   ? "bg-rd-bg-soft text-rd-text-secondary border border-rd-border"
-                  : "bg-rd-coral text-white hover:bg-rd-coral-dark",
+                  : "bg-rd-primary text-white hover:bg-rd-primary-dark",
               ].join(" ")}
             >
               {adding ? (
@@ -291,7 +291,7 @@ function BandTile({ band, loading }) {
   }
   const label = BAND_LABELS[band];
   const colorClass =
-    band === "high" ? "text-rd-coral" :
+    band === "high" ? "text-rd-primary" :
     band === "med"  ? "text-rd-text" :
                       "text-rd-text-tertiary";
   return (

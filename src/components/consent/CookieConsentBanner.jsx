@@ -84,7 +84,7 @@ export default function CookieConsentBanner() {
           can accept or decline.{" "}
           <Link
             to="/privacy"
-            className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+            className="text-rd-primary hover:text-rd-primary-dark font-semibold"
           >
             Privacy policy
           </Link>
@@ -100,7 +100,7 @@ export default function CookieConsentBanner() {
           <button
             type="button"
             onClick={accept}
-            className={`${btnBase} bg-rd-coral text-white hover:bg-rd-coral-dark focus-visible:ring-rd-coral-dark`}
+            className={`${btnBase} bg-rd-primary text-white hover:bg-rd-primary-dark focus-visible:ring-rd-primary-dark`}
           >
             Accept
           </button>

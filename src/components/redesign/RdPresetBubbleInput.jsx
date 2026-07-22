@@ -11,7 +11,7 @@ import { X } from "lucide-react";
 //     distinguish)
 //
 // Visual changes:
-//   - Preset chips: --rd-bg-card (inactive) / --rd-coral (active)
+//   - Preset chips: --rd-bg-card (inactive) / --rd-primary (active)
 //   - Custom-tag pills: --rd-bg-soft with coral X on hover
 //   - Input + Add button: coral focus ring + warm border
 
@@ -66,7 +66,7 @@ export default function RdPresetBubbleInput({
               onClick={() => toggle(preset)}
               className={
                 isSelected
-                  ? "text-[12px] font-display font-semibold px-3 py-1.5 rounded-full border bg-rd-coral text-white border-rd-coral hover:bg-rd-coral-dark hover:border-rd-coral-dark transition-colors"
+                  ? "text-[12px] font-display font-semibold px-3 py-1.5 rounded-full border bg-rd-primary text-white border-rd-primary hover:bg-rd-primary-dark hover:border-rd-primary-dark transition-colors"
                   : "text-[12px] font-display font-semibold px-3 py-1.5 rounded-full border bg-rd-bg-card text-rd-text-secondary border-rd-border hover:border-rd-border-hover hover:text-rd-text transition-colors"
               }
             >
@@ -87,7 +87,7 @@ export default function RdPresetBubbleInput({
               <button
                 type="button"
                 onClick={() => remove(tag)}
-                className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+                className="text-rd-text-secondary hover:text-rd-primary transition-colors"
                 aria-label={`Remove ${tag}`}
               >
                 <X className="w-3 h-3" />
@@ -109,7 +109,7 @@ export default function RdPresetBubbleInput({
               }
             }}
             placeholder={customPlaceholder}
-            className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           />
           <button
             type="button"

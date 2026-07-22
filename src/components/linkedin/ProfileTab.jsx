@@ -30,7 +30,7 @@ import ProfilePreview, { buildOptimizedProfileBlob } from "./ProfilePreview";
 // Q3 — `Copy optimized profile` runs the client-only `buildOptimizedProfileBlob`
 // helper exported from ProfilePreview. No edge-fn / schema change.
 
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_OUTLINE = "inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-3.5 py-2 transition-colors";
 
 function ArchiveUploader({ baseline, onImported }) {
@@ -132,7 +132,7 @@ function ArchiveUploader({ baseline, onImported }) {
         </div>
       </div>
       {error && (
-        <div className="mt-3 px-3 py-2 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12px] text-rd-coral-dark flex items-start gap-2">
+        <div className="mt-3 px-3 py-2 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[12px] text-rd-primary-dark flex items-start gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <p>{error}</p>
         </div>
@@ -322,7 +322,7 @@ export default function ProfileTab() {
 
       {/* Error banner */}
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-[14px] bg-rd-coral-tint border border-rd-coral/30 text-[13px] text-rd-coral-dark flex items-start gap-2">
+        <div className="mb-4 px-4 py-3 rounded-[14px] bg-rd-primary-tint border border-rd-primary/30 text-[13px] text-rd-primary-dark flex items-start gap-2">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <p>{error}</p>
         </div>
@@ -331,7 +331,7 @@ export default function ProfileTab() {
       {/* Empty / generating / preview states */}
       {!content && !generating && !error && (
         <div className="rounded-[18px] border border-rd-border bg-rd-bg-card p-7 sm:p-8 shadow-rd text-center">
-          <Linkedin className="w-8 h-8 text-rd-coral mx-auto mb-3" />
+          <Linkedin className="w-8 h-8 text-rd-primary mx-auto mb-3" />
           <p className="text-[13.5px] text-rd-text leading-[1.5]">
             Click <strong className="font-display font-bold">Generate</strong> to create LinkedIn content from your profile + Story Bank
             {baseline ? <>, comparing against your imported LinkedIn baseline</> : null}.
@@ -342,7 +342,7 @@ export default function ProfileTab() {
           </p>
           {!baseline && (
             <p className="text-[11.5px] text-rd-text-secondary mt-4 max-w-md mx-auto bg-rd-bg-soft border border-rd-border rounded-[10px] p-3 text-left">
-              <Sparkles className="inline w-3.5 h-3.5 text-rd-coral mr-1.5 -mt-0.5" />
+              <Sparkles className="inline w-3.5 h-3.5 text-rd-primary mr-1.5 -mt-0.5" />
               <strong className="font-display font-semibold text-rd-text">Tip:</strong>{" "}
               Upload your LinkedIn archive above first to unlock{" "}
               <strong className="font-display font-semibold text-rd-text">compare-and-improve mode</strong>{" "}

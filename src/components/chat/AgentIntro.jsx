@@ -95,8 +95,8 @@ export default function AgentIntro({ agentId, capabilities, howToUse }) {
               ))}
             </ul>
           </div>
-          <div className="bg-rd-coral-tint border border-rd-coral/30 rounded-[14px] px-3.5 py-3 h-fit">
-            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-coral-dark font-mono mb-1">
+          <div className="bg-rd-primary-tint border border-rd-primary/30 rounded-[14px] px-3.5 py-3 h-fit">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-primary-dark font-mono mb-1">
               How to use
             </p>
             <p className="text-[12.5px] text-rd-text leading-snug">{howToUse}</p>

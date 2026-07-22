@@ -271,7 +271,7 @@ export default function CareerRoadmap() {
             type="button"
             onClick={handleGenerate}
             disabled={generating}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors"
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors"
           >
             {generating ? (
               <>
@@ -332,7 +332,7 @@ export default function CareerRoadmap() {
             type="button"
             onClick={handleGenerate}
             disabled={generating}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-1.5 transition-colors"
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 transition-colors"
           >
             <RefreshCw className="w-3 h-3" />
             Refresh now
@@ -424,7 +424,7 @@ function Tab({ active, onClick, children }) {
       className={[
         "pb-2.5 -mb-px font-display font-semibold text-[14px] whitespace-nowrap transition-colors duration-150",
         active
-          ? "text-rd-text border-b-[2.5px] border-rd-coral"
+          ? "text-rd-text border-b-[2.5px] border-rd-primary"
           : "text-rd-text-tertiary hover:text-rd-text border-b-[2.5px] border-transparent",
       ].join(" ")}
     >
@@ -514,17 +514,17 @@ function TrackTab({ track, roles, onTabChange }) {
 // against the warm palette.
 function TrackHeaderCard({ cfg }) {
   const TINT = {
-    coral:  "var(--rd-coral-tint)",
+    coral:  "var(--rd-primary-tint)",
     teal:   "var(--rd-teal-tint)",
     golden: "var(--rd-golden-tint)",
   };
   const BADGE_BG = {
-    coral:  "var(--rd-coral)",
+    coral:  "var(--rd-primary)",
     teal:   "var(--rd-teal)",
     golden: "var(--rd-golden)",
   };
   const ACCENT = {
-    coral:  "var(--rd-coral-dark)",
+    coral:  "var(--rd-primary-dark)",
     teal:   "var(--rd-teal-dark)",
     golden: "var(--rd-golden-dark)",
   };
@@ -566,7 +566,7 @@ function TrackHeaderCard({ cfg }) {
 function EmptyNoProfile() {
   return (
     <div className="mt-7 rounded-[18px] border border-rd-border bg-rd-bg-card p-8 shadow-rd text-center">
-      <Compass className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+      <Compass className="w-10 h-10 text-rd-primary mx-auto mb-3" />
       <h2 className="font-display font-extrabold text-[22px] text-rd-text">
         Set up your profile first
       </h2>
@@ -575,7 +575,7 @@ function EmptyNoProfile() {
       </p>
       <Link
         to={createPageUrl("Profile")}
-        className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
+        className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors"
       >
         Add information <ArrowRight className="w-4 h-4" />
       </Link>
@@ -586,7 +586,7 @@ function EmptyNoProfile() {
 function EmptyNoRoles({ onGenerate, generating }) {
   return (
     <div className="mt-7 rounded-[18px] border border-rd-border bg-rd-bg-card p-8 shadow-rd text-center">
-      <Brain className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+      <Brain className="w-10 h-10 text-rd-primary mx-auto mb-3" />
       <h2 className="font-display font-extrabold text-[22px] text-rd-text">
         No roles generated yet
       </h2>
@@ -598,7 +598,7 @@ function EmptyNoRoles({ onGenerate, generating }) {
         type="button"
         onClick={onGenerate}
         disabled={generating}
-        className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-5 py-2.5 transition-colors"
+        className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-5 py-2.5 transition-colors"
       >
         {generating ? (
           <>

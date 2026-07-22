@@ -220,8 +220,8 @@ export default function HomeTrackerTab() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
             <PipelineGuideTile
               index={0}
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="Steps 1-2"
               body="Qualify yourself. Dissect the job description. Know the role before applying."
             />
@@ -234,15 +234,15 @@ export default function HomeTrackerTab() {
             />
             <PipelineGuideTile
               index={2}
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="Steps 6-7"
               body="Submit your application, then prep for the interview with STAR-format answers."
             />
             <PipelineGuideTile
               index={3}
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="Referral = your biggest edge"
               body="Many companies offer referral bonuses to employees when a referred candidate gets hired. They're incentivised to get you in."
               highlight

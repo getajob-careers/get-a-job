@@ -28,7 +28,7 @@ export default function DepthField() {
           height: 420,
           top: -140,
           right: -120,
-          background: "var(--rd-coral)",
+          background: "var(--rd-primary)",
           filter: "blur(130px)",
           opacity: 0.1,
         }}

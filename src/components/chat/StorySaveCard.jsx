@@ -96,7 +96,7 @@ export default function StorySaveCard({
   };
 
   // PR 3K — migrated from violet hex (#E7E0F5 / #C2B0E0 / #4E36A0 /
-  // #6B4FBF) to rd-coral + warm white-card surface. The "story = distinct
+  // #6B4FBF) to rd-primary + warm white-card surface. The "story = distinct
   // concept" was a Direction-3 era differentiation; in the rd system the
   // distinctiveness comes from the BookText icon + slab heading + warm
   // shadow, not from a separate hue.
@@ -125,7 +125,7 @@ export default function StorySaveCard({
     return (
       <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
         <div className="flex items-center gap-2 mb-2">
-          <BookText className="w-3.5 h-3.5 text-rd-coral" />
+          <BookText className="w-3.5 h-3.5 text-rd-primary" />
           <p className="text-[13.5px] font-display font-bold text-rd-text">Review extracted story</p>
         </div>
 
@@ -183,7 +183,7 @@ export default function StorySaveCard({
         </div>
 
         {saveError && (
-          <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{saveError}</p>
+          <p className="text-[11px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-[8px] px-2 py-1 mb-2">{saveError}</p>
         )}
 
         <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function StorySaveCard({
             size="sm"
             onClick={handleSave}
             disabled={phase === PHASE.SAVING}
-            className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+            className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
           >
             {phase === PHASE.SAVING ? (
               <><Loader2 className="w-3 h-3 animate-spin" /> Saving…</>
@@ -216,7 +216,7 @@ export default function StorySaveCard({
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <BookText className="w-3.5 h-3.5 text-rd-coral" />
+        <BookText className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">
           {capture?.framing || "Save this to your Story Bank?"}
         </p>
@@ -232,18 +232,18 @@ export default function StorySaveCard({
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        className="text-xs resize-none mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] text-rd-text focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+        className="text-xs resize-none mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] text-rd-text focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
       />
 
       {extractError && (
-        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{extractError}</p>
+        <p className="text-[11px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-[8px] px-2 py-1 mb-2">{extractError}</p>
       )}
 
       <Button
         size="sm"
         onClick={handleExtract}
         disabled={phase === PHASE.EXTRACTING}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         {phase === PHASE.EXTRACTING ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Extracting…</>

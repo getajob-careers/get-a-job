@@ -35,7 +35,7 @@ function BrandMark() {
   return (
     <div className="inline-flex items-center gap-2 select-none">
       <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
@@ -90,7 +90,7 @@ export default function OnboardingShell({ currentStep, children }) {
           >
             <div
               className="h-full transition-[width] duration-500 ease-out"
-              style={{ width: `${progress}%`, background: "var(--rd-coral)" }}
+              style={{ width: `${progress}%`, background: "var(--rd-primary)" }}
             />
           </div>
 

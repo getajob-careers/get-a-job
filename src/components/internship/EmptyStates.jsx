@@ -69,7 +69,7 @@ export function InternshipStartHere({ practicumPath }) {
       <ol className="flex flex-col gap-4 list-none">
         {steps.map(({ Icon, label, desc }, i) => (
           <li key={i} className="flex items-start gap-3">
-            <div className="flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-full text-xs font-display font-bold bg-rd-coral-tint text-rd-coral-dark">
+            <div className="flex items-center justify-center flex-shrink-0 w-7 h-7 rounded-full text-xs font-display font-bold bg-rd-primary-tint text-rd-primary-dark">
               {i + 1}
             </div>
             <div className="min-w-0">
@@ -88,15 +88,15 @@ export function InternshipStartHere({ practicumPath }) {
 function EmptyShell({ icon: Icon, title, body, cta }) {
   return (
     <div className="bg-rd-bg-card border border-rd-border rounded-[20px] p-6 max-w-2xl shadow-rd">
-      <div className="w-12 h-12 rounded-[10px] bg-rd-coral-tint flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-rd-coral" />
+      <div className="w-12 h-12 rounded-[10px] bg-rd-primary-tint flex items-center justify-center mb-4">
+        <Icon className="w-6 h-6 text-rd-primary" />
       </div>
       <h2 className="text-base font-display font-bold text-rd-text mb-2">{title}</h2>
       <p className="text-sm text-rd-text-secondary leading-relaxed mb-5">{body}</p>
       {cta && (cta.to ? (
         <Link
           to={cta.to}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-display font-bold bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
         >
           {cta.label} <ArrowRight className="w-3.5 h-3.5" />
         </Link>
@@ -105,7 +105,7 @@ function EmptyShell({ icon: Icon, title, body, cta }) {
           type="button"
           onClick={cta.onClick}
           disabled={cta.disabled}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-display font-bold bg-rd-primary text-white hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {cta.label}
         </button>

@@ -57,7 +57,7 @@ function ReadingAffordance() {
           cy="20"
           r="16"
           fill="none"
-          stroke="var(--rd-coral)"
+          stroke="var(--rd-primary)"
           strokeWidth="3"
           strokeLinecap="round"
           strokeDasharray="100"
@@ -138,14 +138,14 @@ export default function OnboardingV2() {
             <div
               key={s.name}
               className={`h-1 flex-1 rounded-full transition-colors ${
-                s.index <= step ? "bg-rd-coral" : "bg-rd-border"
+                s.index <= step ? "bg-rd-primary" : "bg-rd-border"
               }`}
             />
           ))}
         </div>
 
         <div className="flex-1">
-          <p className="text-[11px] font-medium text-rd-coral uppercase tracking-wide mb-2">
+          <p className="text-[11px] font-medium text-rd-primary uppercase tracking-wide mb-2">
             {screen.eyebrow}
           </p>
 
@@ -173,11 +173,11 @@ export default function OnboardingV2() {
                       onClick={() => setSituation(value)}
                       className={`flex flex-col items-center gap-1.5 rounded-[14px] border p-2.5 transition-colors ${
                         situation === value
-                          ? "border-rd-coral bg-rd-coral-tint"
+                          ? "border-rd-primary bg-rd-primary-tint"
                           : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
                       }`}
                     >
-                      <Icon className="w-4 h-4 text-rd-coral" />
+                      <Icon className="w-4 h-4 text-rd-primary" />
                       <span className="text-[10.5px] font-medium text-rd-text text-center leading-tight">
                         {label}
                       </span>
@@ -220,7 +220,7 @@ export default function OnboardingV2() {
                 <button
                   type="button"
                   onClick={advance}
-                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
+                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors"
                 >
                   {isLast ? "Go to my workspace" : "Continue"}
                   <ArrowRight className="w-4 h-4" />

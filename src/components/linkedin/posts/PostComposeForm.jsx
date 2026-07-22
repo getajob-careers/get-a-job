@@ -19,9 +19,9 @@ import { Loader2, ArrowLeft, Plus, X, Sparkles } from "lucide-react";
 //   - recap / observation / question / free_form: per-type fields
 //     unchanged
 
-const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_TEXTAREA_CLS = "w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_TEXTAREA_CLS = "w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 
 const PROJECT_CONTEXTS = [
   { value: "course", label: "Course / class project" },
@@ -131,7 +131,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
         </Field>
         <div>
           <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">
-            Lessons <span className="text-rd-coral">*</span>
+            Lessons <span className="text-rd-primary">*</span>
           </label>
           <p className="text-[11px] text-rd-text-secondary mb-2">3–5 specific lessons. Each tied to a real example you lived. ≤200 chars each.</p>
           <div className="space-y-2">
@@ -148,7 +148,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                 <div className="flex flex-col items-end mt-1.5 gap-1">
                   <span className="text-[10px] text-rd-text-tertiary">{l.length}/200</span>
                   {lessons.length > 3 && (
-                    <button type="button" onClick={() => removeLessonAt(i)} className="text-rd-text-tertiary hover:text-rd-coral-dark">
+                    <button type="button" onClick={() => removeLessonAt(i)} className="text-rd-text-tertiary hover:text-rd-primary-dark">
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -199,7 +199,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                 <Input value={p.name} onChange={(e) => setPersonAt(i, "name", e.target.value)} placeholder="Name" className={`w-[35%] ${RD_INPUT_CLS}`} />
                 <Input value={p.reason} onChange={(e) => setPersonAt(i, "reason", e.target.value)} placeholder="Specific reason (e.g. 'for the mock-interview prep')" className={`flex-1 ${RD_INPUT_CLS}`} />
                 {people.length > 1 && (
-                  <button type="button" onClick={() => removePersonAt(i)} className="text-rd-text-tertiary hover:text-rd-coral-dark mt-2.5">
+                  <button type="button" onClick={() => removePersonAt(i)} className="text-rd-text-tertiary hover:text-rd-primary-dark mt-2.5">
                     <X className="w-3 h-3" />
                   </button>
                 )}
@@ -252,7 +252,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                 <Input value={p.name} onChange={(e) => setTeamAt(i, "name", e.target.value)} placeholder="Name" className={`w-[40%] ${RD_INPUT_CLS}`} />
                 <Input value={p.linkedin_handle || ""} onChange={(e) => setTeamAt(i, "linkedin_handle", e.target.value)} placeholder="LinkedIn handle (optional)" className={`flex-1 ${RD_INPUT_CLS}`} />
                 {team.length > 1 && (
-                  <button type="button" onClick={() => removeTeamAt(i)} className="text-rd-text-tertiary hover:text-rd-coral-dark mt-2.5">
+                  <button type="button" onClick={() => removeTeamAt(i)} className="text-rd-text-tertiary hover:text-rd-primary-dark mt-2.5">
                     <X className="w-3 h-3" />
                   </button>
                 )}
@@ -392,7 +392,7 @@ function Field({ label, required = false, hint = "", children }) {
     <div>
       <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">
         {label}
-        {required && <span className="text-rd-coral ml-0.5">*</span>}
+        {required && <span className="text-rd-primary ml-0.5">*</span>}
       </label>
       {hint && <p className="text-[11px] text-rd-text-secondary mb-1.5 leading-snug">{hint}</p>}
       {children}
