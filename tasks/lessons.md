@@ -367,3 +367,19 @@ Trigger: ChevronLeft (and isNextDesign, useJobCardActions, Wand2) reached a brow
 What I did wrong: added an import in one edit, then added its usage in a later edit. The PostToolUse formatter runs after every edit and prunes the import as unused in the window before the usage exists. Worse, eslint no-undef catches a stripped FUNCTION-CALL import (isNextDesign()) but does NOT flag a stripped JSX-COMPONENT import (lucide icons) - react/jsx-no-undef isn't catching it here - and Vite build never catches a runtime ref. So a stripped icon import passes build+lint green and error-boundaries only in the browser.
 Rule for next time: add an import in the SAME edit as (or after) its first usage so it is never momentarily unused. After adding any import, grep the file to confirm the import line survived; for lucide/JSX-component imports specifically, do a browser smoke on the real route because build+lint will pass a stripped one. Also recorded in persistent memory (formatter-strips-just-added-imports).
 ---
+
+---
+
+2026-07-22 - A review guide with the wrong flag param burns a cert cycle
+Trigger: CV RED review guides handed Eli `?nextDesign=1` for the flag-on home. But the real param is `?next=1`: the index.html bootstrap reads `URLSearchParams.get("next")` and, on `next=1`, sets localStorage 'nextDesign' + the `data-next-design` attribute that isNextDesign() checks. Nothing reads "nextDesign" as a URL PARAM - that string is the localStorage KEY, not the query key. So `?nextDesign=1` is a no-op lookalike; on a fresh browser (no localStorage set) it lands flag-OFF and the reviewer eye-certs the wrong surface.
+What I did wrong: confused the localStorage key (`nextDesign`) with the URL param (`next`) and put the key in the hand-off URL, without grepping the bootstrap to confirm the query key. My own drives only "worked" because localStorage was already set from an earlier session, masking the no-op.
+Rule for next time: any review guide or hand-off URL carries the EXACT query key the bootstrap reads - grep index.html / the flag bootstrap first. The flag-on reveal route is `/Home?next=1`; `?next=0` clears it; the flag-off editor is `/CVAgent`. Never put the localStorage key (`nextDesign`) in a URL.
+---
+
+---
+
+2026-07-22 - Whole-model persists are banned in the CV write layer
+Trigger: the Studio top-bar Undo restored the ENTIRE pre-edit model to cv_data via an unmediated persist(prevModel); undoing one field (summary) clobbered a DIFFERENT field (bullets) that had drifted from the snapshot, and the write was unlogged - a P0 store-divergence caught in eye-cert, not by my own drive (I only tested immediate bullet-undo, where prevModel happened to be aligned).
+What I did wrong: treated undo as "restore the whole snapshot" when every OTHER write in the layer is per-field + mediated + logged. A whole-model write is a second, unmediated path that reintroduces divergence the moment the snapshot is stale in any non-edited field.
+Rule for next time: in the CV write layer, NEVER write the whole model to cv_data (persist(wholePrevModel)). Every mutation - including undo - is a per-field mediated write (revertCvDataField for the cv_data cache + the mediated source revert), so it touches exactly the field it names, is logged, and is serialized. When testing an undo path, drive it AFTER an intervening edit to a different field, not just the immediate single-field case.
+---
