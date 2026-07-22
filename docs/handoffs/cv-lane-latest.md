@@ -45,17 +45,24 @@ Owned paths: `src/pages/Onboarding.jsx` (V1), `OnboardingV2.jsx`,
   behavior-identity tests + **live 3-run preview drive, hub-verified against the
   live DB** (skip-pickers, real-CV extraction→persist seam, deliberate failure
   floor). **Prod-deploy READY on `25ff5a2` = hub's gate (live signup path).**
-- **PR 6b — BUILT + HELD (#683)** on `eli/cv-lane-6b` (cut from origin/main
-  25ff5a2 + this handoff commit). Two commits: (1) ReviewScreenV2
-  `rd-coral`→`rd-primary` rename-only [9 occ / 5 lines]; (2) V2 entity persist
-  via the shared helper + springboard + `?welcome=1`. HEAD `8fe9f84`. **Gates
-  green (lint / typecheck-baseline / build / 1586 tests) + CI green on #683.**
-  Preview READY: `get-a-job-git-eli-cv-lane-6b-getajob-team.vercel.app`.
-  **In-flow acceptance drive (launch-1 gate) is PENDING Eli** — full guide at
-  `docs/handoffs/6b-acceptance-guide.md`. **OPEN (pre-flip, not a 6b blocker):**
-  V2 runs no career analysis and handleFinalise stamps `last_reality_check_date`,
-  which suppresses Home's roadmap self-heal (`Home.jsx:292`) — V2 users land
-  with no roadmap; needs a V2 analysis trigger before the flag flips live.
+  Onboarding-V2 lane is post-6b. Sequence (Eli-ruled): #683 → PR-1 → **PR-2** →
+  Phase 1 restyle → Phase 2 UX → FLAG FLIP LAST (new-signups-only, after Phase 2).
+
+- **PR 6b — MERGED (#683, squash `49d7847`, prod deploy READY).** V2 gate-routing
+  fix (pages.lazy.js → OnboardingEntry) + screen-0 chromeless fix + entity persist
+  - springboard + `?welcome=1`. Acceptance: 4 live-DB drives (extracted / inferred /
+    inferred-noop / failure), all hub-verified.
+- **PR-1 — MERGED (#688, squash `bb9dc6e5`, prod deploy READY).** Situation
+  XOR-multi + `situations` audit; goal required; completed-user guard; review
+  degree-Select uncontrolled→controlled fix (shared V1+V2). All 4 items live-verified.
+- **PR-2 — NEXT (branch `eli/onboarding-v2-selfheal-tutorial` cut, no commits).**
+  Self-heal option (b) shared analysis helper + V2 background-fire, AND tutorial
+  minimal return. **Full build design + acceptance-drive spec in
+  `docs/handoffs/6b-acceptance-guide.md` (PR-2 KICKOFF section).** The
+  `last_reality_check_date`/self-heal gap is CLOSED by PR-2's background-fire (the
+  helper is the roadmap producer, not self-heal).
+- Test accounts to purge pre-flip: `email LIKE '%+6b-%'` (5 accounts, listed in
+  the acceptance guide).
 
 ## PR 6b spec (BUILT — #683; acceptance guide `docs/handoffs/6b-acceptance-guide.md`)
 
