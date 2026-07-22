@@ -4,27 +4,27 @@
  * This file is HAND-MAINTAINED (per PR #67) — the earlier "AUTO-GENERATED"
  * claim is stale, no generator exists. Add new page imports + a `PAGES` map
  * entry by hand when registering a new route.
- *
+ * 
  * THE ONLY EDITABLE VALUE: mainPage
  * This controls which page is the landing page (shown when users visit the app).
- *
+ * 
  * Example file structure:
- *
+ * 
  *   import HomePage from './pages/HomePage';
  *   import Dashboard from './pages/Dashboard';
  *   import Settings from './pages/Settings';
- *
+ *   
  *   export const PAGES = {
  *       "HomePage": HomePage,
  *       "Dashboard": Dashboard,
  *       "Settings": Settings,
  *   }
- *
+ *   
  *   export const pagesConfig = {
  *       mainPage: "HomePage",
  *       Pages: PAGES,
  *   };
- *
+ * 
  * Example with Layout (wraps all pages):
  *
  *   import Home from './pages/Home';
@@ -48,56 +48,57 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import Profile from "./pages/Profile";
-import CareerAgent from "./pages/CareerAgent";
-import CVAgent from "./pages/CVAgent";
-import InterviewCoach from "./pages/InterviewCoach";
-import SkillDevelopmentAdvisor from "./pages/SkillDevelopmentAdvisor";
-import Roadmap from "./pages/Roadmap";
-import Home from "./pages/Home";
-import Onboarding from "./pages/OnboardingEntry";
-import Resources from "./pages/Resources";
-import Subagents from "./pages/Subagents";
-import Tasks from "./pages/Tasks";
-import Calendar from "./pages/Calendar";
-import Jobs from "./pages/Jobs";
-import Admin from "./pages/Admin";
-import AdminLaunch from "./pages/AdminLaunch";
-import Career from "./pages/Career";
-import Linkedin from "./pages/Linkedin";
-import Internship from "./pages/Internship";
-import Settings from "./pages/Settings";
-import StoryBank from "./pages/StoryBank";
+import Profile from './pages/Profile';
+import CareerAgent from './pages/CareerAgent';
+import CVAgent from './pages/CVAgent';
+import InterviewCoach from './pages/InterviewCoach';
+import SkillDevelopmentAdvisor from './pages/SkillDevelopmentAdvisor';
+import Roadmap from './pages/Roadmap';
+import Home from './pages/Home';
+import Onboarding from './pages/OnboardingEntry';
+import Resources from './pages/Resources';
+import Subagents from './pages/Subagents';
+import Tasks from './pages/Tasks';
+import Calendar from './pages/Calendar';
+import Jobs from './pages/Jobs';
+import Admin from './pages/Admin';
+import AdminLaunch from './pages/AdminLaunch';
+import Career from './pages/Career';
+import Linkedin from './pages/Linkedin';
+import Internship from './pages/Internship';
+import Settings from './pages/Settings';
+import StoryBank from './pages/StoryBank';
 // Landing is NOT registered here — it routes at the outer App.jsx level
 // to bypass the dashboard Layout (no sidebar) and the auth gate (visible
 // to logged-out visitors). See App.jsx for the explicit /, /Landing routes.
-import __Layout from "./Layout.jsx";
+import __Layout from './Layout.jsx';
+
 
 export const PAGES = {
-  Profile: Profile,
-  CareerAgent: CareerAgent,
-  CVAgent: CVAgent,
-  InterviewCoach: InterviewCoach,
-  SkillDevelopmentAdvisor: SkillDevelopmentAdvisor,
-  Roadmap: Roadmap,
-  Home: Home,
-  Onboarding: Onboarding,
-  Resources: Resources,
-  Subagents: Subagents,
-  Tasks: Tasks,
-  Calendar: Calendar,
-  Jobs: Jobs,
-  Admin: Admin,
-  AdminLaunch: AdminLaunch,
-  Career: Career,
-  Linkedin: Linkedin,
-  Internship: Internship,
-  Settings: Settings,
-  StoryBank: StoryBank,
-};
+    "Profile": Profile,
+    "CareerAgent": CareerAgent,
+    "CVAgent": CVAgent,
+    "InterviewCoach": InterviewCoach,
+    "SkillDevelopmentAdvisor": SkillDevelopmentAdvisor,
+    "Roadmap": Roadmap,
+    "Home": Home,
+    "Onboarding": Onboarding,
+    "Resources": Resources,
+    "Subagents": Subagents,
+    "Tasks": Tasks,
+    "Calendar": Calendar,
+    "Jobs": Jobs,
+    "Admin": Admin,
+    "AdminLaunch": AdminLaunch,
+    "Career": Career,
+    "Linkedin": Linkedin,
+    "Internship": Internship,
+    "Settings": Settings,
+    "StoryBank": StoryBank,
+}
 
 export const pagesConfig = {
-  mainPage: "Home",
-  Pages: PAGES,
-  Layout: __Layout,
+    mainPage: "Home",
+    Pages: PAGES,
+    Layout: __Layout,
 };
