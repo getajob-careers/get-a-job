@@ -55,7 +55,7 @@ import InterviewCoach from './pages/InterviewCoach';
 import SkillDevelopmentAdvisor from './pages/SkillDevelopmentAdvisor';
 import Roadmap from './pages/Roadmap';
 import Home from './pages/Home';
-import Onboarding from './pages/Onboarding';
+import Onboarding from './pages/OnboardingEntry';
 import Resources from './pages/Resources';
 import Subagents from './pages/Subagents';
 import Tasks from './pages/Tasks';
