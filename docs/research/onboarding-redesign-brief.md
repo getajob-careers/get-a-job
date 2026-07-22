@@ -79,13 +79,16 @@ Pipeline (`StepResumeUpload.jsx`): upload → `extract-cv-text` (PDF, server) �
 **Proposed cuts (ranked):**
 
 1. **Take `extract-proof-signals` off the critical wait (biggest lever).** It's the long pole (11s) and produces `primary_domain` + proof_signals. Review needs the resume-extractor fields (name/edu/experience/skills) to render; `primary_domain`/proof_signals can land **async** and backfill (they gate the feed on Home, not the onboarding screens). Removing it from the blocking wait drops the felt wait to ≈ `extract-cv-text` + resume-extractor = **~9.5s p50**.
-2. **Overlap the wait with input (the reorder — see below).** Even ~9.5s should not be a spinner-stare.
-3. **Fan-out:** already a 2-way parallel (extractor ‖ proof-signals). Splitting resume-extractor further (per-section) is marginal for one JSON doc — not worth it vs. #1/#2. `extract-cv-text` (2.2s) is small; leave it.
+2. **Fan-out:** already a 2-way parallel (extractor ‖ proof-signals). Splitting resume-extractor further (per-section) is marginal for one JSON doc — not worth it vs. #1. `extract-cv-text` (2.2s) is small; leave it.
 
-**Background extraction during the pickers — FEASIBLE, via a reorder.** Today the user stares at the spinner at step 0 (the wall). Instead: **upload (screen 1) → direction/preferences (screen 3 content, which needs NO extraction: goal, location, work arrangement, practicum) → review last (screen 2 content).** Extraction runs in the background while the user fills the extraction-independent pickers; by the time they reach review, the ~9.5–13s extraction has almost always completed (picker input > extraction time).
+With cut #1 shipped (deferProofSignals, #672) the blocking wait is **~9.6s p50 / ~13–15s p90** — small enough for the stroke-draw affordance to carry. So the flow keeps the **mockup order — upload → review → direction → springboard** — and does **not** overlap extraction with the direction pickers (the reorder was tried and reverted; see the decision log). Upload → immediate reveal is the tighter reward loop.
 
-- **Failure path (extraction fails mid-pickers):** the review step, reached last, renders the existing manual-entry state ("we couldn't read your CV — fill these in"). The user's direction/preferences inputs are already saved (profile row exists from the first advance). Honest degradation, no lost work.
-- **Blocker:** none structural — it requires (a) creating the profile row on upload/advance so background writes have a target (this is the auth-trigger regardless-fix, below), and (b) the review step tolerating "extraction still running" with a light inline loading state for the tail case. Both are in the onboarding surface.
+**Failure UX — one screen, one moment of truth (review).** Everything lives on the review screen:
+
+- **Waiting:** the review screen shows the animated wait while the still-running extraction resolves.
+- **Success:** the counting-numbers **marquee** (the code-split anime.js moment) reveals "we found N jobs · M skills · K certs".
+- **Failure:** "We couldn't read your CV" + **retry** (bounded, unchanged semantics) + the **manual-entry** framing; the marquee is suppressed. The profile row already exists (auth trigger) so nothing is lost.
+  No cross-screen CV-ready signal, no two-screens-ago retry — the review screen owns the extraction outcome entirely.
 
 ## Requirement B — target interaction cost (happy path)
 
@@ -106,11 +109,11 @@ No-CV users get a **persistent "add your CV" banner on Home, sibling to `GoalRef
 
 Rule: **every screen emits `_viewed` on arrival AND `_completed` on advance; every escape hatch has its own event.** Today only `onboarding_step_completed` fires, so step-0 bounces are inferred, not observed.
 
-**Indices follow the ACCEPTED reorder — `upload → direction → review → springboard`** (ruling: reorder accepted). `step_index` is the position in the _new_ sequence and `name` carries the semantics; do **not** inherit the mockup-order indices (they would corrupt every funnel query).
+**Indices follow the ACTUAL screen order — `upload → review → direction → springboard`** (the mockup order; the reorder was tried and reverted — see the decision log). `step_index` is the position in this sequence and `name` carries the semantics.
 
 - **Screen 0 — CV upload:** `onboarding_screen_viewed{screen:"cv_upload"}` · `onboarding_cv_upload_started` · `resume_uploaded` (exists) · `onboarding_cv_extract_failed{reason}` · `onboarding_cv_skipped` · `onboarding_step_completed{step_index:0, name:"cv_upload"}`.
-- **Screen 1 — Direction & preferences:** `onboarding_screen_viewed{screen:"direction"}` · `onboarding_cv_ready` (background extraction landed) / `onboarding_cv_extract_failed{reason}` (background failure → review shows manual entry) · `onboarding_step_completed{step_index:1, name:"direction"}`.
-- **Screen 2 — Review:** `onboarding_screen_viewed{screen:"review"}` · `onboarding_section_edited{section}` · `onboarding_step_completed{step_index:2, name:"review"}`.
+- **Screen 1 — Review:** `onboarding_screen_viewed{screen:"review"}` · `onboarding_section_edited{section}` · `onboarding_step_completed{step_index:1, name:"review"}`. (Extraction resolves on this screen's watch — no cross-screen `onboarding_cv_ready`; `onboarding_cv_extract_failed{reason}` fires here if the still-running extraction fails.)
+- **Screen 2 — Direction & preferences:** `onboarding_screen_viewed{screen:"direction"}` · `onboarding_primary_domain_inferred{...}` (the CV-less inference write) · `onboarding_step_completed{step_index:2, name:"direction"}`.
 - **Screen 3 — Springboard:** `onboarding_screen_viewed{screen:"springboard"}` · tutorial events (exist) · `onboarding_completed{duration_ms}` (exists) · `onboarding_launched_to_home` · `onboarding_step_completed{step_index:3, name:"springboard"}`.
 - **Home skip nudge:** `cv_nudge_viewed/clicked/dismissed` + `resume_uploaded{source}` attribution.
 
@@ -129,3 +132,7 @@ Also built, held: **resume-extractor metric relabel (PR #662)** — makes the ex
 1. **Arrival payoff.** Onboarding emits a completion handoff signal — proposed: navigate to Home with `?welcome=1` (or set a `just_onboarded` flag on the profile). Home reads it to play a first-landing entrance state (populated master CV + matches revealing in). Onboarding builds only its launch-out transition; the entrance state is Home-lane.
 2. **Which Home a new signup lands on (rollout).** Under a flag-gated redesign (flag-off default), **a new signup lands on the CURRENT live Home** until the flag flips. So the arrival entrance state must **no-op gracefully on today's Home** and only "light up" once the Home-redesign lane ships its entrance handler. The handoff signal (`?welcome=1`) is safe to send regardless — an un-upgraded Home ignores it.
 3. **Skip-path Home nudge mount** (Requirement C) — the banner component + events are specced here; its mount on Home is Home-lane.
+
+## Decision log
+
+- **2026-07-22 — screen order: reorder tried, reverted to mockup order.** The plan briefly adopted `upload → direction → review → springboard` so extraction could overlap the direction pickers and hide the wait. **Reverted to the mockup order `upload → review → direction → springboard`.** Rationale: once proof-signals was decoupled (deferProofSignals, #672) the blocking wait fell to **~9.6s p50 / ~13–15s p90** — small enough for the stroke-draw affordance to carry — so the reorder's remaining payoff no longer justified the cross-screen complexity it introduced (a cross-screen CV-ready signal, a two-screens-ago retry, and reframing review for a failure that happened two screens back). Upload → immediate reveal is the tighter reward loop, and extraction now resolves on the review screen's own watch. Event `step_index` follows the actual (mockup) order; the `onboarding_cv_ready` cross-screen signal was retired.
