@@ -882,7 +882,13 @@ export default function CVStudioView({
           )}
           <button
             onClick={onDownload}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
+            className={
+              alive
+                ? // Flag-on: rd- palette coral (not the template accent), so the
+                  // primary action matches the canvas tokens.
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rd-coral text-white text-[12.5px] font-medium hover:bg-rd-coral-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral-dark/50 transition-colors"
+                : "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
+            }
           >
             {/* Flag-on: the workspace isn't the artifact - name the deliverable. */}
             <Download className="w-3.5 h-3.5" />{" "}
@@ -979,7 +985,9 @@ export default function CVStudioView({
           <main
             className={
               rightRail
-                ? "flex-1 min-w-0 min-h-0 overflow-y-auto cv-scroll bg-rd-bg-page"
+                ? // Document lane reads as a distinct WHITE card (RULED item 2):
+                  // the lane surface is white, the document sits borderless on it.
+                  "flex-1 min-w-0 min-h-0 overflow-y-auto cv-scroll bg-rd-bg-card"
                 : "flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page"
             }
           >
