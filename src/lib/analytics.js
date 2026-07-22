@@ -22,6 +22,19 @@ export const EVENTS = {
   OAUTH_CALLBACK_FAILED: "oauth_callback_failed",
   ONBOARDING_STARTED: "onboarding_started",
   ONBOARDING_STEP_COMPLETED: "onboarding_step_completed",
+  // Onboarding V2 born-instrumented taxonomy. step_index follows the ACCEPTED
+  // reorder (0=cv_upload, 1=direction, 2=review, 3=springboard) with a name
+  // field carrying semantics — do not inherit mockup-order indices. Call sites
+  // land in the per-screen PRs; reserved here so the taxonomy lives in one place.
+  ONBOARDING_SCREEN_VIEWED: "onboarding_screen_viewed",
+  ONBOARDING_CV_UPLOAD_STARTED: "onboarding_cv_upload_started",
+  ONBOARDING_CV_EXTRACT_FAILED: "onboarding_cv_extract_failed",
+  ONBOARDING_CV_SKIPPED: "onboarding_cv_skipped",
+  ONBOARDING_CV_READY: "onboarding_cv_ready",
+  ONBOARDING_LAUNCHED_TO_HOME: "onboarding_launched_to_home",
+  CV_NUDGE_VIEWED: "cv_nudge_viewed",
+  CV_NUDGE_CLICKED: "cv_nudge_clicked",
+  CV_NUDGE_DISMISSED: "cv_nudge_dismissed",
   ONBOARDING_COMPLETED: "onboarding_completed",
   ONBOARDING_TUTORIAL_STARTED: "onboarding_tutorial_started",
   ONBOARDING_TUTORIAL_SLIDE_VIEWED: "onboarding_tutorial_slide_viewed",

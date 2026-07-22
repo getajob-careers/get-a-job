@@ -88,6 +88,25 @@ export function scoringV2Enabled() {
   }
 }
 
+// Onboarding redesign (V2). OFF by default -> the current Onboarding flow renders
+// byte-identically. When enabled, the reordered 4-screen flow (OnboardingV2 —
+// upload -> direction -> review -> springboard) renders instead. Enabled by the
+// build env flag VITE_FLAG_ONBOARDING_V2="on" OR a ?onboarding_v2=1 override for
+// branch verification. Rollout is new-signups-only, applied at flip time (not in
+// this flag) — flip only after in-flow acceptance. Off => legacy path unchanged.
+export function onboardingV2Enabled() {
+  try {
+    if (
+      new URLSearchParams(window.location.search).get("onboarding_v2") === "1"
+    ) {
+      return true;
+    }
+  } catch {
+    /* no window (SSR/test) — fall through to the env flag */
+  }
+  return import.meta.env.VITE_FLAG_ONBOARDING_V2 === "on";
+}
+
 // The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
 // compose so every call site stays in lockstep: C1 turns on under EITHER flag
 // (scoring_confidence is the C1-only alias); 2a turns on under scoring_v2 only.
