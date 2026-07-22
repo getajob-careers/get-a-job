@@ -7,61 +7,53 @@ THIS + `tasks/lessons.md` first.** ~150-line resume point, not a log.
 
 The **onboarding-V2 / CV lane**. Owns the onboarding redesign flow, its persistence,
 and `primary_domain` provenance. **NOT** the canvas/Home design lane (ground dial,
-arrival moment, token rename #677) — that is a separate terminal; coordinate, do not
-build there.
+arrival moment, token rename #677) — separate terminal; coordinate, don't build there.
 
 Owned paths:
 
-- `src/pages/OnboardingV2.jsx`, `src/pages/OnboardingEntry.jsx`
-- `src/components/onboarding/**` (StepResumeUpload, DirectionScreenV2, StepReview, …)
-- `src/lib/inferPrimaryDomainWrite.js`, `src/lib/flags.js` (`onboardingV2Enabled`), `src/lib/analytics.js` (V2 taxonomy)
-- `supabase/functions/_shared/infer-primary-domain.ts`
-- `supabase/migrations/*primary_domain_source*`, `*handle_new_user*`
+- `src/pages/OnboardingV2.jsx`, `src/pages/OnboardingEntry.jsx`, `src/pages/Onboarding.jsx` (V1)
+- `src/components/onboarding/**`
+- `src/lib/inferPrimaryDomainWrite.js`, `persistOnboardingProfileV2.js`, `mapExtractedToOnboarding.js`, `onboardingPayload.js`, `flags.js`, `analytics.js` (V2 taxonomy)
+- `supabase/functions/_shared/infer-primary-domain.ts`; `supabase/migrations/*primary_domain_source*`, `*handle_new_user*`
 
 ## PR states
 
-- **#670** scaffold · **#671** inference module · **#672** screen 0 (upload) · **#674** order-revert · **#675** direction screen — **ALL MERGED** to main.
-- Migration `20260722_profiles_primary_domain_source.sql` — **APPLIED live** (verified 2026-07-22: `text`, nullable, `CHECK IN ('extracted','inferred')`).
-- **#677** (design lane): `rd-coral`→`rd-primary` rename — **HELD**, queued behind this lane's merges; its rebase sweep absorbs our `rd-coral` refs. **Do not rename yourself.**
-- **PR 5 = #679** onboarding V2 **review screen (index 1)** — **HELD** (built: watch → count-up reveal / failure floor, `StepReview` reuse, `mapExtractedToOnboarding` seed, profiles persist + `extracted` stamp keystone). Awaiting review.
-- **PR 6 (next)** = entity-TABLE persistence (experiences/education/projects/certifications). **Fork for Eli:** extract a SHARED persist helper (V1+V2) vs. V2 duplicate — recommend shared. Skills already survive via `skills_canonical`.
+- **#670/#671/#672/#674/#675** (scaffold → inference → screen0 → order-revert → direction) — MERGED.
+- **#677** (design lane): `rd-coral`→`rd-primary` rename — **MERGED** (1697063). `rd-coral` utility no longer exists; use **`rd-primary`** for all new work.
+- **#679** (PR 5, review screen) — **MERGED** (24b0d74). Watch → count-up reveal / failure floor, `StepReview` reuse, `mapExtractedToOnboarding` seed, profiles persist + `extracted` stamp. **Precedence invariant closed end-to-end.**
+- Migration `20260722_profiles_primary_domain_source.sql` — **APPLIED live** (verified: text, nullable, CHECK in (extracted,inferred)).
+- **PR 6a (next)** — persist-helper extraction (see below). **PR 6b** — V2 persist + springboard. Then the acceptance guide (launch-1 gate).
 
-## V2 shell state (on main)
+## ✔ Coordination gap — RESOLVED (Eli ruling, 2026-07-22)
 
-Mockup order: `0 cv_upload · 1 review · 2 direction · 3 springboard`.
-
-- **Screen 0** (cv_upload): situation selector + `StepResumeUpload(deferProofSignals)` → `onExtracted` sets shell `extracted` (resume fields immediately; proof-signals backfill via `onProofSignals`). Stroke-draw `ReadingAffordance`.
-- **Screen 2** (direction): `DirectionScreenV2` (goal/location/work/practicum) + `runPrimaryDomainInference` on advance (precedence invariant; fires `onboarding_primary_domain_inferred`).
-- **Screens 1 (review) + 3 (springboard)**: placeholders.
-- **Persistence: NONE yet in V2** — all shell state. **PR 5's review screen is the FIRST persistence.**
+#677 merged BEFORE #679, so its sweep could not absorb `ReviewScreenV2.jsx`
+(didn't exist yet). `src/components/onboarding/ReviewScreenV2.jsx` still has
+inert `rd-coral` classes (utility gone). **Eli ruled: fold the fix into PR 6b**
+as **its OWN commit** — rename-only, `rd-coral*`→`rd-primary*`, with the exact
+**occurrence count in the commit message** so the hub can verify it separately
+from the persistence diff. Do NOT bundle the rename into the persist commit.
 
 ## Standing rulings (honor verbatim)
 
-- **Mockup order** — reorder tried + reverted; `ONBOARDING_CV_READY` retired; extraction resolves on the **review screen's watch** (no cross-screen signal).
-- **Precedence invariant** — extraction-derived `primary_domain` NEVER overwritten by inference; inference writes only into null-or-previously-inferred; enforced by DB guard `WHERE primary_domain IS NULL OR primary_domain_source='inferred'` + a client CV-first guard.
-- **'extracted' stamp contract** — PR 5's persistence, when it writes `primary_domain` from extraction, MUST stamp `primary_domain_source='extracted'`. (This is what makes the invariant fully honest; logged as a #675 follow-up.)
-- **Failure UX** — one screen, one moment of truth: animated wait → count-up marquee on success / "couldn't read your CV" retry + **manual-entry floor** on failure. Bounded retry.
-- **Event taxonomy at ACTUAL (mockup) indices** — `onboarding_screen_viewed` / `onboarding_step_completed` carry `step_index` = mockup index (review = 1); `onboarding_cv_extract_failed` on failure.
-- **rd-primary utilities once #677 lands** — until then build with **`rd-coral`** (current main's utility); #677's sweep renames it.
+- **Mockup order** — `0 cv_upload · 1 review · 2 direction · 3 springboard`; reorder reverted; extraction resolves on the review screen's watch.
+- **Precedence invariant** — extraction-derived `primary_domain` NEVER overwritten by inference; DB guard `WHERE primary_domain IS NULL OR primary_domain_source='inferred'` + client CV-first guard. **CLOSED** (#679 stamps `extracted` on review, before direction infers).
+- **Failure UX** — one screen, one moment of truth: wait → count-up on success / "couldn't read your CV" retry + **manual-entry floor** on failure.
+- **Event taxonomy at ACTUAL (mockup) indices** — `step_index` = mockup index; `onboarding_cv_extract_failed` on failure.
+- **rd-primary now** (#677 landed).
+- **Marquee** — anime.js marquee DEFERRED; `useCountUp` carries the reveal for launch. Logged as **post-acceptance polish**; Eli re-rules after his in-flow drive if the moment feels flat.
 
-## PR 5 scope (review screen, index 1)
+## Persist fork — RULED: shared helper, split for risk containment
 
-1. **Persist** the extracted profile (first V2 persistence) via the `profiles` write; **stamp `primary_domain_source='extracted'`** when writing `primary_domain`. Mirror legacy `cleanProfilePayload` shape.
-2. **Watch** — extraction resolves here (shell `extracted`); show the animated wait until resolved.
-3. **Success** — count-up marquee summarizing what was found (experiences / skills / education counts); code-split `anime.js` for the marquee only.
-4. **Failure** — "couldn't read your CV" + bounded retry + manual-entry floor.
-5. **Hybrid collapse** review UI (compact confirm of extracted fields).
-6. Events at `step_index:1`; `onboarding_cv_extract_failed` on failure.
-7. Held PR; flag-off byte-identical; no deploy (client only; migration already applied).
+- **PR 6a — PURE MECHANICAL extraction.** Move V1's four inline persist fns (`saveEducations` :384, `saveProgress` :435, `handleSurveyNext` :523, `handleFinalise` :760 in `Onboarding.jsx`) into a shared helper VERBATIM; V1 calls it; **zero behavior change**. Touches the LIVE signup path → **PR #156 care**: prove behavior-identity with tests AND a **real +test signup drive on the preview** (profiles + entity rows land identically; timestamps in the PR body) BEFORE holding for merge. **Hub independently re-verifies the signup evidence against the live DB before merge approval** (Eli, 2026-07-22) → the PR body MUST carry the exact `+test` account email AND the write timestamps so the hub can match them. Context: these fns close over `user`, `supabase`, `profileData`/`experiences`/`educations`/`projects`/`certifications` + setters, `existingProfileId`/`setExistingProfileId`, `cleanProfilePayload`, career-analysis + `generate-tasks` + `replace_career_roles`. Extract via a ctx bag.
+- **PR 6b** — V2 review/springboard persistence calling the SAME helper + the **springboard screen** (screen 3; `?welcome=1` handoff to Home per scaffold). Build in `rd-primary`. Fold the ReviewScreenV2 rd-coral fix here (pending Eli's OK).
 
 ## Next actions
 
-1. Await review on #679 (PR 5). No deploy.
-2. PR 6: entity-table persistence — get Eli's ruling on shared-helper vs. duplicate first.
-3. After #677 lands: switch this lane's classes to `rd-primary` (rebase absorbs it).
-4. Springboard (screen 3) + rollout flag flip are later CV-lane slices.
+1. Build PR 6a: extract the four fns → shared helper, wire V1, behavior-identity tests, push for preview, run the +test signup drive, then HOLD with evidence.
+2. PR 6b: V2 persist via the helper + springboard + ReviewScreenV2 color fix.
+3. After 6a+6b: HOLD everything; hand Eli the in-flow acceptance guide (exact preview links; both paths — real CV and skip-via-pickers — + how to trigger one deliberate extraction failure). **That drive is the launch-1 gate.**
 
 ## Open questions
 
-- Exact review-UI content (which extracted fields to surface in the hybrid collapse) — building best interpretation; flagged in the PR body for Eli's review.
-- Persist full profile vs. subset — mirroring the legacy persist shape (`cleanProfilePayload`) unless ruled otherwise.
+- ReviewScreenV2 inert-`rd-coral` fix ownership (see gap above).
+- 6a extraction faithfulness is the whole risk — the live signup drive is the proof, not the unit tests alone.

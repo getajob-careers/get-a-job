@@ -5,10 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
-import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
-import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
-import { resolveDueDate } from "@/lib/taskDueDate";
-import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
+import {
+  EMPTY_PROFILE,
+  cleanProfilePayload,
+  ALLOWED_EXPERIENCE_TYPES,
+  inferExperienceType,
+} from "@/lib/onboardingPayload";
+import {
+  normalizeEducationLevel,
+  parseEducationDateRange,
+} from "@/lib/educationPolicy";
 import { track, EVENTS } from "@/lib/analytics";
 
 // Step index → snake_case name for the onboarding_step_completed event
@@ -33,7 +39,11 @@ import StepInternship from "../components/onboarding/StepInternship";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
 import StepConstraints from "../components/onboarding/StepConstraints";
 import StepSurvey from "../components/onboarding/StepSurvey";
-import { prewarmMasterCv } from "@/lib/prewarmMasterCv";
+import {
+  saveProgress as persistSaveProgress,
+  handleSurveyNext as persistHandleSurveyNext,
+  handleFinalise as persistHandleFinalise,
+} from "@/lib/onboardingPersist";
 
 // DB chk_experiences_type allows only these values
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
@@ -82,7 +92,12 @@ export default function Onboarding() {
   const [isReturningUser, setIsReturningUser] = useState(false);
 
   const mountedRef = useRef(true);
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
 
   const [saving, setSaving] = useState(false);
   const [finalising, setFinalising] = useState(false);
@@ -100,7 +115,10 @@ export default function Onboarding() {
   // (which has no auto-nav left).
   const profileCheckedRef = useRef(false);
   useEffect(() => {
-    if (!user) { setCheckingProfile(false); return; }
+    if (!user) {
+      setCheckingProfile(false);
+      return;
+    }
     if (profileCheckedRef.current) return;
     profileCheckedRef.current = true;
     checkExistingProfile();
@@ -123,8 +141,14 @@ export default function Onboarding() {
     if (setupComplete) return;
     recoveryFiredRef.current = true;
     handleSurveyNext();
-
-  }, [step, checkingProfile, existingProfileId, generatingRoles, finalising, setupComplete]);
+  }, [
+    step,
+    checkingProfile,
+    existingProfileId,
+    generatingRoles,
+    finalising,
+    setupComplete,
+  ]);
 
   // Debounced auto-save of profileData. Prevents edits being lost when the user
   // navigates away mid-typing before clicking Continue. Skips:
@@ -136,14 +160,24 @@ export default function Onboarding() {
     if (!existingProfileId) return;
     if (saving || finalising || generatingRoles) return;
     const handle = setTimeout(() => {
-      const payload = cleanProfilePayload({ ...profileData, experiences, educations, projects });
+      const payload = cleanProfilePayload({
+        ...profileData,
+        experiences,
+        educations,
+        projects,
+      });
       // saveProgress is the single source of truth for onboarding_step;
       // letting the debounced auto-save write it too would clobber a newly
       // advanced step with whatever profileData was hydrated with on mount.
       delete payload.onboarding_step;
       delete payload.onboarding_complete;
-      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
-      supabase.from("profiles").update(payload).eq("id", existingProfileId)
+      Object.keys(payload).forEach(
+        (k) => payload[k] === undefined && delete payload[k],
+      );
+      supabase
+        .from("profiles")
+        .update(payload)
+        .eq("id", existingProfileId)
         .then(({ error }) => {
           if (error) console.warn("Auto-save failed:", error.message);
         })
@@ -153,7 +187,7 @@ export default function Onboarding() {
         });
     }, 800);
     return () => clearTimeout(handle);
-     
+
     // 2026-05-28 Eli-incident fix: experiences/educations/projects MUST be
     // in the dep array. Previously the closure captured these state arrays
     // when the effect ran AFTER profileData hydrated, but BEFORE
@@ -166,12 +200,29 @@ export default function Onboarding() {
     // complete data. Cache pollution on ["experiences", uid] was the
     // primary cause for Eli, but this race could still bite anyone who
     // edits profileData during onboarding hydration.
-  }, [profileData, experiences, educations, projects, existingProfileId, checkingProfile, saving, finalising, generatingRoles]);
+  }, [
+    profileData,
+    experiences,
+    educations,
+    projects,
+    existingProfileId,
+    checkingProfile,
+    saving,
+    finalising,
+    generatingRoles,
+  ]);
 
   const checkExistingProfile = async () => {
-    if (!user) { setCheckingProfile(false); return; }
-    const { data: profiles, error: profileCheckError } = await supabase.from("profiles").select("*").eq("id", user.id);
-    if (profileCheckError) console.error("Error checking existing profile:", profileCheckError);
+    if (!user) {
+      setCheckingProfile(false);
+      return;
+    }
+    const { data: profiles, error: profileCheckError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id);
+    if (profileCheckError)
+      console.error("Error checking existing profile:", profileCheckError);
     if (profiles?.[0]?.onboarding_complete) {
       navigate(createPageUrl("Home"));
       return;
@@ -196,56 +247,69 @@ export default function Onboarding() {
         supabase.from("experiences").select("*").eq("user_id", user.id),
         supabase.from("projects").select("*").eq("user_id", user.id),
         supabase.from("certifications").select("*").eq("user_id", user.id),
-        supabase.from("education").select("*").eq("user_id", user.id)
+        supabase
+          .from("education")
+          .select("*")
+          .eq("user_id", user.id)
           .order("display_order", { ascending: true, nullsLast: true })
           .order("created_at", { ascending: true }),
       ]);
       if (eduRes.data?.length) {
-        setEducations(eduRes.data.map((e) => ({
-          id: e.id,
-          institution: e.institution || "",
-          education_level: e.education_level || "",
-          degree_type: e.degree_type || "",
-          field_of_study: e.field_of_study || "",
-          start_date: e.start_date || "",
-          end_date: e.end_date || "",
-          is_current: e.is_current ?? false,
-          gpa: e.gpa || "",
-          honors: e.honors || [],
-          relevant_coursework: e.relevant_coursework || [],
-          academic_projects: e.academic_projects || [],
-          location: e.location || "",
-          display_order: e.display_order ?? 0,
-        })));
+        setEducations(
+          eduRes.data.map((e) => ({
+            id: e.id,
+            institution: e.institution || "",
+            education_level: e.education_level || "",
+            degree_type: e.degree_type || "",
+            field_of_study: e.field_of_study || "",
+            start_date: e.start_date || "",
+            end_date: e.end_date || "",
+            is_current: e.is_current ?? false,
+            gpa: e.gpa || "",
+            honors: e.honors || [],
+            relevant_coursework: e.relevant_coursework || [],
+            academic_projects: e.academic_projects || [],
+            location: e.location || "",
+            display_order: e.display_order ?? 0,
+          })),
+        );
       }
       if (expRes.data?.length) {
-        setExperiences(expRes.data.map((e) => ({
-          title: e.title || "",
-          company: e.company || "",
-          type: ALLOWED_EXPERIENCE_TYPES.has(e.type) ? e.type : "full_time",
-          start_date: e.start_date || "",
-          end_date: e.end_date || "",
-          is_current: e.is_current || false,
-          responsibilities: Array.isArray(e.responsibilities) ? e.responsibilities.join("\n") : (e.responsibilities || ""),
-          skills: e.skills || [],
-          managed_people: e.managed_people ?? false,
-          cross_functional: e.cross_functional ?? false,
-        })));
+        setExperiences(
+          expRes.data.map((e) => ({
+            title: e.title || "",
+            company: e.company || "",
+            type: ALLOWED_EXPERIENCE_TYPES.has(e.type) ? e.type : "full_time",
+            start_date: e.start_date || "",
+            end_date: e.end_date || "",
+            is_current: e.is_current || false,
+            responsibilities: Array.isArray(e.responsibilities)
+              ? e.responsibilities.join("\n")
+              : e.responsibilities || "",
+            skills: e.skills || [],
+            managed_people: e.managed_people ?? false,
+            cross_functional: e.cross_functional ?? false,
+          })),
+        );
       }
       if (projRes.data?.length) {
-        setProjects(projRes.data.map((p) => ({
-          name: p.name || "",
-          description: p.description || "",
-          url: p.url || "",
-          skills: p.skills || [],
-        })));
+        setProjects(
+          projRes.data.map((p) => ({
+            name: p.name || "",
+            description: p.description || "",
+            url: p.url || "",
+            skills: p.skills || [],
+          })),
+        );
       }
       if (certRes.data?.length) {
-        setCertifications(certRes.data.map((c) => ({
-          name: c.name || "",
-          issuer: c.issuer || "",
-          date_earned: c.date_earned || "",
-        })));
+        setCertifications(
+          certRes.data.map((c) => ({
+            name: c.name || "",
+            issuer: c.issuer || "",
+            date_earned: c.date_earned || "",
+          })),
+        );
       }
     }
     setCheckingProfile(false);
@@ -260,7 +324,9 @@ export default function Onboarding() {
           localStorage.setItem(flagKey, String(Date.now()));
           track(EVENTS.ONBOARDING_STARTED, {});
         }
-      } catch { /* localStorage unavailable */ }
+      } catch {
+        /* localStorage unavailable */
+      }
     }
   };
 
@@ -285,9 +351,13 @@ export default function Onboarding() {
       // extractor returns one combined list; StepSkills writes here too.
       skills: extracted.skills || prev.skills || [],
       volunteering: extracted.volunteering || prev.volunteering || [],
-      proof_signals: extracted.proof_signals?.length ? extracted.proof_signals : prev.proof_signals || [],
+      proof_signals: extracted.proof_signals?.length
+        ? extracted.proof_signals
+        : prev.proof_signals || [],
       primary_domain: extracted.primary_domain || prev.primary_domain || null,
-      adjacent_fields: extracted.adjacent_fields?.length ? extracted.adjacent_fields : prev.adjacent_fields || [],
+      adjacent_fields: extracted.adjacent_fields?.length
+        ? extracted.adjacent_fields
+        : prev.adjacent_fields || [],
     }));
 
     // Education rows — write to the new education table state instead of
@@ -316,7 +386,10 @@ export default function Onboarding() {
     // returned one. Per design decision Q2, NOT shown in StepEducation
     // (single-entry onboarding) — user can edit via AddInformation post-
     // onboarding.
-    if (extracted.secondary_education && typeof extracted.secondary_education === "object") {
+    if (
+      extracted.secondary_education &&
+      typeof extracted.secondary_education === "object"
+    ) {
       const sec = extracted.secondary_education;
       const secDates = parseEducationDateRange(sec.dates);
       newEducations.push({
@@ -349,19 +422,21 @@ export default function Onboarding() {
     // Pre-fill experiences from resume
     const exps = extracted.experiences || extracted.experience || [];
     if (exps.length > 0) {
-      setExperiences(exps.map((e) => ({
-        title: e.title || "",
-        company: e.company || "",
-        // Accept whatever the extractor returned; fall back to keyword inference.
-        type: inferExperienceType(e),
-        start_date: e.start_date || "",
-        end_date: e.end_date || "",
-        is_current: e.is_current || false,
-        responsibilities: Array.isArray(e.responsibilities)
-          ? e.responsibilities.join("\n")
-          : (e.responsibilities || ""),
-        skills: e.skills || [],
-      })));
+      setExperiences(
+        exps.map((e) => ({
+          title: e.title || "",
+          company: e.company || "",
+          // Accept whatever the extractor returned; fall back to keyword inference.
+          type: inferExperienceType(e),
+          start_date: e.start_date || "",
+          end_date: e.end_date || "",
+          is_current: e.is_current || false,
+          responsibilities: Array.isArray(e.responsibilities)
+            ? e.responsibilities.join("\n")
+            : e.responsibilities || "",
+          skills: e.skills || [],
+        })),
+      );
     }
 
     const projs = extracted.projects || [];
@@ -374,117 +449,37 @@ export default function Onboarding() {
     }
   };
 
-  // Persist any education rows that have been touched. Rows with an id
-  // get UPDATEd in place; rows without an id get INSERTed and their new
-  // id is written back into local state for subsequent saves. Rows with no
-  // institution are skipped — an institution-less education row would render
-  // as an "[Institution Name Missing]" placeholder on the CV, and it's also
-  // the initial blank onboarding state we don't want to persist. We do NOT
-  // delete rows here — only AddInformation's editor (post-onboarding) can.
-  const saveEducations = async () => {
-    if (!Array.isArray(educations) || educations.length === 0) return;
-    const updatedById = {};
-    for (let i = 0; i < educations.length; i++) {
-      const e = educations[i];
-      // Root prevention: an education row without an institution is NOT
-      // persisted — it would surface downstream as an "[Institution Name
-      // Missing]" placeholder on the generated CV. The final review step
-      // hard-gates institution, but saveEducations also runs on every
-      // per-step advance; this closes that path so an extracted row carrying
-      // a degree/field but no school never gets written.
-      if (!(e.institution || "").trim()) continue;
-      const row = {
-        user_id: user.id,
-        institution: e.institution || null,
-        education_level: e.education_level || null,
-        degree_type: e.degree_type || null,
-        field_of_study: e.field_of_study || null,
-        start_date: e.start_date || null,
-        end_date: e.end_date || null,
-        is_current: !!e.is_current,
-        gpa: e.gpa || null,
-        honors: e.honors || [],
-        relevant_coursework: e.relevant_coursework || [],
-        academic_projects: e.academic_projects || [],
-        skills: e.skills || [],
-        location: e.location || null,
-        display_order: e.display_order ?? i,
-      };
-      if (e.id) {
-        const { error: updErr } = await supabase
-          .from("education")
-          .update(row)
-          .eq("id", e.id)
-          .eq("user_id", user.id);
-        if (updErr) throw updErr;
-      } else {
-        const { data, error: insErr } = await supabase
-          .from("education")
-          .insert(row)
-          .select("id")
-          .single();
-        if (insErr) throw insErr;
-        if (data?.id) updatedById[i] = data.id;
-      }
-    }
-    if (Object.keys(updatedById).length > 0) {
-      setEducations((prev) => prev.map((e, i) => updatedById[i] ? { ...e, id: updatedById[i] } : e));
-    }
-  };
+  // The four onboarding persist functions live in @/lib/onboardingPersist
+  // (extracted VERBATIM in PR 6a — zero behavior change). V1 builds a ctx
+  // snapshot of the state/setters they used to close over and delegates.
+  // buildPersistCtx runs at each call, so the snapshot matches the render
+  // that invoked it — exactly as the inline closures did. saveEducations is
+  // not wrapped here: it is only ever called from inside saveProgress
+  // (module-internal), so V1 never needs an entry point for it.
+  const buildPersistCtx = () => ({
+    user,
+    profileData,
+    experiences,
+    educations,
+    projects,
+    certifications,
+    existingProfileId,
+    setExistingProfileId,
+    setEducations,
+    generatingRoles,
+    setGeneratingRoles,
+    setStep,
+    finalising,
+    setFinalising,
+    setFinaliseError,
+    setSetupComplete,
+    mountedRef,
+    queryClient,
+    STEP_NAMES,
+  });
 
-  const saveProgress = async (stepNum) => {
-    // skills is a single flat array now (Bug 3 fix dropped categories).
-    // Dedupe to guard against accidental duplicate adds in the UI.
-    const rawPayload = {
-      ...profileData,
-      experiences,
-      educations,
-      projects,
-      onboarding_step: stepNum,
-      skills: [...new Set(profileData.skills || [])],
-    };
-    const payload = cleanProfilePayload(rawPayload);
-
-    // Remove undefined values so we don't accidentally overwrite DB fields with null/undefined unnecessarily
-    Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
-
-    if (existingProfileId) {
-      const { error: updateError } = await supabase.from("profiles").update(payload).eq("id", existingProfileId);
-      if (updateError) throw updateError;
-    } else {
-      // Stamp invite_code + cohort_label from user_metadata at first
-      // profile insert (set during auth.signUp in Login.jsx). Null-
-      // tolerant: users who signed up before the pilot gate landed
-      // have no metadata fields → both stay null. Backwards-compatible.
-      const { data, error } = await supabase.from("profiles").insert({
-        id: user.id,
-        ...payload,
-        full_name: profileData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "User",
-        invite_code: user.user_metadata?.invite_code ?? null,
-        cohort_label: user.user_metadata?.cohort_label ?? null,
-      }).select();
-      if (error) throw error;
-      if (data?.[0]) {
-        setExistingProfileId(data[0].id);
-        // Fire-and-forget welcome email on the FIRST successful profile
-        // insert. Idempotent server-side via Resend Idempotency-Key
-        // (welcome:<user_id>) — even if the user reloads mid-onboarding
-        // and saveProfile runs again, the second call would only fire
-        // if a profile DIDN'T exist (because of the existingProfileId
-        // branch above), so this naturally fires once per user.
-        // Failure is non-fatal and logged in edge function metrics.
-        supabase.functions.invoke("send-welcome-email", { body: {} })
-          .catch((emailErr) => {
-            console.warn("[onboarding] welcome email failed (non-fatal):", emailErr);
-          });
-      }
-    }
-
-    // Persist education rows to the new table (Phase B). Done AFTER the
-    // profile UPSERT because the FK on education.user_id depends on the
-    // auth user existing — profiles.id and auth.users.id are 1:1.
-    await saveEducations();
-  };
+  const saveProgress = (stepNum) =>
+    persistSaveProgress(buildPersistCtx(), stepNum);
 
   const goTo = async (nextStep) => {
     setSaveError(null);
@@ -506,552 +501,9 @@ export default function Onboarding() {
     setSaving(false);
   };
 
-  // Step 7→8: Run the AI track analysis (was 6→7 pre-internship step).
-  //
-  // PR onboarding-tutorial refactor: the visual "Your Roles" page (step 8)
-  // was replaced by the OnboardingTutorial. The pipeline is now:
-  //
-  //   1. handleSurveyNext: pre-analysis DB writes + analysis API call
-  //   2. handleSurveyNext chains to handleFinalise on BOTH success and
-  //      failure paths — so the user always reaches setupComplete=true.
-  //   3. handleFinalise: task generation + final writes + set setupComplete
-  //   4. User clicks "Go to platform" in tutorial → navigate to Home
-  //
-  // Analysis failure (e.g., transient session-refresh blip) does NOT block
-  // the user — they reach Home with an empty Career Roadmap, and Home's
-  // self-heal useEffect retries the analysis on next visit.
-  const handleSurveyNext = async () => {
-    if (generatingRoles) return;
-    // Step 5 (Survey) → 6 (TierReveal) bypasses goTo, so emit the step-
-    // completed event explicitly here. Without this we'd miss "survey"
-    // in the funnel. Step indices shifted in Phase 3 — Survey is now
-    // index 5, TierReveal index 6.
-    track(EVENTS.ONBOARDING_STEP_COMPLETED, {
-      step_index: 5,
-      step_name: STEP_NAMES[5],
-    });
-    setStep(6);
-    setGeneratingRoles(true);
+  const handleSurveyNext = () => persistHandleSurveyNext(buildPersistCtx());
 
-    try {
-      // Persist step 6 to DB before the career analysis reads the row.
-      // skills is already a single flat array (Bug 3 fix dropped categories);
-      // no merge needed.
-      if (existingProfileId) {
-        await supabase.from("profiles").update({
-          onboarding_step: 6,
-          skills: [...new Set(profileData.skills || [])],
-        }).eq("id", existingProfileId);
-      }
-
-      // Write experiences/projects/certs to DB so the career analysis can read
-      // them. Mirrors handleFinalise's snapshot → insert → delete-old pattern
-      // so a partial failure can't wipe the user's data: if any insert errors
-      // we roll back the inserts that did succeed and leave the existing rows
-      // intact. Worst case the analysis runs against the user's previous DB
-      // state instead of their newest edits — strictly better than empty.
-      try {
-        const [existingExpRes, existingProjRes, existingCertRes] = await Promise.all([
-          supabase.from("experiences").select("id").eq("user_id", user.id),
-          supabase.from("projects").select("id").eq("user_id", user.id),
-          supabase.from("certifications").select("id").eq("user_id", user.id),
-        ]);
-        const oldExpIds = existingExpRes.data?.map((r) => r.id) || [];
-        const oldProjIds = existingProjRes.data?.map((r) => r.id) || [];
-        const oldCertIds = existingCertRes.data?.map((r) => r.id) || [];
-
-        const insertedIds = { exp: [], proj: [], cert: [] };
-        try {
-          if (experiences.length > 0) {
-            const { data, error } = await supabase.from("experiences").insert(experiences.map((e) => ({
-              user_id: user.id,
-              title: e.title,
-              company: e.company,
-              type: e.type,
-              start_date: e.start_date,
-              end_date: e.end_date,
-              is_current: e.is_current,
-              responsibilities: e.responsibilities,
-              skills: e.skills || [],
-              managed_people: e.managed_people ?? false,
-              cross_functional: e.cross_functional ?? false,
-            }))).select("id");
-            if (error) throw error;
-            insertedIds.exp = (data || []).map((r) => r.id);
-          }
-          if (projects.length > 0) {
-            const { data, error } = await supabase.from("projects").insert(projects.map((p) => ({
-              user_id: user.id,
-              name: p.name,
-              description: p.description,
-              url: p.url,
-              skills: p.skills || [],
-            }))).select("id");
-            if (error) throw error;
-            insertedIds.proj = (data || []).map((r) => r.id);
-          }
-          if (certifications.length > 0) {
-            const { data, error } = await supabase.from("certifications").insert(certifications.map((c) => ({
-              user_id: user.id,
-              name: c.name,
-              issuer: c.issuer,
-              date_earned: c.date_earned,
-            }))).select("id");
-            if (error) throw error;
-            insertedIds.cert = (data || []).map((r) => r.id);
-          }
-        } catch (insertErr) {
-          // Roll back partial inserts so the next attempt starts clean and
-          // existing rows stay untouched.
-          const rollbacks = [];
-          if (insertedIds.exp.length > 0) rollbacks.push(supabase.from("experiences").delete().in("id", insertedIds.exp));
-          if (insertedIds.proj.length > 0) rollbacks.push(supabase.from("projects").delete().in("id", insertedIds.proj));
-          if (insertedIds.cert.length > 0) rollbacks.push(supabase.from("certifications").delete().in("id", insertedIds.cert));
-          if (rollbacks.length > 0) await Promise.all(rollbacks);
-          throw insertErr;
-        }
-
-        // All inserts succeeded — now safe to remove the previous rows by ID.
-        const deleteOps = [];
-        if (oldExpIds.length > 0) deleteOps.push(supabase.from("experiences").delete().in("id", oldExpIds));
-        if (oldProjIds.length > 0) deleteOps.push(supabase.from("projects").delete().in("id", oldProjIds));
-        if (oldCertIds.length > 0) deleteOps.push(supabase.from("certifications").delete().in("id", oldCertIds));
-        if (deleteOps.length > 0) await Promise.all(deleteOps);
-      } catch (preAnalysisErr) {
-        console.error("Pre-analysis data save failed (non-blocking):", preAnalysisErr);
-      }
-
-      // Refresh session so we don't invoke with an expired access token
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (sessionError || !accessToken) {
-        throw new Error("Session expired. Please log out and log back in.");
-      }
-
-      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-analysis`;
-      const response = await fetch(fnUrl, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          dream_roles: profileData.five_year_role ? [profileData.five_year_role] : [],
-        }),
-      });
-
-      const responseText = await response.text();
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : {};
-      } catch {
-        console.error("Career analysis: non-JSON response", { status: response.status, body: responseText });
-        throw new Error(`HTTP ${response.status}: invalid response`);
-      }
-      if (!response.ok) {
-        console.error("Career analysis: HTTP error", { status: response.status, body: data });
-        const httpErr = new Error(data?.error || data?.msg || `HTTP ${response.status}`);
-        httpErr.status = response.status;
-        throw httpErr;
-      }
-      if (data?.error) {
-        console.error("Career analysis: function error", { body: data });
-        throw new Error(data.error);
-      }
-
-      const analysisRoles = data?.roles || [];
-      if (!mountedRef.current) return;
-
-      // Cached path: onboarding never expects this (first run for the
-      // user), but defensively no-op if the server hits cache for some
-      // reason — career_roles for these inputs is already in DB.
-      if (data?.cached) {
-        console.warn("[onboarding] unexpected cached:true on first analysis run — skipping RPC");
-      } else if (user && analysisRoles.length > 0) {
-        // Atomically replace career roles using a DB transaction via RPC
-        const rolesPayload = analysisRoles.map((r) => ({
-          title: r.title,
-          track: r.track,
-          match_score: r.readiness_score,
-          readiness_score: r.readiness_score,
-          goal_alignment_score: r.goal_alignment_score ?? null,
-          matched_skills: r.matched_skills || [],
-          missing_skills: r.missing_skills || [],
-          skills_gap: r.missing_skills || [],
-          alignment_to_goal: r.alignment_to_goal || "",
-          alignment_reason: r.alignment_reason || "",
-          reasoning: r.reasoning || "",
-          action_items: r.action_items || [],
-        }));
-
-        const { error: rpcError } = await supabase.rpc("replace_career_roles", {
-          p_user_id: user.id,
-          p_roles: rolesPayload,
-          // Edge function returns the hash of inputs that drove this analysis.
-          // Forwarded so the RPC writes function_cache atomically with the
-          // career_roles rows, letting subsequent calls (Home, Refresh) skip
-          // regeneration when inputs haven't changed. See PR B.
-          p_input_hash: data?.input_hash || null,
-        });
-
-        if (rpcError) throw rpcError;
-      }
-
-      if (existingProfileId) {
-        // Capture the error explicitly — this write previously had no error
-        // handling, which let it fail silently. We've seen real users land
-        // with onboarding_complete=true but qualification_level=null +
-        // last_reality_check_date=null + skill_gaps=[] (empty), the exact
-        // shape this write should have populated. Don't throw on failure —
-        // the analysis is still cached in local state for the track reveal,
-        // and Home.jsx has a self-healing useEffect that re-runs the
-        // analysis if it detects this null pattern on next visit.
-        const { error: persistErr } = await supabase.from("profiles").update({
-          skill_gaps: data?.skill_gaps || [],
-          qualification_level: data?.qualification_level || null,
-          overall_assessment: data?.overall_assessment || null,
-          // last_reality_check_date is stamped on the final profile update
-          // in handleFinalise — AFTER the experiences/projects/certs
-          // re-insert succeeds — so it's >= every fresh `created_at`.
-          // Stamping it here would predate the inserts by ~1s and trip
-          // isAnalysisStale() on every new user's first Home load.
-          onboarding_step: 6,
-        }).eq("id", existingProfileId);
-        if (persistErr) {
-          console.error("[onboarding] career analysis persist failed:", persistErr, {
-            existingProfileId,
-            qualification_level: data?.qualification_level,
-            skill_gaps_count: data?.skill_gaps?.length || 0,
-            overall_assessment_len: data?.overall_assessment?.length || 0,
-          });
-        }
-      }
-
-      // Analysis succeeded — auto-chain to handleFinalise in the same async
-      // flow so the user reaches setupComplete without a manual click.
-      // handleFinalise handles its own errors via setFinaliseError, so the
-      // outer catch only fires for analysis failures.
-      if (mountedRef.current) {
-        setGeneratingRoles(false);
-        await handleFinalise();
-      }
-      return;
-    } catch (err) {
-      // Analysis failed. Don't block the user — fall through to handleFinalise
-      // so they reach Home with an empty Career Roadmap. Home.jsx's
-      // self-heal useEffect detects the missing qualification_level and
-      // re-runs the analysis in the background on next visit. This keeps
-      // the tutorial focused on orientation instead of branching into a
-      // retry / error-banner UX that confused users when the underlying
-      // throw was a transient session-refresh blip.
-      console.error("Career analysis error (continuing to handleFinalise):", err?.message || err, err);
-    }
-
-    if (!mountedRef.current) return;
-    setGeneratingRoles(false);
-    // Always chain to handleFinalise — success path OR error path. Without
-    // this, an analysis failure left setupComplete=false and the tutorial's
-    // "Go to platform" button stuck disabled forever.
-    await handleFinalise();
-  };
-
-  // Final step: save everything, mark complete, navigate
-  const handleFinalise = async () => {
-    if (finalising) return;
-    setFinalising(true);
-
-    // skills is now a single flat array (Bug 3 fix dropped categories).
-    // Dedupe before the final write.
-    const allSkills = [...new Set(profileData.skills || [])];
-
-    let targetProfileId = existingProfileId;
-
-    if (!targetProfileId) {
-      // The user somehow reached the end without a profile row saved!
-      // Attempt to save it now explicitly.
-      const rawPayload = { ...profileData, experiences, educations, projects, onboarding_step: 5 };
-      const payload = cleanProfilePayload(rawPayload);
-      Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
-
-      // Same cohort-stamp pattern as the primary insert site above —
-      // this is the defensive finalise-fallback path that runs only
-      // when the per-step saveProfile didn't land a profile row.
-      const { data, error } = await supabase.from("profiles").insert({
-        id: user.id,
-        ...payload,
-        full_name: profileData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "User",
-        invite_code: user.user_metadata?.invite_code ?? null,
-        cohort_label: user.user_metadata?.cohort_label ?? null,
-      }).select();
-
-      if (!error && data?.[0]) {
-        // First profile row created via the finalise fallback. Same
-        // fire-and-forget welcome email pattern as the primary path.
-        // Resend idempotency key prevents double-sends if both paths
-        // somehow fire for the same user.
-        supabase.functions.invoke("send-welcome-email", { body: {} })
-          .catch((emailErr) => {
-            console.warn("[onboarding] welcome email failed (non-fatal):", emailErr);
-          });
-      }
-
-      if (error || !data?.[0]) {
-        console.error("Critical error saving profile on finalise:", error);
-        setFinaliseError("Could not create your profile. Please try again.");
-        setFinalising(false);
-        return;
-      }
-      
-      targetProfileId = data[0].id;
-      setExistingProfileId(targetProfileId);
-    }
-
-    // Capture existing IDs before inserting new data — delete only after inserts succeed
-    const [existingExpRes, existingProjRes, existingCertRes, existingTaskRes] = await Promise.all([
-      supabase.from("experiences").select("id").eq("user_id", user.id),
-      supabase.from("projects").select("id").eq("user_id", user.id),
-      supabase.from("certifications").select("id").eq("user_id", user.id),
-      supabase.from("tasks").select("id").eq("user_id", user.id),
-    ]);
-    const oldExpIds = existingExpRes.data?.map((r) => r.id) || [];
-    const oldProjIds = existingProjRes.data?.map((r) => r.id) || [];
-    const oldCertIds = existingCertRes.data?.map((r) => r.id) || [];
-    const oldTaskIds = existingTaskRes.data?.map((r) => r.id) || [];
-
-    // Sequential inserts with per-type rollback tracking — prevents duplicate data on retry
-    // if a partial failure occurs (e.g. experiences saved but certifications failed).
-    const insertedIds = { exp: [], proj: [], cert: [], task: [] };
-
-    try {
-      if (experiences.length > 0) {
-        // Whitelist columns that exist in the experiences schema. Spreading
-        // raw React state can include UI-only fields and break the entire
-        // insert with PGRST204 — see 20260425_experiences_managed_people.sql.
-        const sanitisedExperiences = experiences.map((e) => ({
-          user_id: user.id,
-          title: e.title,
-          company: e.company,
-          type: e.type,
-          start_date: e.start_date,
-          end_date: e.end_date,
-          is_current: e.is_current,
-          responsibilities: e.responsibilities,
-          skills: e.skills || [],
-          managed_people: e.managed_people ?? false,
-          cross_functional: e.cross_functional ?? false,
-        }));
-        const { data, error } = await supabase.from("experiences")
-          .insert(sanitisedExperiences)
-          .select("id");
-        if (error) throw error;
-        insertedIds.exp = (data || []).map((r) => r.id);
-      }
-
-      if (projects.length > 0) {
-        const { data, error } = await supabase.from("projects")
-          .insert(projects.map((proj) => ({
-            name: proj.name,
-            description: proj.description,
-            url: proj.url,
-            skills: proj.skills || [],
-            user_id: user.id,
-          })))
-          .select("id");
-        if (error) throw error;
-        insertedIds.proj = (data || []).map((r) => r.id);
-      }
-
-      if (certifications.length > 0) {
-        const { data, error } = await supabase.from("certifications")
-          .insert(certifications.map((cert) => ({
-            name: cert.name,
-            issuer: cert.issuer,
-            date_earned: cert.date_earned,
-            user_id: user.id,
-          })))
-          .select("id");
-        if (error) throw error;
-        insertedIds.cert = (data || []).map((r) => r.id);
-      }
-
-      // Generate personalized tasks in the BACKGROUND — don't block
-      // onboarding completion. Saves ~20s of perceived latency before the
-      // track reveal screen. Tasks land in the DB ~10-20s after navigation;
-      // by the time the user clicks through to the Tasks page (typically
-      // after exploring Roadmap first) they're already there.
-      //
-      // Failure layers:
-      // 1. Server: openaiChatCompletionWithRetry retries 3x with exp
-      //    backoff on transient errors (PR R1).
-      // 2. Client: this .catch inserts the 2 ONBOARDING_FALLBACK_TASKS so
-      //    the user never lands with an empty Tasks page. Tasks page
-      //    detects all-fallback state via allTasksAreOnboardingFallback
-      //    and surfaces a "Generate personalized tasks" banner the user
-      //    can click to upgrade to real LLM-generated tasks.
-      // 3. Browser closes mid-flight: neither path runs. Tasks page's
-      //    empty-state still surfaces the same banner.
-      //
-      // No `insertedIds.task` push — the outer-catch rollback is for
-      // synchronous onboarding failures. Anything inserted async after
-      // onboarding finalises is out of rollback scope; the Layer-2 banner
-      // is the safety net for any orphan outcomes.
-      (async () => {
-        try {
-          const PRIORITY_MAP = { urgent_now: "high", this_week: "medium", longer_term: "low", high: "high", medium: "medium", low: "low" };
-          const CATEGORY_MAP = { application: "application", cv: "cv", skill: "skill", project: "project", networking: "networking", interview_prep: "application", clarity_positioning: "application" };
-          const normPriority = (p) => PRIORITY_MAP[p] || "medium";
-          const normCategory = (c) => CATEGORY_MAP[c] || "application";
-
-          const { data: taskData, error: taskInvokeError } = await supabase.functions.invoke("generate-tasks", {
-            body: { context: "onboarding initial tasks" },
-          });
-          if (taskInvokeError) throw taskInvokeError;
-          const aiTasks = (taskData?.tasks || []).map((t) => ({
-            title: t.title,
-            description: t.description,
-            category: normCategory(t.category),
-            priority: normPriority(t.priority),
-            role_title: t.role_title || null,
-            due_date: resolveDueDate(t.due_date),
-            is_complete: false,
-            user_id: user.id,
-          }));
-          if (aiTasks.length === 0) throw new Error("generate-tasks returned no tasks");
-          const { error: insertErr } = await supabase.from("tasks").insert(aiTasks);
-          if (insertErr) throw insertErr;
-          queryClient.invalidateQueries({ queryKey: ["tasks"] });
-        } catch (err) {
-          console.error("Background onboarding task generation failed:", err);
-          try {
-            await supabase.from("tasks").insert(
-              ONBOARDING_FALLBACK_TASKS.map((t) => ({
-                ...t,
-                is_complete: false,
-                user_id: user.id,
-              })),
-            );
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-          } catch (fallbackErr) {
-            // Both AI and fallback insert failed. Tasks page's empty-state
-            // banner is the final recovery — user clicks Generate, gets tasks.
-            console.error("Onboarding fallback task insert also failed:", fallbackErr);
-          }
-        }
-      })();
-
-    } catch (err) {
-      console.error("Error saving onboarding data:", err);
-      // Roll back any inserts that succeeded in this attempt so retry starts clean
-      const rollbacks = [];
-      if (insertedIds.exp.length > 0) rollbacks.push(supabase.from("experiences").delete().in("id", insertedIds.exp));
-      if (insertedIds.proj.length > 0) rollbacks.push(supabase.from("projects").delete().in("id", insertedIds.proj));
-      if (insertedIds.cert.length > 0) rollbacks.push(supabase.from("certifications").delete().in("id", insertedIds.cert));
-      if (insertedIds.task.length > 0) rollbacks.push(supabase.from("tasks").delete().in("id", insertedIds.task));
-      if (rollbacks.length > 0) await Promise.all(rollbacks);
-      setFinaliseError("Some data could not be saved. Please try again.");
-      setFinalising(false);
-      return;
-    }
-
-    // Delete old records by ID — only after new data is safely inserted
-    const deleteOps = [];
-    if (oldExpIds.length > 0) deleteOps.push(supabase.from("experiences").delete().in("id", oldExpIds));
-    if (oldProjIds.length > 0) deleteOps.push(supabase.from("projects").delete().in("id", oldProjIds));
-    if (oldCertIds.length > 0) deleteOps.push(supabase.from("certifications").delete().in("id", oldCertIds));
-    if (oldTaskIds.length > 0) deleteOps.push(supabase.from("tasks").delete().in("id", oldTaskIds));
-    if (deleteOps.length > 0) {
-      const deleteResults = await Promise.all(deleteOps);
-      const deleteError = deleteResults.find((r) => r.error)?.error;
-      if (deleteError) {
-        console.error("Error cleaning up old records:", deleteError);
-        // Non-fatal: new data was already saved. Log and continue.
-      }
-    }
-
-    // Mark onboarding complete
-    const finalRawPayload = {
-      ...profileData,
-      experiences,
-      educations,
-      projects,
-      skills: allSkills,
-      onboarding_complete: true,
-      onboarding_step: 6,
-    };
-    const finalPayload = cleanProfilePayload(finalRawPayload);
-    Object.keys(finalPayload).forEach(key => finalPayload[key] === undefined && delete finalPayload[key]);
-
-    // handleSurveyNext (step 8) already wrote these fields from the live
-    // career-analysis output. profileData (the React state) is stale —
-    // it never received the analysis values, so cleanProfilePayload would
-    // include them as null and clobber the real values from step 7.
-    // Strip them here so handleFinalise can't overwrite step 7's writes.
-    delete finalPayload.qualification_level;
-    delete finalPayload.skill_gaps;
-    delete finalPayload.overall_assessment;
-    delete finalPayload.last_reality_check_date;
-
-    // Stamp last_reality_check_date HERE — AFTER the experiences/projects/
-    // certifications re-insert above. Postgres sets each new row's
-    // created_at at INSERT time; stamping the freshness marker earlier
-    // (e.g. in handleSurveyNext, where this used to live) predates those
-    // rows by ~1s and trips isAnalysisStale() on the user's first Home
-    // load. Stamping it last guarantees marker >= every fresh created_at.
-    finalPayload.last_reality_check_date = new Date().toISOString();
-
-    const { error: finalUpdateError } = await supabase.from("profiles").update(finalPayload).eq("id", targetProfileId);
-    if (finalUpdateError) {
-      console.error("Failed to mark onboarding complete:", finalUpdateError);
-      setFinaliseError("Could not complete setup. Please try again.");
-      setFinalising(false);
-      return;
-    }
-
-    // Pre-warm the master CV in the background (speed regression fix). Without it,
-    // a new user's FIRST tailor pays refine-cv's cold inline master authoring
-    // (~40-60s, Sonnet); building the master here (deterministic, no LLM, same as
-    // the studio) means refine-cv finds a warm master and goes straight to the
-    // ~16-23s select-and-reword. Fire-and-forget (not awaited): it must never block
-    // or fail onboarding. Idempotent — skips when a master already exists — and the
-    // refine-cv self-heal is the backstop if the tab closes before this runs.
-    prewarmMasterCv({ supabase, user });
-
-    // onboarding_completed — compute duration_ms from the localStorage
-    // timestamp set in checkExistingProfile when onboarding_started fired.
-    // Falls back to null if the flag was missing (resumed across devices,
-    // localStorage cleared, etc.) — better than a misleading 0.
-    try {
-      const flagKey = `gaj.onb_start.${user.id}`;
-      const startStr = localStorage.getItem(flagKey);
-      const durationMs = startStr ? Date.now() - parseInt(startStr, 10) : null;
-      track(EVENTS.ONBOARDING_COMPLETED, { duration_ms: durationMs });
-      localStorage.removeItem(flagKey);
-    } catch { /* localStorage unavailable */ }
-
-    // Remove cached query data so Home fetches fresh — invalidateQueries
-    // only marks stale but leaves old data visible, which can trigger the
-    // onboarding redirect guard. After PR cache-consolidation-p0, all
-    // four profile cache shapes (userProfile, profile_layout_chrome,
-    // userProfileFullName, profile_practicum) collapse to the single
-    // ["userProfile", uid] key, so one removeQueries fans out to Layout,
-    // LinkedIn ProfileTab, and Internship without further calls.
-    queryClient.removeQueries({ queryKey: ["userProfile"] });
-    queryClient.removeQueries({ queryKey: ["careerRoles"] });
-    queryClient.removeQueries({ queryKey: ["tasks"] });
-    queryClient.removeQueries({ queryKey: ["applications"] });
-    queryClient.removeQueries({ queryKey: ["experiences"] });
-    queryClient.removeQueries({ queryKey: ["projects"] });
-    queryClient.removeQueries({ queryKey: ["certifications"] });
-    queryClient.removeQueries({ queryKey: ["daily_action"] });
-
-    setFinalising(false);
-    // PR onboarding-tutorial: instead of navigating to Home directly, flip
-    // setupComplete and let the tutorial's "Go to platform" button drive
-    // navigation. handleTutorialEnd persists has_seen_onboarding_tutorial
-    // before navigating.
-    setSetupComplete(true);
-  };
+  const handleFinalise = () => persistHandleFinalise(buildPersistCtx());
 
   // Called when the tutorial finishes (user clicked "Go to platform" or
   // skipped via the returning-user gate). Persists has_seen flag, clears
@@ -1065,7 +517,10 @@ export default function Onboarding() {
       if (flagErr) {
         // Non-fatal — the user can still proceed. The flag is for future
         // sessions; missing it means they see the tutorial again next time.
-        console.warn("[onboarding] could not persist has_seen_onboarding_tutorial:", flagErr.message);
+        console.warn(
+          "[onboarding] could not persist has_seen_onboarding_tutorial:",
+          flagErr.message,
+        );
       }
     }
     // If the user skipped via the returning-user gate, we still need to
@@ -1099,7 +554,10 @@ export default function Onboarding() {
           <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
             <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-primary-dark">
               <p>{finaliseError}</p>
-              <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2">
+              <button
+                onClick={handleFinalise}
+                className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2"
+              >
                 Retry
               </button>
             </div>
@@ -1140,7 +598,10 @@ export default function Onboarding() {
       {finaliseError && (
         <div className="mb-4 bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-primary-dark">
           <p>{finaliseError}</p>
-          <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2">
+          <button
+            onClick={handleFinalise}
+            className="mt-2 text-[12px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2"
+          >
             Retry
           </button>
         </div>
@@ -1150,7 +611,9 @@ export default function Onboarding() {
           onExtracted={handleResumeExtracted}
           onNext={() => goTo(1)}
           profileData={profileData}
-          onChange={(patch) => setProfileData(prev => ({ ...prev, ...patch }))}
+          onChange={(patch) =>
+            setProfileData((prev) => ({ ...prev, ...patch }))
+          }
         />
       )}
       {step === 1 && (
