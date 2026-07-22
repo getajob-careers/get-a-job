@@ -140,3 +140,16 @@ the kill set by query: `email LIKE '%+6b-%'`, never a hand-copied list).
 5. Tutorial absent from V2: parked by Eli; pre-flip open question.
 
 Test accounts (purge pre-flip, kill set by `email LIKE '%+6b-%'`): +6b-cv (dc078bc4, PASS), +6b-skip (c558a4a2), +6b-fail (bbc03544).
+
+**Inferred-path drive (Claude-driven) — FULL PASS (ea671626, +6b-infer):** primary_domain='product', primary_domain_source='inferred', five_year_goal_role_id='product_manager', employment_status=['student'], onboarding_complete=true, edu=1, tasks=3, career_roles=0 (roadmap gap reconfirmed). Precedence backfill held (domain not clobbered at finalise). All three paths (A extracted, B/infer inferred, failure) now DB-proven. #683 merge-evidence complete.
+
+## Rulings + next-PR proposals (Eli to rule on the ask-marked ones)
+- **R1 situation XOR multi (option B, ruled):** port V1 XOR (unemployed⊖{employed,looking}; employed⊖looking; student/freelance stack). Write employment_status as the mapped ARRAY. Inference `situation` is AUDIT-ONLY (domain is driven by goalRoleFamily), so feed it a single representative derived by fixed priority (looking>unemployed>employed>freelance>student). Lands: next PR (or fold into Phase-1 restyle of the situation row).
+- **R2 goal required (ruled):** disable direction Continue until five_year_goal_role_id set; drop the "pick later" helper. Makes inference always fire. Lands: next PR (NOT #683).
+- **Bug 5 completed-user guard:** V1 Onboarding.jsx:226 redirects onboarding_complete users to Home in checkExistingProfile; V2 has none. Add a mount guard in OnboardingV2 (profile.onboarding_complete -> navigate Home). Next PR.
+- **Bug 6 degree Select:** StepReview.jsx:821 `value={degreeDropdownValue || undefined}` flips uncontrolled->controlled; init to a stable defined value (verify Radix placeholder still shows). Shared with V1 review. Next PR.
+- **Self-heal option (b), APPROVED:** own PR after #683 — extract analysis-invocation (handleSurveyNext + Roadmap.jsx dupes) into one helper; V2 background-fires at finalise; Home shows building state; invalidate careerRoles on completion.
+
+## Post-merge phased arc (Eli-set priority)
+- Phase 1: restyle V2 in next-design canvas tokens (rd-primary, canvas ground, card treatment). R1's situation-row change can ride here.
+- Phase 2: UX-optimize; review screen (screen 1) is the headline ("hard to get through, discouraging"). Folds the punch list: collapsed-default check, what-we-found hierarchy, page length, upload-wait loading, location autocomplete, entrance-motion (marquee re-opened).
