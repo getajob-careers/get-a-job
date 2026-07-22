@@ -57,7 +57,7 @@ in one pass. The only extra edit is the Tailwind config **keys** (`coral:` / `co
 
 ---
 
-## Slice 1 — ground texture (ROUND 3: smooth tonal, or nothing)
+## Slice 1 — ground texture (WINNER: directional wash — implemented, held for cert)
 
 > **2026-07-22 ruling — PARTICULATE TEXTURE RETIRED AT THE CATEGORY LEVEL.** Rounds 1
 > (dots, #678) and 2 (baked paper grain) were BOTH rejected the same way: Eli's eye reads
@@ -149,6 +149,7 @@ refresh/back never replays it.
 
 ## Decision log
 
+- **2026-07-22 (round 3 result)** — **Directional wash WINS** and beat flat on Eli's eye. Flat, warm mottle, and edge wash are out (mottle's cool top-right corner a contributing rejection factor). Implemented in #678: token `--rd-ground-wash` + `.rd-ground`, replacing the `GrainGround` dot grid; the `DepthField` blobs removed. Normal-composite (no blend mode), so the `-z-10` isolate shell can't affect it. Cream + wash only; particulate retirement stands. HELD for Eli's certification on the real flag-on route.
 - **2026-07-22 (round 3)** — **Particulate texture retired at the CATEGORY level.** Round 2's
   baked paper grain was rejected too — same failure as dots (reads as a dirty screen). Standing
   rule: no dots, no grain, no speckle, no particulate ground texture, ever. Round 3 = smooth

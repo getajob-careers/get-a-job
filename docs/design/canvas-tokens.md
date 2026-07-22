@@ -99,30 +99,36 @@ byte-identity, never on the canvas. Rename was mechanical (zero value change).
   only where SMALL text renders on it (a component rule, applied when the badges
   port in PR3).
 
-## THE GROUND (official spec - mockup-sourced, Eli 2026-07-18)
+## THE GROUND (official spec - Slice 1 winner, Eli 2026-07-22)
 
-The ground is the MOCKUP's treatment: a cream base + a decorative blob layer + a
-dot-grid texture, a `-z-10` stack on the isolate shell, in this order:
-**page `#F4EBDA` (fallback) -> DepthField (cream field `--rd-field #F4EBDA` + two
-blurred colour BLOBS) -> DotGrid (the mockup's subtle dot texture)**.
+The ground is a **cream base + a smooth DIRECTIONAL WASH**, a `-z-10` stack on the
+isolate shell, in this order:
+**page `#F4EBDA` (fallback) -> DepthField (cream field `--rd-field #F4EBDA`) ->
+directional wash (`GrainGround`, the `.rd-ground` treatment)**.
 
-**SINGLE SOURCE OF TRUTH:** the field + texture live in
+Particulate texture is **retired at the category level** (dots + baked grain both
+read as a dirty screen - see the graveyard). The blobs are retired too (they lost
+as the round-3 "warm mottle" variant). The winner beat a flat ground on Eli's eye.
+
+**SINGLE SOURCE OF TRUTH:** the base + treatment live in
 `src/components/redesign/DepthField.jsx` + `GrainGround.jsx` (the latter now
-renders the DOT GRID, not grain - a rename to `DotGround` is a follow-up so
+renders the WASH, not a texture - a rename to `GroundWash` is a follow-up so
 existing imports/re-exports stay valid). The canvas
 (`_preview/canvas/CanvasField.jsx` + `CanvasTexture.jsx`) RE-EXPORTS them and the
 production shell imports them, so the canvas and the real app render the identical
 ground and cannot fork.
 
-- **Dot grid** (`GrainGround.jsx`): `radial-gradient(var(--rd-border) 1.1px,
-transparent 1.1px)` on a `26px` grid - the exact texture the mockup paints on
-  its content area. Transparent `-z-10` layer over `DepthField`, behind cards, so
-  it never touches text AA or card-vs-ground elevation. Token-driven, so it
-  re-tints with the palette.
-- **Blobs** (`DepthField.jsx`): two large, heavily-blurred circles on the cream
-  `--rd-field` base - accent (`--rd-primary`, 420px, blur 130px, opacity .10,
-  top-right) and mauve (`--rd-teal`, 340px, blur 120px, opacity .12, lower-left) -
-  the mockup's `.blob-a` / `.blob-b`. `-z-10`, behind cards.
+- **Directional wash** (`GrainGround.jsx` -> `.rd-ground`): token
+  `--rd-ground-wash = linear-gradient(152deg, transparent 42%, rgba(96,72,62,0.05)
+100%)` - warm cream deepening along one diagonal. **Normal-composite** (a plain
+  alpha gradient, NO `mix-blend-mode`), so it renders identically regardless of the
+  `-z-10` isolate stacking context (the blend cannot be occluded/altered). Transparent
+  `-z-10` layer over `DepthField`, behind cards, so it never touches text AA or
+  card-vs-ground elevation. Token-driven, so it re-tints with the palette.
+- **Cream base** (`DepthField.jsx`): the `--rd-field` field tone, `-z-10`, behind
+  cards. The two blurred colour blobs (accent + mauve) were **removed 2026-07-22**
+  (rejected as the round-3 mottle; the accent blob's cool top-right corner was a
+  contributing factor).
 
 **GRAVEYARD (retired 2026-07-18, Eli ruled the mockup canonical):**
 
@@ -132,7 +138,20 @@ transparent 1.1px)` on a `26px` grid - the exact texture the mockup paints on
 - **the feTurbulence grain** (`baseFrequency 0.85`, multiply, opacity 0.36) + the
   **greige brand arcs**. The grain was **greying the cream** - a multiply layer
   darkens/desaturates the ground toward greige (visible in the A/B/C texture
-  side-by-side that drove this ruling). Replaced by the mockup's dot grid + blobs.
+  side-by-side that drove this ruling). Was replaced by the dot grid + blobs, both
+  now also retired (below).
+- **ALL PARTICULATE TEXTURE (retired at the category level, 2026-07-22).** The
+  **dot grid** (`radial-gradient` dots, 26px) and a **baked turbulence grain tile**
+  (round 2) were both bake-off'd and both rejected the same way: Eli's eye reads any
+  high-frequency speckle as a dirty screen. Standing rule: no dots, no grain, no
+  speckle, no particulate ground texture, ever. Banding is speckle's cousin and
+  equally disqualifying (no dither). Replaced by the smooth directional wash (above).
+  The `mix-blend-mode: soft-light` mean-preserving finding from the baked-grain round
+  survives and carries forward to any tonal treatment.
+- **the two DepthField blobs** (accent `--rd-primary` 420px top-right, mauve
+  `--rd-teal` 340px lower-left, heavily blurred). Retired 2026-07-22: as the round-3
+  "warm mottle" variant they lost to the directional wash, the accent blob's cool
+  top-right corner a contributing factor. The ground is now cream + wash only.
 - **`isolate` on the shell is REQUIRED (part of this spec, not incidental).** The
   ground layers are `position:absolute; z-index:-10`. If their nearest positioned
   ancestor is not a **stacking context**, the negative z-index escapes upward and

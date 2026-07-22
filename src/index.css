@@ -129,6 +129,17 @@
     /* Elevation + field tone + logotype glaze highlight */
     --rd-shadow: 0 14px 40px -22px rgba(96, 72, 62, 0.4); /* --shadow (warm brown) */
     --rd-field: #f4ebda; /* ground base (was greige #DCD9D0; grain retired, see below) */
+    /* Ground treatment (Slice 1 winner, 2026-07-22): a smooth DIRECTIONAL WASH -
+       warm cream deepening along one diagonal. Replaces the retired dot grid.
+       Particulate texture is retired at the category level (dots + grain both read
+       as a dirty screen); this is the only ground treatment. Normal-composite
+       (plain alpha gradient, NO blend mode), so it renders identically regardless
+       of the -z-10 isolate stacking context. Applied via `.rd-ground`. */
+    --rd-ground-wash: linear-gradient(
+      152deg,
+      transparent 42%,
+      rgba(96, 72, 62, 0.05) 100%
+    );
     --rd-logo-hi: #8b8ca3; /* --accent-soft */
     --rd-font-display: "Rokkitt", Georgia, serif;
 
@@ -286,6 +297,15 @@
 }
 .rd-r-lg {
   border-radius: 18px;
+}
+
+/* Ground treatment - the flag-on canvas ground. A smooth directional wash over
+   the cream field; token-driven so it re-tints with the palette. Normal-composite
+   (no blend mode) so the -z-10 isolate stacking context can't affect it. Flag-on
+   only: the token `--rd-ground-wash` is defined under [data-next-design], so with
+   the flag off this class resolves to no image (and nothing mounts it anyway). */
+.rd-ground {
+  background-image: var(--rd-ground-wash);
 }
 
 /* Elevation - paper-lift. Floating surfaces = soft warm-tinted shadow + a 1px
