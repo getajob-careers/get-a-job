@@ -11,7 +11,7 @@
 // The dot is a warm-brown tint (matches the rd-lift shadow hue, rgba(74,44,22)),
 // so the grain reads as part of the paper world, not a cool grid.
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 
 // Each variant = the background-image + background-size applied OVER the ground.
