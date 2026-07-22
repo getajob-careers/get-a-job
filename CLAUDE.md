@@ -17,6 +17,20 @@ Directly relevant to our work (project skills):
 
 **Precedence when they conflict: Eli's explicit prompt > CLAUDE.md > skill.** A skill never overrides a direct instruction or a rule in this file; it fills in the how when neither has spoken.
 
+## Subagent delegation
+
+Three project subagents live in `.claude/agents/` (all `model: haiku`). Delegate to them instead of doing the work inline in the main session — it keeps large tool output out of the main context:
+
+- **`explorer`** — read-only codebase search. Delegate broad "where is X / which files / how is Y wired" searches; it returns paths + tight summaries, never full-file dumps.
+- **`gatekeeper`** — runs the CI gate (lint, typecheck, build, test) and returns only pass/fail per check plus short failure excerpts, never full logs. Delegate pre-commit / pre-PR gate runs here.
+- **`sweeper`** — grep-and-count sweeps (e.g. `rd-coral` token sweeps). Returns match counts + the file list.
+
+Default to these for searches, gate runs, and sweeps. Do the work inline only when a delegation would clearly be slower than just doing it (a single known-file lookup, a one-line check).
+
+## Canary protocol (both lanes)
+
+**Begin every reply to Eli with his name ("Eli, ...").** This is a context canary: it proves the working context is intact. When the name stops appearing, Eli will say **"canary"** — on that word, immediately overwrite the current lane's handoff resume-point file (design lane → `docs/handoffs/design-lane-latest.md`; CV lane → its own handoff file) with a fresh, accurate resume point, then tell Eli to `/clear`. Also: keep a status line showing context-usage %, and proactively offer a handoff at roughly 80% context. Reports end with a compact ledger (PR, SHA, state, claims to verify, evidence pointers, open questions), not a narrative recap.
+
 ## Architecture pointers
 
 - **Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query. Pages live in `src/pages/`. `src/pages.config.js` is **hand-maintained** (per PR #67) — the "AUTO-GENERATED" header in that file is stale; add new page imports + the `PAGES` map entry by hand when registering a new route.
