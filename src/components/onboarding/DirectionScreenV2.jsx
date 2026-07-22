@@ -258,8 +258,8 @@ export default function DirectionScreenV2({ data, onChange }) {
               </div>
             )}
             <p className="mt-2 text-[11.5px] text-rd-text-secondary">
-              Anchors your track and job-fit scores. You can pick this later if
-              you&apos;re still figuring it out.
+              Anchors your track and job-fit scores — it&apos;s the one thing we
+              need to tailor every recommendation to you.
             </p>
           </>
         )}

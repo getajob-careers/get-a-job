@@ -399,3 +399,10 @@ Trigger: Vercel build failed on `./assets/canvas-grain.png` I had already remove
 What I did wrong: ran `git add -A <file> <dir>...` (mixed a modified file with a deleted dir), then committed without checking the staged set. Only the deletions staged; the CanvasGroundPreview rewrite + doc edit stayed unstaged. Local `npm run build` passed because it builds the WORKING tree, so I trusted a green build that did not match the commit.
 Rule for next time: before every commit run `git status --short` and confirm each intended file shows a change in the FIRST column (staged), not just the second (working tree). Local build proves the working tree, never the commit; the deployed build is the real gate, so always poll it after push.
 ---
+
+---
+
+2026-07-22 — A handoff's claim about what the base branch CONTAINS is a pointer to verify, not a fact to cut on
+Trigger: the 6b handoff said "cut from origin/main which now carries 6a plus the design lane's merges." I fetched fresh and cut from 25ff5a2 (correct 6a base), but 25ff5a2 did NOT contain the design merges (#678/#681/#682) — those landed on origin/main AFTER my cut. Hub-verified: no file overlap, so 6b's base was 3 commits behind but conflict-free (clean squash).
+What I did wrong: repeated the handoff's "plus design merges" claim without diffing what 25ff5a2 actually contained. A handoff is written at a moment; "origin/main now has X" goes stale instantly, and an aspirational "will carry X" reads identically to a settled "carries X."
+Rule for next time: before cutting a branch, git fetch THEN read the actual log (git log --oneline <claimed-base>..origin/main). If the handoff names specific merges as "in the base," confirm each is an ancestor (git merge-base --is-ancestor) before trusting it. When absent, note the base delta explicitly.

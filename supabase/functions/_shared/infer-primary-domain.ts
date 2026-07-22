@@ -63,7 +63,10 @@ export interface InferPrimaryDomainInputs {
   goalRoleSecondaryFamily?: string | null;
   // employment-status picker (student / have_job / looking / unemployed /
   // freelancing). Not a domain signal — carried through for the audit log only.
+  // `situation` is the single priority-derived value (back-compat); `situations`
+  // is the full multi-select array (V2 situation row is multi with XOR rules).
   situation?: string | null;
+  situations?: string[] | null;
   // optional: the goal role id, for the audit trail.
   goalRoleId?: string | null;
 }

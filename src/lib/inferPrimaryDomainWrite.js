@@ -39,6 +39,7 @@ export function roleFamilyForId(goalRoleId) {
 export function computeInference({
   goalRoleId = null,
   situation = null,
+  situations = null,
   extractedDomain = null,
 }) {
   // Client guard: extraction wins. If a CV already yielded a domain, inference
@@ -61,6 +62,7 @@ export function computeInference({
   const record = inferPrimaryDomain({
     goalRoleFamily,
     situation,
+    situations,
     goalRoleId,
   });
 
@@ -90,11 +92,13 @@ export async function runPrimaryDomainInference({
   userId,
   goalRoleId,
   situation,
+  situations,
   extractedDomain,
 }) {
   const { shouldWrite, skippedReason, record } = computeInference({
     goalRoleId,
     situation,
+    situations,
     extractedDomain,
   });
 

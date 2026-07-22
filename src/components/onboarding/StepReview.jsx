@@ -818,7 +818,7 @@ export default function StepReview({
             <div>
               <Label>Degree type</Label>
               <Select
-                value={degreeDropdownValue || undefined}
+                value={degreeDropdownValue || ""}
                 onValueChange={handleDegreeDropdownChange}
               >
                 <SelectTrigger className="text-sm border-rd-border bg-rd-bg-card text-rd-text">
