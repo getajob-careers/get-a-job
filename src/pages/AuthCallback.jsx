@@ -88,7 +88,7 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-rd-bg-page text-rd-text">
-      <div className="w-8 h-8 border-4 border-rd-border border-t-rd-coral rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-rd-border border-t-rd-primary rounded-full animate-spin" />
       <p className="text-[13.5px] text-rd-text-secondary">
         Completing sign-in...
       </p>

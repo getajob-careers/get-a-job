@@ -11,7 +11,7 @@ import React, { useState, useRef, useEffect } from "react";
 //
 // Visual changes:
 //   - Input uses --rd-* tokens (coral focus ring, 10px radius)
-//   - Dropdown uses --rd-coral-tint hover + warm border / shadow
+//   - Dropdown uses --rd-primary-tint hover + warm border / shadow
 
 const LOCATION_SUGGESTIONS = [
   // United States
@@ -108,7 +108,7 @@ export default function RdAutocompleteInput({ label, value, onChange, placeholde
           if (value && value.trim() && suggestions.length > 0) setShowSuggestions(true);
         }}
         placeholder={placeholder}
-        className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+        className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
       />
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rounded-[12px] shadow-rd max-h-64 overflow-y-auto">
@@ -120,7 +120,7 @@ export default function RdAutocompleteInput({ label, value, onChange, placeholde
               onMouseEnter={() => setSelectedIndex(index)}
               className={`w-full text-left px-3.5 py-2.5 text-[13.5px] transition-colors ${
                 index === selectedIndex
-                  ? "bg-rd-coral-tint text-rd-text"
+                  ? "bg-rd-primary-tint text-rd-text"
                   : "text-rd-text-secondary hover:bg-rd-bg-soft"
               }`}
             >

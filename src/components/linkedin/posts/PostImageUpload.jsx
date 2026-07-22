@@ -93,7 +93,7 @@ export default function PostImageUpload({ postId, imageUrl, onChange }) {
           type="button"
           onClick={handleRemove}
           disabled={removing}
-          className="absolute top-1.5 right-1.5 bg-rd-text/70 text-white border-0 rounded-full w-[22px] h-[22px] flex items-center justify-center cursor-pointer hover:bg-rd-coral transition-colors"
+          className="absolute top-1.5 right-1.5 bg-rd-text/70 text-white border-0 rounded-full w-[22px] h-[22px] flex items-center justify-center cursor-pointer hover:bg-rd-primary transition-colors"
           aria-label="Remove image"
           title="Remove image"
         >
@@ -116,7 +116,7 @@ export default function PostImageUpload({ postId, imageUrl, onChange }) {
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading || !postId}
-        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-dashed border-rd-border bg-transparent text-rd-text-secondary font-display font-semibold text-[12.5px] cursor-pointer transition-all hover:border-rd-coral hover:text-rd-coral hover:bg-rd-coral-tint disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full border border-dashed border-rd-border bg-transparent text-rd-text-secondary font-display font-semibold text-[12.5px] cursor-pointer transition-all hover:border-rd-primary hover:text-rd-primary hover:bg-rd-primary-tint disabled:opacity-50 disabled:cursor-not-allowed"
         title={!postId ? "Generate the post first, then add an image" : "Attach an image (JPG/PNG/WebP, ≤5 MB)"}
       >
         {uploading ? (

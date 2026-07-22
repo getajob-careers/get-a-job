@@ -63,7 +63,7 @@ export default function ThreeTabHome() {
       >
         <span
           aria-hidden="true"
-          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-primary shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
           style={{
             width: "calc((100% - 0.5rem) / 3)",
             transform: `translateX(${activeIndex * 100}%)`,

@@ -124,13 +124,13 @@ const TRACK_BAND = [
   {
     key: "track_1",
     icon: Rocket,
-    circle: "bg-rd-coral",
-    tintBg: "bg-rd-coral-tint",
-    ink: "text-rd-coral-dark",
-    activeBorder: "border-rd-coral",
-    dot: "bg-rd-coral",
-    barFill: "bg-rd-coral",
-    barTrack: "bg-rd-coral-tint",
+    circle: "bg-rd-primary",
+    tintBg: "bg-rd-primary-tint",
+    ink: "text-rd-primary-dark",
+    activeBorder: "border-rd-primary",
+    dot: "bg-rd-primary",
+    barFill: "bg-rd-primary",
+    barTrack: "bg-rd-primary-tint",
   },
   {
     key: "track_2",
@@ -505,7 +505,7 @@ export default function Career() {
         <RdCard className="mt-6 p-8 text-center">
           {building ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin text-rd-coral mx-auto" />
+              <Loader2 className="w-5 h-5 animate-spin text-rd-primary mx-auto" />
               <p className="font-display font-bold text-[18px] text-rd-text mt-4">
                 Building your matches…
               </p>
@@ -526,7 +526,7 @@ export default function Career() {
               </p>
               <Link
                 to={createPageUrl("Roadmap")}
-                className="inline-flex items-center gap-1.5 mt-5 bg-rd-coral text-white font-display font-semibold text-[13px] rounded-full px-5 py-2.5"
+                className="inline-flex items-center gap-1.5 mt-5 bg-rd-primary text-white font-display font-semibold text-[13px] rounded-full px-5 py-2.5"
               >
                 Generate roadmap <ChevronRight className="w-4 h-4" />
               </Link>
@@ -594,7 +594,7 @@ export default function Career() {
         >
           Job search
           {activeTab === "search" && (
-            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
+            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-primary rounded-full" />
           )}
         </button>
         <button
@@ -610,7 +610,7 @@ export default function Career() {
         >
           Pipeline
           {activeTab === "pipeline" && (
-            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
+            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-primary rounded-full" />
           )}
         </button>
       </div>
@@ -698,8 +698,8 @@ export default function Career() {
                   body="Tailor your CV, map skill evidence, and find a referral contact at the company."
                 />
                 <PipelineGuideTile
-                  tint="var(--rd-coral-tint)"
-                  accent="var(--rd-coral-dark)"
+                  tint="var(--rd-primary-tint)"
+                  accent="var(--rd-primary-dark)"
                   head="Steps 6–7"
                   body="Submit your application, then prep for the interview with STAR-format answers."
                 />
@@ -729,7 +729,7 @@ export default function Career() {
             <button
               type="button"
               onClick={() => setShowAdd(true)}
-              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-2 transition-colors"
+              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-2 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               Add manually
@@ -739,7 +739,7 @@ export default function Career() {
           <div className="mt-3">
             {applicationsError ? (
               <RdCard className="px-6 py-10 text-center">
-                <AlertCircle className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+                <AlertCircle className="w-10 h-10 text-rd-primary mx-auto mb-3" />
                 <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
                   We couldn't load your applications.{" "}
                   {isAuthError(applicationsErrorObj)
@@ -749,14 +749,14 @@ export default function Career() {
                 <button
                   type="button"
                   onClick={() => refetchApplications()}
-                  className="mt-4 text-[12.5px] font-medium text-rd-coral-dark underline underline-offset-2"
+                  className="mt-4 text-[12.5px] font-medium text-rd-primary-dark underline underline-offset-2"
                 >
                   Retry
                 </button>
               </RdCard>
             ) : applications.length === 0 ? (
               <RdCard className="px-6 py-10 text-center">
-                <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+                <Briefcase className="w-10 h-10 text-rd-primary mx-auto mb-3" />
                 <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
                   No applications yet. Track one from the live-jobs list below -
                   the Track button on any role card prepends it here.
@@ -948,7 +948,7 @@ export default function Career() {
                       )}
                       <Link
                         to={createPageUrl("Roadmap")}
-                        className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
+                        className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-medium text-rd-primary-dark hover:text-rd-text transition-colors"
                       >
                         Full role detail <ChevronRight className="w-3 h-3" />
                       </Link>

@@ -28,7 +28,7 @@ export default function CanvasCommandItem({
       }}
       className={`${className} w-full flex items-start gap-2 px-2.5 py-1.5 rd-r-xs text-left transition-colors ${
         active
-          ? "bg-rd-coral-tint text-rd-coral-dark"
+          ? "bg-rd-primary-tint text-rd-primary-dark"
           : "text-rd-text-secondary hover:bg-rd-bg-soft"
       }`}
       style={style}

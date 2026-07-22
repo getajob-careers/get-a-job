@@ -17,7 +17,7 @@ import { Plus, X } from "lucide-react";
 // the optional application_id linkage, and the formData reset on submit
 // success are all preserved byte-for-byte.
 
-const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 const RD_LABEL = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
 
 export default function AddEventDialog({ open, onClose, applications, onEventAdded }) {
@@ -167,7 +167,7 @@ export default function AddEventDialog({ open, onClose, applications, onEventAdd
               id="all_day"
               checked={formData.all_day}
               onCheckedChange={(checked) => setFormData({ ...formData, all_day: checked })}
-              className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
+              className="border-rd-border data-[state=checked]:bg-rd-primary data-[state=checked]:border-rd-primary"
             />
             <Label htmlFor="all_day" className="text-[12px] text-rd-text-secondary cursor-pointer">
               All-day event
@@ -261,7 +261,7 @@ export default function AddEventDialog({ open, onClose, applications, onEventAdd
             </button>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2.5 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2.5 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />Add event
             </button>

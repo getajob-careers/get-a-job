@@ -485,7 +485,7 @@ export default function StepResumeUpload({
           request the export now and have it ready when LinkedIn Hub needs it
           a few hours later. */}
       {!liExportDismissed && (
-        <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] p-3.5 pr-10 text-[13px] text-rd-coral-dark flex items-start gap-3 relative">
+        <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] p-3.5 pr-10 text-[13px] text-rd-primary-dark flex items-start gap-3 relative">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div className="flex-1 leading-relaxed">
             <p className="font-display font-semibold text-rd-text">
@@ -500,7 +500,7 @@ export default function StepResumeUpload({
               href="https://www.linkedin.com/mypreferences/d/download-my-data"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2"
+              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2"
             >
               Request LinkedIn data export <ExternalLink className="w-3 h-3" />
             </a>
@@ -546,7 +546,7 @@ export default function StepResumeUpload({
                 className={[
                   "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                   isSelected
-                    ? "border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                    ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                     : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
                 ].join(" ")}
               >
@@ -554,7 +554,7 @@ export default function StepResumeUpload({
                   className={[
                     "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
                     isSelected
-                      ? "bg-rd-coral text-white"
+                      ? "bg-rd-primary text-white"
                       : "bg-rd-bg-soft text-rd-text-secondary",
                   ].join(" ")}
                 >
@@ -574,8 +574,8 @@ export default function StepResumeUpload({
         className={[
           "rounded-[18px] p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border-2 border-dashed",
           dragOver
-            ? "border-rd-coral bg-rd-coral-tint"
-            : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-coral hover:bg-rd-coral-tint",
+            ? "border-rd-primary bg-rd-primary-tint"
+            : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-primary hover:bg-rd-primary-tint",
         ].join(" ")}
         data-dragover={dragOver}
         data-state={
@@ -611,8 +611,8 @@ export default function StepResumeUpload({
 
         {!uploading && !extracting && !done && !emptyTextMode && (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-rd-coral-tint flex items-center justify-center">
-              <Upload className="w-6 h-6 text-rd-coral" />
+            <div className="w-14 h-14 rounded-full bg-rd-primary-tint flex items-center justify-center">
+              <Upload className="w-6 h-6 text-rd-primary" />
             </div>
             <div>
               <p className="font-display font-semibold text-[15px] text-rd-text">
@@ -643,7 +643,7 @@ export default function StepResumeUpload({
 
         {(uploading || extracting) && (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-rd-coral" />
+            <Loader2 className="w-8 h-8 animate-spin text-rd-primary" />
             <p className="font-display font-semibold text-[14px] text-rd-text">
               {uploading ? "Uploading…" : "Extracting your details…"}
             </p>
@@ -751,7 +751,7 @@ export default function StepResumeUpload({
         </div>
       )}
       {error && (
-        <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-coral-dark leading-snug">
+        <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-primary-dark leading-snug">
           {error}
         </div>
       )}

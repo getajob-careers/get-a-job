@@ -70,7 +70,7 @@ const WORK_ARRANGEMENTS = [
 const FIELD_LABEL =
   "text-[11px] font-medium text-rd-text-tertiary uppercase tracking-wide mb-2.5";
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 export default function DirectionScreenV2({ data, onChange }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -184,8 +184,8 @@ export default function DirectionScreenV2({ data, onChange }) {
       <div ref={wrapperRef} className="relative">
         <p className={FIELD_LABEL}>Your 5-year goal role</p>
         {chosenRole ? (
-          <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-coral bg-rd-coral-tint">
-            <Check className="w-4 h-4 text-rd-coral mt-0.5 flex-shrink-0" />
+          <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-primary bg-rd-primary-tint">
+            <Check className="w-4 h-4 text-rd-primary mt-0.5 flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="font-display font-semibold text-[14.5px] text-rd-text">
                 {chosenRole.title}
@@ -198,7 +198,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             <button
               type="button"
               onClick={clearPick}
-              className="text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-coral transition-colors"
+              className="text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-primary transition-colors"
             >
               Change
             </button>
@@ -226,7 +226,7 @@ export default function DirectionScreenV2({ data, onChange }) {
                     setDebouncedQuery("");
                   }}
                   aria-label="Clear search"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rd-text-secondary hover:text-rd-coral transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-rd-text-secondary hover:text-rd-primary transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -242,7 +242,7 @@ export default function DirectionScreenV2({ data, onChange }) {
                     onMouseEnter={() => setHighlightedIndex(idx)}
                     className={`w-full text-left px-3.5 py-2.5 transition-colors ${
                       idx === highlightedIndex
-                        ? "bg-rd-coral-tint"
+                        ? "bg-rd-primary-tint"
                         : "hover:bg-rd-bg-soft"
                     }`}
                   >
@@ -292,14 +292,14 @@ export default function DirectionScreenV2({ data, onChange }) {
                 data-selected={isSelected}
                 className={`flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-colors ${
                   isSelected
-                    ? "border-rd-coral bg-rd-coral-tint"
+                    ? "border-rd-primary bg-rd-primary-tint"
                     : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
                 }`}
               >
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                     isSelected
-                      ? "bg-rd-coral text-white"
+                      ? "bg-rd-primary text-white"
                       : "bg-rd-bg-soft text-rd-text-secondary"
                   }`}
                 >
@@ -326,7 +326,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             data-selected={practicumYes}
             className={`p-3 rounded-[14px] border text-[13px] font-display font-semibold transition-colors ${
               practicumYes
-                ? "border-rd-coral bg-rd-coral-tint text-rd-text"
+                ? "border-rd-primary bg-rd-primary-tint text-rd-text"
                 : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover"
             }`}
           >
@@ -338,7 +338,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             data-selected={!practicumYes}
             className={`p-3 rounded-[14px] border text-[13px] font-display font-semibold transition-colors ${
               !practicumYes
-                ? "border-rd-coral bg-rd-coral-tint text-rd-text"
+                ? "border-rd-primary bg-rd-primary-tint text-rd-text"
                 : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover"
             }`}
           >
@@ -377,14 +377,14 @@ function PracticumOption({ Icon, title, description, selected, onClick }) {
       data-selected={selected}
       className={`w-full text-left flex items-start gap-3 p-3.5 rounded-[14px] border bg-rd-bg-card transition-colors ${
         selected
-          ? "border-rd-coral shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+          ? "border-rd-primary shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           : "border-rd-border hover:border-rd-border-hover"
       }`}
     >
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
           selected
-            ? "bg-rd-coral text-white"
+            ? "bg-rd-primary text-white"
             : "bg-rd-bg-soft text-rd-text-secondary"
         }`}
       >

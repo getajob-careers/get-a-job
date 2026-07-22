@@ -74,7 +74,7 @@ function PrincipleCard({ Icon, title, children }) {
   return (
     <div className="bg-white border border-rd-border rounded-[18px] p-4 shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 text-rd-coral" />
+        <Icon className="w-4 h-4 text-rd-primary" />
         <h3 className="font-display font-bold text-[14px] text-rd-text">{title}</h3>
       </div>
       {children}

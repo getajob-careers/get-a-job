@@ -97,7 +97,7 @@ export default function PostsList({ onOpen, refreshKey }) {
             >
               <div className="flex items-start gap-3">
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-rd-coral" />
+                  <Icon className="w-3.5 h-3.5 text-rd-primary" />
                   <span className="text-[11px] font-display font-bold text-rd-text-secondary">{label}</span>
                 </div>
                 <button
@@ -116,7 +116,7 @@ export default function PostsList({ onOpen, refreshKey }) {
                   type="button"
                   onClick={() => handleDelete(p.id)}
                   disabled={deletingId === p.id}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-rd-text-tertiary hover:text-rd-coral-dark flex-shrink-0"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-rd-text-tertiary hover:text-rd-primary-dark flex-shrink-0"
                   title="Delete post"
                 >
                   {deletingId === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}

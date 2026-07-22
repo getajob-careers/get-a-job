@@ -50,6 +50,13 @@ the `:root[data-next-design]` selector (promote its values into `:root`).
 not by eye and not from `palette.js`. This **supersedes the greige decision**
 (greige + its rationale are in the graveyard note under THE GROUND).
 
+**Primary token is ROLE-NAMED (Eli, 2026-07-22).** The primary accent is the
+token `--rd-primary` / utilities `rd-primary*` — renamed from the former
+`--rd-coral` / `rd-coral*` because a colour name lies here: the canvas primary is
+**`#60617D` (slate-blue), not coral**. `#D6421F` (true coral) is **retired** — it
+survives only as the flag-OFF pre-reveal value in the default `:root` block for
+byte-identity, never on the canvas. Rename was mechanical (zero value change).
+
 **Token map (mockup var -> our slot):**
 
 | slot                               | mockup var                        | value                                 |
@@ -61,8 +68,8 @@ not by eye and not from `palette.js`. This **supersedes the greige decision**
 | `text`                             | `--ink`                           | `#4A372D`                             |
 | `text-secondary`                   | `--ink-soft` (AA min-fix)         | `#7B675C`                             |
 | `text-tertiary`                    | `--ink-faint` (EXACT, faint tier) | `#A6957F`                             |
-| `eyebrow` / `coral` (primary=blue) | `--accent`                        | `#60617D`                             |
-| `coral-dark` / `-tint`             | `--accent-deep` / `--accent-tint` | `#4B4C66` / `#E3E3EC`                 |
+| `eyebrow` / `primary`              | `--accent`                        | `#60617D`                             |
+| `primary-dark` / `-tint`           | `--accent-deep` / `--accent-tint` | `#4B4C66` / `#E3E3EC`                 |
 | `teal` (secondary=mauve)           | `--mauve`                         | `#9B7D8A`                             |
 | `teal-dark` (AA min-fix) / `-tint` | `--mauve-deep` / `--mauve-tint`   | `#7B606D` / `#EFE3E9`                 |
 | `golden` (stretch)                 | `--brown` family (DERIVED)        | `#60483E` / `#4A362E` / `#E9DECF`     |
@@ -113,7 +120,7 @@ transparent 1.1px)` on a `26px` grid - the exact texture the mockup paints on
   it never touches text AA or card-vs-ground elevation. Token-driven, so it
   re-tints with the palette.
 - **Blobs** (`DepthField.jsx`): two large, heavily-blurred circles on the cream
-  `--rd-field` base - accent (`--rd-coral`, 420px, blur 130px, opacity .10,
+  `--rd-field` base - accent (`--rd-primary`, 420px, blur 130px, opacity .10,
   top-right) and mauve (`--rd-teal`, 340px, blur 120px, opacity .12, lower-left) -
   the mockup's `.blob-a` / `.blob-b`. `-z-10`, behind cards.
 
@@ -280,7 +287,7 @@ breakdown lives in the hover/tap legend, never the ring face.
 **One official mark, every size - no size split.** The logo (`CanvasLogo` ->
 `MarkFullChair`) is the full desk-person figure at an A-frame desk with a chair
 (the "B" mark), rendered in the **toolkit-object material**: a top-lit glaze
-(highlight -> `--rd-coral` -> `--rd-coral-dark`, `userSpaceOnUse` so the whole
+(highlight -> `--rd-primary` -> `--rd-primary-dark`, `userSpaceOnUse` so the whole
 mark reads from one light source) plus a warm weight-shadow (in-SVG
 `feDropShadow` in viewBox units, so it scales with the mark). It reads as a warm
 dimensional object that pops off the page, not a flat vector. Blue (`?logo=blue`)

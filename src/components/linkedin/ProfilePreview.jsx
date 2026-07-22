@@ -12,7 +12,7 @@ import { Sparkles, Loader2, Copy, Check, AlertCircle } from "lucide-react";
 // Brand fidelity (Q7): LinkedIn-blue (#0A66C2) is preserved ONLY in the
 // simulacrum surfaces — Open-to-work pill, cover strip, "500+ connections"
 // link, the action buttons (Open to work / Add section / More), and the
-// experience entry icon. Everything else is rd-coral / rd tokens.
+// experience entry icon. Everything else is rd-primary / rd tokens.
 //
 // Write-path preservation:
 // - Refinement clicks call `onRefine(sectionKey, instruction)` exactly as
@@ -143,7 +143,7 @@ function RefineForm({ onSubmit, onCancel, refining }) {
         onChange={(e) => setText(e.target.value.slice(0, 600))}
         disabled={refining}
         placeholder="Optional: how to improve this section. e.g. 'focus more on product management', 'mention my military leadership', 'make it shorter'. Leave blank to regenerate with a different angle."
-        className="w-full text-[13px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary resize-none focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] disabled:opacity-60"
+        className="w-full text-[13px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary resize-none focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] disabled:opacity-60"
         rows={3}
       />
       <div className="flex items-center justify-between mt-2 gap-3">
@@ -161,7 +161,7 @@ function RefineForm({ onSubmit, onCancel, refining }) {
             type="button"
             onClick={() => onSubmit(text.trim())}
             disabled={refining}
-            className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors"
+            className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors"
           >
             {refining ? (
               <><Loader2 className="w-3 h-3 animate-spin" />Refining…</>
@@ -183,7 +183,7 @@ function SectionHeader({ title, changed, canRefine, refineOpen, onRefineClick, o
       <div className="flex items-center gap-2 min-w-0 flex-wrap">
         <span className="font-display font-bold text-[16px] text-[#1A1A1A]">{title}</span>
         {changed && optimizedPillVisible && (
-          <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-coral rounded-full px-2 py-[2px]">
+          <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-primary rounded-full px-2 py-[2px]">
             Optimized
           </span>
         )}
@@ -192,7 +192,7 @@ function SectionHeader({ title, changed, canRefine, refineOpen, onRefineClick, o
         <button
           type="button"
           onClick={onRefineClick}
-          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-coral-dark transition-colors"
+          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-primary-dark transition-colors"
           title="Refine just this section"
         >
           <Sparkles className="w-3 h-3" />Refine
@@ -439,7 +439,7 @@ export default function ProfilePreview({
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           {expChanged && (
-                            <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-coral rounded-full px-2 py-[2px]">
+                            <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-primary rounded-full px-2 py-[2px]">
                               Optimized
                             </span>
                           )}
@@ -447,7 +447,7 @@ export default function ProfilePreview({
                             <button
                               type="button"
                               onClick={() => openRefine(sectionKey)}
-                              className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-coral-dark transition-colors"
+                              className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-primary-dark transition-colors"
                               title="Refine just this entry"
                             >
                               <Sparkles className="w-3 h-3" />Refine
@@ -498,7 +498,7 @@ export default function ProfilePreview({
                   className={[
                     "text-[12px] rounded-[6px] px-[10px] py-[5px] border",
                     i < 3
-                      ? "bg-rd-coral-tint border-[#F2C3B5] text-rd-coral-dark font-semibold"
+                      ? "bg-rd-primary-tint border-[#F2C3B5] text-rd-primary-dark font-semibold"
                       : "bg-[#EFEDE8] border-[#E2DED5] text-[#2C2C2C]",
                   ].join(" ")}
                   title={s.rationale || undefined}
@@ -537,7 +537,7 @@ export default function ProfilePreview({
                         <button
                           type="button"
                           onClick={() => openRefine(sectionKey)}
-                          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-coral-dark transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-primary-dark transition-colors"
                           title="Refine just this entry"
                         >
                           <Sparkles className="w-3 h-3" />Refine
@@ -595,14 +595,14 @@ function RefineSectionMarker({ sectionKey, refineState, onOpen, onClose, onSubmi
   const open = refineState.sectionKey === sectionKey;
   return (
     <div className="flex items-center gap-2 mt-1.5">
-      <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-coral rounded-full px-2 py-[2px]">
+      <span className="inline-flex items-center font-display font-bold text-[10px] uppercase tracking-[0.04em] text-white bg-rd-primary rounded-full px-2 py-[2px]">
         Optimized
       </span>
       {canRefine && !open && (
         <button
           type="button"
           onClick={() => onOpen(sectionKey)}
-          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-coral-dark transition-colors"
+          className="inline-flex items-center gap-1 text-[11px] text-rd-text-secondary hover:text-rd-primary-dark transition-colors"
           title="Refine the headline"
         >
           <Sparkles className="w-3 h-3" />Refine
@@ -624,7 +624,7 @@ function RefineSectionMarker({ sectionKey, refineState, onOpen, onClose, onSubmi
 
 function RefineErrorBanner({ error }) {
   return (
-    <div className="mt-2 px-3 py-2 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[11.5px] text-rd-coral-dark flex items-start gap-1.5">
+    <div className="mt-2 px-3 py-2 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[11.5px] text-rd-primary-dark flex items-start gap-1.5">
       <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-[1px]" />
       <span>{error}</span>
     </div>
@@ -647,7 +647,7 @@ function CopyAllButton({ onCopyAll }) {
       data-copy-all="true"
       className={[
         "inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] rounded-full px-3.5 py-[7px] transition-colors text-white",
-        copied ? "bg-rd-teal-dark hover:bg-rd-teal-dark" : "bg-rd-coral hover:bg-rd-coral-dark",
+        copied ? "bg-rd-teal-dark hover:bg-rd-teal-dark" : "bg-rd-primary hover:bg-rd-primary-dark",
       ].join(" ")}
     >
       {copied ? (

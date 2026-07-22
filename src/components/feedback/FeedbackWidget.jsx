@@ -117,7 +117,7 @@ export default function FeedbackWidget() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Send feedback"
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-coral text-white shadow-lg hover:bg-rd-coral-dark transition-colors"
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-primary text-white shadow-lg hover:bg-rd-primary-dark transition-colors"
       >
         <MessageSquare className="w-3.5 h-3.5" />
         Got feedback?
@@ -143,7 +143,7 @@ export default function FeedbackWidget() {
                   key={c.id}
                   type="button"
                   onClick={() => setCategory(c.id)}
-                  className="text-left rounded-[12px] border border-rd-border bg-rd-bg-card hover:border-rd-coral hover:bg-rd-coral-tint/40 transition-colors px-3.5 py-3"
+                  className="text-left rounded-[12px] border border-rd-border bg-rd-bg-card hover:border-rd-primary hover:bg-rd-primary-tint/40 transition-colors px-3.5 py-3"
                 >
                   <p className="font-display font-bold text-[13.5px] text-rd-text leading-tight">
                     {c.label}
@@ -158,7 +158,7 @@ export default function FeedbackWidget() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-3 py-1">
               <div className="flex items-center justify-between">
                 <span
-                  className="inline-flex items-center font-display font-semibold text-[11.5px] rounded-full px-2.5 py-1 bg-rd-coral-tint text-rd-coral-dark"
+                  className="inline-flex items-center font-display font-semibold text-[11.5px] rounded-full px-2.5 py-1 bg-rd-primary-tint text-rd-primary-dark"
                 >
                   {CATEGORIES.find((c) => c.id === category)?.label}
                 </span>
@@ -176,7 +176,7 @@ export default function FeedbackWidget() {
                 rows={5}
                 autoFocus
                 placeholder="What happened? What did you expect instead?"
-                className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
+                className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] resize-y min-h-[110px]"
               />
               <div className="flex items-center justify-between text-[11px] text-rd-text-tertiary tabular-nums">
                 <span>{location.pathname}</span>
@@ -193,7 +193,7 @@ export default function FeedbackWidget() {
                 <button
                   type="submit"
                   disabled={!canSubmit}
-                  className="inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2 transition-colors"
+                  className="inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2 transition-colors"
                 >
                   {submitting ? (
                     <><Loader2 className="w-3.5 h-3.5 animate-spin" />Sending…</>

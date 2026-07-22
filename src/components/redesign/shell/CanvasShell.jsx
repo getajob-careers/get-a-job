@@ -45,7 +45,7 @@ export default function CanvasShell({ children, revealMode }) {
       {!revealMode && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed bottom-2 right-2 z-[60] rounded-sm bg-rd-coral px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-80 shadow-rd"
+          className="pointer-events-none fixed bottom-2 right-2 z-[60] rounded-sm bg-rd-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-80 shadow-rd"
         >
           NEXT
         </div>
@@ -57,7 +57,7 @@ export default function CanvasShell({ children, revealMode }) {
           <Link
             to={createPageUrl("Home")}
             aria-label="Get A Job home"
-            className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
+            className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
           >
             <CanvasLogo size={28} />
           </Link>

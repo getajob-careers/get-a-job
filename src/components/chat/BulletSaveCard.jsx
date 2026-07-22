@@ -178,7 +178,7 @@ export default function BulletSaveCard({
     return (
       <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
         <div className="flex items-center gap-2 mb-2">
-          <ListChecks className="w-3.5 h-3.5 text-rd-coral" />
+          <ListChecks className="w-3.5 h-3.5 text-rd-primary" />
           <p className="text-[13.5px] font-display font-bold text-rd-text">
             Review bullets for {labelFor(targetType, targetId) || "your entry"}
           </p>
@@ -208,7 +208,7 @@ export default function BulletSaveCard({
                   setBullets((d) => d.filter((_, idx) => idx !== i))
                 }
                 aria-label="Remove bullet"
-                className="p-0.5 mt-1 text-rd-text-tertiary hover:text-rd-coral flex-shrink-0"
+                className="p-0.5 mt-1 text-rd-text-tertiary hover:text-rd-primary flex-shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -224,7 +224,7 @@ export default function BulletSaveCard({
         </div>
 
         {saveError && (
-          <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">
+          <p className="text-[11px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-[8px] px-2 py-1 mb-2">
             {saveError}
           </p>
         )}
@@ -234,7 +234,7 @@ export default function BulletSaveCard({
             size="sm"
             onClick={handleSave}
             disabled={phase === PHASE.SAVING}
-            className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+            className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
           >
             {phase === PHASE.SAVING ? (
               <>
@@ -275,7 +275,7 @@ export default function BulletSaveCard({
   return (
     <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <ListChecks className="w-3.5 h-3.5 text-rd-coral" />
+        <ListChecks className="w-3.5 h-3.5 text-rd-primary" />
         <p className="text-[13.5px] font-display font-bold text-rd-text">
           {capture?.framing || "Save this as a bullet?"}
         </p>
@@ -287,7 +287,7 @@ export default function BulletSaveCard({
       <select
         value={selected}
         onChange={(e) => setSelected(e.target.value)}
-        className="w-full mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] px-2.5 py-1.5 text-xs text-rd-text focus:outline-none focus:border-rd-coral"
+        className="w-full mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] px-2.5 py-1.5 text-xs text-rd-text focus:outline-none focus:border-rd-primary"
       >
         <option value="">Choose where this belongs…</option>
         {experiences.length > 0 && (
@@ -315,11 +315,11 @@ export default function BulletSaveCard({
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        className="text-xs resize-none mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] text-rd-text focus-visible:border-rd-coral focus-visible:ring-0"
+        className="text-xs resize-none mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] text-rd-text focus-visible:border-rd-primary focus-visible:ring-0"
       />
 
       {extractError && (
-        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">
+        <p className="text-[11px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-[8px] px-2 py-1 mb-2">
           {extractError}
         </p>
       )}
@@ -328,7 +328,7 @@ export default function BulletSaveCard({
         size="sm"
         onClick={handleExtract}
         disabled={phase === PHASE.EXTRACTING}
-        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
+        className="h-8 text-xs bg-rd-primary hover:bg-rd-primary-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         {phase === PHASE.EXTRACTING ? (
           <>

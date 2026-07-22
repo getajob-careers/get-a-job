@@ -123,7 +123,7 @@ export default function BulletsEditor({
         <button
           type="button"
           onClick={() => setAiOpen((v) => !v)}
-          className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral transition-colors"
+          className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-primary-dark hover:text-rd-primary transition-colors"
         >
           <Sparkles className="w-3 h-3" /> Add with AI
         </button>
@@ -144,7 +144,7 @@ export default function BulletsEditor({
               onChange={(e) => editBullet(i, e.target.value)}
               rows={2}
               placeholder="e.g. Rebuilt onboarding, cutting time-to-first-value from 9 days to 4"
-              className="flex-1 bg-rd-bg-card border border-rd-border rounded-[8px] px-2.5 py-1.5 text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral resize-y min-h-[44px]"
+              className="flex-1 bg-rd-bg-card border border-rd-border rounded-[8px] px-2.5 py-1.5 text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary resize-y min-h-[44px]"
             />
             <div className="flex flex-col gap-0.5 flex-shrink-0">
               <button
@@ -170,7 +170,7 @@ export default function BulletsEditor({
               type="button"
               onClick={() => deleteBullet(i)}
               aria-label="Delete bullet"
-              className="p-0.5 mt-0.5 text-rd-text-tertiary hover:text-rd-coral flex-shrink-0"
+              className="p-0.5 mt-0.5 text-rd-text-tertiary hover:text-rd-primary flex-shrink-0"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -193,14 +193,14 @@ export default function BulletsEditor({
             onChange={(e) => setAiText(e.target.value)}
             rows={3}
             placeholder="Describe something you did here, in your own words. The AI keeps your real numbers and tools and never invents any."
-            className="w-full bg-rd-bg-card border border-rd-border rounded-[8px] px-2.5 py-1.5 text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral resize-y"
+            className="w-full bg-rd-bg-card border border-rd-border rounded-[8px] px-2.5 py-1.5 text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary resize-y"
           />
           <div className="flex items-center gap-2 mt-1.5">
             <button
               type="button"
               onClick={runAi}
               disabled={aiBusy || !aiText.trim()}
-              className="inline-flex items-center gap-1.5 bg-rd-coral text-white font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 bg-rd-primary text-white font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 disabled:opacity-60"
             >
               {aiBusy ? (
                 <>
@@ -233,7 +233,7 @@ export default function BulletsEditor({
                     key={i}
                     className="text-[12.5px] text-rd-text leading-[1.4] flex gap-1.5"
                   >
-                    <span className="text-rd-coral-dark flex-shrink-0">•</span>
+                    <span className="text-rd-primary-dark flex-shrink-0">•</span>
                     {b}
                   </li>
                 ))}
@@ -261,7 +261,7 @@ export default function BulletsEditor({
             type="button"
             onClick={save}
             disabled={saving}
-            className="inline-flex items-center gap-1.5 bg-rd-coral text-white font-display font-semibold text-[12px] rounded-full px-4 py-1.5 disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 bg-rd-primary text-white font-display font-semibold text-[12px] rounded-full px-4 py-1.5 disabled:opacity-60"
           >
             {saving ? (
               <>

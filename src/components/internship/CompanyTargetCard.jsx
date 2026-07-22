@@ -26,7 +26,7 @@ const SOURCE_TONE = {
 const BAND_TEXT_COLOR = {
   high: "text-rd-teal-dark",
   med:  "text-rd-golden-dark",
-  low:  "text-rd-coral-dark",
+  low:  "text-rd-primary-dark",
   none: "text-rd-text-tertiary",
 };
 

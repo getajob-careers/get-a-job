@@ -10,7 +10,7 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			// Redesign palette — additive. Consumed via bg-rd-coral,
+  			// Redesign palette — additive. Consumed via bg-rd-primary,
   			// text-rd-text, border-rd-border, etc. See tasks/redesign.md.
   			// CSS variables live in src/styles/redesignTokens.css; existing
   			// pages don't read these classes until they opt in.
@@ -26,9 +26,9 @@ module.exports = {
   				'text-secondary': 'var(--rd-text-secondary)',
   				'text-tertiary': 'var(--rd-text-tertiary)',
   				'text-eyebrow': 'var(--rd-text-eyebrow)',
-  				coral: 'var(--rd-coral)',
-  				'coral-dark': 'var(--rd-coral-dark)',
-  				'coral-tint': 'var(--rd-coral-tint)',
+  				primary: 'var(--rd-primary)',
+  				'primary-dark': 'var(--rd-primary-dark)',
+  				'primary-tint': 'var(--rd-primary-tint)',
   				teal: 'var(--rd-teal)',
   				'teal-dark': 'var(--rd-teal-dark)',
   				'teal-tint': 'var(--rd-teal-tint)',

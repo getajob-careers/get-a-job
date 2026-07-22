@@ -24,7 +24,7 @@ const GOAL_LABELS = {
 // = coral (closed loop), archived = neutral (shelved).
 const STATUS_META = {
   active:    { Icon: Clock,         label: "Active",    chip: "bg-rd-teal-tint text-rd-teal-dark border-rd-teal/30" },
-  completed: { Icon: CheckCircle2,  label: "Completed", chip: "bg-rd-coral-tint text-rd-coral-dark border-rd-coral/30" },
+  completed: { Icon: CheckCircle2,  label: "Completed", chip: "bg-rd-primary-tint text-rd-primary-dark border-rd-primary/30" },
   archived:  { Icon: Archive,       label: "Archived",  chip: "bg-rd-bg-soft text-rd-text-tertiary border-rd-border" },
 };
 
@@ -82,7 +82,7 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
           type="button"
           onClick={onNew}
           data-action="new-conversation"
-          className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-[7px] transition-colors"
+          className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-[7px] transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           New conversation
@@ -96,7 +96,7 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
         </div>
       )}
       {error && (
-        <div className="px-3 py-2.5 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12.5px] text-rd-coral-dark">{error}</div>
+        <div className="px-3 py-2.5 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[12.5px] text-rd-primary-dark">{error}</div>
       )}
       {rows && rows.length === 0 && (
         <div className="text-[12px] text-rd-text-tertiary italic py-3">

@@ -16,9 +16,9 @@ import { reveal } from "./stagger";
 // teal reserved for the wins (offer / accepted). Nothing predates the palette.
 const STATUS_TONE = {
   interested: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
-  preparing: { tint: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
+  preparing: { tint: "var(--rd-primary-tint)", fg: "var(--rd-primary-dark)" },
   applied: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
-  interviewing: { tint: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
+  interviewing: { tint: "var(--rd-primary-tint)", fg: "var(--rd-primary-dark)" },
   offer: { tint: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
   accepted: { tint: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
   rejected: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-tertiary)" },
@@ -39,7 +39,7 @@ function CanvasKanbanCard({ app, onClick, settling, dragging }) {
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
       className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rd-r-sm p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
         dragging
-          ? "bg-rd-bg-card border border-rd-coral rotate-2 shadow-[0_16px_36px_rgba(40,25,10,0.28)]"
+          ? "bg-rd-bg-card border border-rd-primary rotate-2 shadow-[0_16px_36px_rgba(40,25,10,0.28)]"
           : "rd-lift rd-lift-hover"
       }`}
     >

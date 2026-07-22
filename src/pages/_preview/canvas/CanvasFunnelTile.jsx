@@ -9,7 +9,7 @@ export default function CanvasFunnelTile({
   label,
   value,
   total,
-  accent = "var(--rd-coral)",
+  accent = "var(--rd-primary)",
 }) {
   // Low-fill floor (hard constraint a): a real count always draws a visible arc.
   const frac = visibleFill(total > 0 ? value / total : 0, value > 0);

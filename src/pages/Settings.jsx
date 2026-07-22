@@ -148,7 +148,7 @@ export default function Settings() {
                 onboarding. Your account stays; only your data is wiped.
               </p>
               {resetError && (
-                <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
+                <p className="text-xs text-rd-primary-dark mt-2 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" /> {resetError}
                 </p>
               )}
@@ -160,7 +160,7 @@ export default function Settings() {
                       size="sm"
                       onClick={handleResetOnboarding}
                       disabled={resetBusy}
-                      className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold"
+                      className="gap-1.5 bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold"
                     >
                       {resetBusy ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -184,7 +184,7 @@ export default function Settings() {
                     variant="outline"
                     size="sm"
                     onClick={handleResetOnboarding}
-                    className="gap-2 text-rd-coral-dark border-rd-coral/30 hover:bg-rd-coral-tint rounded-full font-display font-semibold"
+                    className="gap-2 text-rd-primary-dark border-rd-primary/30 hover:bg-rd-primary-tint rounded-full font-display font-semibold"
                   >
                     <RotateCcw className="w-3 h-3" />
                     Reset onboarding
@@ -198,12 +198,12 @@ export default function Settings() {
 
       {/* ── Danger zone: permanent account deletion ──────────────────── */}
       <section className="space-y-3">
-        <h2 className="font-display font-bold text-[14px] text-rd-coral-dark">
+        <h2 className="font-display font-bold text-[14px] text-rd-primary-dark">
           Danger zone
         </h2>
-        <div className="bg-rd-bg-card border border-rd-coral/30 rounded-[14px] p-5 shadow-rd">
+        <div className="bg-rd-bg-card border border-rd-primary/30 rounded-[14px] p-5 shadow-rd">
           <div className="flex items-start gap-3">
-            <Trash2 className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
+            <Trash2 className="w-4 h-4 text-rd-primary flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <p className="text-sm font-display font-semibold text-rd-text">
                 Delete account
@@ -218,7 +218,7 @@ export default function Settings() {
                 below.
               </p>
               {deleteError && (
-                <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
+                <p className="text-xs text-rd-primary-dark mt-2 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" /> {deleteError}
                 </p>
               )}
@@ -228,7 +228,7 @@ export default function Settings() {
                   onChange={(e) => setDeleteInput(e.target.value)}
                   placeholder={DELETE_CONFIRM_PHRASE}
                   disabled={deleteBusy}
-                  className="text-sm max-w-xs border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                  className="text-sm max-w-xs border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                   autoComplete="off"
                   aria-label="Type DELETE my account to confirm"
                 />
@@ -237,7 +237,7 @@ export default function Settings() {
                   size="sm"
                   onClick={handleDeleteAccount}
                   disabled={!canConfirmDelete || deleteBusy}
-                  className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold disabled:opacity-40"
+                  className="gap-1.5 bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold disabled:opacity-40"
                 >
                   {deleteBusy ? (
                     <Loader2 className="w-3 h-3 animate-spin" />

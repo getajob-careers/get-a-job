@@ -167,7 +167,7 @@ export default function Home3TabPreview() {
           >
             <span
               aria-hidden="true"
-              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-primary shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
               style={{
                 width: "calc((100% - 0.5rem) / 3)",
                 transform: `translateX(${activeIndex * 100}%)`,
@@ -360,8 +360,8 @@ function TrackerTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
             <PipelineGuideTile
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="Steps 1–2"
               body="Qualify yourself. Dissect the job description. Know the role before applying."
             />
@@ -372,14 +372,14 @@ function TrackerTab() {
               body="Tailor your CV, map skill evidence, and find a referral contact at the company."
             />
             <PipelineGuideTile
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="Steps 6–7"
               body="Submit your application, then prep for the interview with STAR-format answers."
             />
             <PipelineGuideTile
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
+              tint="var(--rd-primary-tint)"
+              accent="var(--rd-primary-dark)"
               head="⭐ Referral = your biggest edge"
               body="Many companies offer referral bonuses to employees when a referred candidate gets hired. They're incentivised to get you in."
               highlight
@@ -542,8 +542,8 @@ function CanvasTrackerTab() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
               <PipelineGuideTile
-                tint="var(--rd-coral-tint)"
-                accent="var(--rd-coral-dark)"
+                tint="var(--rd-primary-tint)"
+                accent="var(--rd-primary-dark)"
                 head="Steps 1–2"
                 body="Qualify yourself. Dissect the job description. Know the role before applying."
               />
@@ -554,14 +554,14 @@ function CanvasTrackerTab() {
                 body="Tailor your CV, map skill evidence, and find a referral contact at the company."
               />
               <PipelineGuideTile
-                tint="var(--rd-coral-tint)"
-                accent="var(--rd-coral-dark)"
+                tint="var(--rd-primary-tint)"
+                accent="var(--rd-primary-dark)"
                 head="Steps 6–7"
                 body="Submit your application, then prep for the interview with STAR-format answers."
               />
               <PipelineGuideTile
-                tint="var(--rd-coral-tint)"
-                accent="var(--rd-coral-dark)"
+                tint="var(--rd-primary-tint)"
+                accent="var(--rd-primary-dark)"
                 head="⭐ Referral = your biggest edge"
                 body="Many companies offer referral bonuses. They're incentivised to get you in."
                 highlight

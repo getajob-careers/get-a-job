@@ -45,9 +45,9 @@ import { GOAL_LABELS } from "./OutreachConversationsList";
 //                  rounded-bl-[4px]   (sharp bottom-left corner)
 //   - User bg dark #211D18, white text; them bg warm #F3ECE0, dark text.
 
-const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_TEXTAREA_CLS = "w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_TEXTAREA_CLS = "w-full text-[13.5px] border border-rd-border rounded-[10px] px-3 py-2 bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_SOFT_PILL = "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] rounded-full px-3 py-[7px] bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text transition-colors";
 
 const GOAL_GROUPS = [
@@ -89,7 +89,7 @@ export const STATE_META = {
   cold_open:       { label: "Cold open",       chip: "bg-rd-bg-soft text-rd-text-tertiary border-rd-border" },
   warming_up:      { label: "Warming up",      chip: "bg-rd-golden-tint text-rd-golden-dark border-rd-golden/40" },
   rapport_built:   { label: "Rapport built",   chip: "bg-rd-teal-tint text-rd-teal-dark border-rd-teal/30" },
-  making_the_ask:  { label: "Making the ask",  chip: "bg-rd-coral-tint text-rd-coral-dark border-rd-coral/30" },
+  making_the_ask:  { label: "Making the ask",  chip: "bg-rd-primary-tint text-rd-primary-dark border-rd-primary/30" },
   awaiting_reply:  { label: "Awaiting reply",  chip: "bg-rd-bg-soft text-rd-text-tertiary border-rd-border" },
   goal_complete:   { label: "Goal complete",   chip: "bg-rd-teal-tint text-rd-teal-dark border-rd-teal/30" },
 };
@@ -332,7 +332,7 @@ export default function OutreachComposer({
       </div>
 
       {error && (
-        <div className="px-3 py-2.5 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12.5px] text-rd-coral-dark flex items-start gap-2 mb-3">
+        <div className="px-3 py-2.5 rounded-[10px] bg-rd-primary-tint border border-rd-primary/30 text-[12.5px] text-rd-primary-dark flex items-start gap-2 mb-3">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <p>{error}</p>
         </div>
@@ -428,7 +428,7 @@ function TargetForm({ goal, target, setTarget, onBack, onSubmit, generating }) {
 
       <div>
         <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">
-          Their name <span className="text-rd-coral">*</span>
+          Their name <span className="text-rd-primary">*</span>
         </label>
         <Input value={target.name || ""} onChange={update("name")} placeholder="e.g. Maya Levi" className={RD_INPUT_CLS} />
       </div>
@@ -583,7 +583,7 @@ export function ConversationHeader({ goal, goalLabel, target, status, showGoalEd
           onClick={() => setShowGoalEdit(!showGoalEdit)}
           disabled={generating}
           data-action="edit-goal"
-          className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] rounded-full px-3 py-[7px] bg-rd-coral-tint text-rd-coral-dark hover:bg-rd-coral-tint/80 disabled:opacity-60 transition-colors"
+          className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] rounded-full px-3 py-[7px] bg-rd-primary-tint text-rd-primary-dark hover:bg-rd-primary-tint/80 disabled:opacity-60 transition-colors"
         >
           <Edit3 className="w-3 h-3" />
           Goal · {goalLabel}
@@ -678,7 +678,7 @@ export function ThreadBubble({ msg, editing, editingDraft, setEditingDraft, onSt
               value={editingDraft}
               onChange={(e) => setEditingDraft(e.target.value)}
               rows={Math.min(8, Math.max(3, Math.ceil(editingDraft.length / 60)))}
-              className="w-full text-[13px] bg-white text-rd-text border border-rd-border rounded-[8px] px-2 py-1.5 focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="w-full text-[13px] bg-white text-rd-text border border-rd-border rounded-[8px] px-2 py-1.5 focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
             />
             <div className="flex justify-end gap-1 mt-1.5">
               <button
@@ -798,7 +798,7 @@ export function SuggestionCard({ suggestion, stateMeta, draftText, setDraftText,
     <div className="bg-white border border-rd-border rounded-[16px] p-4 shadow-rd">
       {/* Heading — coral sparkles + slab title */}
       <div className="flex items-center gap-2 mb-3 flex-wrap">
-        <Sparkles className="w-4 h-4 text-rd-coral" />
+        <Sparkles className="w-4 h-4 text-rd-primary" />
         <span className="font-display font-bold text-[14px] text-rd-text">Your agent drafted a reply</span>
         <div className="flex-1" />
         {stateMeta && (
@@ -829,7 +829,7 @@ export function SuggestionCard({ suggestion, stateMeta, draftText, setDraftText,
           value={draftText}
           onChange={(e) => setDraftText(e.target.value)}
           rows={Math.min(12, Math.max(4, Math.ceil((draftText?.length || 100) / 70)))}
-          className="w-full text-[13px] bg-[#FBF7F1] border border-[#EFE7DA] rounded-[12px] px-3 py-2.5 text-rd-text focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] leading-[1.6]"
+          className="w-full text-[13px] bg-[#FBF7F1] border border-[#EFE7DA] rounded-[12px] px-3 py-2.5 text-rd-text focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] leading-[1.6]"
         />
       ) : (
         <div className="bg-[#FBF7F1] border border-[#EFE7DA] rounded-[12px] px-3 py-2.5 text-[13px] text-rd-text leading-[1.6] whitespace-pre-wrap">
@@ -920,7 +920,7 @@ function CharCount({ text, turnType }) {
   const overConnLimit = isConnNote && charCount > 200;
   if (isConnNote) {
     return (
-      <p className={`text-[10px] mt-1 text-right ${overConnLimit ? "text-rd-coral-dark" : "text-rd-text-tertiary"}`}>
+      <p className={`text-[10px] mt-1 text-right ${overConnLimit ? "text-rd-primary-dark" : "text-rd-text-tertiary"}`}>
         {charCount}/200 chars (connection-request note limit)
       </p>
     );

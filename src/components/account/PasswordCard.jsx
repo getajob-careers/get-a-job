@@ -94,8 +94,8 @@ export default function PasswordCard() {
   return (
     <div className="bg-rd-bg-card rounded-[14px] border border-rd-border p-6 space-y-5 shadow-rd">
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-[10px] bg-rd-coral-tint flex items-center justify-center flex-shrink-0">
-          <KeyRound className="w-4 h-4 text-rd-coral" />
+        <div className="w-9 h-9 rounded-[10px] bg-rd-primary-tint flex items-center justify-center flex-shrink-0">
+          <KeyRound className="w-4 h-4 text-rd-primary" />
         </div>
         <div className="min-w-0">
           <h3 className="text-sm font-display font-bold text-rd-text">Change password</h3>
@@ -114,7 +114,7 @@ export default function PasswordCard() {
               autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              className="mt-1 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="mt-1 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
               placeholder="Meets all 5 requirements below"
             />
             <PasswordRequirements checks={checks} />
@@ -126,23 +126,23 @@ export default function PasswordCard() {
               autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="mt-1 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
               placeholder="Repeat the password above"
             />
             {confirmPassword.length > 0 && !passwordsMatch && (
-              <p className="text-[11px] text-rd-coral-dark mt-1.5">Doesn&apos;t match the password above.</p>
+              <p className="text-[11px] text-rd-primary-dark mt-1.5">Doesn&apos;t match the password above.</p>
             )}
           </div>
           {error && (
-            <div className="flex items-start gap-2 p-3 bg-rd-coral-tint border border-rd-coral/30 rounded-[10px]">
-              <AlertCircle className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-rd-coral-dark">{error}</p>
+            <div className="flex items-start gap-2 p-3 bg-rd-primary-tint border border-rd-primary/30 rounded-[10px]">
+              <AlertCircle className="w-4 h-4 text-rd-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-rd-primary-dark">{error}</p>
             </div>
           )}
           <Button
             type="submit"
             disabled={busy || !canSubmitCompose}
-            className="bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold"
+            className="bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold"
           >
             {busy ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending code…</>
@@ -156,7 +156,7 @@ export default function PasswordCard() {
       {step === "verify" && (
         <form onSubmit={handleConfirm} className="space-y-4">
           <div className="flex items-start gap-2 p-3 bg-rd-bg-soft border border-rd-border rounded-[10px]">
-            <Mail className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
+            <Mail className="w-4 h-4 text-rd-primary flex-shrink-0 mt-0.5" />
             <p className="text-xs text-rd-text">
               We emailed a 6-digit code to <strong className="font-display font-semibold">{user?.email}</strong>. It expires in a few minutes.
             </p>
@@ -169,21 +169,21 @@ export default function PasswordCard() {
               maxLength={6}
               value={nonce}
               onChange={(e) => setNonce(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              className="mt-1 tracking-[0.3em] font-mono border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+              className="mt-1 tracking-[0.3em] font-mono border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-primary focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
               placeholder="123456"
             />
           </div>
           {error && (
-            <div className="flex items-start gap-2 p-3 bg-rd-coral-tint border border-rd-coral/30 rounded-[10px]">
-              <AlertCircle className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-rd-coral-dark">{error}</p>
+            <div className="flex items-start gap-2 p-3 bg-rd-primary-tint border border-rd-primary/30 rounded-[10px]">
+              <AlertCircle className="w-4 h-4 text-rd-primary flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-rd-primary-dark">{error}</p>
             </div>
           )}
           <div className="flex items-center gap-2">
             <Button
               type="submit"
               disabled={busy || nonce.length !== 6}
-              className="bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold"
+              className="bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold"
             >
               {busy ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating…</>

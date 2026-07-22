@@ -71,14 +71,14 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
                   className={[
                     "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                     isSelected
-                      ? "border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                       : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
                   ].join(" ")}
                 >
                   <div
                     className={[
                       "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                      isSelected ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary",
+                      isSelected ? "bg-rd-primary text-white" : "bg-rd-bg-soft text-rd-text-secondary",
                     ].join(" ")}
                   >
                     <Icon className="w-4 h-4" />

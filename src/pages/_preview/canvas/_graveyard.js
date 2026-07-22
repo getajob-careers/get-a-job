@@ -22,9 +22,9 @@ export const DUSK = {
   "--rd-text-secondary": "#5C515A",
   "--rd-text-tertiary": "#695E65",
   "--rd-text-eyebrow": "#7A5560",
-  "--rd-coral": "#9B3A5A",
-  "--rd-coral-dark": "#7E2E49",
-  "--rd-coral-tint": "#F1DBE3",
+  "--rd-primary": "#9B3A5A",
+  "--rd-primary-dark": "#7E2E49",
+  "--rd-primary-tint": "#F1DBE3",
   "--rd-teal": "#4A6B84",
   "--rd-teal-dark": "#35506A",
   "--rd-teal-tint": "#DCE4EC",
@@ -64,9 +64,9 @@ export const CLAY = {
   // the locked constraint ("AA protected over calm murk"); leaving it would not.
   "--rd-text-eyebrow": "#7A6845",
   // Primary + "good" band — grounded clay terracotta.
-  "--rd-coral": "#A6552E",
-  "--rd-coral-dark": "#8A4526",
-  "--rd-coral-tint": "#F1E0D5",
+  "--rd-primary": "#A6552E",
+  "--rd-primary-dark": "#8A4526",
+  "--rd-primary-tint": "#F1E0D5",
   // "strong" band — deep muted teal (the one cool accent).
   "--rd-teal": "#2E7062",
   "--rd-teal-dark": "#1E5A4D",
@@ -81,7 +81,7 @@ export const CLAY = {
 };
 
 // HEATHER — challenger round 4, built from Eli's "73 PURPLE" swatch card. The
-// circled heather #98808A IS --rd-coral verbatim (only the -dark carries text,
+// circled heather #98808A IS --rd-primary verbatim (only the -dark carries text,
 // so the primary object keeps the exact hue he was drawn to). Support = the same
 // card's sage (strong), peach (stretch/peach), oyster+cream (surfaces).
 // COST, stated plainly: the Chat tile's heather violet is surrendered to the
@@ -101,9 +101,9 @@ export const HEATHER = {
   "--rd-text-secondary": "#5B5158",
   "--rd-text-tertiary": "#6A6068",
   "--rd-text-eyebrow": "#7A5F6E",
-  "--rd-coral": "#98808A",
-  "--rd-coral-dark": "#705B64",
-  "--rd-coral-tint": "#EEE5E9",
+  "--rd-primary": "#98808A",
+  "--rd-primary-dark": "#705B64",
+  "--rd-primary-tint": "#EEE5E9",
   "--rd-teal": "#5C7F72",
   "--rd-teal-dark": "#4A665B",
   "--rd-teal-tint": "#DDE8E4",
@@ -135,9 +135,9 @@ export const MOSS = {
   "--rd-text-secondary": "#54594B",
   "--rd-text-tertiary": "#626856",
   "--rd-text-eyebrow": "#696F45",
-  "--rd-coral": "#5A6B33",
-  "--rd-coral-dark": "#566631",
-  "--rd-coral-tint": "#E4E8D2",
+  "--rd-primary": "#5A6B33",
+  "--rd-primary-dark": "#566631",
+  "--rd-primary-tint": "#E4E8D2",
   "--rd-teal": "#2F6A6E",
   "--rd-teal-dark": "#2E686C",
   "--rd-teal-tint": "#D6E8E9",
@@ -171,9 +171,9 @@ export const PEWTER = {
   "--rd-text-secondary": "#525661",
   "--rd-text-tertiary": "#5F636E",
   "--rd-text-eyebrow": "#6B6F5C",
-  "--rd-coral": "#444751",
-  "--rd-coral-dark": "#444751",
-  "--rd-coral-tint": "#E0E1E5",
+  "--rd-primary": "#444751",
+  "--rd-primary-dark": "#444751",
+  "--rd-primary-tint": "#E0E1E5",
   "--rd-teal": "#3E6B5C",
   "--rd-teal-dark": "#3C6859",
   "--rd-teal-tint": "#DBE8E3",

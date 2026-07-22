@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
-import { Zap, CheckCircle2, AlertCircle, Loader2, ChevronRight, Clock, Download } from "lucide-react";
+import {
+  Zap,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ChevronRight,
+  Clock,
+  Download,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // jsPDF (+ its peer html2canvas pulled transitively) is ~50KB gzip and
@@ -17,8 +25,13 @@ const downloadAsPDF = async (content) => {
   const maxWidth = pageWidth - margin * 2;
   let y = margin;
 
-  const addPage = () => { doc.addPage(); y = margin; };
-  const checkPage = (needed = 8) => { if (y + needed > 282) addPage(); };
+  const addPage = () => {
+    doc.addPage();
+    y = margin;
+  };
+  const checkPage = (needed = 8) => {
+    if (y + needed > 282) addPage();
+  };
 
   const lines = content.split("\n");
 
@@ -37,11 +50,18 @@ const downloadAsPDF = async (content) => {
     }
 
     // Contact line (contains | with email/phone/linkedin)
-    if (!line.startsWith("#") && line.includes("|") && (line.includes("@") || line.includes("+") || line.includes("linkedin"))) {
+    if (
+      !line.startsWith("#") &&
+      line.includes("|") &&
+      (line.includes("@") || line.includes("+") || line.includes("linkedin"))
+    ) {
       doc.setFontSize(8);
       doc.setFont("helvetica", "normal");
       doc.setTextColor(80, 80, 80);
-      const parts = line.split("|").map(p => p.trim()).join("   |   ");
+      const parts = line
+        .split("|")
+        .map((p) => p.trim())
+        .join("   |   ");
       doc.text(parts, margin, y);
       y += 6;
       doc.setDrawColor(180, 180, 180);
@@ -52,7 +72,10 @@ const downloadAsPDF = async (content) => {
 
     // H2 — Section heading
     if (/^##\s/.test(line)) {
-      const text = line.replace(/^##\s*/, "").replace(/\*\*/g, "").trim();
+      const text = line
+        .replace(/^##\s*/, "")
+        .replace(/\*\*/g, "")
+        .trim();
       checkPage(10);
       y += 2;
       doc.setFontSize(10);
@@ -69,7 +92,10 @@ const downloadAsPDF = async (content) => {
 
     // H3 — Job title / sub heading (bold line)
     if (/^###\s/.test(line)) {
-      const text = line.replace(/^###\s*/, "").replace(/\*\*/g, "").trim();
+      const text = line
+        .replace(/^###\s*/, "")
+        .replace(/\*\*/g, "")
+        .trim();
       checkPage(7);
       doc.setFontSize(9.5);
       doc.setFont("helvetica", "bold");
@@ -94,7 +120,10 @@ const downloadAsPDF = async (content) => {
 
     // Bullet point
     if (/^[-•]\s/.test(line)) {
-      const text = line.replace(/^[-•]\s*/, "").replace(/\*\*/g, "").trim();
+      const text = line
+        .replace(/^[-•]\s*/, "")
+        .replace(/\*\*/g, "")
+        .trim();
       checkPage(6);
       doc.setFontSize(9);
       doc.setFont("helvetica", "normal");
@@ -151,18 +180,31 @@ const FunctionDisplay = ({ toolCall }) => {
     ((typeof results === "string" && /error|failed/i.test(results)) ||
       parsedResults?.success === false);
 
-  const statusConfig =
-    {
-      pending: { icon: Clock, color: "text-rd-text-tertiary", text: "Pending" },
-      running: { icon: Loader2, color: "text-rd-text-secondary", text: "Running...", spin: true },
-      in_progress: { icon: Loader2, color: "text-rd-text-secondary", text: "Running...", spin: true },
-      completed: isError
-        ? { icon: AlertCircle, color: "text-rd-coral-dark", text: "Failed" }
-        : { icon: CheckCircle2, color: "text-rd-teal-dark", text: "Done" },
-      success: { icon: CheckCircle2, color: "text-rd-teal-dark", text: "Done" },
-      failed: { icon: AlertCircle, color: "text-rd-coral-dark", text: "Failed" },
-      error: { icon: AlertCircle, color: "text-rd-coral-dark", text: "Failed" },
-    }[status] || { icon: Zap, color: "text-rd-text-tertiary", text: "" };
+  const statusConfig = {
+    pending: { icon: Clock, color: "text-rd-text-tertiary", text: "Pending" },
+    running: {
+      icon: Loader2,
+      color: "text-rd-text-secondary",
+      text: "Running...",
+      spin: true,
+    },
+    in_progress: {
+      icon: Loader2,
+      color: "text-rd-text-secondary",
+      text: "Running...",
+      spin: true,
+    },
+    completed: isError
+      ? { icon: AlertCircle, color: "text-rd-primary-dark", text: "Failed" }
+      : { icon: CheckCircle2, color: "text-rd-teal-dark", text: "Done" },
+    success: { icon: CheckCircle2, color: "text-rd-teal-dark", text: "Done" },
+    failed: {
+      icon: AlertCircle,
+      color: "text-rd-primary-dark",
+      text: "Failed",
+    },
+    error: { icon: AlertCircle, color: "text-rd-primary-dark", text: "Failed" },
+  }[status] || { icon: Zap, color: "text-rd-text-tertiary", text: "" };
 
   const Icon = statusConfig.icon;
   const formattedName = name.split(".").reverse().join(" ").toLowerCase();
@@ -174,29 +216,53 @@ const FunctionDisplay = ({ toolCall }) => {
         className={cn(
           "flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all",
           "hover:bg-rd-bg-soft",
-          expanded ? "bg-rd-bg-soft border-rd-border-hover" : "bg-rd-bg-card border-rd-border"
+          expanded
+            ? "bg-rd-bg-soft border-rd-border-hover"
+            : "bg-rd-bg-card border-rd-border",
         )}
       >
-        <Icon className={cn("h-3 w-3", statusConfig.color, statusConfig.spin && "animate-spin")} />
+        <Icon
+          className={cn(
+            "h-3 w-3",
+            statusConfig.color,
+            statusConfig.spin && "animate-spin",
+          )}
+        />
         <span className="text-rd-text-secondary">{formattedName}</span>
         {statusConfig.text && (
-          <span className={cn("text-rd-text-tertiary", isError && "text-rd-coral-dark")}>
+          <span
+            className={cn(
+              "text-rd-text-tertiary",
+              isError && "text-rd-primary-dark",
+            )}
+          >
             / {statusConfig.text}
           </span>
         )}
         {!statusConfig.spin && (toolCall.arguments_string || results) && (
-          <ChevronRight className={cn("h-3 w-3 text-rd-text-tertiary transition-transform ml-auto", expanded && "rotate-90")} />
+          <ChevronRight
+            className={cn(
+              "h-3 w-3 text-rd-text-tertiary transition-transform ml-auto",
+              expanded && "rotate-90",
+            )}
+          />
         )}
       </button>
       {expanded && !statusConfig.spin && (
         <div className="mt-1.5 ml-3 pl-3 border-l-2 border-rd-border space-y-2">
           {toolCall.arguments_string && (
             <div>
-              <div className="text-xs text-rd-text-tertiary mb-1">Parameters:</div>
+              <div className="text-xs text-rd-text-tertiary mb-1">
+                Parameters:
+              </div>
               <pre className="bg-rd-bg-soft rounded-md p-2 text-xs text-rd-text-secondary whitespace-pre-wrap">
                 {(() => {
                   try {
-                    return JSON.stringify(JSON.parse(toolCall.arguments_string), null, 2);
+                    return JSON.stringify(
+                      JSON.parse(toolCall.arguments_string),
+                      null,
+                      2,
+                    );
                   } catch {
                     return toolCall.arguments_string;
                   }
@@ -208,7 +274,9 @@ const FunctionDisplay = ({ toolCall }) => {
             <div>
               <div className="text-xs text-rd-text-tertiary mb-1">Result:</div>
               <pre className="bg-rd-bg-soft rounded-md p-2 text-xs text-rd-text-secondary whitespace-pre-wrap max-h-48 overflow-auto">
-                {typeof parsedResults === "object" ? JSON.stringify(parsedResults, null, 2) : parsedResults}
+                {typeof parsedResults === "object"
+                  ? JSON.stringify(parsedResults, null, 2)
+                  : parsedResults}
               </pre>
             </div>
           )}
@@ -218,11 +286,12 @@ const FunctionDisplay = ({ toolCall }) => {
   );
 };
 
-const isCV = (content) => content && (
-  content.includes("Professional Summary") || content.includes("Core Skills")
-) && (
-  content.includes("Professional Experience") || content.includes("Education")
-);
+const isCV = (content) =>
+  content &&
+  (content.includes("Professional Summary") ||
+    content.includes("Core Skills")) &&
+  (content.includes("Professional Experience") ||
+    content.includes("Education"));
 
 // Variant prop controls bubble density:
 //   - "page" / "drawer" / undefined: original spec (px-3.5 py-2.5, text-[13px]).
@@ -241,8 +310,11 @@ export default function MessageBubble({ message, variant = "page" }) {
   const handleDownload = async () => {
     if (downloading) return;
     setDownloading(true);
-    try { await downloadAsPDF(message.content); }
-    finally { setDownloading(false); }
+    try {
+      await downloadAsPDF(message.content);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   // PR 3K — D3 bubble vocabulary mirrors the 3J-C ThreadBubble playbook.
@@ -251,7 +323,7 @@ export default function MessageBubble({ message, variant = "page" }) {
   // restyle, not an alignment change.
   //
   // Avatar stays generic (no per-agent icon dispatch) so CVAgent /
-  // InterviewCoach / SkillDevelopmentAdvisor render the same coral-tint
+  // InterviewCoach / SkillDevelopmentAdvisor render the same primary-tint
   // circle without hardcoding the mockup's compass icon.
   // Coach contexts (dock + panel) share one bubble vocabulary distinct
   // from the legacy full-page agents. Both use coral-tint user bubbles
@@ -273,17 +345,24 @@ export default function MessageBubble({ message, variant = "page" }) {
   // the "speech tail" points the right direction (user-right → tight
   // bottom-right; agent-left → tight bottom-left).
   const userBubbleClasses = isCoach
-    ? "bg-rd-coral-tint text-rd-coral-dark rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
+    ? "bg-rd-primary-tint text-rd-primary-dark rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
     : "bg-[#211D18] text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]";
   const agentBubbleClasses = isCoach
     ? "bg-rd-bg-soft text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]"
     : "bg-[#F3ECE0] text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]";
 
   return (
-    <div className={cn("flex", gapClass, isUser ? "justify-end" : "justify-start")}>
+    <div
+      className={cn("flex", gapClass, isUser ? "justify-end" : "justify-start")}
+    >
       {!isUser && (
-        <div className={cn(avatarSize, "rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]")}>
-          <div className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
+        <div
+          className={cn(
+            avatarSize,
+            "rounded-full bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-[2px]",
+          )}
+        >
+          <div className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
         </div>
       )}
       <div className={cn(bubbleMaxW, isUser && "flex flex-col items-end")}>
@@ -299,19 +378,51 @@ export default function MessageBubble({ message, variant = "page" }) {
               <p className={cn(textSize, leading)}>{message.content}</p>
             ) : (
               <ReactMarkdown
-                className={cn(textSize, leading, "prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0")}
+                className={cn(
+                  textSize,
+                  leading,
+                  "prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+                )}
                 components={{
-                  p: ({ children }) => <p className="my-1.5 leading-relaxed text-rd-text">{children}</p>,
-                  strong: ({ children }) => <strong className="font-semibold text-rd-text">{children}</strong>,
-                  ul: ({ children }) => <ul className="my-1.5 ml-4 list-disc">{children}</ul>,
-                  ol: ({ children }) => <ol className="my-1.5 ml-4 list-decimal">{children}</ol>,
-                  li: ({ children }) => <li className="my-0.5 text-rd-text">{children}</li>,
-                  h1: ({ children }) => <h1 className="text-base font-semibold my-2 text-rd-text">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-sm font-semibold my-2 text-rd-text">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-sm font-semibold my-1.5 text-rd-text">{children}</h3>,
+                  p: ({ children }) => (
+                    <p className="my-1.5 leading-relaxed text-rd-text">
+                      {children}
+                    </p>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-semibold text-rd-text">
+                      {children}
+                    </strong>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="my-1.5 ml-4 list-disc">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="my-1.5 ml-4 list-decimal">{children}</ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="my-0.5 text-rd-text">{children}</li>
+                  ),
+                  h1: ({ children }) => (
+                    <h1 className="text-base font-semibold my-2 text-rd-text">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-sm font-semibold my-2 text-rd-text">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-sm font-semibold my-1.5 text-rd-text">
+                      {children}
+                    </h3>
+                  ),
                   code: ({ inline, children }) =>
                     inline ? (
-                      <code className="px-1 py-0.5 rounded bg-rd-bg-soft text-rd-text-secondary text-xs">{children}</code>
+                      <code className="px-1 py-0.5 rounded bg-rd-bg-soft text-rd-text-secondary text-xs">
+                        {children}
+                      </code>
                     ) : (
                       <pre className="bg-rd-text text-gray-100 rounded-lg p-3 overflow-x-auto my-2">
                         <code>{children}</code>

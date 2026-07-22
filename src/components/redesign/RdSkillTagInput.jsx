@@ -22,7 +22,7 @@ import skillIdsData from "@/lib/skillIdsGenerated.json";
 //     description / label slots.
 //
 // Visual changes vs Direction-3:
-//   - input: --rd-border, coral focus ring (--rd-coral + --rd-coral-tint),
+//   - input: --rd-border, coral focus ring (--rd-primary + --rd-primary-tint),
 //     10px radius (matches Login)
 //   - tags: --rd-bg-soft pills with --rd-text text + coral X on hover
 //   - suggestions dropdown: --rd-bg-card, --rd-border, coral-tint hover
@@ -191,7 +191,7 @@ export default function RdSkillTagInput({
               if (input.trim() && suggestions.length > 0) setShowSuggestions(true);
             }}
             placeholder={placeholder || "Type and press Enter"}
-            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           />
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rounded-[12px] shadow-rd max-h-64 overflow-y-auto">
@@ -203,7 +203,7 @@ export default function RdSkillTagInput({
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full text-left px-3.5 py-2.5 text-[13.5px] transition-colors ${
                     index === selectedIndex
-                      ? "bg-rd-coral-tint text-rd-text"
+                      ? "bg-rd-primary-tint text-rd-text"
                       : "text-rd-text-secondary hover:bg-rd-bg-soft"
                   }`}
                 >
@@ -231,7 +231,7 @@ export default function RdSkillTagInput({
               {tag}
               <button
                 onClick={() => remove(tag)}
-                className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+                className="text-rd-text-secondary hover:text-rd-primary transition-colors"
                 aria-label={`Remove ${tag}`}
               >
                 <X className="w-3 h-3" />

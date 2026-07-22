@@ -24,7 +24,7 @@ export const MEDIUM = {
   "--rd-bg-card": "#ECEDF7",
   "--rd-shadow":
     "0 22px 46px -14px rgba(52,50,74,0.30), 0 6px 16px rgba(52,50,74,0.16)",
-  "--rd-amp-section-fg": "var(--rd-coral)",
+  "--rd-amp-section-fg": "var(--rd-primary)",
   "--rd-amp-bandstrip": "0.5",
   "--rd-amp-coach-bg": "#ECEDF5",
   "--rd-amp-mauve": "#9B7D8A",

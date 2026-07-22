@@ -84,7 +84,7 @@ export default function CvGenerationProgress({
       {/* Honest phase label + time expectation. No percentage. */}
       <div className="mt-3 flex items-center gap-2">
         <span
-          className="inline-block w-1.5 h-1.5 rounded-full bg-rd-coral animate-pulse"
+          className="inline-block w-1.5 h-1.5 rounded-full bg-rd-primary animate-pulse"
           aria-hidden="true"
         />
         <p className="text-[12.5px] leading-snug text-rd-text-secondary">

@@ -28,7 +28,7 @@ function formatDate(iso) {
 }
 
 const RD_BTN_GHOST = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
-const RD_BTN_DANGER = "inline-flex items-center justify-center gap-1.5 text-[12px] font-display font-semibold text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 rounded-full px-3 py-1.5 transition-colors";
+const RD_BTN_DANGER = "inline-flex items-center justify-center gap-1.5 text-[12px] font-display font-semibold text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 rounded-full px-3 py-1.5 transition-colors";
 
 export default function StoryCard({ story, experienceLabel, onEdit, onDelete }) {
   const [expanded, setExpanded] = useState(false);
@@ -74,7 +74,7 @@ export default function StoryCard({ story, experienceLabel, onEdit, onDelete }) 
           )}
           <div className="flex items-center gap-2 flex-wrap mt-2 text-[11.5px] text-rd-text-tertiary">
             {experienceLabel ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rd-coral-tint text-rd-coral-dark font-display font-semibold text-[11px]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rd-primary-tint text-rd-primary-dark font-display font-semibold text-[11px]">
                 <BookText className="w-3 h-3" />
                 from {experienceLabel}
               </span>
@@ -190,7 +190,7 @@ function Tag({ kind, children }) {
     : kind === "tool"
     ? "bg-rd-golden-tint text-rd-golden-dark"
     : kind === "metric"
-    ? "bg-rd-coral-tint text-rd-coral-dark"
+    ? "bg-rd-primary-tint text-rd-primary-dark"
     : "bg-rd-bg-soft text-rd-text-secondary";
   return (
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-display font-semibold ${tone}`}>

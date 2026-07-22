@@ -49,7 +49,7 @@ export default function CanvasToolTile({
     if (ico) ico.style.transform = "";
   };
 
-  const cls = `cx-tool group flex flex-col items-center justify-start gap-1 px-1 py-2 rd-r-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2 ${className}`;
+  const cls = `cx-tool group flex flex-col items-center justify-start gap-1 px-1 py-2 rd-r-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 ${className}`;
   const inner = (
     <>
       <span className="cx-tool-ico">

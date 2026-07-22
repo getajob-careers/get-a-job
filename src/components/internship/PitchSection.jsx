@@ -21,7 +21,7 @@ const SUB_BODY  = "text-xs text-rd-text-secondary leading-relaxed";
 export default function PitchSection({ pitch, loading, error, emptyMessage }) {
   if (loading) return <PitchSkeleton />;
   if (error) {
-    return <p className="text-xs text-rd-coral-dark">{String(error.message || error)}</p>;
+    return <p className="text-xs text-rd-primary-dark">{String(error.message || error)}</p>;
   }
   if (!pitch) {
     return <p className="text-xs text-rd-text-tertiary">{emptyMessage || "No pitch available."}</p>;

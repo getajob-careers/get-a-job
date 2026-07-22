@@ -15,7 +15,7 @@ REPLACE these VALUES at Arc 2 Step 1 when the visual direction is chosen. The RU
   - surfaces: `--rd-bg-page #FAF6F0`, `--rd-bg-card #FFFFFF`, `--rd-bg-sidebar #EFE7DB`, `--rd-bg-soft #F3ECE0`
   - border: `--rd-border #F0E7D8`, `--rd-border-subtle #EDE7DD`, `--rd-border-hover #E0D6C4`
   - text: `--rd-text #211D18`, `--rd-text-secondary #6E675B`, `--rd-text-tertiary #5E584E`, `--rd-text-eyebrow #766445` (AA-tuned, #478)
-  - coral (primary): `--rd-coral #D6421F`, `--rd-coral-dark #B23A17`, `--rd-coral-tint #FCE6DF`
+  - primary (role-named, not "coral"): canvas `--rd-primary #60617D`, `--rd-primary-dark #4B4C66`, `--rd-primary-tint #E3E3EC` (the reveal accent). RETIRED: `#D6421F` coral (`-dark #B23A17` / `-tint #FCE6DF`) survives only as the flag-OFF pre-reveal value.
   - teal: `--rd-teal #54B5A2`, `--rd-teal-dark #2A6E5E`, `--rd-teal-tint #DBEEE8`
   - golden: `--rd-golden #EFB23E`, `--rd-golden-dark #7A5408`, `--rd-golden-tint #FBEBC9`; peach: `--rd-peach #E79B7D`
 - Radius: `--radius: 0.5rem` gives `rounded-lg/md/sm`. KNOWN DRIFT: `rounded-[10px]/[14px]/[18px]` are scattered inline; treat as debt to fold into the scale.

@@ -117,7 +117,7 @@ const TONE_STYLES = {
   },
   "missing-core": {
     Icon: AlertCircle,
-    chipClass: "bg-rd-coral-tint text-rd-coral-dark",
+    chipClass: "bg-rd-primary-tint text-rd-primary-dark",
   },
   "missing-nice": {
     Icon: Circle,

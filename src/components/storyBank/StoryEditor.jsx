@@ -32,8 +32,8 @@ const ARRAY_FIELDS = [
 ];
 
 const RD_LABEL       = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
-const RD_INPUT       = "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_INPUT       = "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_GHOST   = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-3 py-1.5 transition-colors";
 
 export default function StoryEditor({ story, experienceLabel, open, onClose, onSave }) {
@@ -102,7 +102,7 @@ export default function StoryEditor({ story, experienceLabel, open, onClose, onS
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto bg-rd-bg-card border border-rd-border rounded-[18px]">
         <DialogHeader>
           <DialogTitle className="font-display font-extrabold text-[18px] text-rd-text flex items-center gap-2">
-            <Pencil className="w-4 h-4 text-rd-coral" />
+            <Pencil className="w-4 h-4 text-rd-primary" />
             Edit story
           </DialogTitle>
         </DialogHeader>
@@ -155,7 +155,7 @@ export default function StoryEditor({ story, experienceLabel, open, onClose, onS
           ))}
 
           {error && (
-            <p className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark">
+            <p className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark">
               {error}
             </p>
           )}

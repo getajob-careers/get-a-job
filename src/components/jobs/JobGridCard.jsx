@@ -268,8 +268,8 @@ export default function JobGridCard({
         }}
         className={
           alive
-            ? "group relative isolate cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
-            : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+            ? "group relative isolate cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
+            : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
         }
       >
         {alive && <span className="cx-spot" aria-hidden="true" />}
@@ -390,7 +390,7 @@ export default function JobGridCard({
                 onGenerateCv();
               }}
               disabled={tailoring}
-              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-coral text-white hover:bg-rd-coral-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {tailoring ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -406,7 +406,7 @@ export default function JobGridCard({
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Apply on the company site"
-                className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-coral-dark transition-colors"
+                className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
               >
                 <ExternalLink className="w-3 h-3" />
                 Apply
@@ -421,7 +421,7 @@ export default function JobGridCard({
               disabled={tracked || tracking}
               title={tracked ? "In your tracker" : "Add to tracker"}
               aria-label={tracked ? "In your tracker" : "Add to tracker"}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-coral-dark disabled:cursor-default transition-colors"
+              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark disabled:cursor-default transition-colors"
               style={
                 tracked
                   ? {
@@ -540,7 +540,7 @@ export default function JobGridCard({
                 ? `${snippet}${(description || "").length > PEEK_SNIPPET_CHARS ? "…" : ""}`
                 : "Loading preview…"}
             </p>
-            <p className="text-[10px] text-rd-coral-dark font-medium mt-2">
+            <p className="text-[10px] text-rd-primary-dark font-medium mt-2">
               Click for full details →
             </p>
           </div>,

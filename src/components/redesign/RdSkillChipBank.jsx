@@ -58,7 +58,7 @@ export default function RdSkillChipBank({ selected, onToggle, compact = false })
                     onClick={() => onToggle(chip)}
                     className={
                       isSelected
-                        ? `inline-flex items-center gap-1.5 text-xs bg-rd-coral text-white ${chipPad} rounded-full border border-rd-coral hover:bg-rd-coral-dark hover:border-rd-coral-dark transition-colors`
+                        ? `inline-flex items-center gap-1.5 text-xs bg-rd-primary text-white ${chipPad} rounded-full border border-rd-primary hover:bg-rd-primary-dark hover:border-rd-primary-dark transition-colors`
                         : `inline-flex items-center gap-1.5 text-xs bg-rd-bg-card text-rd-text-secondary ${chipPad} rounded-full border border-rd-border hover:border-rd-border-hover hover:text-rd-text transition-colors`
                     }
                   >

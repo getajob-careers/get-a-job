@@ -284,7 +284,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-rd-coral hover:text-rd-coral-dark mt-1.5"
+                className="inline-flex items-center gap-1 text-xs text-rd-primary hover:text-rd-primary-dark mt-1.5"
               >
                 {company.domain}
                 <ExternalLink className="w-3 h-3" />
@@ -318,7 +318,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                   </p>
                   <Link
                     to={`${createPageUrl("Internship")}?tab=pipeline`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-bold bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
                   >
                     Go to Pipeline
                   </Link>
@@ -338,7 +338,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <select
               value={pendingStatus}
               onChange={(e) => setPendingStatus(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] mb-2 text-rd-text"
+              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] mb-2 text-rd-text"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -350,14 +350,14 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 onChange={(e) => setPendingNote(e.target.value)}
                 placeholder="Optional: what happened? (e.g. 'Reached out via Sarah Cohen, intro to PM team')"
                 rows={3}
-                className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] mb-2 resize-none text-rd-text"
+                className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] mb-2 resize-none text-rd-text"
               />
             )}
             <button
               type="button"
               onClick={handleSaveStatus}
               disabled={savingStatus || (pendingStatus === target.status && !pendingNote.trim())}
-              className="inline-flex items-center px-4 py-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
+              className="inline-flex items-center px-4 py-1.5 text-xs font-display font-bold bg-rd-primary hover:bg-rd-primary-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
             >
               {savingStatus ? "Saving…" : "Save status"}
             </button>
@@ -371,7 +371,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               onBlur={handleSaveNotes}
               placeholder="Anything you want to remember about this company - research, contacts, reminders…"
               rows={4}
-              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-none text-rd-text"
+              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)] resize-none text-rd-text"
             />
             {savingNotes && <p className="text-[10px] text-rd-text-tertiary mt-1">Saving…</p>}
           </Section>
@@ -384,7 +384,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               <ol className="space-y-3">
                 {timeline.map((change) => (
                   <li key={change.id} className="flex gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-rd-coral mt-1.5 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-rd-primary mt-1.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-rd-text">
                         {change.old_status ? (
@@ -419,7 +419,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           <div className="pt-2 border-t border-rd-border flex items-center justify-between gap-3">
             <Link
               to={outreachUrl}
-              className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-rd-coral hover:text-rd-coral-dark transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-rd-primary hover:text-rd-primary-dark transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Open in Outreach Coach
@@ -427,7 +427,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <button
               type="button"
               onClick={() => setRemoveOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs text-rd-text-tertiary hover:text-rd-coral-dark transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-rd-text-tertiary hover:text-rd-primary-dark transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Remove from pipeline
@@ -451,7 +451,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleRemove(); }}
               disabled={removing}
-              className="bg-rd-coral hover:bg-rd-coral-dark focus:ring-rd-coral text-white"
+              className="bg-rd-primary hover:bg-rd-primary-dark focus:ring-rd-primary text-white"
             >
               {removing ? "Removing…" : "Remove"}
             </AlertDialogAction>
@@ -477,7 +477,7 @@ function Section({ title, children }) {
 function BandTile({ band }) {
   const label = BAND_LABELS[band];
   const colorClass =
-    band === "high" ? "text-rd-coral" :
+    band === "high" ? "text-rd-primary" :
     band === "med"  ? "text-rd-text" :
                       "text-rd-text-tertiary";
   return (

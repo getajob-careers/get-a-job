@@ -260,7 +260,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
               }
             }}
             placeholder={placeholder || "Type and press Enter"}
-            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-rd-text-tertiary focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-rd-text-tertiary focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           />
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rounded-[12px] shadow-rd max-h-64 overflow-y-auto">
@@ -272,7 +272,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full text-left px-3.5 py-2.5 text-[13px] transition-colors ${
                     index === selectedIndex
-                      ? "bg-rd-coral-tint text-rd-text"
+                      ? "bg-rd-primary-tint text-rd-text"
                       : "text-rd-text-secondary hover:bg-rd-bg-soft"
                   }`}
                 >
@@ -301,7 +301,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
               <button
                 type="button"
                 onClick={() => remove(tag)}
-                className="hover:text-rd-coral-tint transition-colors"
+                className="hover:text-rd-primary-tint transition-colors"
                 aria-label={`Remove ${tag}`}
               >
                 <X className="w-3 h-3" />

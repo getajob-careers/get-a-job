@@ -190,7 +190,7 @@ function StoryThreadSubtree({ fixture }) {
           <button
             type="button"
             aria-label="Send message"
-            className="w-[42px] h-[42px] rounded-full bg-rd-coral text-white border-0 inline-flex items-center justify-center flex-shrink-0"
+            className="w-[42px] h-[42px] rounded-full bg-rd-primary text-white border-0 inline-flex items-center justify-center flex-shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>

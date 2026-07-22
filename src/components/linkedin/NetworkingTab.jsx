@@ -100,7 +100,7 @@ export default function NetworkingTab() {
           but doesn't switch views (Eli's ruling: keep stacked, don't
           change discoverability behavior). */}
       <div className="flex gap-2 flex-wrap" aria-hidden="true">
-        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-coral text-white">
+        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-primary text-white">
           Outreach Coach
         </span>
         <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary">

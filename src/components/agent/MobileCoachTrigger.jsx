@@ -17,7 +17,7 @@ export default function MobileCoachTrigger() {
       onClick={() => drawer.open({})}
       aria-label="Open your career coach"
       data-coach-mobile-trigger
-      className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white px-2.5 py-1.5 hover:bg-rd-coral-dark transition-colors"
+      className="inline-flex items-center gap-1 rounded-full bg-rd-primary text-white px-2.5 py-1.5 hover:bg-rd-primary-dark transition-colors"
     >
       <Sparkles className="w-3 h-3" aria-hidden="true" />
       <span className="font-display font-bold text-[11px] tracking-tight">Coach</span>

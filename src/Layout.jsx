@@ -123,7 +123,7 @@ function BrandMark() {
   return (
     <div className="inline-flex items-center gap-2 select-none">
       <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
         <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
@@ -302,7 +302,7 @@ function LayoutBody({ children, currentPageName }) {
       {nextDesign && !revealMode && (
         <div
           aria-hidden="true"
-          className="pointer-events-none fixed bottom-2 right-2 z-[60] rounded-sm bg-rd-coral px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-80 shadow-rd"
+          className="pointer-events-none fixed bottom-2 right-2 z-[60] rounded-sm bg-rd-primary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white opacity-80 shadow-rd"
         >
           NEXT
         </div>
@@ -441,7 +441,7 @@ function SidebarSection({
         className={cn(
           "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-display font-semibold transition-colors duration-150",
           isActive
-            ? "bg-rd-coral-tint text-rd-coral-dark"
+            ? "bg-rd-primary-tint text-rd-primary-dark"
             : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
         )}
       >
@@ -450,7 +450,7 @@ function SidebarSection({
         {isActive && (
           <span
             aria-hidden="true"
-            className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
+            className="w-1.5 h-1.5 rounded-full bg-rd-primary flex-shrink-0"
           />
         )}
       </Link>
@@ -494,7 +494,7 @@ function SidebarSection({
                 className={cn(
                   "flex items-center gap-2.5 px-3 py-2 rounded-md text-[12.5px] font-medium transition-colors duration-150",
                   isActive
-                    ? "bg-rd-coral-tint text-rd-coral-dark font-display font-semibold"
+                    ? "bg-rd-primary-tint text-rd-primary-dark font-display font-semibold"
                     : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
                 )}
               >
@@ -503,7 +503,7 @@ function SidebarSection({
                 {isActive && (
                   <span
                     aria-hidden="true"
-                    className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
+                    className="w-1.5 h-1.5 rounded-full bg-rd-primary flex-shrink-0"
                   />
                 )}
               </Link>

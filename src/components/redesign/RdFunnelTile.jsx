@@ -15,9 +15,9 @@ const FUNNEL_TONES = {
     label: "text-rd-text-secondary",
   },
   coral: {
-    bg: "bg-rd-coral-tint",
-    num: "text-rd-coral-dark",
-    label: "text-rd-coral-dark",
+    bg: "bg-rd-primary-tint",
+    num: "text-rd-primary-dark",
+    label: "text-rd-primary-dark",
   },
   teal: {
     bg: "bg-rd-teal-tint",

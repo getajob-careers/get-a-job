@@ -41,7 +41,7 @@ function renderInline(text, kp) {
           href={tok}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-rd-coral hover:text-rd-coral-dark font-medium break-words"
+          className="text-rd-primary hover:text-rd-primary-dark font-medium break-words"
         >
           {tok}
         </a>,
@@ -51,7 +51,7 @@ function renderInline(text, kp) {
         <a
           key={key}
           href={`mailto:${tok}`}
-          className="text-rd-coral hover:text-rd-coral-dark font-medium"
+          className="text-rd-primary hover:text-rd-primary-dark font-medium"
         >
           {tok}
         </a>,
@@ -236,7 +236,7 @@ export default function Privacy() {
       <div className="max-w-3xl mx-auto px-6 py-12 sm:py-16">
         <Link
           to="/"
-          className="text-rd-coral hover:text-rd-coral-dark text-sm font-medium inline-flex items-center gap-1"
+          className="text-rd-primary hover:text-rd-primary-dark text-sm font-medium inline-flex items-center gap-1"
         >
           ← Back to Get A Job
         </Link>
@@ -252,13 +252,13 @@ export default function Privacy() {
           <div className="flex items-center gap-4">
             <Link
               to="/terms"
-              className="text-rd-coral hover:text-rd-coral-dark font-medium"
+              className="text-rd-primary hover:text-rd-primary-dark font-medium"
             >
               Terms of Service
             </Link>
             <Link
               to="/"
-              className="text-rd-coral hover:text-rd-coral-dark font-medium"
+              className="text-rd-primary hover:text-rd-primary-dark font-medium"
             >
               Home
             </Link>

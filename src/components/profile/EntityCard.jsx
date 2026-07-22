@@ -13,7 +13,7 @@ import { Pencil, Trash2 } from "lucide-react";
 // teal for education).
 export default function EntityCard({
   icon,
-  iconBg = "bg-rd-coral-tint",
+  iconBg = "bg-rd-primary-tint",
   title,
   subtitle,
   statusBadge,
@@ -61,7 +61,7 @@ export default function EntityCard({
           <button
             type="button"
             onClick={onDelete}
-            className="inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-coral-dark hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors"
+            className="inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-primary-dark hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors"
             aria-label="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />

@@ -280,7 +280,7 @@ export default function CVManagement({ app, onUpdate }) {
                 setThinConfirmOpen(false);
                 runGenerateCV();
               }}
-              className="bg-rd-coral hover:bg-rd-coral-dark focus:ring-rd-coral text-white"
+              className="bg-rd-primary hover:bg-rd-primary-dark focus:ring-rd-primary text-white"
             >
               Generate anyway
             </AlertDialogAction>

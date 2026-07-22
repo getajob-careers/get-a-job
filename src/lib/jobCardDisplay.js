@@ -8,17 +8,17 @@
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 
 export const RD_TRACK_STYLES = {
-  coral:  { tint: "var(--rd-coral-tint)",  accent: "var(--rd-coral-dark)" },
+  coral:  { tint: "var(--rd-primary-tint)",  accent: "var(--rd-primary-dark)" },
   teal:   { tint: "var(--rd-teal-tint)",   accent: "var(--rd-teal-dark)" },
   golden: { tint: "var(--rd-golden-tint)", accent: "var(--rd-golden-dark)" },
-  green:  { tint: "var(--rd-coral-tint)",  accent: "var(--rd-coral-dark)" },
+  green:  { tint: "var(--rd-primary-tint)",  accent: "var(--rd-primary-dark)" },
   gray:   { tint: "var(--rd-teal-tint)",   accent: "var(--rd-teal-dark)" },
   amber:  { tint: "var(--rd-golden-tint)", accent: "var(--rd-golden-dark)" },
 };
 
 export const BAND_META = {
   strong:  { label: "Strong match", bg: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
-  good:    { label: "Good match",   bg: "var(--rd-coral-tint)",  fg: "var(--rd-coral-dark)" },
+  good:    { label: "Good match",   bg: "var(--rd-primary-tint)",  fg: "var(--rd-primary-dark)" },
   stretch: { label: "Stretch",      bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
   reach:   { label: "Reach",        bg: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
 };

@@ -76,7 +76,7 @@ export default function LinkedinOptimizer() {
                   className={[
                     "appearance-none border-0 bg-transparent font-display text-[15px] font-semibold cursor-pointer pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
                     selected
-                      ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                      ? "text-rd-text border-b-[2.5px] border-rd-primary"
                       : "text-rd-text-secondary border-b-[2.5px] border-transparent hover:text-rd-text",
                   ].join(" ")}
                 >

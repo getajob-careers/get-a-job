@@ -34,7 +34,7 @@ export default function CanvasCvGeneration() {
         ) : (
           <button
             type="button"
-            className="inline-flex items-center gap-1 rd-t-body-s font-display font-semibold text-rd-text hover:text-rd-coral transition-colors"
+            className="inline-flex items-center gap-1 rd-t-body-s font-display font-semibold text-rd-text hover:text-rd-primary transition-colors"
           >
             Master CV · Noa Ben-David
             <ChevronDown className="w-3.5 h-3.5 text-rd-text-tertiary" />
@@ -43,7 +43,7 @@ export default function CanvasCvGeneration() {
         <button
           type="button"
           onClick={() => gen?.start(done ? gen.label : undefined)}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-semibold rd-t-body-s text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-1.5 shadow-rd rd-press rd-btn-sheen focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-semibold rd-t-body-s text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 shadow-rd rd-press rd-btn-sheen focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1"
         >
           {done ? (
             <RotateCcw className="w-3.5 h-3.5" />

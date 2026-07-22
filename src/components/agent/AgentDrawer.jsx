@@ -84,7 +84,7 @@ export default function AgentDrawer() {
             (no filled badge), font-display label, X close on the right,
             hairline divider below. */}
         <div className="px-4 py-3 border-b border-rd-border-subtle flex items-center gap-2.5">
-          <Sparkles className="w-4 h-4 text-rd-coral flex-shrink-0" aria-hidden="true" strokeWidth={2} />
+          <Sparkles className="w-4 h-4 text-rd-primary flex-shrink-0" aria-hidden="true" strokeWidth={2} />
           <div className="flex-1 min-w-0">
             <p className="font-display font-bold text-[14px] text-rd-text leading-tight">Coach</p>
             <p className="text-[10.5px] text-rd-text-tertiary leading-tight">Same conversation as your sidebar dock</p>

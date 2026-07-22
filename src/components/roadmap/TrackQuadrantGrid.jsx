@@ -74,11 +74,11 @@ export default function TrackQuadrantGrid({ onTrackClick, counts }) {
 // so the cells inherit the warm-palette identity from one place.
 const CELL_STYLES = {
   coral: {
-    bg:      "var(--rd-coral-tint)",
-    badgeBg: "var(--rd-coral)",
+    bg:      "var(--rd-primary-tint)",
+    badgeBg: "var(--rd-primary)",
     title:   "#A8381A",
     body:    "#A8381A",
-    count:   "var(--rd-coral-dark)",
+    count:   "var(--rd-primary-dark)",
   },
   teal: {
     bg:      "var(--rd-teal-tint)",
@@ -109,7 +109,7 @@ function QuadrantCell({ track, count, onClick, emphasized = false }) {
         "rounded-[14px] px-3.5 py-3 min-h-[112px] flex flex-col text-left",
         "transition-[transform,box-shadow] duration-150",
         interactive ? "cursor-pointer hover:-translate-y-0.5 hover:shadow-rd" : "",
-        emphasized ? "ring-1 ring-rd-coral/20" : "",
+        emphasized ? "ring-1 ring-rd-primary/20" : "",
       ].join(" ")}
       style={{ background: styles.bg }}
     >

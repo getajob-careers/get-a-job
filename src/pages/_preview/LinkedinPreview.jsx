@@ -296,7 +296,7 @@ function PageShell({ tab = "posts", children }) {
               className={[
                 "font-display text-[15px] font-semibold pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
                 selected
-                  ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                  ? "text-rd-text border-b-[2.5px] border-rd-primary"
                   : "text-rd-text-secondary border-b-[2.5px] border-transparent",
               ].join(" ")}
             >

@@ -60,8 +60,8 @@ const CATEGORY_LABELS = {
   },
   project: {
     label: "Project",
-    tint: "var(--rd-coral-tint)",
-    fg: "var(--rd-coral-dark)",
+    tint: "var(--rd-primary-tint)",
+    fg: "var(--rd-primary-dark)",
   },
   networking: {
     label: "Networking",
@@ -115,9 +115,9 @@ const RD_CARD =
 const RD_CARD_LG =
   "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
 const RD_BTN_PRIMARY =
-  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 const RD_BTN_PRIMARY_SM =
-  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors";
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-3 py-1.5 transition-colors";
 const RD_BTN_GHOST_SM =
   "inline-flex items-center gap-1 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1 transition-colors";
 
@@ -356,7 +356,7 @@ export default function Tasks() {
   if (tasksError || profileError) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
-        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark flex items-center gap-2 max-w-md">
+        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark flex items-center gap-2 max-w-md">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           Failed to load tasks. Refresh the page to try again.
         </div>
@@ -417,7 +417,7 @@ export default function Tasks() {
       )}
 
       {generateError && !generating && (
-        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark mb-6 flex items-center justify-between gap-3 flex-wrap">
           <span>{generateError}</span>
           <button
             type="button"
@@ -470,7 +470,7 @@ export default function Tasks() {
                   className={[
                     "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
                     selected
-                      ? "bg-rd-coral text-white"
+                      ? "bg-rd-primary text-white"
                       : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
                   ].join(" ")}
                 >
@@ -484,7 +484,7 @@ export default function Tasks() {
 
       {tasks.length === 0 && (
         <div className={`${RD_CARD_LG} text-center`}>
-          <Brain className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+          <Brain className="w-10 h-10 text-rd-primary mx-auto mb-3" />
           <p className="font-display font-bold text-[15px] text-rd-text">
             No tasks assigned yet.
           </p>
@@ -554,8 +554,8 @@ export default function Tasks() {
                     <span
                       className="text-[10.5px] font-mono font-semibold uppercase tracking-[0.06em] px-2 py-0.5 rounded-full"
                       style={{
-                        background: "var(--rd-coral-tint)",
-                        color: "var(--rd-coral-dark)",
+                        background: "var(--rd-primary-tint)",
+                        color: "var(--rd-primary-dark)",
                       }}
                     >
                       High priority
@@ -582,7 +582,7 @@ export default function Tasks() {
                       type="date"
                       value={dateInputValue}
                       onChange={(e) => setDueDate(task, e.target.value || null)}
-                      className="px-3 py-1.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      className="px-3 py-1.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                       style={{ maxWidth: 180 }}
                       autoFocus
                     />
@@ -620,7 +620,7 @@ export default function Tasks() {
                 type="button"
                 onClick={() => deleteTask(task.id)}
                 disabled={deletingIds.has(task.id)}
-                className="flex-shrink-0 text-rd-text-tertiary hover:text-rd-coral-dark transition-colors disabled:opacity-50 mt-0.5"
+                className="flex-shrink-0 text-rd-text-tertiary hover:text-rd-primary-dark transition-colors disabled:opacity-50 mt-0.5"
                 aria-label="Delete task"
               >
                 {deletingIds.has(task.id) ? (
@@ -642,7 +642,7 @@ export default function Tasks() {
 function DueChip({ due }) {
   const tone =
     due.state === "overdue"
-      ? "bg-rd-coral-tint text-rd-coral-dark"
+      ? "bg-rd-primary-tint text-rd-primary-dark"
       : due.state === "today"
         ? "bg-rd-golden-tint text-rd-golden-dark"
         : "bg-rd-bg-soft text-rd-text-secondary";

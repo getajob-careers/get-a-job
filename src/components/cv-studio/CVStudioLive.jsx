@@ -1523,7 +1523,7 @@ export default function CVStudioLive({
           <button
             onClick={buildMaster}
             disabled={building || !profile}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rd-coral text-white text-[13px] font-display font-semibold hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rd-primary text-white text-[13px] font-display font-semibold hover:bg-rd-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {"Build my master CV"}
           </button>
@@ -1673,7 +1673,7 @@ function NoJdCard({
         </p>
 
         {applicationsError && (
-          <p className="text-[12px] text-rd-coral-dark leading-relaxed mb-4">
+          <p className="text-[12px] text-rd-primary-dark leading-relaxed mb-4">
             We couldn't load your tracked applications - this is a loading
             problem, not an empty list. Refresh and try again.
           </p>
@@ -1718,7 +1718,7 @@ function NoJdCard({
               onChange={(e) => setJd(e.target.value)}
               rows={6}
               placeholder="Paste the job description here…"
-              className="w-full px-3 py-2 rounded-lg border border-rd-border bg-rd-bg-card text-[12.5px] text-rd-text focus:outline-none focus:border-rd-coral resize-y"
+              className="w-full px-3 py-2 rounded-lg border border-rd-border bg-rd-bg-card text-[12.5px] text-rd-text focus:outline-none focus:border-rd-primary resize-y"
             />
             <div className="flex justify-end gap-2 mt-3">
               <button
@@ -1730,7 +1730,7 @@ function NoJdCard({
               <button
                 onClick={() => onPaste(jd.trim())}
                 disabled={!jd.trim()}
-                className="px-3 py-1.5 rounded-lg bg-rd-coral text-white text-[12.5px] font-display font-semibold hover:bg-rd-coral-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-rd-primary text-white text-[12.5px] font-display font-semibold hover:bg-rd-primary-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Tailor with this JD
               </button>

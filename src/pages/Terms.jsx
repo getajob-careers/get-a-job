@@ -26,7 +26,7 @@ export default function Terms() {
       <div className="max-w-3xl mx-auto px-6 py-12 sm:py-16">
         <Link
           to="/"
-          className="text-rd-coral hover:text-rd-coral-dark text-sm font-medium inline-flex items-center gap-1"
+          className="text-rd-primary hover:text-rd-primary-dark text-sm font-medium inline-flex items-center gap-1"
         >
           ← Back to Get A Job
         </Link>
@@ -40,11 +40,11 @@ export default function Terms() {
 
         <div className="mt-8 text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65]">
           <p>
-            These Terms of Service (the &ldquo;<strong>Terms</strong>&rdquo;) govern your access to and use of the Get A Job website at <a href="https://getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">getajob.careers</a> and the related products and services (collectively, the &ldquo;<strong>Service</strong>&rdquo;). The Service is operated by Get A Job (&ldquo;<strong>Get A Job</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>our</strong>,&rdquo; or &ldquo;<strong>us</strong>&rdquo;), based in Israel.
+            These Terms of Service (the &ldquo;<strong>Terms</strong>&rdquo;) govern your access to and use of the Get A Job website at <a href="https://getajob.careers" className="text-rd-primary hover:text-rd-primary-dark font-medium">getajob.careers</a> and the related products and services (collectively, the &ldquo;<strong>Service</strong>&rdquo;). The Service is operated by Get A Job (&ldquo;<strong>Get A Job</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>our</strong>,&rdquo; or &ldquo;<strong>us</strong>&rdquo;), based in Israel.
           </p>
           <p className="mt-3">
             By creating an account or using the Service, you agree to be bound by these Terms and by our{" "}
-            <Link to="/privacy" className="text-rd-coral hover:text-rd-coral-dark font-medium">Privacy Policy</Link>
+            <Link to="/privacy" className="text-rd-primary hover:text-rd-primary-dark font-medium">Privacy Policy</Link>
             . If you do not agree, do not use the Service.
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function Terms() {
             <li>Provide accurate and current information when creating your account and updating your profile;</li>
             <li>Keep your password confidential and not share your account;</li>
             <li>Notify us immediately at{" "}
-              <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">elienglard34@gmail.com</a>
+              <a href="mailto:elienglard34@gmail.com" className="text-rd-primary hover:text-rd-primary-dark font-medium">elienglard34@gmail.com</a>
               {" "}if you suspect unauthorized access;
             </li>
             <li>Comply with these Terms and all applicable laws.</li>
@@ -114,7 +114,7 @@ export default function Terms() {
           </p>
           <p>
             <strong className="font-display text-rd-text">Your content.</strong> You retain ownership of the content you submit to the Service - including your profile data, uploaded CVs, and any text you write. You grant Get A Job a worldwide, non-exclusive, royalty-free license to host, store, process, transmit, and display your content for the limited purpose of operating the Service and providing the features you have requested. This license includes the right to transmit your content to the subprocessors listed in our{" "}
-            <Link to="/privacy" className="text-rd-coral hover:text-rd-coral-dark font-medium">Privacy Policy</Link>
+            <Link to="/privacy" className="text-rd-primary hover:text-rd-primary-dark font-medium">Privacy Policy</Link>
             {" "}(for example, sending your profile and prompt to OpenAI to generate a CV). The license ends when you delete the relevant content or your account, except as required to comply with law or as described in the Privacy Policy.
           </p>
           <p>
@@ -176,7 +176,7 @@ export default function Terms() {
           </p>
           <p>
             Before starting formal proceedings, we encourage you to contact us at{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">elienglard34@gmail.com</a>
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-primary hover:text-rd-primary-dark font-medium">elienglard34@gmail.com</a>
             {" "}so we can try to resolve the issue informally.
           </p>
         </Section>
@@ -190,7 +190,7 @@ export default function Terms() {
         <Section id="misc" title="14. Miscellaneous">
           <p>
             These Terms (together with the{" "}
-            <Link to="/privacy" className="text-rd-coral hover:text-rd-coral-dark font-medium">Privacy Policy</Link>
+            <Link to="/privacy" className="text-rd-primary hover:text-rd-primary-dark font-medium">Privacy Policy</Link>
             ) are the entire agreement between you and Get A Job regarding the Service and supersede any prior agreements. If any provision is held unenforceable, the remaining provisions remain in effect. Our failure to enforce any right or provision is not a waiver of that right or provision. You may not assign these Terms without our prior written consent; we may assign them to a successor in connection with a merger, acquisition, or sale of assets.
           </p>
         </Section>
@@ -201,7 +201,7 @@ export default function Terms() {
           </p>
           <p>
             Email:{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-primary hover:text-rd-primary-dark font-medium">
               elienglard34@gmail.com
             </a>
           </p>
@@ -210,10 +210,10 @@ export default function Terms() {
         <footer className="mt-16 pt-6 border-t border-rd-border-subtle flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-rd-text-tertiary">
           <span>© 2026 Get A Job</span>
           <div className="flex items-center gap-4">
-            <Link to="/privacy" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+            <Link to="/privacy" className="text-rd-primary hover:text-rd-primary-dark font-medium">
               Privacy Policy
             </Link>
-            <Link to="/" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+            <Link to="/" className="text-rd-primary hover:text-rd-primary-dark font-medium">
               Home
             </Link>
           </div>

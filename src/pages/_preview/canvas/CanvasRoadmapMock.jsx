@@ -29,11 +29,11 @@ const REDUCE =
 const TIERS = {
   sweet: {
     name: "Sweet spot",
-    dot: "bg-rd-coral",
-    badgeBg: "bg-rd-coral-tint",
-    badgeInk: "text-rd-coral-dark",
-    fill: "var(--rd-coral)",
-    track: "var(--rd-coral-tint)",
+    dot: "bg-rd-primary",
+    badgeBg: "bg-rd-primary-tint",
+    badgeInk: "text-rd-primary-dark",
+    fill: "var(--rd-primary)",
+    track: "var(--rd-primary-tint)",
   },
   growth: {
     name: "Growth",
@@ -194,7 +194,7 @@ function RoleCard({ role, open, drawn, onToggle }) {
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="relative w-full text-left px-3.5 py-3 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-inset"
+        className="relative w-full text-left px-3.5 py-3 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-inset"
       >
         <span className={`w-2 h-2 rounded-full flex-shrink-0 ${tier.dot}`} />
         <span className="flex-1 min-w-0 font-display font-bold rd-t-body-m leading-tight text-rd-text truncate">
@@ -252,7 +252,7 @@ function RoleCard({ role, open, drawn, onToggle }) {
             <div className="flex items-center justify-between gap-3 mt-3">
               <button
                 type="button"
-                className="inline-flex items-center gap-1 rd-t-micro font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
+                className="inline-flex items-center gap-1 rd-t-micro font-medium text-rd-primary-dark hover:text-rd-text transition-colors"
               >
                 Full role detail
                 <ChevronRight className="w-3 h-3" aria-hidden="true" />

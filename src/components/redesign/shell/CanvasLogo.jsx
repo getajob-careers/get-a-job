@@ -29,8 +29,8 @@ function LogoDefs({ id, top, bottom }) {
             coral logo on a blue product. Clay's value is the old #EC6A47
             verbatim, so Clay is pixel-identical. */}
         <stop offset="0%" stopColor="var(--rd-logo-hi)" />
-        <stop offset="42%" stopColor="var(--rd-coral)" />
-        <stop offset="100%" stopColor="var(--rd-coral-dark)" />
+        <stop offset="42%" stopColor="var(--rd-primary)" />
+        <stop offset="100%" stopColor="var(--rd-primary-dark)" />
       </linearGradient>
       <linearGradient
         id={`${id}-ink`}
@@ -175,7 +175,7 @@ export const LOGOTYPE = {
 export default function CanvasLogo({ variant = "clay", size = 30 }) {
   const blue = variant === "blue";
   const ink = blue ? "#16245c" : "var(--rd-text)";
-  const accent = blue ? "#2563eb" : "var(--rd-coral)";
+  const accent = blue ? "#2563eb" : "var(--rd-primary)";
   // ONE mark, every size (no size split). Clay = the official brand mark in the
   // object material; blue stays a flat reference.
   const material = !blue;

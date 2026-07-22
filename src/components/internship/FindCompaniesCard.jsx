@@ -71,8 +71,8 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
   return (
     <div className="bg-rd-bg-card rounded-[14px] border border-rd-border p-5 mb-5 shadow-rd">
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-[10px] bg-rd-coral-tint flex items-center justify-center flex-shrink-0">
-          <Search className="w-5 h-5 text-rd-coral" />
+        <div className="w-10 h-10 rounded-[10px] bg-rd-primary-tint flex items-center justify-center flex-shrink-0">
+          <Search className="w-5 h-5 text-rd-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <h2 className="text-base font-display font-bold text-rd-text mb-1">Find companies that match your pitch</h2>
@@ -83,7 +83,7 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
             type="button"
             onClick={handleFind}
             disabled={running || disabled}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-bold bg-rd-primary hover:bg-rd-primary-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
             title={disabled ? disabledReason : ""}
           >
             {running ? (

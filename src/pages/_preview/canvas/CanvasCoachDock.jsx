@@ -22,7 +22,7 @@ import { reveal } from "./stagger";
 import { CANVAS_COACH_MESSAGES } from "../fixtures/canvasHome";
 
 const WARM_GRADIENT =
-  "linear-gradient(155deg, var(--rd-bg-card) 35%, var(--rd-coral-tint) 135%)";
+  "linear-gradient(155deg, var(--rd-bg-card) 35%, var(--rd-primary-tint) 135%)";
 const GRAIN_URL =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
 
@@ -107,7 +107,7 @@ function CoachBody({ messages, streaming, onSend, expanded, onToggleExpand }) {
       {/* Header */}
       <div className="flex items-center gap-2 px-3 h-9 border-b border-rd-border-subtle flex-shrink-0">
         <Sparkles
-          className="w-4 h-4 text-rd-coral flex-shrink-0"
+          className="w-4 h-4 text-rd-primary flex-shrink-0"
           aria-hidden="true"
           strokeWidth={2}
         />
@@ -144,7 +144,7 @@ function CoachBody({ messages, streaming, onSend, expanded, onToggleExpand }) {
             <div
               className={`${expanded ? "max-w-[75%]" : "max-w-[88%]"} rd-r-md px-3 py-2 rd-t-body-m leading-[1.55] ${
                 m.role === "user"
-                  ? "bg-rd-coral text-white rd-btn-sheen"
+                  ? "bg-rd-primary text-white rd-btn-sheen"
                   : "rd-lift text-rd-text"
               }`}
             >
@@ -199,7 +199,7 @@ function CoachBody({ messages, streaming, onSend, expanded, onToggleExpand }) {
           </div>
         )}
 
-        <div className="rd-well rd-r-md flex items-end gap-1.5 px-2.5 py-2 transition-shadow focus-within:ring-2 focus-within:ring-rd-coral/35">
+        <div className="rd-well rd-r-md flex items-end gap-1.5 px-2.5 py-2 transition-shadow focus-within:ring-2 focus-within:ring-rd-primary/35">
           <Search
             className="w-4 h-4 text-rd-text-tertiary flex-shrink-0 mb-0.5"
             aria-hidden="true"
@@ -221,7 +221,7 @@ function CoachBody({ messages, streaming, onSend, expanded, onToggleExpand }) {
             onClick={submit}
             disabled={!draft.trim()}
             aria-label="Send"
-            className="inline-flex items-center justify-center w-7 h-7 flex-shrink-0 rounded-full bg-rd-coral text-white hover:bg-rd-coral-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center w-7 h-7 flex-shrink-0 rounded-full bg-rd-primary text-white hover:bg-rd-primary-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ArrowUp className="w-4 h-4" aria-hidden="true" />
           </button>
