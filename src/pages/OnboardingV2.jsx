@@ -54,39 +54,17 @@ const SITUATIONS = [
   { value: "freelancing", label: "Freelancing", Icon: Sparkles },
 ];
 
-// Zero-dep "reading your CV" affordance: an SVG ring that draws itself via
-// stroke-dashoffset (per the motion treatment — stroke-draw, no library).
-// prefers-reduced-motion removes the animation (see the inline <style>).
-function ReadingAffordance() {
-  return (
-    <div className="flex items-center justify-center py-2" aria-hidden="true">
-      <svg width="40" height="40" viewBox="0 0 40 40" className="onbv2-draw">
-        <circle
-          cx="20"
-          cy="20"
-          r="16"
-          fill="none"
-          stroke="var(--rd-primary)"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray="100"
-          strokeDashoffset="100"
-        />
-      </svg>
-      <style>{`
-        .onbv2-draw circle { animation: onbv2-draw 1.4s ease-in-out infinite; }
-        @keyframes onbv2-draw {
-          0% { stroke-dashoffset: 100; }
-          60% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: -100; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .onbv2-draw circle { animation: none; stroke-dashoffset: 0; }
-        }
-      `}</style>
-    </div>
-  );
-}
+// Map the V2 single-select situation to V1's employment_status enum so V2 writes
+// the same profiles column V1 does. In V1 the writer is StepResumeUpload's own
+// situation selector, which the chromeless embed suppresses — so V2's row takes
+// over that write. Values mirror StepResumeUpload's EMPLOYMENT_OPTIONS.
+const SITUATION_TO_EMPLOYMENT = {
+  student: "student",
+  have_job: "employed",
+  looking: "looking_for_job",
+  unemployed: "unemployed",
+  freelancing: "freelance",
+};
 
 export default function OnboardingV2() {
   const navigate = useNavigate();
@@ -365,7 +343,13 @@ export default function OnboardingV2() {
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setSituation(value)}
+                      onClick={() => {
+                        setSituation(value);
+                        setProfileData((p) => ({
+                          ...p,
+                          employment_status: [SITUATION_TO_EMPLOYMENT[value]],
+                        }));
+                      }}
                       className={`flex flex-col items-center gap-1.5 rounded-[14px] border p-2.5 transition-colors ${
                         situation === value
                           ? "border-rd-primary bg-rd-primary-tint"
@@ -382,12 +366,15 @@ export default function OnboardingV2() {
               </div>
 
               <div className="mt-6">
-                <ReadingAffordance />
-                {/* Reuse the hardened upload + extraction pipeline. deferProofSignals
-                    (decision (a)) runs proof-signals in the background so we don't
-                    block on their tail; onNext advances to direction while
-                    extraction may still be finishing. */}
+                {/* Reuse the hardened upload + extraction pipeline in a
+                    chromeless embed — the shell above already provides the
+                    header, progress, and situation row, so StepResumeUpload
+                    renders only the dropzone. deferProofSignals (decision (a))
+                    runs proof-signals in the background so we don't block on
+                    their tail; onNext advances to direction while extraction
+                    may still be finishing. */}
                 <StepResumeUpload
+                  chromeless
                   profileData={profileData}
                   onChange={(patch) =>
                     setProfileData((p) => ({ ...p, ...patch }))

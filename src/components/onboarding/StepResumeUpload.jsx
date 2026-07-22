@@ -131,6 +131,14 @@ export default function StepResumeUpload({
   // failure moment and to emit onboarding_cv_extract_failed.
   onExtractStart,
   onExtractFailed,
+  // Onboarding V2 (additive; V1 passes neither, so behaviour is byte-identical):
+  // when true, suppress this component's OWN page chrome — the LinkedIn export
+  // banner, the eyebrow/heading/subcopy block, and the employment-situation
+  // selector — leaving ONLY the upload dropzone + its extraction states. The V2
+  // shell (OnboardingV2 screen 0) already renders its own header, progress, and
+  // situation row, so without this the two stack and duplicate. Default false =
+  // legacy V1 rendering, unchanged.
+  chromeless = false,
 }) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -495,8 +503,8 @@ export default function StepResumeUpload({
     <div className="space-y-7">
       {/* Dismissible LinkedIn export reminder — surfaces early so users can
           request the export now and have it ready when LinkedIn Hub needs it
-          a few hours later. */}
-      {!liExportDismissed && (
+          a few hours later. Suppressed in the V2 chromeless embed. */}
+      {!chromeless && !liExportDismissed && (
         <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] p-3.5 pr-10 text-[13px] text-rd-primary-dark flex items-start gap-3 relative">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div className="flex-1 leading-relaxed">
@@ -528,58 +536,63 @@ export default function StepResumeUpload({
         </div>
       )}
 
-      <div>
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 1 of 6 · your cv
-        </p>
-        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
-          Let&apos;s start with your CV.
-        </h1>
-        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Drop your CV and we&apos;ll extract everything from it - no manual
-          entry needed.
-        </p>
-      </div>
+      {!chromeless && (
+        <div>
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            step 1 of 6 · your cv
+          </p>
+          <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+            Let&apos;s start with your CV.
+          </h1>
+          <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
+            Drop your CV and we&apos;ll extract everything from it - no manual
+            entry needed.
+          </p>
+        </div>
+      )}
 
-      {/* Employment status — 5 visual cards. XOR rules preserved. */}
-      <div>
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow">
-          Your current situation
-        </p>
-        <div className="mt-2.5 grid grid-cols-2 md:grid-cols-5 gap-2.5">
-          {EMPLOYMENT_OPTIONS.map(({ value, label, Icon }) => {
-            const isSelected = selected.has(value);
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => toggleEmploymentStatus(value)}
-                data-selected={isSelected}
-                className={[
-                  "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
-                  isSelected
-                    ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
-                    : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
-                ].join(" ")}
-              >
-                <div
+      {/* Employment status — 5 visual cards. XOR rules preserved. Suppressed
+          in the V2 chromeless embed (the V2 shell owns the situation row). */}
+      {!chromeless && (
+        <div>
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow">
+            Your current situation
+          </p>
+          <div className="mt-2.5 grid grid-cols-2 md:grid-cols-5 gap-2.5">
+            {EMPLOYMENT_OPTIONS.map(({ value, label, Icon }) => {
+              const isSelected = selected.has(value);
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => toggleEmploymentStatus(value)}
+                  data-selected={isSelected}
                   className={[
-                    "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                    "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                     isSelected
-                      ? "bg-rd-primary text-white"
-                      : "bg-rd-bg-soft text-rd-text-secondary",
+                      ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
+                      : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
                   ].join(" ")}
                 >
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="text-[12px] font-display font-semibold text-rd-text text-center leading-tight">
-                  {label}
-                </span>
-              </button>
-            );
-          })}
+                  <div
+                    className={[
+                      "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                      isSelected
+                        ? "bg-rd-primary text-white"
+                        : "bg-rd-bg-soft text-rd-text-secondary",
+                    ].join(" ")}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[12px] font-display font-semibold text-rd-text text-center leading-tight">
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Drop zone — primary action on the page */}
       <div
