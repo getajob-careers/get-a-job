@@ -8,6 +8,7 @@
 import { describe, it, expect } from "vitest";
 import { writeProfileEntity, undoProfileWrite } from "@/lib/writeProfileEntity";
 import { createSerializedWriter } from "@/lib/serializedWriteThrough";
+import { revertCvDataField } from "@/lib/revertCvDataField";
 import {
   runMediatedWrite,
   buildAuditRow,
@@ -356,5 +357,130 @@ describe("CV RED write-layer fix (drift baseline + serialization)", () => {
     await b;
     expect(bStarted).toBe(true); // b did not wait on a's unrelated key
     await a;
+  });
+});
+
+// Item 1 (second undo path). The top-bar Undo used to restore the ENTIRE
+// pre-edit model to cv_data, so undoing one field clobbered another field that
+// had drifted from the snapshot (Eli's cert drive: undoing a summary edit reset
+// the bullets to the ancient pre-enrichment value while the source kept his
+// edit). revertCvDataField reverts ONLY the edited field.
+describe("revertCvDataField - single-field undo never clobbers other fields (item 1)", () => {
+  it("undoing summary reverts summary only and keeps the current bullets (the exact cert-drive bug)", () => {
+    // prev = the snapshot captured at the summary edit; its bullets are STALE
+    // (the ancient pre-enrichment value). current = the live model with the
+    // user's real bullet edit still present.
+    const prev = {
+      summary: "Original summary.",
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          bullets: [
+            { id: "b1", text: "I helped vip clients fix their problems" },
+          ],
+        },
+      ],
+    };
+    const current = {
+      summary: "Edited summary.",
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          bullets: [
+            { id: "b1", text: "Improved average answer times by 40 percent" },
+          ],
+        },
+      ],
+    };
+    const next = revertCvDataField(current, prev, "summary", null);
+    expect(next.summary).toBe("Original summary."); // summary reverted
+    // bullets NOT clobbered back to the ancient snapshot:
+    expect(next.experiences[0].bullets[0].text).toBe(
+      "Improved average answer times by 40 percent",
+    );
+  });
+
+  it("undoing exp_bullets reverts that experience's bullets, preserves a later title edit", () => {
+    const prev = {
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          title: "T",
+          bullets: [{ id: "b1", text: "old" }],
+        },
+      ],
+    };
+    const current = {
+      header: {},
+      experiences: [
+        {
+          id: "m1",
+          __src: { experience_id: "e1" },
+          title: "T-edited",
+          bullets: [{ id: "b1", text: "new" }],
+        },
+      ],
+    };
+    const next = revertCvDataField(current, prev, "exp_bullets", "e1");
+    expect(next.experiences[0].bullets[0].text).toBe("old"); // bullets reverted
+    expect(next.experiences[0].title).toBe("T-edited"); // later title edit preserved
+  });
+
+  it("undoing a header field reverts only that key", () => {
+    const prev = { header: { name: "Old Name", headline: "H" }, summary: "s" };
+    const current = {
+      header: { name: "New Name", headline: "H2" },
+      summary: "s2",
+    };
+    const next = revertCvDataField(current, prev, "full_name", null);
+    expect(next.header.name).toBe("Old Name");
+    expect(next.header.headline).toBe("H2"); // untouched
+    expect(next.summary).toBe("s2"); // untouched
+  });
+});
+
+// Item 4. A blur that commits an unedited field logged prior==new rows (nine in
+// Eli's session). Skip the write, the audit, and the undo token when the value
+// is unchanged from what the user saw.
+describe("no-op writes are skipped (item 4)", () => {
+  it("skips the write, the audit row, and the undo token when value == what the user saw", async () => {
+    const supabase = mockSupabase({
+      profiles: [{ id: "u1", summary: "Same summary.", updated_at: "v1" }],
+    });
+    const res = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "summary",
+      newValue: "Same summary.",
+      priorOverride: "Same summary.", // what the user saw == new value
+    });
+    expect(res.ok).toBe(true);
+    expect(res.noop).toBe(true);
+    expect(res.undo_token).toBeUndefined();
+    expect(supabase._tables.profile_edits).toHaveLength(0);
+  });
+
+  it("still writes a genuine edit even when the new value matches a DRIFTED source (noop compares baseline, not source)", async () => {
+    // baseline (what the user saw) = "A"; source drifted to "B"; user types "B".
+    // vs the source this looks like a no-op, but vs what the user saw it is a
+    // real edit, so it must write + log.
+    const supabase = mockSupabase({
+      profiles: [{ id: "u1", summary: "B", updated_at: "v1" }],
+    });
+    const res = await writeProfileEntity(supabase, {
+      userId: "u1",
+      field: "summary",
+      newValue: "B",
+      priorOverride: "A",
+    });
+    expect(res.noop).toBeFalsy();
+    expect(res.ok).toBe(true);
+    expect(supabase._tables.profile_edits).toHaveLength(1);
+    expect(res.undo_token.prior).toBe("A"); // baselined on what the user saw
   });
 });

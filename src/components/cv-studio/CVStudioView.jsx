@@ -261,7 +261,7 @@ function ExperienceEntry({
           onClick={onDelete}
           aria-label="Delete this experience"
           title="Delete this experience"
-          className="absolute right-[-4px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
+          className="absolute right-[-28px] top-0 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark transition-opacity"
         >
           <Trash2 className="w-3.5 h-3.5" />
         </button>

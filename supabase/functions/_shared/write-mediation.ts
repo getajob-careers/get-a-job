@@ -149,6 +149,14 @@ export function isDestructive(prior: unknown, next: unknown): boolean {
   return false;
 }
 
+// Structural value equality for the JSON values fields hold (strings, string
+// arrays, small objects). Order-sensitive by design: reordering bullets IS a
+// change. Used to skip no-op writes (a blur that commits an unedited field).
+export function valuesEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  return JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
+
 function isEmptyValue(v: unknown): boolean {
   if (v == null) return true;
   if (typeof v === "string") return v.trim() === "";
@@ -215,6 +223,7 @@ export interface MediateResult {
   error?: string;
   conflict?: boolean;
   needsConfirm?: boolean;
+  noop?: boolean;
   prior_value?: unknown;
   new_value?: unknown;
   current_value?: unknown;
@@ -262,6 +271,13 @@ export async function runMediatedWrite(db: WriteDb, input: MediateInput): Promis
       return { ok: false, error: gate.reason || "Content rejected by the anti-fabrication gate." };
     valueToWrite = gate.value;
   }
+
+  // No-op: the value is unchanged from what the caller saw (baseline). A blur
+  // that commits an unedited field must not write, must not log a prior==new
+  // audit row, and must not mint an undo token / push an undo entry. Compared
+  // against `baseline` (what the user saw), not the source read, so a genuine
+  // edit that happens to re-converge with a drifted source still writes.
+  if (valuesEqual(baseline, valueToWrite)) return { ok: true, noop: true };
 
   if (!input.confirmed && isDestructive(baseline, valueToWrite))
     return { ok: false, needsConfirm: true, prior_value: baseline, new_value: valueToWrite };

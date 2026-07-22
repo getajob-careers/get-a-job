@@ -55,6 +55,7 @@ import {
   restoreProfileRow,
 } from "@/lib/writeProfileEntity";
 import { createSerializedWriter } from "@/lib/serializedWriteThrough";
+import { revertCvDataField } from "@/lib/revertCvDataField";
 import { useSeededCvModel } from "@/components/cv-studio/useSeededCvModel";
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -370,11 +371,20 @@ export default function CVStudioLive({
           toast.error(res.error || "Couldn't save that to your profile.");
           return;
         }
+        // No diff from what the user saw: nothing was written or logged, so
+        // there is nothing to undo (item 4 - a blur on an unedited field must
+        // not push a spurious undo entry).
+        if (res.noop) return;
         if (res.audit_ok === false)
           toast("Saved, but the change history couldn't be recorded.");
         pushUndo({
           label: label || field,
           prevModel,
+          // field + entityId let onUndo revert ONLY this field in cv_data
+          // (surgically, matching the mediated source revert), instead of
+          // clobbering the whole model - the item-1 divergence fix.
+          field,
+          entityId,
           revertSource: () =>
             undoProfileWrite(supabase, {
               userId: user.id,
@@ -400,10 +410,24 @@ export default function CVStudioLive({
       toast.error(res.error || "Couldn't undo that change.");
       return;
     }
-    modelRef.current = entry.prevModel;
-    setModel(entry.prevModel);
+    // Revert ONLY the field this entry changed (matching the mediated source
+    // revert above), never the whole pre-edit model: a whole-model persist was
+    // the item-1 bug - it clobbered cv_data fields (e.g. bullets) that had
+    // drifted from the snapshot, diverging the stores with an unlogged write.
+    // Structural entries (row add/delete/reorder) carry no `field`; they still
+    // restore their pre-edit model, which IS the structure they changed.
+    const restored = entry.field
+      ? revertCvDataField(
+          modelRef.current,
+          entry.prevModel,
+          entry.field,
+          entry.entityId,
+        )
+      : entry.prevModel;
+    modelRef.current = restored;
+    setModel(restored);
     setEditVersion((v) => v + 1);
-    persist(selectedCvId, entry.prevModel);
+    persist(selectedCvId, restored);
     queryClient.invalidateQueries({ queryKey: experiencesQueryKey(user?.id) });
     queryClient.invalidateQueries({ queryKey: educationQueryKey(user?.id) });
     queryClient.invalidateQueries({ queryKey: profileQueryKey(user?.id) });
