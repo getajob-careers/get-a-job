@@ -1478,7 +1478,7 @@ export default function CVStudioView({
             Agent panel; onRevisePiece carries the AI-edit capability the panel
             used to own onto the document itself. */}
           {rightRail ? (
-            <aside className="w-full lg:w-[336px] shrink-0 max-h-[45vh] lg:max-h-none border-t lg:border-t-0 lg:border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
+            <aside className="w-full xl:w-[336px] shrink-0 max-h-[45vh] xl:max-h-none border-t xl:border-t-0 xl:border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0 overflow-hidden">
               {rightRail}
             </aside>
           ) : (
@@ -1590,13 +1590,14 @@ export default function CVStudioView({
 }
 
 // The document + matched-roles lanes. With a rail present they are a responsive
-// pair (side by side on wide >=lg, matched-roles stacked BELOW the document on
-// narrow); with no rail (flag off) this is a Fragment so main + aside stay
-// direct children of the row and the flag-off layout is byte-identical.
+// pair (side by side on wide >=xl, matched-roles stacked BELOW the document
+// under 1280px so the document stays the hero on laptop widths); with no rail
+// (flag off) this is a Fragment so main + aside stay direct children of the row
+// and the flag-off layout is byte-identical.
 function LaneGroup({ stacked, children }) {
   if (!stacked) return <>{children}</>;
   return (
-    <div className="flex-1 flex flex-col lg:flex-row min-w-0 min-h-0">
+    <div className="flex-1 flex flex-col xl:flex-row min-w-0 min-h-0">
       {children}
     </div>
   );
