@@ -23,7 +23,8 @@ Owned paths:
 - **#670** scaffold · **#671** inference module · **#672** screen 0 (upload) · **#674** order-revert · **#675** direction screen — **ALL MERGED** to main.
 - Migration `20260722_profiles_primary_domain_source.sql` — **APPLIED live** (verified 2026-07-22: `text`, nullable, `CHECK IN ('extracted','inferred')`).
 - **#677** (design lane): `rd-coral`→`rd-primary` rename — **HELD**, queued behind this lane's merges; its rebase sweep absorbs our `rd-coral` refs. **Do not rename yourself.**
-- **PR 5** = onboarding V2 **review screen (index 1)** — IN PROGRESS.
+- **PR 5 = #679** onboarding V2 **review screen (index 1)** — **HELD** (built: watch → count-up reveal / failure floor, `StepReview` reuse, `mapExtractedToOnboarding` seed, profiles persist + `extracted` stamp keystone). Awaiting review.
+- **PR 6 (next)** = entity-TABLE persistence (experiences/education/projects/certifications). **Fork for Eli:** extract a SHARED persist helper (V1+V2) vs. V2 duplicate — recommend shared. Skills already survive via `skills_canonical`.
 
 ## V2 shell state (on main)
 
@@ -55,9 +56,10 @@ Mockup order: `0 cv_upload · 1 review · 2 direction · 3 springboard`.
 
 ## Next actions
 
-1. Build PR 5 (persistence-first, then wait / success / failure UX). Hold PR; gates green.
-2. After #677 lands: switch this lane's classes to `rd-primary`.
-3. Springboard (screen 3) + rollout flag flip are later CV-lane slices.
+1. Await review on #679 (PR 5). No deploy.
+2. PR 6: entity-table persistence — get Eli's ruling on shared-helper vs. duplicate first.
+3. After #677 lands: switch this lane's classes to `rd-primary` (rebase absorbs it).
+4. Springboard (screen 3) + rollout flag flip are later CV-lane slices.
 
 ## Open questions
 
