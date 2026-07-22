@@ -1,64 +1,93 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  GraduationCap,
+  Briefcase,
+  Search,
+  Ban,
+  Sparkles,
+} from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
+import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 
 // Onboarding V2 — the reordered 4-screen shell (behind the ONBOARDING_V2 flag).
-//
-// This PR is the SCAFFOLD: the flag, the reordered screen sequence, the shell
-// chrome, and the born-instrumented event wiring. Each screen's real body +
-// data/persistence + motion lands in its own scoped PR (per the build plan).
-// Flag-off, the legacy Onboarding renders byte-identically (see OnboardingEntry).
 //
 // Sequence + step_index follow the ACCEPTED reorder so extraction can overlap
 // the direction pickers (review needs extraction, direction does not):
 //   0 cv_upload -> 1 direction -> 2 review -> 3 springboard
-// step_index is the position in THIS sequence; `name` carries the semantics.
+//
+// Screen 0 (cv_upload) is BUILT here: situation selector + the reused
+// StepResumeUpload (with deferProofSignals per decision (a) — proof-signals run
+// in the background so we never block on their p90-25s/p99-48s tail) + a zero-dep
+// stroke-draw reading affordance + the born-instrumented events. Screens 1-3
+// remain scaffold placeholders (their PRs follow). Persistence of the extracted
+// data lands with the review-screen PR; here it is held in shell state.
 const SCREENS = [
-  {
-    index: 0,
-    name: "cv_upload",
-    eyebrow: "your CV",
-    title: "Let’s start with your CV.",
-    sub: "Drop your CV and we’ll extract everything from it — no manual entry.",
-  },
-  {
-    index: 1,
-    name: "direction",
-    eyebrow: "direction & preferences",
-    title: "Where do you want to go?",
-    sub: "Your goal anchors every recommendation. We’re reading your CV in the background while you answer.",
-  },
-  {
-    index: 2,
-    name: "review",
-    eyebrow: "review what we found",
-    title: "Review and confirm.",
-    sub: "Here’s what we pulled from your CV. Confirm or fix, then continue.",
-  },
-  {
-    index: 3,
-    name: "springboard",
-    eyebrow: "you’re set",
-    title: "Your workspace is ready.",
-    sub: "We’ve built your profile. Jump in.",
-  },
+  { index: 0, name: "cv_upload", eyebrow: "your CV" },
+  { index: 1, name: "direction", eyebrow: "direction & preferences" },
+  { index: 2, name: "review", eyebrow: "review what we found" },
+  { index: 3, name: "springboard", eyebrow: "you’re set" },
 ];
+
+const SITUATIONS = [
+  { value: "student", label: "Student", Icon: GraduationCap },
+  { value: "have_job", label: "Have a job", Icon: Briefcase },
+  { value: "looking", label: "Looking", Icon: Search },
+  { value: "unemployed", label: "Unemployed", Icon: Ban },
+  { value: "freelancing", label: "Freelancing", Icon: Sparkles },
+];
+
+// Zero-dep "reading your CV" affordance: an SVG ring that draws itself via
+// stroke-dashoffset (per the motion treatment — stroke-draw, no library).
+// prefers-reduced-motion removes the animation (see the inline <style>).
+function ReadingAffordance() {
+  return (
+    <div className="flex items-center justify-center py-2" aria-hidden="true">
+      <svg width="40" height="40" viewBox="0 0 40 40" className="onbv2-draw">
+        <circle
+          cx="20"
+          cy="20"
+          r="16"
+          fill="none"
+          stroke="var(--rd-coral)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray="100"
+          strokeDashoffset="100"
+        />
+      </svg>
+      <style>{`
+        .onbv2-draw circle { animation: onbv2-draw 1.4s ease-in-out infinite; }
+        @keyframes onbv2-draw {
+          0% { stroke-dashoffset: 100; }
+          60% { stroke-dashoffset: 0; }
+          100% { stroke-dashoffset: -100; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .onbv2-draw circle { animation: none; stroke-dashoffset: 0; }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function OnboardingV2() {
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
+  const [situation, setSituation] = useState(null);
+  // Minimal profile-shape state so StepResumeUpload's onChange/profileData
+  // contract is satisfied; full persistence lands with the review-screen PR.
+  const [profileData, setProfileData] = useState({});
+  const [, setExtracted] = useState(null);
+
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;
 
-  // onboarding_started once, on mount (mirrors the legacy flow's first event).
   useEffect(() => {
     track(EVENTS.ONBOARDING_STARTED, { flow: "v2" });
   }, []);
 
-  // onboarding_screen_viewed on every screen arrival — the born-instrumented
-  // rule (viewed on arrival, completed on advance) that makes within-step
-  // abandonment measurable, unlike the legacy completed-only signal.
   useEffect(() => {
     track(EVENTS.ONBOARDING_SCREEN_VIEWED, {
       screen: screen.name,
@@ -75,8 +104,6 @@ export default function OnboardingV2() {
     });
     if (isLast) {
       track(EVENTS.ONBOARDING_LAUNCHED_TO_HOME, { flow: "v2" });
-      // ?welcome=1 is the cross-lane arrival handoff; today's Home ignores it,
-      // the Home-redesign lane reads it to play the first-landing entrance.
       navigate("/Home?welcome=1", { replace: true });
       return;
     }
@@ -99,8 +126,6 @@ export default function OnboardingV2() {
             {counter}
           </span>
         </div>
-
-        {/* progress rail */}
         <div className="flex gap-1.5 mb-8" aria-hidden="true">
           {SCREENS.map((s) => (
             <div
@@ -116,30 +141,89 @@ export default function OnboardingV2() {
           <p className="text-[11px] font-medium text-rd-coral uppercase tracking-wide mb-2">
             {screen.eyebrow}
           </p>
-          <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
-            {screen.title}
-          </h1>
-          <p className="text-[13.5px] text-rd-text-secondary mt-2">
-            {screen.sub}
-          </p>
 
-          {/* Scaffold placeholder — the real screen body lands in its own PR. */}
-          <div className="mt-8 rounded-[18px] border border-dashed border-rd-border bg-rd-bg-card p-8 text-center">
-            <p className="text-[12.5px] text-rd-text-tertiary">
-              {screen.name} content — built in a later scoped PR.
-            </p>
-          </div>
-        </div>
+          {screen.name === "cv_upload" ? (
+            <>
+              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
+                Let’s start with your CV.
+              </h1>
+              <p className="text-[13.5px] text-rd-text-secondary mt-2">
+                Drop your CV and we’ll extract everything from it — no manual
+                entry. You can also skip and fill in the essentials yourself.
+              </p>
 
-        <div className="pt-8 flex justify-end">
-          <button
-            type="button"
-            onClick={advance}
-            className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
-          >
-            {isLast ? "Go to my workspace" : "Continue"}
-            <ArrowRight className="w-4 h-4" />
-          </button>
+              {/* Situation selector — sets employment context (feeds the domain
+                  inference + track classification later). */}
+              <div className="mt-6">
+                <p className="text-[11px] font-medium text-rd-text-tertiary uppercase tracking-wide mb-2.5">
+                  Your current situation
+                </p>
+                <div className="grid grid-cols-5 gap-2">
+                  {SITUATIONS.map(({ value, label, Icon }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setSituation(value)}
+                      className={`flex flex-col items-center gap-1.5 rounded-[14px] border p-2.5 transition-colors ${
+                        situation === value
+                          ? "border-rd-coral bg-rd-coral-tint"
+                          : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 text-rd-coral" />
+                      <span className="text-[10.5px] font-medium text-rd-text text-center leading-tight">
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <ReadingAffordance />
+                {/* Reuse the hardened upload + extraction pipeline. deferProofSignals
+                    (decision (a)) runs proof-signals in the background so we don't
+                    block on their tail; onNext advances to direction while
+                    extraction may still be finishing. */}
+                <StepResumeUpload
+                  profileData={profileData}
+                  onChange={(patch) =>
+                    setProfileData((p) => ({ ...p, ...patch }))
+                  }
+                  onExtracted={(data) => {
+                    setExtracted(data);
+                    track(EVENTS.ONBOARDING_CV_READY, { flow: "v2" });
+                  }}
+                  deferProofSignals
+                  onProofSignals={(signals) =>
+                    setExtracted((prev) => ({ ...(prev || {}), ...signals }))
+                  }
+                  onNext={advance}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
+                {screen.name} screen
+              </h1>
+              <div className="mt-8 rounded-[18px] border border-dashed border-rd-border bg-rd-bg-card p-8 text-center">
+                <p className="text-[12.5px] text-rd-text-tertiary">
+                  {screen.name} content — built in a later scoped PR.
+                </p>
+              </div>
+              <div className="pt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={advance}
+                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
+                >
+                  {isLast ? "Go to my workspace" : "Continue"}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -117,6 +117,13 @@ export default function StepResumeUpload({
   onExtracted,
   profileData,
   onChange,
+  // Onboarding V2 (decision (a), flag-gated by the caller): when true, do NOT
+  // block onExtracted on proof-signals — return the resume-extractor fields
+  // immediately and background-resolve proof-signals, delivering them via
+  // onProofSignals when they land. Default false = legacy behavior, byte-
+  // identical (proof-signals awaited before onExtracted). See the redesign brief.
+  deferProofSignals = false,
+  onProofSignals,
 }) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
@@ -308,22 +315,49 @@ export default function StepResumeUpload({
             replyText.slice(0, 200),
           );
         } else {
-          let proofSignals = [];
-          let primaryDomain = null;
-          let adjacentFields = [];
-          const { data: psData } = await proofSignalsPromise;
-          if (psData?.proof_signals?.length) {
-            proofSignals = psData.proof_signals;
-            primaryDomain = psData.primary_domain || null;
-            adjacentFields = psData.adjacent_fields || [];
-          }
+          if (deferProofSignals) {
+            // (a) V2: don't wait on the proof-signals tail (p90 ~25s / p99 ~48s).
+            // Return the resume-extractor fields now; deliver proof-signals in the
+            // background when they land (null/failure => onProofSignals not called,
+            // so primary_domain simply stays unset — same end state as today's
+            // graceful-failure path, just non-blocking).
+            onExtracted({
+              ...extracted,
+              proof_signals: [],
+              primary_domain: null,
+              adjacent_fields: [],
+            });
+            proofSignalsPromise
+              .then(({ data: psData }) => {
+                if (psData?.proof_signals?.length) {
+                  onProofSignals?.({
+                    proof_signals: psData.proof_signals,
+                    primary_domain: psData.primary_domain || null,
+                    adjacent_fields: psData.adjacent_fields || [],
+                  });
+                }
+              })
+              .catch(() => {
+                /* already .catch'd to {data:null} above; belt-and-braces */
+              });
+          } else {
+            let proofSignals = [];
+            let primaryDomain = null;
+            let adjacentFields = [];
+            const { data: psData } = await proofSignalsPromise;
+            if (psData?.proof_signals?.length) {
+              proofSignals = psData.proof_signals;
+              primaryDomain = psData.primary_domain || null;
+              adjacentFields = psData.adjacent_fields || [];
+            }
 
-          onExtracted({
-            ...extracted,
-            proof_signals: proofSignals,
-            primary_domain: primaryDomain,
-            adjacent_fields: adjacentFields,
-          });
+            onExtracted({
+              ...extracted,
+              proof_signals: proofSignals,
+              primary_domain: primaryDomain,
+              adjacent_fields: adjacentFields,
+            });
+          }
           const extractedFieldsCount = Object.values(extracted || {}).filter(
             (v) =>
               v !== null &&
