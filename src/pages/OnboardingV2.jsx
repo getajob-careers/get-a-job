@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   GraduationCap,
@@ -13,8 +14,10 @@ import { useAuth } from "@/lib/AuthContext";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 import DirectionScreenV2 from "@/components/onboarding/DirectionScreenV2";
 import ReviewScreenV2 from "@/components/onboarding/ReviewScreenV2";
+import SpringboardScreenV2 from "@/components/onboarding/SpringboardScreenV2";
 import { runPrimaryDomainInference } from "@/lib/inferPrimaryDomainWrite";
 import { persistReviewProfile } from "@/lib/persistOnboardingProfileV2";
+import { saveEducations, handleFinalise } from "@/lib/onboardingPersist";
 import { mapExtractedToOnboardingState } from "@/lib/mapExtractedToOnboarding";
 
 // Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
@@ -91,6 +94,13 @@ export default function OnboardingV2() {
   const [step, setStep] = useState(0);
   const [situation, setSituation] = useState(null);
   const [advancing, setAdvancing] = useState(false);
+  // Springboard finalise state — drives the shared handleFinalise write + the
+  // launch button's loading/error UI. setupComplete flips true once the write
+  // lands, and the navigation effect below hands off to Home.
+  const [finalising, setFinalising] = useState(false);
+  const [finaliseError, setFinaliseError] = useState(null);
+  const [setupComplete, setSetupComplete] = useState(false);
+  const queryClient = useQueryClient();
   // Minimal profile-shape state so StepResumeUpload's onChange/profileData
   // contract is satisfied; full persistence lands with the review-screen PR.
   const [profileData, setProfileData] = useState(
@@ -125,6 +135,23 @@ export default function OnboardingV2() {
       flow: "v2",
     });
   }, [screen.name, screen.index]);
+
+  // Springboard success: handleFinalise flips setupComplete once the entity
+  // rows + onboarding_complete have landed. Emit the springboard step-completed
+  // + launched events (onboarding_completed itself fires inside handleFinalise)
+  // and hand off to Home with ?welcome=1. That handoff no-ops on the current
+  // Home by design — a forward-looking arrival signal for the redesign lane; it
+  // must never gate this navigation.
+  useEffect(() => {
+    if (!setupComplete) return;
+    track(EVENTS.ONBOARDING_STEP_COMPLETED, {
+      step_index: 3,
+      name: "springboard",
+      flow: "v2",
+    });
+    track(EVENTS.ONBOARDING_LAUNCHED_TO_HOME, { flow: "v2" });
+    navigate("/Home?welcome=1", { replace: true });
+  }, [setupComplete, navigate]);
 
   const advance = () => {
     track(EVENTS.ONBOARDING_STEP_COMPLETED, {
@@ -170,6 +197,20 @@ export default function OnboardingV2() {
           skipped_reason: result.skippedReason,
         });
       }
+      // Backfill an APPLIED inference into shell state so the springboard's
+      // finalise write re-writes the SAME domain instead of clobbering it to
+      // null. On the CV-less path profileData.primary_domain is null (the
+      // inference landed in the DB via its own guarded write, not React state),
+      // and handleFinalise's final profiles update writes profileData.
+      // primary_domain verbatim. The provenance stamp is untouched either way —
+      // cleanProfilePayload never emits primary_domain_source — so the
+      // 'inferred' (or 'extracted') source stands.
+      if (result.applied && result.record?.primary_domain) {
+        setProfileData((prev) => ({
+          ...prev,
+          primary_domain: result.record.primary_domain,
+        }));
+      }
     } finally {
       setAdvancing(false);
     }
@@ -210,6 +251,59 @@ export default function OnboardingV2() {
       setAdvancing(false);
     }
     advance();
+  };
+
+  // Build the ctx bag the shared onboardingPersist helper closes over — same
+  // shape V1's buildPersistCtx produces, built fresh per call so the snapshot
+  // matches the invoking render. V2 only drives the finalise slice, so the
+  // handleSurveyNext-only fields (setStep / generatingRoles / mountedRef /
+  // STEP_NAMES) are intentionally absent.
+  const buildV2PersistCtx = () => ({
+    user,
+    profileData,
+    experiences,
+    educations,
+    projects,
+    certifications,
+    // The profiles row is pre-created at signup by handle_new_user (#666), so it
+    // always exists with id === user.id. Seeding existingProfileId keeps
+    // handleFinalise on its UPDATE path and off the INSERT fallback (which would
+    // PK-conflict on the existing row). setExistingProfileId is a no-op — V2
+    // never needs to capture a freshly-inserted id.
+    existingProfileId: user?.id || null,
+    setExistingProfileId: () => {},
+    setEducations,
+    finalising,
+    setFinalising,
+    setFinaliseError,
+    setSetupComplete,
+    queryClient,
+  });
+
+  // Springboard launch = the V2 finalise. Persists the entity rows through the
+  // SAME shared helper V1 uses so both flows write identically:
+  //   - education rows via saveEducations (update-or-insert; handleFinalise does
+  //     NOT touch education),
+  //   - experiences / projects / certifications + the final profiles update
+  //     (onboarding_complete, skills_canonical, goal, background tasks) via
+  //     handleFinalise.
+  // handleFinalise signals success via setSetupComplete(true) (→ the navigation
+  // effect) and failure via setFinaliseError; it never throws to the caller. The
+  // 'extracted' primary_domain_source stamp set on the review screen survives —
+  // handleFinalise's final update runs through cleanProfilePayload, which never
+  // emits primary_domain_source.
+  const finaliseAndLaunch = async () => {
+    if (finalising) return;
+    setFinaliseError(null);
+    const ctx = buildV2PersistCtx();
+    try {
+      await saveEducations(ctx);
+    } catch (err) {
+      // Non-fatal: education can be re-added post-onboarding. handleFinalise
+      // still runs so the user completes and reaches Home.
+      console.error("[onboardingV2] saveEducations failed (non-fatal):", err);
+    }
+    await handleFinalise(ctx);
   };
 
   // Retry = go back to the upload screen to try another file.
@@ -376,26 +470,14 @@ export default function OnboardingV2() {
               />
             </div>
           ) : (
-            <>
-              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
-                {screen.name} screen
-              </h1>
-              <div className="mt-8 rounded-[18px] border border-dashed border-rd-border bg-rd-bg-card p-8 text-center">
-                <p className="text-[12.5px] text-rd-text-tertiary">
-                  {screen.name} content — built in a later scoped PR.
-                </p>
-              </div>
-              <div className="pt-8 flex justify-end">
-                <button
-                  type="button"
-                  onClick={advance}
-                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors"
-                >
-                  {isLast ? "Go to my workspace" : "Continue"}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </>
+            <div className="mt-2">
+              <SpringboardScreenV2
+                onLaunch={finaliseAndLaunch}
+                finalising={finalising}
+                error={finaliseError}
+                hasCv={extractionStatus === "success"}
+              />
+            </div>
           )}
         </div>
       </div>
