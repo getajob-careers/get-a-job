@@ -132,6 +132,17 @@ export default function CanvasGroundPreview() {
   const [v, setV] = useState("b");
   const variant = VARIANTS.find((x) => x.id === v);
 
+  // Force the flag-on canvas palette so the bake-off shows the REAL ground
+  // (#F4EBDA) + cards (#FFFCF4) + primary (#60617d), never the default theme.
+  useEffect(() => {
+    const el = document.documentElement;
+    const had = el.hasAttribute("data-next-design");
+    el.setAttribute("data-next-design", "");
+    return () => {
+      if (!had) el.removeAttribute("data-next-design");
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-rd-bg-page">
       {/* Controls sit on a plain strip so the ground below is a clean canvas. */}
