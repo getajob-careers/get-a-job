@@ -5,7 +5,7 @@ import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
 import DepthField from "@/components/redesign/DepthField";
-import GrainGround from "@/components/redesign/GrainGround";
+import GroundWash from "@/components/redesign/GroundWash";
 import { isNextDesign } from "@/lib/nextDesign";
 import CanvasShell from "@/components/redesign/shell/CanvasShell";
 import { createPageUrl } from "@/utils";
@@ -287,7 +287,7 @@ function LayoutBody({ children, currentPageName }) {
     // visually inert with no -z-10 children, so flag OFF (no ground mounted)
     // renders exactly like old main. Flag ON mounts the canonical canvas ground,
     // shared source: DepthField (field tone #DCD9D0 + brand arcs) FIRST, then
-    // GrainGround (grain multiply) on top - the exact stack + order the crowned
+    // GroundWash (grain multiply) on top - the exact stack + order the crowned
     // home-3tab renders, so the two are indistinguishable.
     <div
       data-private
@@ -296,7 +296,7 @@ function LayoutBody({ children, currentPageName }) {
       {nextDesign && (
         <>
           <DepthField />
-          <GrainGround />
+          <GroundWash />
         </>
       )}
       {nextDesign && !revealMode && (
@@ -368,7 +368,7 @@ function LayoutBody({ children, currentPageName }) {
       </aside>
 
       {/* Main content. Flag ON: `<main>` is TRANSPARENT so the shell's greige
-          ground + the fixed -z-10 GrainGround show through it (an opaque bg here
+          ground + the fixed -z-10 GroundWash show through it (an opaque bg here
           would paint OVER the grain and occlude it - the Phase-0 ground bug). Flag
           OFF: `<main>` keeps bg-rd-bg-page, exactly like old main (no ground to
           occlude). The flag-gated bg is why scripts/check-ground.mjs allows an

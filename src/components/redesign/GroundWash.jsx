@@ -1,6 +1,6 @@
 import React from "react";
 
-// GrainGround - the canonical ground TEXTURE layer (SINGLE SOURCE OF TRUTH),
+// GroundWash - the canonical ground TEXTURE layer (SINGLE SOURCE OF TRUTH),
 // mounted flag-on in Layout + CanvasShell and re-exported as the preview's
 // CanvasTexture. As of 2026-07-22 it renders the DIRECTIONAL WASH (Slice 1
 // winner): a smooth, warm cream deepening along one diagonal, applied via the
@@ -18,11 +18,11 @@ import React from "react";
 // it never touches text AA or card-vs-ground elevation. Fixed to the shell (not
 // the scroll container), so it does not shimmer on scroll.
 //
-// (File name kept as GrainGround so existing imports/re-exports resolve; a rename
-// to GroundWash is a follow-up cleanup. Verify visual changes by pixel-diff, not
-// computed style. See the ground spec in canvas-tokens.md.)
+// (Renamed GrainGround -> GroundWash on 2026-07-22 to match what it renders: the
+// directional wash, no grain. Verify visual changes by pixel-diff, not computed
+// style. See the ground spec in canvas-tokens.md.)
 
-export default function GrainGround() {
+export default function GroundWash() {
   return (
     <div
       aria-hidden="true"

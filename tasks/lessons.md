@@ -378,6 +378,14 @@ Rule for next time: any review guide or hand-off URL carries the EXACT query key
 
 ---
 
+2026-07-22 - Newly-added `.claude/agents/*` subagents need a full RELAUNCH to load, not a `/clear`
+Trigger: post-`/clear` fresh-session task was "runtime-smoke the explorer/gatekeeper/sweeper subagents now that #681 is on main." All three files were on disk + correctly defined (name, model: haiku, tool allowlist), but invoking `explorer` returned `Agent type 'explorer' not found` with a list of only the built-ins.
+What I did wrong: nothing on the diagnosis, but the handoff (mine) had assumed "they load in a fresh session" where "fresh session" meant `/clear`. It doesn't: `/clear` resets conversation context only. The Agent registry is scanned at PROCESS start, so agents added to `.claude/agents/` after the Claude Code process launched are invisible until a full quit + relaunch.
+Rule for next time: to make a newly-added/edited subagent invocable, Eli must fully quit and relaunch Claude Code - a `/clear` will not pick it up. Verify by checking the "Available agent types" list (or the not-found error's list) BEFORE attempting to smoke; if the agent isn't in that list, request a relaunch rather than retrying the Agent call (retrying just repeats the same not-found error). And when writing a handoff that hands a smoke task to a "fresh session," say RELAUNCH explicitly, never just "fresh session."
+---
+
+---
+
 2026-07-22 - Whole-model persists are banned in the CV write layer
 Trigger: the Studio top-bar Undo restored the ENTIRE pre-edit model to cv_data via an unmediated persist(prevModel); undoing one field (summary) clobbered a DIFFERENT field (bullets) that had drifted from the snapshot, and the write was unlogged - a P0 store-divergence caught in eye-cert, not by my own drive (I only tested immediate bullet-undo, where prevModel happened to be aligned).
 What I did wrong: treated undo as "restore the whole snapshot" when every OTHER write in the layer is per-field + mediated + logged. A whole-model write is a second, unmediated path that reintroduces divergence the moment the snapshot is stale in any non-edited field.
@@ -385,6 +393,7 @@ Rule for next time: in the CV write layer, NEVER write the whole model to cv_dat
 ---
 
 ---
+
 2026-07-22 — `git add` staged only deletions; broken commit reached deploy
 Trigger: Vercel build failed on `./assets/canvas-grain.png` I had already removed; the committed tree still imported it while my working tree did not.
 What I did wrong: ran `git add -A <file> <dir>...` (mixed a modified file with a deleted dir), then committed without checking the staged set. Only the deletions staged; the CanvasGroundPreview rewrite + doc edit stayed unstaged. Local `npm run build` passed because it builds the WORKING tree, so I trusted a green build that did not match the commit.
