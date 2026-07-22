@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/api/supabaseClient";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 import DirectionScreenV2 from "@/components/onboarding/DirectionScreenV2";
 import ReviewScreenV2 from "@/components/onboarding/ReviewScreenV2";
@@ -66,11 +67,32 @@ const SITUATION_TO_EMPLOYMENT = {
   freelancing: "freelance",
 };
 
+// V1's employment-status XOR rules, ported to the V2 situation vocab: selecting
+// a value drops any it conflicts with (mirrors StepResumeUpload's
+// toggleEmploymentStatus). student + freelancing stack with anything.
+const SITUATION_CONFLICTS = {
+  unemployed: ["have_job", "looking"],
+  have_job: ["unemployed", "looking"],
+  looking: ["unemployed", "have_job"],
+};
+
+// Priority for deriving the single audit `situation` from a multi-pick — ranks
+// job-search intent first. Mirrors the employment order looking_for_job >
+// unemployed > employed > freelance > student.
+const SITUATION_PRIORITY = [
+  "looking",
+  "unemployed",
+  "have_job",
+  "freelancing",
+  "student",
+];
+
 export default function OnboardingV2() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(0);
-  const [situation, setSituation] = useState(null);
+  // Situation is MULTI-select with V1's XOR rules (see SITUATION_CONFLICTS).
+  const [situations, setSituations] = useState([]);
   const [advancing, setAdvancing] = useState(false);
   // Springboard finalise state — drives the shared handleFinalise write + the
   // launch button's loading/error UI. setupComplete flips true once the write
@@ -101,6 +123,44 @@ export default function OnboardingV2() {
 
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;
+
+  // Completed-user guard (mirrors V1 Onboarding.jsx checkExistingProfile:226): a
+  // user who already finished onboarding must not see the flow again. V2 reads no
+  // profile on mount otherwise, so a completed user re-entering
+  // /Onboarding?onboarding_v2=1 lands back on screen 0. Redirect them to Home.
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("onboarding_complete")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!cancelled && data?.onboarding_complete) {
+        navigate("/Home", { replace: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, navigate]);
+
+  // Toggle a situation with V1's XOR rules, mirroring the full multi-pick into
+  // profileData.employment_status (mapped to the V1 enum). The single
+  // priority-derived value feeds the inference audit; the full array feeds the
+  // profiles column + the LLM prompts.
+  const toggleSituation = (value) => {
+    const conflicts = SITUATION_CONFLICTS[value] || [];
+    const next = situations.includes(value)
+      ? situations.filter((s) => s !== value)
+      : [...situations.filter((s) => !conflicts.includes(s)), value];
+    setSituations(next);
+    setProfileData((p) => ({
+      ...p,
+      employment_status: next.map((s) => SITUATION_TO_EMPLOYMENT[s]),
+    }));
+  };
 
   useEffect(() => {
     track(EVENTS.ONBOARDING_STARTED, { flow: "v2" });
@@ -155,10 +215,15 @@ export default function OnboardingV2() {
     if (advancing) return;
     setAdvancing(true);
     try {
+      // Single priority-derived value for the audit `situation` (back-compat);
+      // the full multi-pick rides alongside as `situations`.
+      const primarySituation =
+        SITUATION_PRIORITY.find((s) => situations.includes(s)) || null;
       const result = await runPrimaryDomainInference({
         userId: user?.id,
         goalRoleId: profileData.five_year_goal_role_id,
-        situation,
+        situation: primarySituation,
+        situations,
         extractedDomain: extracted?.primary_domain || null,
       });
       if (result.record) {
@@ -171,6 +236,7 @@ export default function OnboardingV2() {
           goal_role_id: result.record.inputs.goalRoleId || null,
           goal_role_family: result.record.inputs.goalRoleFamily || null,
           situation: result.record.inputs.situation || null,
+          situations: result.record.inputs.situations || [],
           applied: result.applied,
           skipped_reason: result.skippedReason,
         });
@@ -336,22 +402,17 @@ export default function OnboardingV2() {
                   inference + track classification later). */}
               <div className="mt-6">
                 <p className="text-[11px] font-medium text-rd-text-tertiary uppercase tracking-wide mb-2.5">
-                  Your current situation
+                  Your current situation — pick all that apply
                 </p>
                 <div className="grid grid-cols-5 gap-2">
                   {SITUATIONS.map(({ value, label, Icon }) => (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => {
-                        setSituation(value);
-                        setProfileData((p) => ({
-                          ...p,
-                          employment_status: [SITUATION_TO_EMPLOYMENT[value]],
-                        }));
-                      }}
+                      onClick={() => toggleSituation(value)}
+                      aria-pressed={situations.includes(value)}
                       className={`flex flex-col items-center gap-1.5 rounded-[14px] border p-2.5 transition-colors ${
-                        situation === value
+                        situations.includes(value)
                           ? "border-rd-primary bg-rd-primary-tint"
                           : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
                       }`}
@@ -429,8 +490,8 @@ export default function OnboardingV2() {
                 <button
                   type="button"
                   onClick={advanceFromDirection}
-                  disabled={advancing}
-                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60"
+                  disabled={advancing || !profileData.five_year_goal_role_id}
+                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Continue
                   <ArrowRight className="w-4 h-4" />
