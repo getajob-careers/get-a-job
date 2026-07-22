@@ -20,7 +20,7 @@ function StatCountUp({ value, label, delay }) {
   const n = useCountUp(value, { duration: 900, delay });
   return (
     <div className="flex flex-col items-center px-3">
-      <span className="font-display font-extrabold text-[26px] leading-none text-rd-coral tabular-nums">
+      <span className="font-display font-extrabold text-[26px] leading-none text-rd-primary tabular-nums">
         {n}
       </span>
       <span className="text-[11px] font-medium text-rd-text-secondary uppercase tracking-wide mt-1">
@@ -38,7 +38,7 @@ function ExtractingWait() {
       aria-live="polite"
     >
       <Loader2
-        className="w-6 h-6 text-rd-coral animate-spin"
+        className="w-6 h-6 text-rd-primary animate-spin"
         aria-hidden="true"
       />
       <p className="font-display font-bold text-[16px] text-rd-text mt-4">
@@ -90,10 +90,10 @@ function SuccessReveal({ experiences, educations, projects, skillsCount }) {
 
 function FailureBanner({ onRetry }) {
   return (
-    <div className="rounded-[18px] border border-rd-coral/40 bg-rd-coral-tint/50 p-5">
+    <div className="rounded-[18px] border border-rd-primary/40 bg-rd-primary-tint/50 p-5">
       <div className="flex items-start gap-3">
         <AlertCircle
-          className="w-5 h-5 text-rd-coral-dark flex-shrink-0 mt-0.5"
+          className="w-5 h-5 text-rd-primary-dark flex-shrink-0 mt-0.5"
           aria-hidden="true"
         />
         <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ function FailureBanner({ onRetry }) {
           <button
             type="button"
             onClick={onRetry}
-            className="mt-3 inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-coral-dark hover:text-rd-coral border border-rd-coral/40 hover:border-rd-coral rounded-full px-3.5 py-1.5 transition-colors"
+            className="mt-3 inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-primary-dark hover:text-rd-primary border border-rd-primary/40 hover:border-rd-primary rounded-full px-3.5 py-1.5 transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
             Try another file
