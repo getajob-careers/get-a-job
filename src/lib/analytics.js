@@ -31,6 +31,9 @@ export const EVENTS = {
   ONBOARDING_CV_EXTRACT_FAILED: "onboarding_cv_extract_failed",
   ONBOARDING_CV_SKIPPED: "onboarding_cv_skipped",
   ONBOARDING_CV_READY: "onboarding_cv_ready",
+  // Per-picker-combination audit trail for the primary_domain inference
+  // (which goal-family/situation produced which domain) — for corpus audit.
+  ONBOARDING_PRIMARY_DOMAIN_INFERRED: "onboarding_primary_domain_inferred",
   ONBOARDING_LAUNCHED_TO_HOME: "onboarding_launched_to_home",
   CV_NUDGE_VIEWED: "cv_nudge_viewed",
   CV_NUDGE_CLICKED: "cv_nudge_clicked",
