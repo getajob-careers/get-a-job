@@ -11,11 +11,18 @@ import {
 import { track, EVENTS } from "@/lib/analytics";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 
-// Onboarding V2 — the reordered 4-screen shell (behind the ONBOARDING_V2 flag).
+// Onboarding V2 — the 4-screen shell (behind the ONBOARDING_V2 flag).
 //
-// Sequence + step_index follow the ACCEPTED reorder so extraction can overlap
-// the direction pickers (review needs extraction, direction does not):
-//   0 cv_upload -> 1 direction -> 2 review -> 3 springboard
+// Sequence + step_index follow the MOCKUP order (the reorder was tried and
+// reverted — see the redesign brief's decision log): upload -> immediate reveal
+// is the tighter reward loop, and with proof-signals decoupled the blocking wait
+// is small enough for the stroke-draw affordance to carry, so the reorder's
+// cross-screen complexity no longer paid for itself.
+//   0 cv_upload -> 1 review -> 2 direction -> 3 springboard
+//
+// Extraction resolves on the REVIEW screen's watch (no cross-screen CV-ready
+// signal): review shows the animated wait, then the counting-numbers marquee on
+// success or the "couldn't read your CV" retry + manual-entry framing on failure.
 //
 // Screen 0 (cv_upload) is BUILT here: situation selector + the reused
 // StepResumeUpload (with deferProofSignals per decision (a) — proof-signals run
@@ -25,8 +32,8 @@ import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
 // data lands with the review-screen PR; here it is held in shell state.
 const SCREENS = [
   { index: 0, name: "cv_upload", eyebrow: "your CV" },
-  { index: 1, name: "direction", eyebrow: "direction & preferences" },
-  { index: 2, name: "review", eyebrow: "review what we found" },
+  { index: 1, name: "review", eyebrow: "review what we found" },
+  { index: 2, name: "direction", eyebrow: "direction & preferences" },
   { index: 3, name: "springboard", eyebrow: "you’re set" },
 ];
 
@@ -190,10 +197,7 @@ export default function OnboardingV2() {
                   onChange={(patch) =>
                     setProfileData((p) => ({ ...p, ...patch }))
                   }
-                  onExtracted={(data) => {
-                    setExtracted(data);
-                    track(EVENTS.ONBOARDING_CV_READY, { flow: "v2" });
-                  }}
+                  onExtracted={(data) => setExtracted(data)}
                   deferProofSignals
                   onProofSignals={(signals) =>
                     setExtracted((prev) => ({ ...(prev || {}), ...signals }))

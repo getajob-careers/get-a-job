@@ -22,15 +22,14 @@ export const EVENTS = {
   OAUTH_CALLBACK_FAILED: "oauth_callback_failed",
   ONBOARDING_STARTED: "onboarding_started",
   ONBOARDING_STEP_COMPLETED: "onboarding_step_completed",
-  // Onboarding V2 born-instrumented taxonomy. step_index follows the ACCEPTED
-  // reorder (0=cv_upload, 1=direction, 2=review, 3=springboard) with a name
-  // field carrying semantics — do not inherit mockup-order indices. Call sites
-  // land in the per-screen PRs; reserved here so the taxonomy lives in one place.
+  // Onboarding V2 born-instrumented taxonomy. step_index follows the ACTUAL
+  // screen order (0=cv_upload, 1=review, 2=direction, 3=springboard — the mockup
+  // order; the reorder was tried and reverted, see the redesign brief) with a
+  // name field carrying semantics. Call sites land in the per-screen PRs.
   ONBOARDING_SCREEN_VIEWED: "onboarding_screen_viewed",
   ONBOARDING_CV_UPLOAD_STARTED: "onboarding_cv_upload_started",
   ONBOARDING_CV_EXTRACT_FAILED: "onboarding_cv_extract_failed",
   ONBOARDING_CV_SKIPPED: "onboarding_cv_skipped",
-  ONBOARDING_CV_READY: "onboarding_cv_ready",
   // Per-picker-combination audit trail for the primary_domain inference
   // (which goal-family/situation produced which domain) — for corpus audit.
   ONBOARDING_PRIMARY_DOMAIN_INFERRED: "onboarding_primary_domain_inferred",
