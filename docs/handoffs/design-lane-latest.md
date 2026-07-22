@@ -6,59 +6,68 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 ## Standing protocols (verbatim)
 
 - **Canary:** begin every reply to Eli with "Eli, ...". It is a context canary - when the name stops appearing, Eli says **"canary"**, and on that word: overwrite THIS file with a fresh resume point and tell him to `/clear`. (Full protocol text also in the root `CLAUDE.md`, both lanes.)
-- **Statusline:** `~/.claude/settings.json` runs `~/.claude/statusline-command.sh`, showing context-usage % first (green `<60`, yellow `60-79`, bold red `>=80`), then model / branch / dir. Derived from the `context_window.used_percentage` stdin field. Proactively offer a handoff at ~80%.
+- **Statusline:** `~/.claude/settings.json` runs `~/.claude/statusline-command.sh`, showing context-usage % first (green `<60`, yellow `60-79`, bold red `>=80`), then model / branch / dir. Proactively offer a handoff at ~80%.
 - **Ledger reports:** end every report with a compact ledger (PR, SHA, state, claims to verify, evidence pointers, open questions) - no narrative recap.
-- **Token tiering (HANDOFF-ONLY, per Eli):** for preview scaffolds + variant iteration, drop a model tier via `/model`; step back up for token-level implementation commits and craft-critical work. `/model` is Eli-driven (the model cannot self-switch). Do NOT mirror this into CLAUDE.md - handoff only.
-- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents, now MERGED to main in `.claude/agents/`). NOTE (corrected 2026-07-22, verified empirically): the agent registry loads at **process start**, and a `/clear` does NOT re-scan `.claude/agents/`. So freshly-added agents need a full Claude Code **quit + relaunch** to become invocable - a `/clear` is not enough. Confirmed: invoking `explorer` in the post-`/clear` session returned `Agent type 'explorer' not found` (list = built-ins only). After a real relaunch they should appear in the Agent tool's available-types list - smoke them first (see fresh-session tasks).
+- **Token tiering (HANDOFF-ONLY, per Eli):** for preview scaffolds + variant iteration, drop a model tier via `/model`; step back up for token-level implementation commits and craft-critical work. `/model` is Eli-driven. Do NOT mirror into CLAUDE.md.
+- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents in `.claude/agents/`, loaded + smoked OK this session). NOTE: newly-added/edited agents need a full quit+relaunch to load (a `/clear` does NOT re-scan `.claude/agents/`).
+- **Reporting discipline (Eli ruling, memory [[report-gated-means-flag-off-unreachable]]):** "gated" means EVERY changed line is unreachable flag-off. Shared components (render in both flag states) get an explicit UNCONDITIONAL-with-reason call-out. PR bodies for coach/canvas work lead with a FLAG SCOPE block.
 
 ## Identity
 
-- The DESIGN lane, one terminal, persists across context clears. There is NO other design terminal - all redesign / canvas / CV-surface / token / onboarding-V2-surface work is this lane's, even if authored in an earlier session.
-- The "hub" (Eli) verifies claims, applies migrations, and rules on merges. One writer per path.
+- The DESIGN lane, one terminal, persists across context clears. There is NO other design terminal - all redesign / canvas / CV-surface / token / onboarding-V2-surface work is this lane's.
+- The "hub" (Eli) verifies claims, applies migrations, rules on merges. One writer per path. Merge ritual = CI-green -> squash -> delete branch after merged:true -> verify prod READY + serving SHA == squash SHA -> state edge-fn touch (none, for all frontend work).
 
 ## Owned paths
 
-- CV Studio: `src/components/cv-studio/*` (CVStudioView, CVStudioLive); `src/lib/{writeProfileEntity,serializedWriteThrough,revertCvDataField,cvDataAdapter,useSeededCvModel}`; `supabase/functions/_shared/write-mediation.ts` (client+edge shared write layer).
-- Redesign surface: `src/components/redesign/*` (home: ThreeTabHome, CvMatchedRolesRail, useTopMatches; shell: CanvasShell/Sidebar/CoachDock; ground: DepthField/GroundWash); `src/pages/_preview/*` canvas previews.
-- Tokens/palette: `src/index.css` (`--rd-*` vars), `tailwind.config.js` (`rd-*` utilities), the `design-craft` skill doc.
-- Home is this lane's - owns the `?welcome=1` arrival moment.
+- CV Studio: `src/components/cv-studio/*` (CVStudioView, CVStudioLive); `src/lib/{writeProfileEntity,serializedWriteThrough,revertCvDataField,cvDataAdapter,useSeededCvModel}`; `supabase/functions/_shared/write-mediation.ts`.
+- Coach/agents: `src/components/agent/*` (CoachDock, AgentDrawer, CoachInput, CoachThread); `src/lib/{CoachConversationContext,AgentDrawerContext}`; `src/components/chat/*` (ChatInterface, MessageBubble).
+- Redesign surface: `src/components/redesign/*` (home: ThreeTabHome, CvMatchedRolesRail, useTopMatches; shell: CanvasShell/CanvasSidebar; ground: DepthField/GroundWash); `src/pages/_preview/*` canvas previews (incl. `canvas/CanvasCoachDock.jsx` = AgentComposer reference).
+- Tokens/palette: `src/index.css` (`--rd-*` vars + coach polish keyframes), `tailwind.config.js` (`rd-*`), the `design-craft` skill doc.
+- Home owns the `?welcome=1` arrival moment.
 
-## Current arc: canvas Phase 2 (Slice 1 DONE)
+## Current arc: canvas Phase 2 - coach surface hardened, CV-document + AgentComposer next
 
-- **Slice 1 ground = DONE + MERGED.** #678 squash-merged to main (merge SHA **14f0c06**, certified head 6269b15). The ground is the **directional wash**: token `--rd-ground-wash` + `.rd-ground`; `GroundWash.jsx` (renamed from `GrainGround.jsx`, see below) renders it, `DepthField` blobs removed, cream + wash only. Certified by Eli on the real route `/Home?next=1`. Hub verifies prod deploy goes READY before anything else proceeds.
-- **Subagents = MERGED.** #681 squash-merged to main (merge SHA **6fa5d9d**): `explorer` / `gatekeeper` / `sweeper` in `.claude/agents/` + CLAUDE.md delegation + canary sections.
-- Prior: #659 CV RED Ph1 (6b00d72), #675 onboarding V2 (68c229e), #677 token rename (1697063), #676 lessons (1339ef9) - all merged/live.
+**Merged + LIVE this session (all frontend, no edge fns, all serving-SHA verified on getajob.careers):**
+
+- **#684** GroundWash rename (`GrainGround`->`GroundWash`, names-can't-lie) - squash `5dc42a6`.
+- **#685** CV Studio: "Generate a job-specific version" filled `rd-primary` button + flag-on header-collision fix - squash `c2f635f`.
+- **#686** Coach: expand button now mounts `AgentDrawer` in `CanvasShell` (was flag-off-only); textarea auto-grow (dock 160px fixed / panel 40vh) + `rounded-lg` rectangle - squash `e8ee108`.
+- **#687** Coach polish bundle: spring-easing expand, message entrance, honest thinking-shimmer (coach is request-response not streaming - shimmer on the in-flight dots), scroll-pin - squash `2b7de0a` (dpl `B2zSjv8c...`).
+- Prior (earlier sessions): #659 CV RED Ph1, #675/#683 onboarding V2, #677 rd-coral->rd-primary, #678 Slice 1 ground, #681 subagents, #682 handoff.
+
+**Rollback target (unchanged all session):** promote `dpl_BUowG3s1rn6FEC2Kes2v8pfHfRSk` (commit `543420f`, #682).
 
 ## Standing rulings / constraints (verbatim)
 
-- FLAG-OFF BYTE-IDENTITY: every flag-on change gated on isNextDesign()/rightRail; flag-off output byte-identical. Preserve EXACT Tailwind class strings (no class-sorter; token order matters).
+- FLAG-OFF BYTE-IDENTITY: every flag-on change gated on isNextDesign()/rightRail; flag-off output byte-identical. Preserve EXACT Tailwind class strings (no class-sorter; token order matters). Edit shared components via text-surgery (python) to bypass the format hook, not Edit/Write.
 - ONE WRITER PER PATH.
 - Real flag param is `?next=1` (index.html bootstrap reads URLSearchParams.get("next"); "nextDesign" is the localStorage KEY, not a URL param). Flag-on reveal: `/Home?next=1`; `?next=0` clears. Flag-off editor: `/CVAgent`.
-- NO whole-model persists in the CV write layer - per-field mediated writes only (undo included).
-- TOKEN: the primary renders #60617d (slate/indigo) and is the KEEPER - no re-tint. #D6421F is RETIRED. `rd-coral*` renamed -> `rd-primary*` (zero value change). `trackColor` is EXCEPTED from the rd-coral sweep (JS prop, not the token).
-- Canvas palette (live): `--rd-bg-card #FFFCF4`, `--rd-bg-page #F4EBDA` (ground), `--rd-primary #60617d`.
-- GROUND: **directional wash** (shipped). Cream + wash only. **ALL particulate texture retired at the category level** (dots + baked grain both = dirty screen; banding equally disqualifying, no dither). Wash is normal-composite (no blend mode). The `soft-light` mean-preserving finding carries forward to any tonal work. Canonical: `docs/design/canvas-tokens.md` + `phase2-canvas-arrival-plan.md`.
+- NO whole-model persists in the CV write layer - per-field mediated writes only.
+- TOKEN: primary #60617d (slate/indigo) is the KEEPER. #D6421F coral is RETIRED (survives only as the flag-OFF pre-reveal value). `trackColor` EXCEPTED from the rd-coral sweep.
+- Canvas palette (live): `--rd-bg-card #FFFCF4` (chrome cards), `--rd-bg-page #F4EBDA` (ground), `--rd-primary #60617d`.
+- **CV DOCUMENT paper = WHITE (Eli, this session): supersedes the cream-card ruling FOR THE DOCUMENT ONLY.** Proposed `#FFFFFF` for the paper vs ground `#F4EBDA` (chrome cards stay cream). Not yet built - in the quick-fix split below.
+- GROUND: directional wash (shipped). Cream + wash only. ALL particulate texture retired at the category level. Canonical: `docs/design/canvas-tokens.md` + `phase2-canvas-arrival-plan.md`.
+- Coach auto-grow is UNCONDITIONAL (bug fix, both flag states); coach visual/motion polish is flag-on only. Idea 4 = thinking-shimmer accepted by hub as the honest impl (coach doesn't stream).
+- Browser smoke for auth'd surfaces: Playwright + `e2e/helpers/mockSupabase.js` (`injectFakeSession` + `mockSupabaseRoutes` + `MOCK_PROFILE_COMPLETE`); run a runner from INSIDE the repo (bare `playwright` import needs repo node_modules). Flag-off dock smoke pattern proven this session.
 
-## Post-clear queue (certified-session findings, in order)
+## Queue (HELD - next work arrives via separate hub kickoffs)
 
-- **(a) CV Studio quick-fix PR.** The "Generate a job-specific version" CTA becomes a real button (`rd-primary` treatment); fix the header text collision at the top of the CV. First CODE slice after the rename micro-PR.
-- **(b) Coach panel fixes (one PR).** The expand arrow must ACTUALLY expand the panel; long input must not hide the top of the user's message. Functional fixes, not polish.
-- **(c) Tab-consistency slice.** Now includes moving the CV / Browse Jobs / Tracker tabs UP to fill the empty space that leaves the page feeling half-empty. Eli's ruling STANDS unless you nominate a competing use for that space before building.
-- **(d) CV-generation ring/theater.** Confirmed in plan, queued behind (a)-(c).
-- **(e) Slice 2 (arrival moment).** Keeps its place in the phase-2 queue. Sequencing of (a)-(d) against it happens at fresh-session start WITH THE HUB.
-
-## Fresh-session first tasks - STATUS (post-relaunch session 2026-07-22)
-
-Relaunch took: `explorer`/`gatekeeper`/`sweeper` all appear in the Agent available-types list.
-
-1. **Subagent smoke - DONE, all three healthy.** `explorer` (read-only, path:line + tight conclusion; found primary_domain guard: client `inferPrimaryDomainWrite.js:44-52` + server WHERE-clause `:106-117` + migration CHECK + test). `sweeper` (grep/count only; `rd-coral` = **9 tokens across 5 lines** in `src/components/onboarding/ReviewScreenV2.jsx` + 16 docs refs; trackColor exception clean). `gatekeeper` (Bash/Read; GATE GREEN: lint/typecheck[522-baseline]/build/test[1586] all pass). Each ran on haiku (per its `.claude/agents/*.md`) and respected its allowlist.
-   - **Correction to prior handoff:** the dead `rd-coral` refs are in `src/components/onboarding/ReviewScreenV2.jsx` (the `pages/_preview/ReviewScreenV2.jsx` path did NOT exist). Count is 9 token-occurrences / 5 lines. CV lane removes them in slice 6b.
-2. **`GrainGround` -> `GroundWash` rename micro-PR - HELD (this PR).** File `git mv`'d, component + all imports/re-exports/usages/comments renamed via sed (bypassed the format hook), canvas-tokens.md + phase2 code-path line updated; phase2 historical narrative (lines 88/98/152) kept its then-name deliberately. Zero behaviour change; render byte-identical. Carries the pre-relaunch handoff + lessons doc edits (folded per Eli, not a standalone docs commit). Gated green via gatekeeper; held for hub verify + prod READY.
-3. **Queue item (a) - HELD (PR #685):** CV Studio quick-fix. CTA -> **solid filled** `rd-primary` button (Eli's pick, matches filled button at CVStudioView.jsx:1116); header collision root-caused + fixed (parent `flex-wrap gap-y-2` gated on `alive`, left-cluster internal wrap removed, so the "Click any text to edit" helper drops below instead of overlapping the wrapped CTA). Flag-off byte-identical (parent renders exact original string when !alive; button + cluster live inside the `alive` branch). Applied via text-surgery (no class-sorter). **Not pixel-verified** - auth'd surface, held for Eli's cert on `/Home?next=1` CV tab (or `/CVAgent?next=1`). No sequencing concern vs Slice 2 (different surfaces, zero file overlap).
-
-Then sequence (b)-(e) with the hub. **Next up = (b) coach panel fixes** (expand arrow must actually expand; long input must not hide the top of the user's message); (c) tab-consistency; (d) CV-gen ring; (e) Slice 2 arrival. Slice-2-vs-(b)-(d) priority is Eli's open call.
+- **AgentComposer redesign (item 3): Phase 1 APPROVED, one PR, HELD until hub kickoff.** Build shared `<AgentComposer>` = rd-well bar (icon+textarea+send) + focus/empty pop-up suggestions (staggered reveal, keyboard nav) from `src/pages/_preview/canvas/CanvasCoachDock.jsx`. Rollout: **P1 CoachInput (dock+panel)**, P2 ChatInterface (CareerAgent/InterviewCoach/SkillDevelopmentAdvisor), P3 CVStudioView (may keep its chips). Gating: canvas visual flag-on only, flag-off keeps current look, auto-grow stays unconditional. Suggestions v1 = static per-surface starters (reuse DEFAULT_DOCK_PROMPTS / CANVAS_COACH_PROMPTS) + a `suggestions` prop for context-aware v2. Reuse CanvasCommandItem + stagger from _preview. One design decision to surface: pop-up supersedes the thread empty-state chips (avoid dup). Absorbs held idea 6 (prompt chips).
+- **Eli feedback batch 1-8 (live pass, split PROPOSED, awaiting Eli's pick + hub kickoff):**
+  1. CV paper WHITE (`#FFFFFF`) - QUICK-FIX.
+  2. CV header "messy"/too low - composition rework - DESIGN (propose mock/options first; pairs with 1 as a CV-document design PR).
+  3. Reach landing page from inside app (logo link shape) - QUICK-FIX **with gotcha**: `/` (LandingV2Preview) redirects authed users back to /Home (2026-07-19 loop lesson); needs a bypass (e.g. `/?stay=1` honored by the landing guard). Its own small PR (touches shared redirect graph).
+  4. "Generate a job-specific version" weak CTA - 4a copy+treatment QUICK-FIX (bring options); 4b better pop-up/flow DESIGN (folds into AgentComposer pop-up + CV-gen ring).
+  5. Chat toolkit tile missing its duotone back-bubble (other tiles have it) - QUICK-FIX (find toolkit-rail icon / toolColors.js).
+  6. CV-gen ring/theater (loading design Eli loved) - STANDING queued design item, do not drop.
+  7. AUDIT scope widened to EVERY page incl. legacy (Profile called out: pressing edit on an experience silently reorders it to top with no indication) - hunt this "disorienting silent state change" class everywhere.
+  8. AUDIT quality bar (verbatim intent): errors/transitions/feedback states feel like a real product, "not a student who vibe coded a project." The audit doc is graded against this.
+  - Suggested grouping: quick-fix PR = {5, 1, 4a}; item 3 = own PR (redirect graph); {2, 4b} = CV-document design pass.
+- **(c) tab-consistency** - move CV/Browse/Tracker tabs UP to fill empty space (Eli ruling stands unless a competing use is nominated). Nominate approach before building (ask-don't-tell).
+- **Slice 2 (arrival moment)** - phase-2 queue; sequencing with hub.
 
 ## Open questions for the hub
 
-- Slice 2 vs (a)-(d) ordering (decide at fresh-session start).
-- Any competing use for the space freed by moving the tabs up in (c)? (else Eli's ruling stands.)
+- Eli's pick from the 1-5 quick-fix vs design split; hub kickoff for AgentComposer Phase 1.
+- Slice 2 vs the quick-fix/design/audit work ordering.
+- Competing use for the space freed by moving tabs up in (c)?
