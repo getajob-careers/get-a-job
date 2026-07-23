@@ -322,7 +322,7 @@ export default function Profile() {
     queryKey: ["projects", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("projects").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase.from("projects").select("*").eq("user_id", user.id).order("created_at", { ascending: true });
       if (error) throw error;
       return data || [];
     },

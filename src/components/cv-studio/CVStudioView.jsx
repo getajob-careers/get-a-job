@@ -250,7 +250,6 @@ function ExperienceEntry({
     <div className="group/entry relative pl-5 mb-3.5" data-entry-id={exp.id}>
       <button
         {...dragHandleProps}
-        tabIndex={-1}
         aria-label="Drag to reorder"
         className="absolute left-[-6px] top-1 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-text cursor-grab active:cursor-grabbing transition-opacity"
       >
