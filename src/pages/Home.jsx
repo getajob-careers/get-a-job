@@ -563,7 +563,7 @@ export default function Home() {
   return (
     <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10">
       {(rolesError || appsError) && (
-        <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
+        <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-rd-error-border bg-rd-error-bg px-4 py-3 text-[13px] text-rd-error">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>Some data failed to load. Refresh the page to try again.</span>
         </div>

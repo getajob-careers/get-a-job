@@ -201,7 +201,7 @@ export default function CareerRoadmap() {
   if (rolesError || profileError) {
     return (
       <div className="min-h-full flex items-center justify-center px-6 bg-rd-bg-page">
-        <div className="max-w-md flex items-center gap-2.5 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
+        <div className="max-w-md flex items-center gap-2.5 rounded-[14px] border border-rd-error-border bg-rd-error-bg px-4 py-3 text-[13px] text-rd-error">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>Failed to load your career roadmap. Refresh the page to try again.</span>
         </div>

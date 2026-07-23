@@ -160,7 +160,7 @@ export default function Settings() {
                       size="sm"
                       onClick={handleResetOnboarding}
                       disabled={resetBusy}
-                      className="gap-1.5 bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold"
+                      className="gap-1.5 bg-rd-error hover:opacity-90 text-white rounded-full font-display font-bold"
                     >
                       {resetBusy ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -237,7 +237,7 @@ export default function Settings() {
                   size="sm"
                   onClick={handleDeleteAccount}
                   disabled={!canConfirmDelete || deleteBusy}
-                  className="gap-1.5 bg-rd-primary hover:bg-rd-primary-dark text-white rounded-full font-display font-bold disabled:opacity-40"
+                  className="gap-1.5 bg-rd-error hover:opacity-90 text-white rounded-full font-display font-bold disabled:opacity-40"
                 >
                   {deleteBusy ? (
                     <Loader2 className="w-3 h-3 animate-spin" />

@@ -48,7 +48,7 @@ export default function CvMatchedRolesRail() {
           </p>
         </div>
       ) : isError ? (
-        <div className="flex items-center gap-2 rd-r-md border border-rd-primary/40 bg-rd-primary-tint px-3.5 py-3 rd-t-body-s text-rd-primary-dark">
+        <div className="flex items-center gap-2 rd-r-md border border-rd-error-border bg-rd-error-bg px-3.5 py-3 rd-t-body-s text-rd-error">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>Couldn't load matches - try again.</span>
         </div>
