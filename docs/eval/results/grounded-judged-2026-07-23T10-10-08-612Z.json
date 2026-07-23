@@ -1,0 +1,263 @@
+{
+  "mode": "grounded",
+  "model": "gpt-4o-mini",
+  "judge": true,
+  "ts": "2026-07-23T10-10-08-612Z",
+  "rows": [
+    {
+      "id": "thin-swe",
+      "richness": "thin",
+      "domain": "software",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Wrote a script to clean up the database, improving data integrity and accessibility."
+        ],
+        "skills": [
+          "Python",
+          "SQL"
+        ],
+        "extraction_notes": "Your text didn't include a number or specific outcome, so the bullet states the action and outcome without one."
+      },
+      "l1": {
+        "anti_fab_pass": false,
+        "invented_numbers": [],
+        "invented_tools": [
+          "sql",
+          "python"
+        ],
+        "metric_fidelity": 1,
+        "tool_coverage": 1,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 70,
+        "groundedness": 50,
+        "usefulness": 60
+      },
+      "quality": 0
+    },
+    {
+      "id": "rich-swe",
+      "richness": "rich",
+      "domain": "software",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Built a Python fetcher that identified customers most likely to churn, cutting false-positive alerts by 40% across 29 Postgres tables."
+        ],
+        "skills": [
+          "Python",
+          "SQL",
+          "PostgreSQL"
+        ],
+        "extraction_notes": "The bullet includes the metric of cutting false-positive alerts by 40% as provided, while the specific tools used are also mentioned."
+      },
+      "l1": {
+        "anti_fab_pass": true,
+        "invented_numbers": [],
+        "invented_tools": [],
+        "metric_fidelity": 1,
+        "tool_coverage": 0.5,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 90,
+        "groundedness": 100,
+        "usefulness": 95
+      },
+      "quality": 0.85
+    },
+    {
+      "id": "mid-ops",
+      "richness": "mid",
+      "domain": "operations",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Reorganized inbound shipment handling by building a new intake process and training the warehouse team, resulting in faster operations."
+        ],
+        "skills": [
+          "Process Improvement",
+          "Team Coordination"
+        ],
+        "extraction_notes": "Your text didn't include a specific metric, so the bullet states the action and outcome without one."
+      },
+      "l1": {
+        "anti_fab_pass": true,
+        "invented_numbers": [],
+        "invented_tools": [],
+        "metric_fidelity": 1,
+        "tool_coverage": 1,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 90,
+        "groundedness": 100,
+        "usefulness": 95
+      },
+      "quality": 0.975
+    },
+    {
+      "id": "rich-marketing",
+      "richness": "rich",
+      "domain": "marketing",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Ran the Black Friday email campaign, segmenting the list into 5 cohorts in Klaviyo, achieving a 32% open rate and $48K in attributed revenue."
+        ],
+        "skills": [
+          "Email Marketing",
+          "Copywriting",
+          "Marketing Analytics"
+        ],
+        "extraction_notes": "The bullet includes specific metrics for open rate and attributed revenue as provided in the text. No additional metrics or details were invented."
+      },
+      "l1": {
+        "anti_fab_pass": true,
+        "invented_numbers": [],
+        "invented_tools": [],
+        "metric_fidelity": 0.6666666666666666,
+        "tool_coverage": 1,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 90,
+        "groundedness": 100,
+        "usefulness": 95
+      },
+      "quality": 0.8916666666666666
+    },
+    {
+      "id": "messy-bizdev",
+      "richness": "messy",
+      "domain": "business_development",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Executed outbound prospecting for the Israeli market, booking over 20 meetings in Q3, resulting in 3 closed deals.",
+          "Contributed to CRM setup in HubSpot, improving organization and efficiency of sales processes."
+        ],
+        "skills": [
+          "Outbound Prospecting",
+          "CRM"
+        ],
+        "extraction_notes": "The text provided specific metrics for meetings booked and closed deals, which are included in the bullets. However, I did not include any invented metrics or details beyond what was explicitly stated."
+      },
+      "l1": {
+        "anti_fab_pass": false,
+        "invented_numbers": [
+          20000000
+        ],
+        "invented_tools": [],
+        "metric_fidelity": 0,
+        "tool_coverage": 0.5,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": true
+      },
+      "l2": {
+        "star_completeness": 90,
+        "groundedness": 100,
+        "usefulness": 85
+      },
+      "quality": 0
+    },
+    {
+      "id": "hebrew-mixed-analyst",
+      "richness": "rich",
+      "domain": "analytics",
+      "language": "he-en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Built a dashboard in Tableau to analyze churn data, enabling management to identify customer loss points and reduce churn by 12% within a quarter."
+        ],
+        "skills": [
+          "Data Analysis",
+          "SQL",
+          "Tableau"
+        ],
+        "extraction_notes": "The text included a specific metric for churn reduction, so the bullet reflects that outcome. Other details were not provided, so they were not included."
+      },
+      "l1": {
+        "anti_fab_pass": false,
+        "invented_numbers": [],
+        "invented_tools": [
+          "sql"
+        ],
+        "metric_fidelity": 1,
+        "tool_coverage": 1,
+        "bullet_discipline": 1,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 90,
+        "groundedness": 100,
+        "usefulness": 95
+      },
+      "quality": 0
+    },
+    {
+      "id": "thin-education",
+      "richness": "thin",
+      "domain": "education",
+      "language": "en",
+      "err": null,
+      "out": {
+        "bullets": [
+          "Conducted research on behavioral economics and presented findings to faculty."
+        ],
+        "skills": [
+          "Research"
+        ],
+        "extraction_notes": "Your text didn't include a number or specific outcome, so the bullet states the action and outcome without one."
+      },
+      "l1": {
+        "anti_fab_pass": true,
+        "invented_numbers": [],
+        "invented_tools": [],
+        "metric_fidelity": 1,
+        "tool_coverage": 1,
+        "bullet_discipline": 0.6666666666666666,
+        "has_output": true,
+        "skills_nonempty": true,
+        "output_language_en": true,
+        "hedge_flag": false
+      },
+      "l2": {
+        "star_completeness": 70,
+        "groundedness": 100,
+        "usefulness": 80
+      },
+      "quality": 0.8416666666666666
+    }
+  ]
+}

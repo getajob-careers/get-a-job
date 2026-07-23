@@ -1,0 +1,177 @@
+{
+  "_meta": {
+    "purpose": "Frozen synthetic input set for the Story Bank / extract-bullets extraction-quality eval. FROZEN — do not edit inputs between rounds; future rounds score the SAME set so baselines are comparable. Add new inputs only as a versioned append (new id), never by mutating an existing one.",
+    "target_function": "extract-bullets",
+    "created": "2026-07-23",
+    "why_synthetic": "The live `stories` table has 0 real-user rows (all 13 are internal), so before/after quality cannot be measured on real data. These inputs are hand-authored to span the real input diversity we expect from business-student pilot users.",
+    "diversity_axes": [
+      "richness: thin (1 clause, no numbers) -> rich (metrics + tools named)",
+      "domain: software AND non-software (operations, growth/marketing, business development, analytics)",
+      "language: English AND Hebrew/Hebrew-English mixed",
+      "hygiene: clean prose AND messy realistic paste (typos, run-ons, buried metrics)",
+      "target_type: experience AND education"
+    ],
+    "ground_truth_convention": "known_metrics / known_tools list the ONLY figures and named tools that actually appear in the input text. The anti-fabrication gate FAILS an output if it emits any number/percentage/currency or named tool that is not groundable in the input text (case/space-insensitive substring, digit-normalised). known_metrics are the verbatim figures the extractor SHOULD carry through when it writes a bullet about them.",
+    "profile_convention": "`profile` is the synthetic user context the grounding-context lever injects in --mode grounded (mirrors what the edge fn will fetch from profiles + target roles). It is REFERENCE-ONLY: it may shape skill vocabulary/framing but must NEVER become a source of facts added to a bullet. --mode baseline ignores it."
+  },
+  "inputs": [
+    {
+      "id": "thin-swe",
+      "richness": "thin",
+      "domain": "software",
+      "language": "en",
+      "target_type": "experience",
+      "target": {
+        "title": "Software Engineering Intern",
+        "company": "a fintech startup"
+      },
+      "profile": {
+        "headline": "CS student seeking backend / fintech engineering roles",
+        "primary_domain": "Software Engineering",
+        "seniority": "Student / Intern",
+        "top_skills": ["Python", "SQL", "Git"],
+        "target_roles": ["Backend Engineer", "Software Engineer"]
+      },
+      "text": "I wrote a script to clean up our database.",
+      "known_metrics": [],
+      "known_tools": [],
+      "notes": "Skeletal input. Correct behaviour = one honest bullet, no invented metric/tool, no padding. Probes the thin-input floor."
+    },
+    {
+      "id": "rich-swe",
+      "richness": "rich",
+      "domain": "software",
+      "language": "en",
+      "target_type": "experience",
+      "target": { "title": "Backend Engineer", "company": "Guardio" },
+      "profile": {
+        "headline": "Backend engineer, data-heavy systems",
+        "primary_domain": "Software Engineering",
+        "seniority": "Mid",
+        "top_skills": ["Python", "SQL", "PostgreSQL"],
+        "target_roles": ["Backend Engineer", "Platform Engineer"]
+      },
+      "text": "I built a Python fetcher that scored which of our customers were most likely to churn. It cut our false-positive alerts by 40% and ran across all 29 of our Postgres tables. I used SQLAlchemy for the queries and deployed it on a nightly cron.",
+      "known_metrics": ["40%", "29"],
+      "known_tools": ["Python", "SQLAlchemy", "Postgres", "cron"],
+      "notes": "Rich input. Correct behaviour = metrics 40% and 29 carried verbatim, tools surfaced. Probes fidelity ceiling."
+    },
+    {
+      "id": "mid-ops",
+      "richness": "mid",
+      "domain": "operations",
+      "language": "en",
+      "target_type": "experience",
+      "target": {
+        "title": "Operations Coordinator",
+        "company": "a logistics company"
+      },
+      "profile": {
+        "headline": "Operations coordinator moving into ops / program management",
+        "primary_domain": "Operations",
+        "seniority": "Junior",
+        "top_skills": ["Process Improvement", "Team Coordination", "Excel"],
+        "target_roles": ["Operations Manager", "Program Coordinator"]
+      },
+      "text": "I reorganised how we handled inbound shipments — built a new intake process and trained the warehouse team on it. Things moved faster after that.",
+      "known_metrics": [],
+      "known_tools": [],
+      "notes": "Non-software, action + vague outcome, no numbers. Correct behaviour = concrete action+outcome bullet with NO invented number ('faster' must NOT become a %)."
+    },
+    {
+      "id": "rich-marketing",
+      "richness": "rich",
+      "domain": "marketing",
+      "language": "en",
+      "target_type": "experience",
+      "target": {
+        "title": "Growth Marketing Associate",
+        "company": "a D2C brand"
+      },
+      "profile": {
+        "headline": "Growth marketer, lifecycle + email",
+        "primary_domain": "Marketing",
+        "seniority": "Junior",
+        "top_skills": ["Email Marketing", "Copywriting", "Marketing Analytics"],
+        "target_roles": [
+          "Growth Marketing Manager",
+          "Lifecycle Marketing Manager"
+        ]
+      },
+      "text": "I ran our Black Friday email campaign. I segmented the list into 5 cohorts in Klaviyo, wrote all the copy, and we hit a 32% open rate and $48K in attributed revenue, up from $30K the year before.",
+      "known_metrics": ["5", "32%", "$48K", "$30K"],
+      "known_tools": ["Klaviyo"],
+      "notes": "Non-software rich. Probes fidelity on a marketing profile + currency-figure handling ($48K/$30K verbatim)."
+    },
+    {
+      "id": "messy-bizdev",
+      "richness": "messy",
+      "domain": "business_development",
+      "language": "en",
+      "target_type": "experience",
+      "target": {
+        "title": "Business Development Representative",
+        "company": "a SaaS company"
+      },
+      "profile": {
+        "headline": "BDR targeting SaaS sales roles",
+        "primary_domain": "Sales",
+        "seniority": "Junior",
+        "top_skills": ["Outbound Prospecting", "CRM", "Cold Email"],
+        "target_roles": [
+          "Account Executive",
+          "Sales Development Representative"
+        ]
+      },
+      "text": "so basically i was doing outbound for the israeli market, cold emails + linkedin, i think i booked like 20 something meetings in q3 and 3 of them closed?? one was a big one ~15k arr... also helped set up the crm stuff in hubspot cuz it was a mess",
+      "known_metrics": ["20", "3", "15k"],
+      "known_tools": ["LinkedIn", "HubSpot"],
+      "notes": "Messy realistic paste: typos, lowercase, run-on, hedges ('like 20 something', '~15k'), buried metrics. Probes whether the extractor recovers real figures from noise WITHOUT sharpening a hedge into false precision ('20 something' must not become an exact 20; '~15k arr' stays approximate)."
+    },
+    {
+      "id": "hebrew-mixed-analyst",
+      "richness": "rich",
+      "domain": "analytics",
+      "language": "he-en",
+      "target_type": "experience",
+      "target": {
+        "title": "Product Analyst",
+        "company": "an Israeli tech company"
+      },
+      "profile": {
+        "headline": "Product analyst, retention + BI",
+        "primary_domain": "Data & Analytics",
+        "seniority": "Junior",
+        "top_skills": ["Data Analysis", "SQL", "Tableau"],
+        "target_roles": ["Product Analyst", "Data Analyst"]
+      },
+      "text": "עבדתי על ניתוח נתונים של churn, בניתי dashboard ב-Tableau שהראה למנהלים איפה אנחנו מאבדים לקוחות. הורדנו את ה-churn ב-12% תוך רבעון.",
+      "known_metrics": ["12%"],
+      "known_tools": ["Tableau"],
+      "notes": "Hebrew/English mixed (EN: 'I analysed churn data, built a Tableau dashboard showing managers where we lose customers. We reduced churn 12% within a quarter'). Probes the known gpt-4o-mini Hebrew-emission weakness (hebrew-skill-extraction-model-finding: ~5% Hebrew skill emission) AND output-language behaviour — does the bullet come back in English (CV language) or Hebrew? Feeds the held model-tier decision."
+    },
+    {
+      "id": "thin-education",
+      "richness": "thin",
+      "domain": "education",
+      "language": "en",
+      "target_type": "education",
+      "target": {
+        "degree_type": "BA",
+        "field_of_study": "Economics",
+        "institution": "Reichman University"
+      },
+      "profile": {
+        "headline": "Economics undergrad exploring analyst / consulting roles",
+        "primary_domain": "Economics",
+        "seniority": "Student",
+        "top_skills": ["Economic Analysis", "Research", "Excel"],
+        "target_roles": ["Business Analyst", "Consultant"]
+      },
+      "text": "I did my thesis on behavioral economics and presented it to the faculty.",
+      "known_metrics": [],
+      "known_tools": [],
+      "notes": "Education-target thin input. Correct behaviour = one honest bullet grounded in the degree/field, no invented advisor/grade/length."
+    }
+  ]
+}
