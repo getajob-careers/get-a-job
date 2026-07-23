@@ -129,6 +129,21 @@ export default function OnboardingV2() {
   const screen = SCREENS[step];
   const isLast = step === SCREENS.length - 1;
 
+  // 0A: scope the canvas palette to the V2 onboarding surface only. The rd-*
+  // tokens resolve to their canvas values under :root[data-next-design]; V1
+  // (Onboarding.jsx, a separate component) is never mounted here, so it stays
+  // byte-identical flag-off. Stamp <html> (the tokens live at :root level), and
+  // on unmount remove it only if we added it (had guard) so we never strip a
+  // stamp a real canvas shell set.
+  useEffect(() => {
+    const el = document.documentElement;
+    const had = el.hasAttribute("data-next-design");
+    el.setAttribute("data-next-design", "");
+    return () => {
+      if (!had) el.removeAttribute("data-next-design");
+    };
+  }, []);
+
   // Completed-user guard (mirrors V1 Onboarding.jsx checkExistingProfile:226): a
   // user who already finished onboarding must not see the flow again. V2 reads no
   // profile on mount otherwise, so a completed user re-entering
