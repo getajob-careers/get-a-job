@@ -128,3 +128,37 @@ describe("CV render parity — Studio preview renders every section the PDF rend
     expect(model.projects[0].bullets).toContain("built it");
   });
 });
+
+// Header parity: the downloaded PDF's renderHeader cascades each header field to
+// the profile-backed userContext (name || full_name, email || account email,
+// etc.), so a CV whose cv_data.header is thin still prints real contact info.
+// The Studio preview must mirror that via headerFallback, or the on-screen header
+// shows template placeholders while the download shows the real data - the exact
+// drift this suite exists to prevent, on the header instead of a body section.
+describe("CV header parity - preview binds the same profile fallback the PDF does", () => {
+  const HEADER_FIELDS = [
+    { field: "name", pdf: "userContext.full_name" },
+    { field: "email", pdf: "userContext.email" },
+    { field: "linkedin", pdf: "userContext.linkedin_url" },
+    { field: "location", pdf: "userContext.location" },
+    { field: "phone", pdf: "userContext.phone_number" },
+  ];
+  for (const { field, pdf } of HEADER_FIELDS) {
+    it(`${field}: PDF cascades to profile AND preview binds headerFallback.${field}`, () => {
+      expect(pdfSrc).toContain(pdf); // PDF renderHeader falls back to profile
+      expect(viewSrc).toContain(`cv.header.${field} || headerFallback.${field}`); // preview mirrors it
+    });
+  }
+
+  it("no template-placeholder header/date strings survive (honest affordances only)", () => {
+    for (const stale of [
+      'placeholder="Your Name"',
+      'placeholder="LinkedIn/Portfolio"',
+      'placeholder="Location"',
+      'placeholder="Phone"',
+      'placeholder="Dates"',
+    ]) {
+      expect(viewSrc).not.toContain(stale);
+    }
+  });
+});

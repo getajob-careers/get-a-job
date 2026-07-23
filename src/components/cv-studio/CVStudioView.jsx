@@ -191,10 +191,18 @@ function Editable({
 }) {
   const ref = useRef(null);
   const Tag = block ? "div" : "span";
+  // Seed the contentEditable from `value`, and RE-seed when `value` changes
+  // (e.g. the profile-backed headerFallback resolving after this mounts) - but
+  // only while the field is not focused, so an in-progress edit is never
+  // clobbered. Deps were [] (mount-only), which froze a placeholder in place
+  // if the real value arrived async.
   useEffect(() => {
-    if (!readOnly && ref.current && ref.current.innerText !== (value || ""))
-      ref.current.innerText = value || "";
-  }, []);
+    const el = ref.current;
+    if (readOnly || !el) return;
+    const next = value || "";
+    if (document.activeElement !== el && el.innerText !== next)
+      el.innerText = next;
+  }, [value, readOnly]);
   // Read-only-from-source (master dates / email): render the value, never
   // contentEditable, with a pointer hint. A would-be edit can't silently no-op
   // here - the exact bug class the write-through arc kills - because there is no
@@ -291,7 +299,7 @@ function ExperienceEntry({
               : ""
           }
           className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[120px]"
-          placeholder="Dates"
+          placeholder="Add dates"
         />
       </div>
       <ul className="mt-1.5 space-y-1">
@@ -740,6 +748,10 @@ export default function CVStudioView({
   // surface renders exactly as before (byte-identical).
   rightRail = null,
   onRevisePiece = null,
+  // Profile-backed header fallback ({ name, email, linkedin, location, phone }),
+  // mirrors the PDF renderHeader cascade so the on-screen preview shows the same
+  // real contact data the download carries instead of template placeholders.
+  headerFallback = { name: "", email: "", linkedin: "", location: "", phone: "" },
 }) {
   // Flag-on gates the Batch-D redesign additions (doc-top unified header, the
   // collapse-to-strip Templates rail). Flag off -> today's pill + always-open
@@ -1163,11 +1175,11 @@ export default function CVStudioView({
                 style={docStyle}
               >
                 <Editable
-                  value={cv.header.name}
+                  value={cv.header.name || headerFallback.name}
                   onCommit={(v) => onPatchHeader({ name: v })}
                   className="cv-name"
                   block
-                  placeholder="Your Name"
+                  placeholder="Add your name"
                 />
                 <Editable
                   value={cv.header.headline}
@@ -1177,7 +1189,7 @@ export default function CVStudioView({
                 />
                 <div className="cv-contact">
                   <Editable
-                    value={cv.header.email}
+                    value={cv.header.email || headerFallback.email}
                     onCommit={(v) => onPatchHeader({ email: v })}
                     readOnly={isMaster}
                     hint={
@@ -1185,25 +1197,25 @@ export default function CVStudioView({
                         ? "Email comes from your account and can't be edited here."
                         : ""
                     }
-                    placeholder="email"
+                    placeholder="Add email"
                   />
                   <span className="cv-dot">·</span>
                   <Editable
-                    value={cv.header.linkedin}
+                    value={cv.header.linkedin || headerFallback.linkedin}
                     onCommit={(v) => onPatchHeader({ linkedin: v })}
-                    placeholder="LinkedIn/Portfolio"
+                    placeholder="Add LinkedIn or portfolio"
                   />
                   <span className="cv-dot">·</span>
                   <Editable
-                    value={cv.header.location}
+                    value={cv.header.location || headerFallback.location}
                     onCommit={(v) => onPatchHeader({ location: v })}
-                    placeholder="Location"
+                    placeholder="Add location"
                   />
                   <span className="cv-dot">·</span>
                   <Editable
-                    value={cv.header.phone}
+                    value={cv.header.phone || headerFallback.phone}
                     onCommit={(v) => onPatchHeader({ phone: v })}
-                    placeholder="Phone"
+                    placeholder="Add phone"
                   />
                 </div>
 
