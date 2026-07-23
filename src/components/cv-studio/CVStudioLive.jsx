@@ -108,10 +108,8 @@ export default function CVStudioLive({
   // banner over the real master content.
   const [pendingTailor, setPendingTailor] = useState(null); // { applicationId } | null
   const [tailoring, setTailoring] = useState(false); // the refine-cv select+reword call (~16s)
-  const [tailorStage, setTailorStage] = useState(""); // client-side staged progress label
   const [tailorResult, setTailorResult] = useState(null); // { cvId, role, company } — outcome card
   const [noJdOpen, setNoJdOpen] = useState(false); // no-JD card overlay
-  const stageTimers = useRef([]); // timers driving tailorStage; cleared on finish/unmount
   const { data: tailorApp } = useApplicationForTailor(
     pendingTailor?.applicationId,
   );
@@ -241,7 +239,6 @@ export default function CVStudioLive({
   if (!serializeWriteRef.current)
     serializeWriteRef.current = createSerializedWriter();
   useEffect(() => () => clearTimeout(saveTimer.current), []);
-  useEffect(() => () => stageTimers.current.forEach(clearTimeout), []);
 
   // Debounced write of the editor model to application_cvs.cv_data. For the
   // MASTER this row is a re-derived CACHE - the source-of-truth write goes
@@ -1198,37 +1195,6 @@ export default function CVStudioLive({
     [selectedCvId, cvOptions, onPatchSummary, onPatchBullet],
   );
 
-  // Client-side staged progress for the tailoring call. refine-cv is a single
-  // blocking request (no streaming), so these stages are timed estimates that
-  // show motion rather than a blank spinner. When the user has no master yet,
-  // refine-cv lazy-builds it inline (~40s, once) — lead with that stage so the
-  // first tailor never looks hung.
-  const stopStages = useCallback(() => {
-    stageTimers.current.forEach(clearTimeout);
-    stageTimers.current = [];
-    setTailorStage("");
-  }, []);
-  const startStages = useCallback((hasMaster) => {
-    stageTimers.current.forEach(clearTimeout);
-    stageTimers.current = [];
-    const seq = hasMaster
-      ? [
-          [0, "Reading the role…"],
-          [2500, "Reframing your experience for this role…"],
-          [9000, "Rendering your PDF…"],
-        ]
-      : [
-          [0, "Preparing your master CV (one-time, this can take ~40s)…"],
-          [40000, "Reading the role…"],
-          [42500, "Reframing your experience for this role…"],
-          [49000, "Rendering your PDF…"],
-        ];
-    for (const [ms, label] of seq) {
-      if (ms === 0) setTailorStage(label);
-      else
-        stageTimers.current.push(setTimeout(() => setTailorStage(label), ms));
-    }
-  }, []);
 
   // Tailor via refine-cv — the extension's proven select-and-reword path
   // (~16s): it picks + reframes the JD-relevant material from the user's master
@@ -1249,7 +1215,6 @@ export default function CVStudioLive({
       setNoJdOpen(false);
       setTailorResult(null); // clear any prior outcome card
       setTailoring(true);
-      startStages(cvOptions.some((o) => o.isMaster));
       const genStartedAt = performance.now();
       try {
         const { data, error } = await supabase.functions.invoke("refine-cv", {
@@ -1347,11 +1312,10 @@ export default function CVStudioLive({
           );
         }
       } finally {
-        stopStages();
         setTailoring(false);
       }
     },
-    [tailoring, user?.id, queryClient, cvOptions, startStages, stopStages],
+    [tailoring, user?.id, queryClient, cvOptions],
   );
 
   // Outcome card "View it": load the just-tailored CV in the editor like the
@@ -1504,7 +1468,7 @@ export default function CVStudioLive({
       return (
         <Centered>
           <div className="max-w-sm w-full">
-            <CvGenerationProgress hasMaster={false} />
+            <CvGenerationProgress label="Building your CV…" />
           </div>
         </Centered>
       );
@@ -1595,7 +1559,6 @@ export default function CVStudioLive({
         onTailorContext={startTailor}
         tailoring={tailoring}
         tailorLabel={tailorLabel}
-        tailorStage={tailorStage}
         tailorResult={tailorResult}
         onViewTailored={onViewTailored}
         onDownloadTailored={onDownloadTailored}

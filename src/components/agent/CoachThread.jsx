@@ -15,7 +15,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
-import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
+import CvGenerationProgress, {
+  GENERATION_ETA,
+} from "@/components/cv-studio/CvGenerationProgress";
 import {
   applyAllTaskSuggestions,
   applyRoadmapChanges,
@@ -280,11 +282,16 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
             error={cvState?.error}
             onApply={() => conv.generateCvForMessage(message.id)}
           />
-          {/* S1: honest CV-shaped skeleton + phase labels during the ~30-40s
-              generation, instead of only the button spinner. */}
+          {/* Honest generation ring during the ~10-20s CV generation, instead
+              of only the button spinner. Indeterminate now; determinate once the
+              CV lane wires progress emission. */}
           {cvState?.status === "generating" && (
             <div className="mt-2">
-              <CvGenerationProgress compact />
+              <CvGenerationProgress
+                compact
+                label="Generating your CV…"
+                hint={GENERATION_ETA}
+              />
             </div>
           )}
         </>

@@ -1,96 +1,125 @@
-import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-
-// CV Excellence Arc S1 — the generation-wait experience.
+// CV RED OQ4 - the honest generation-wait ring.
 //
-// HONEST BY CONSTRUCTION (design-craft rule 9 + the Labor-Illusion research):
-// the generation is a single blocking edge call with NO streaming (real
-// per-section progress arrives in P7). So we show NO fabricated percentage.
-// What IS honest: (1) a CV-shaped skeleton so the user sees the document taking
-// shape, and (2) phase labels that name the REAL pipeline steps in order, plus
-// an honest time expectation. The labels advance on a timer tuned to the known
-// ~30-40s pipeline; they describe what the backend genuinely does, in order —
-// they are not a completion meter and never claim "done".
-//
-// `phases` order mirrors generate-tailored-cv / refine-cv: extract JD → match
-// experience → author/reword bullets → format. When `hasMaster` is false, the
-// first-time master build (~40s) is prepended so the wait isn't a mystery.
+// HONEST BY CONSTRUCTION (design-craft rule 9): CV generation is a single
+// blocking edge call with no client-visible streaming, so this NEVER fabricates
+// a percentage OR timed "stages" that pretend to track the backend. The ring
+// runs INDETERMINATE (a rotating partial arc = honest "working") and only fills
+// for real once a { done, total, stage } contract is supplied. That emission is
+// owned by the CV lane (its own edge-fn arc: generate-tailored-cv already writes
+// cv_generation_progress; refine-cv's emission is queued there). When it lands,
+// a caller passing `progress` makes this ring go determinate automatically - no
+// change needed here. Until then the ring honestly spins.
 
-const TAILOR_PHASES = [
-  "Reading the role…",
-  "Matching your experience to the job…",
-  "Reframing your bullets for this role…",
-  "Formatting your CV…",
-];
+// Measured p50/p90 from function_metrics (post-2026-07-21 parallel-LLM fix,
+// which cut CV generation from ~38s). Static honest expectation only - NO
+// countdown, NO fake remaining-time. If that measurement moves, update the range
+// HERE (single source), and re-derive it from function_metrics, not by guess.
+export const GENERATION_ETA = "This usually takes about 10-20 seconds";
 
-const WITH_MASTER_BUILD = [
-  "Building your master CV (one-time, ~40s)…",
-  ...TAILOR_PHASES,
-];
-
-// Advance roughly every ~9s across the ~30-40s window (or wider with the
-// one-time master build). Honest cadence, not a completion promise: the last
-// label simply holds until the real result returns.
-const STEP_MS = 9000;
+// The honest progress ring. Determinate ONLY when a real { done, total }
+// contract is present; otherwise a rotating partial arc (indeterminate).
+function ProgressRing({ progress, size, stroke }) {
+  const determinate = !!progress && progress.total > 0;
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const pct = determinate
+    ? Math.min(1, Math.max(0, progress.done / progress.total))
+    : 0;
+  const center = size / 2;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className={determinate ? "" : "rd-ring-indeterminate"}
+      aria-hidden="true"
+    >
+      <circle
+        cx={center}
+        cy={center}
+        r={r}
+        fill="none"
+        stroke="var(--rd-border)"
+        strokeWidth={stroke}
+      />
+      <circle
+        cx={center}
+        cy={center}
+        r={r}
+        fill="none"
+        stroke="var(--rd-primary)"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        // Determinate: arc length = the real fraction. Indeterminate: a fixed
+        // ~28% arc that the whole svg rotates - honest motion, never a % claim.
+        strokeDasharray={circ}
+        strokeDashoffset={determinate ? circ * (1 - pct) : circ * 0.72}
+        transform={`rotate(-90 ${center} ${center})`}
+        style={
+          determinate
+            ? { transition: "stroke-dashoffset 400ms ease" }
+            : undefined
+        }
+      />
+    </svg>
+  );
+}
 
 export default function CvGenerationProgress({
-  hasMaster = true,
   compact = false,
+  // Optional { done, total, stage } contract. When present the ring fills for
+  // real and `stage` names the step. Absent = honest indeterminate spin.
+  progress = null,
+  // Honest primary label supplied by the caller (e.g. "Tailoring your CV…").
+  label = "",
+  // Optional truthful secondary line (e.g. GENERATION_ETA). Never a countdown.
+  hint = "",
   className = "",
 }) {
-  const phases = hasMaster ? TAILOR_PHASES : WITH_MASTER_BUILD;
-  const [idx, setIdx] = useState(0);
+  const displayLabel = label || progress?.stage || "Working on it…";
 
-  useEffect(() => {
-    setIdx(0);
-    const timers = [];
-    for (let i = 1; i < phases.length; i++) {
-      timers.push(setTimeout(() => setIdx(i), STEP_MS * i));
-    }
-    return () => timers.forEach(clearTimeout);
-  }, [hasMaster]);
+  // Compact = inline ring + label for a banner over an existing document (the
+  // tailoring path). Keeps the doc visible; the ring supplies the honest motion.
+  if (compact) {
+    return (
+      <div
+        className={["flex items-center gap-2.5", className].join(" ")}
+        role="status"
+        aria-live="polite"
+      >
+        <ProgressRing progress={progress} size={18} stroke={2.5} />
+        <div className="min-w-0 leading-snug">
+          <span className="block text-sm text-rd-primary-dark">
+            {displayLabel}
+          </span>
+          {hint && (
+            <span className="block text-xs text-rd-primary-dark/70">
+              {hint}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
-  const label = phases[Math.min(idx, phases.length - 1)];
-
-  const bars = compact ? 3 : 5;
-
+  // Full = the ring standing alone as the generation-wait hero, with an honest
+  // label and (optionally) the honest time expectation. No percentage, no stages.
   return (
     <div
-      className={["w-full", className].join(" ")}
+      className={[
+        "w-full flex flex-col items-center text-center",
+        className,
+      ].join(" ")}
       role="status"
       aria-live="polite"
       aria-label="Generating your CV"
     >
-      {/* CV-shaped skeleton — header, then section rows forming */}
-      <div
-        className={[
-          "rounded-[14px] border border-rd-border bg-rd-bg-card",
-          compact ? "p-3.5" : "p-5",
-        ].join(" ")}
-      >
-        <Skeleton className="h-4 w-1/3 bg-rd-bg-soft" />
-        <Skeleton className="mt-2 h-2.5 w-1/4 bg-rd-bg-soft" />
-        <div className={compact ? "mt-3 space-y-2" : "mt-4 space-y-2.5"}>
-          {Array.from({ length: bars }).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="h-2.5 bg-rd-bg-soft"
-              style={{ width: `${92 - i * 9}%` }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Honest phase label + time expectation. No percentage. */}
-      <div className="mt-3 flex items-center gap-2">
-        <span
-          className="inline-block w-1.5 h-1.5 rounded-full bg-rd-primary animate-pulse"
-          aria-hidden="true"
-        />
-        <p className="text-[12.5px] leading-snug text-rd-text-secondary">
-          <span className="font-medium text-rd-text">{label}</span>{" "}
-          <span className="text-rd-text-tertiary">· usually ~30–40s</span>
+      <ProgressRing progress={progress} size={52} stroke={4} />
+      <div className="mt-4">
+        <p className="text-sm font-medium text-rd-text leading-snug">
+          {displayLabel}
         </p>
+        {hint && <p className="mt-1 text-xs text-rd-text-secondary">{hint}</p>}
       </div>
     </div>
   );
