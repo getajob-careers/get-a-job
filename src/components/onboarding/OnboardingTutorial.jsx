@@ -307,6 +307,9 @@ export default function OnboardingTutorial({
 
         <ProgressBar percent={setupPercent} />
 
+        {/* Mascot slot (reserved, empty beat): the guide pose (points at the
+            slide highlight) lands here in the later additive character PR -
+            nothing renders now (handoff: mascot slots render nothing). */}
         <div className="mt-7">
           <Slide slide={slide} isFirstSlide={slideIndex === 0} />
         </div>
@@ -419,14 +422,14 @@ function Slide({ slide, isFirstSlide }) {
         </p>
       )}
 
-      <div className="bg-rd-bg-soft border border-rd-border rounded-[18px] px-5 py-7 sm:px-7">
+      <div className="bg-rd-bg-soft border border-rd-border rd-r-lg px-5 py-7 sm:px-7">
         <div className="w-14 h-14 rounded-2xl bg-rd-bg-card border border-rd-border flex items-center justify-center mx-auto shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
           <Icon className="w-6 h-6 text-rd-primary" />
         </div>
         {isBrowseJobs && (
           <div className="mt-5 max-w-md mx-auto bg-rd-bg-card border border-rd-border rounded-[13px] px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-[10px] bg-rd-text flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 rd-r-sm bg-rd-text flex items-center justify-center flex-shrink-0">
                 <span className="font-display font-bold text-white text-[15px]">
                   m
                 </span>
@@ -561,9 +564,9 @@ function FullScreenShell({ children }) {
     <div className="min-h-screen bg-rd-bg-page font-body text-rd-text px-4 py-6 sm:px-6 sm:py-8">
       <div
         className="max-w-2xl mx-auto rounded-[26px] p-[13px]"
-        style={{ background: "var(--rd-peach)" }}
+        style={{ background: "var(--rd-primary-tint)" }}
       >
-        <div className="bg-rd-bg-card rounded-[18px] overflow-hidden">
+        <div className="bg-rd-bg-card rd-r-lg overflow-hidden">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <BrandMark />
