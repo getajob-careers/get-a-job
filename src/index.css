@@ -63,6 +63,9 @@
     --rd-primary: #d6421f;
     --rd-primary-dark: #b23a17;
     --rd-primary-tint: #fce6df;
+    --rd-error: #991B1B;
+    --rd-error-bg: #FEF2F2;
+    --rd-error-border: #FECACA;
 
     /* Teal */
     --rd-teal: #54b5a2;
@@ -111,6 +114,9 @@
     --rd-primary: #60617d; /* --accent — THE canvas primary */
     --rd-primary-dark: #4b4c66; /* --accent-deep */
     --rd-primary-tint: #e3e3ec; /* --accent-tint */
+    --rd-error: #9A2216;
+    --rd-error-bg: #F7E9E3;
+    --rd-error-border: #E6C5B9;
 
     /* Strong band (the `teal` slot = mockup mauve) */
     --rd-teal: #9b7d8a; /* --mauve */

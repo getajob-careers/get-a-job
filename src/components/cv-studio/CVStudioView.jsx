@@ -795,8 +795,8 @@ export default function CVStudioView({
   const savePill =
     saveState === "error"
       ? {
-          cls: "bg-rd-primary-tint text-rd-primary-dark",
-          dot: "bg-rd-primary-dark",
+          cls: "bg-rd-error-bg text-rd-error",
+          dot: "bg-rd-error",
           text: "save failed",
         }
       : saveState === "saving"
