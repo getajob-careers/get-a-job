@@ -113,14 +113,14 @@ export default function AgentComposer({ variant = "dock", suggestions = [] }) {
           aria-controls={popId}
           aria-expanded={showSuggestions}
           placeholder={isDock ? "Ask about this page…" : "Message your coach…"}
-          className={`flex-1 resize-none bg-transparent rd-t-body-m text-rd-text placeholder:text-rd-text-tertiary focus:outline-none leading-[1.5] ${isDock ? "max-h-[160px]" : "max-h-[40vh]"}`}
+          className={`flex-1 resize-none bg-transparent rd-t-body-m text-rd-text placeholder:text-rd-text-secondary focus:outline-none leading-[1.5] ${isDock ? "max-h-[160px]" : "max-h-[40vh]"}`}
         />
         <button
           type="button"
           onClick={() => conv.sendMessage()}
           disabled={!hasText || conv.sending}
           aria-label="Send message"
-          className={`${isDock ? "w-7 h-7" : "w-8 h-8"} inline-flex items-center justify-center flex-shrink-0 rounded-full bg-rd-primary text-white hover:bg-rd-primary-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed transition-colors`}
+          className={`${isDock ? "w-7 h-7" : "w-8 h-8"} rd-hit-44 rd-focus-ring inline-flex items-center justify-center flex-shrink-0 rounded-full bg-rd-primary text-white hover:bg-rd-primary-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed transition-colors`}
         >
           {conv.sending ? (
             <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />

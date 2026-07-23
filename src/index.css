@@ -384,6 +384,23 @@
     0 0 0 2px var(--rd-bg-card),
     0 0 0 4px var(--rd-primary);
 }
+/* Minimum 44px tap target (design-craft rule 8) WITHOUT enlarging the visual
+   control: a centered, invisible ::before extends the clickable area to 44x44
+   over a smaller icon button (composer send, compact chevrons). Apply to icon
+   buttons whose visual circle is deliberately under 44px so the hit area meets
+   the floor while the design stays compact. */
+.rd-hit-44 {
+  position: relative;
+}
+.rd-hit-44::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
 @media (prefers-reduced-motion: reduce) {
   .rd-press,
   .rd-press:active {
