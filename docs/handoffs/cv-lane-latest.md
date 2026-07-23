@@ -55,26 +55,39 @@ Owned paths: `src/pages/Onboarding.jsx` (V1), `OnboardingV2.jsx`,
 - **PR-1 — MERGED (#688, squash `bb9dc6e5`, prod deploy READY).** Situation
   XOR-multi + `situations` audit; goal required; completed-user guard; review
   degree-Select uncontrolled→controlled fix (shared V1+V2). All 4 items live-verified.
-- **PR-2 — BUILT + HELD (PR #691, branch `eli/onboarding-v2-selfheal-tutorial`).**
-  Two commits: **A `cbddee2`** self-heal (b) — NEW `src/lib/careerAnalysis.js`
-  `runCareerAnalysisAndReplaceRoles(...)`; wired 3 callers (handleSurveyNext w/
+- **PR-2 — MERGED + LIVE (#691, squash `70bd110`, 2026-07-23).** Serving-sha
+  VERIFIED: `getajob.careers` READY on `githubCommitSha 70bd110`, target=production.
+  Rollback target = `f82b99d`. Base-cut confirmed clean (merge-base `2b7de0a`, 3
+  design-lane commits behind, ZERO file overlap, merge-tree conflict-free).
+  Commit A `cbddee2` self-heal (b) — `src/lib/careerAnalysis.js`
+  `runCareerAnalysisAndReplaceRoles(...)`; 3 callers (handleSurveyNext w/
   shouldContinue-abort, Roadmap handleGenerate, V2 finalise background-fire +
-  careerRoles invalidate). **B `788388c`** tutorial — OnboardingTutorial after the
-  V2 springboard + has_seen persist via handleTutorialEnd + always-visible
-  "Skip tour" for fresh users (UNCONDITIONAL — also on V1's fresh tour).
-  Gates GREEN (lint clean · typecheck 522 vs 524 baseline · build · 1586/1586).
-  No edge-fn deploy (generate-career-analysis untouched). **Acceptance drive DONE
-  (comment on #691), all 3 criteria PASS:** (2) tutorial-after-springboard +
-  working Skip→/Home?welcome=1 (has_seen=true); (3) situations=["student","looking"]
-  on onboarding_primary_domain_inferred (PostHog, flow=v2); (1) producer proven —
-  V2 bg-fire fired (200) but thin skip-path profile → 0 roles BY FUNCTION DESIGN,
-  so enriched profile + live Roadmap generate (same shared helper) wrote 5
-  career_roles + profile stamp. **HELD for hub before merge.** Nuance: skip-path
-  no-experience completions still land empty-roadmap (function declines thin
-  profiles; manual Build is recovery) — not a PR-2 defect. Tutorial next-design
-  palette visually unverified (Phase 1 restyles V2 anyway).
-- Test accounts to purge pre-flip: `email LIKE '%+6b-%'` (now incl.
+  careerRoles invalidate). Commit B `788388c` tutorial after springboard +
+  has_seen persist + always-visible "Skip tour" (UNCONDITIONAL, shared w/ V1).
+  No edge-fn deploy. Acceptance (all 3 PASS): tutorial+skip→/Home?welcome=1
+  (has_seen=true); situations=["student","looking"] on the inferred event
+  (PostHog flow=v2); producer proven — thin skip-path → 0 roles BY FUNCTION
+  DESIGN, enriched profile + live Roadmap generate wrote 5 career_roles.
+- Test accounts to purge pre-flip: `email LIKE '%+6b-%'` (incl.
   `+6b-selfheal-1784763814` uid `0e940208-a6f7-47f8-8c12-4c6b24a9526e`).
+
+## HUB REASSIGNMENT (Eli-ruled 2026-07-23) — onboarding ownership split
+
+- **Design lane** now owns ALL V2 onboarding **visual + UX** (Phase 1 restyle AND
+  Phase 2 UX composition). Handoff brief written +committed:
+  `docs/handoffs/onboarding-restyle-brief.md` (flow map · restyle-safe vs
+  do-not-alter files · behavior invariants · Phase-2 backlog · acceptance
+  invariants).
+- **This lane (CV/onboarding-sequence)** owns functional correctness, persistence,
+  and any data/behavior change Phase 2 needs, and **cross-reviews any design-lane
+  PR that touches a persist path** (`onboardingPersist`, `careerAnalysis`,
+  `persistOnboardingProfileV2`, `inferPrimaryDomainWrite`).
+- **STANDING BY on onboarding.** No onboarding build work queued for this lane.
+
+## NEXT ARC (do NOT start — gated) — scoring formula implementation
+
+- Gated on **Eli reviewing the held `docs/eval/scoring-formula-design.md`**. Do not
+  begin implementation until Eli signs off that design.
 
 ## PR 6b spec (BUILT — #683; acceptance guide `docs/handoffs/6b-acceptance-guide.md`)
 
