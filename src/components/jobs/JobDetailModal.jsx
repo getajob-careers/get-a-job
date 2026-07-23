@@ -313,7 +313,7 @@ export default function JobDetailModal({
 
           <p className={eyebrow}>Job description</p>
           {loadingDesc ? (
-            <p className="text-[12px] text-rd-text-tertiary inline-flex items-center gap-1.5">
+            <p className="text-[12px] text-rd-text-secondary inline-flex items-center gap-1.5">
               <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading…
             </p>
           ) : (

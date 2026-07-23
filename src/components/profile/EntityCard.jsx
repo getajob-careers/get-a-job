@@ -43,7 +43,7 @@ export default function EntityCard({
           <p className="text-[12px] text-rd-text-secondary mt-1 line-clamp-2 leading-[1.5]">{description}</p>
         )}
         {metaLine && (
-          <p className="text-[11px] text-rd-text-tertiary mt-1 truncate">{metaLine}</p>
+          <p className="text-[11px] text-rd-text-secondary mt-1 truncate">{metaLine}</p>
         )}
       </div>
       <div className="flex items-center gap-1 flex-shrink-0">

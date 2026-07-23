@@ -57,7 +57,7 @@ function Card({ title, icon: Icon, footer, children }) {
       </div>
       <div>{children}</div>
       {footer && (
-        <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#A3A3A3]">
+        <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#6E6E6E]">
           {footer}
         </div>
       )}
@@ -67,7 +67,7 @@ function Card({ title, icon: Icon, footer, children }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex items-center justify-center h-32 text-xs text-[#A3A3A3]">
+    <div className="flex items-center justify-center h-32 text-xs text-[#6E6E6E]">
       {message}
     </div>
   );
@@ -76,7 +76,7 @@ function EmptyState({ message }) {
 function LoadingState() {
   return (
     <div className="flex items-center justify-center h-32">
-      <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+      <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
     </div>
   );
 }
@@ -115,7 +115,7 @@ function CapacityCard() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="text-left text-[#A3A3A3] border-b border-[#F5F5F5]">
+              <tr className="text-left text-[#6E6E6E] border-b border-[#F5F5F5]">
                 <th className="py-2 pr-3 font-medium">Code</th>
                 <th className="py-2 pr-3 font-medium">Cohort</th>
                 <th className="py-2 pr-3 font-medium text-right">Used</th>
@@ -172,7 +172,7 @@ function CapacityCard() {
                       {r.is_active ? (
                         <span className="text-emerald-700">✓</span>
                       ) : (
-                        <span className="text-[#A3A3A3]">—</span>
+                        <span className="text-[#6E6E6E]">—</span>
                       )}
                     </td>
                   </tr>
@@ -259,7 +259,7 @@ function FunnelCard() {
                 <span className="text-[#525252]">
                   <strong>{row.count}</strong>
                   {i > 0 && row.dropPct > 0 && (
-                    <span className="text-[#A3A3A3] ml-2">
+                    <span className="text-[#6E6E6E] ml-2">
                       −{row.dropPct}% from prev
                     </span>
                   )}
@@ -318,7 +318,7 @@ function RecentSignupsCard() {
         <div className="overflow-x-auto max-h-[320px] overflow-y-auto">
           <table className="w-full text-[11px]">
             <thead className="sticky top-0 bg-white">
-              <tr className="text-left text-[#A3A3A3] border-b border-[#F5F5F5]">
+              <tr className="text-left text-[#6E6E6E] border-b border-[#F5F5F5]">
                 <th className="py-2 pr-3 font-medium">When</th>
                 <th className="py-2 pr-3 font-medium">Name</th>
                 <th className="py-2 pr-3 font-medium">Onboarded</th>
@@ -335,19 +335,19 @@ function RecentSignupsCard() {
                   </td>
                   <td className="py-2 pr-3 truncate max-w-[180px]">
                     {r.full_name || (
-                      <span className="text-[#A3A3A3]">(no name yet)</span>
+                      <span className="text-[#6E6E6E]">(no name yet)</span>
                     )}
                   </td>
                   <td className="py-2 pr-3">
                     {r.onboarding_complete ? (
                       <span className="text-emerald-700">✓</span>
                     ) : (
-                      <span className="text-[#A3A3A3]">—</span>
+                      <span className="text-[#6E6E6E]">—</span>
                     )}
                   </td>
                   <td className="py-2 text-[#525252]">
                     {r.referral_source || (
-                      <span className="text-[#A3A3A3]">—</span>
+                      <span className="text-[#6E6E6E]">—</span>
                     )}
                   </td>
                 </tr>
@@ -429,7 +429,7 @@ function SystemHealthCard() {
         <div className="space-y-4">
           {data.byFn.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1.5">
+              <p className="text-[10px] uppercase tracking-wider text-[#6E6E6E] font-medium mb-1.5">
                 Failures by function (24h)
               </p>
               <div className="space-y-1">
@@ -445,7 +445,7 @@ function SystemHealthCard() {
                       <span className="font-semibold text-red-700">
                         {f.count}
                       </span>
-                      <span className="text-[10px] text-[#A3A3A3]">
+                      <span className="text-[10px] text-[#6E6E6E]">
                         last{" "}
                         {formatDistanceToNow(new Date(f.last_seen), {
                           addSuffix: true,
@@ -459,7 +459,7 @@ function SystemHealthCard() {
           )}
           {data.errors.length > 0 && (
             <div>
-              <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1.5">
+              <p className="text-[10px] uppercase tracking-wider text-[#6E6E6E] font-medium mb-1.5">
                 Last {data.errors.length} error_logs
               </p>
               <div className="space-y-1 max-h-[200px] overflow-y-auto">
@@ -558,7 +558,7 @@ function CostCard() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="text-left text-[#A3A3A3] border-b border-[#F5F5F5]">
+              <tr className="text-left text-[#6E6E6E] border-b border-[#F5F5F5]">
                 <th className="py-2 pr-3 font-medium">Day (UTC)</th>
                 <th className="py-2 pr-3 font-medium text-right">Calls</th>
                 <th className="py-2 pr-3 font-medium text-right">
@@ -707,7 +707,7 @@ function UserCountsCard() {
               <div className="text-xs font-medium text-[#525252] mt-0.5">
                 {s.label}
               </div>
-              <div className="text-[11px] text-[#A3A3A3]">{s.sub}</div>
+              <div className="text-[11px] text-[#6E6E6E]">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -740,7 +740,7 @@ export default function AdminLaunch() {
   if (!user?.id || checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#6E6E6E]" />
       </div>
     );
   }
@@ -758,7 +758,7 @@ export default function AdminLaunch() {
         <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
           Launch dashboard
         </h1>
-        <p className="text-sm text-[#A3A3A3] mt-1">
+        <p className="text-sm text-[#6E6E6E] mt-1">
           Read-only pilot observability. Auto-refreshes every 30–60s.
         </p>
       </div>
