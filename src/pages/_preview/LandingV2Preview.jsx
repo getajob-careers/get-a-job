@@ -19,6 +19,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { savePendingCv } from "@/lib/pendingCv";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/api/supabaseClient";
+import { track, EVENTS } from "@/lib/analytics";
 
 // ────────────────────────────────────────────────────────────────────────
 const LV_CSS = `
@@ -1013,7 +1014,9 @@ function DropZone({ onUpload }) {
   const start = async (file) => {
     if (busy || !file) return;
     setBusy(true);
-    await savePendingCv(file); // false in private mode / quota; we proceed either way
+    track(EVENTS.LANDING_CV_UPLOAD_STARTED, { file_type: file.type || "" });
+    const saved = await savePendingCv(file); // false in private mode / quota; we proceed either way
+    track(EVENTS.LANDING_CV_UPLOAD_SUCCEEDED, { saved: saved !== false });
     onUpload();
   };
   return (
@@ -3754,15 +3757,52 @@ export default function LandingV2Preview() {
     }
   }, [isLoggedIn, navigate, location.pathname]);
 
+  // Minimal landing funnel: fire once when each key section first enters the
+  // viewport (hero -> features -> final CTA). Consent-respecting via track().
+  useEffect(() => {
+    const seen = new Set();
+    const targets = [
+      [".lv-hero", "hero"],
+      ["#features", "features"],
+      ["#final-cta", "final_cta"],
+    ];
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          const name = e.target.getAttribute("data-lv-reach");
+          if (name && !seen.has(name)) {
+            seen.add(name);
+            track(EVENTS.LANDING_SECTION_REACHED, { section: name });
+          }
+        }
+      },
+      { threshold: 0.4 },
+    );
+    targets.forEach(([sel, name]) => {
+      const el = document.querySelector(sel);
+      if (!el) return;
+      el.setAttribute("data-lv-reach", name);
+      io.observe(el);
+    });
+    return () => io.disconnect();
+  }, []);
+
   // Every new-visitor CTA (nav "Start", hero "Start here", the CV dropzone,
   // the bottom CTA) opens Login in signup / create-account mode — a returning
   // user uses the "Sign in" link inside that view. The dropzone saves the CV
   // to IndexedDB before this fires (see DropZone.start). A logged-in user
   // goes to /Home (the dashboard), never back to / which would loop.
-  const onCTA = () => navigate(isLoggedIn ? "/Home" : "/Login?mode=signup");
+  const onCTA = () => {
+    track(EVENTS.LANDING_CTA_CLICKED, { cta: "get_started", logged_in: isLoggedIn });
+    navigate(isLoggedIn ? "/Home" : "/Login?mode=signup");
+  };
   // Quiet nav-only "Log in" link for returning users — routes to the existing
   // signin mode so they skip the signup view that the primary CTAs open.
-  const onLogin = () => navigate(isLoggedIn ? "/Home" : "/Login?mode=signin");
+  const onLogin = () => {
+    track(EVENTS.LANDING_CTA_CLICKED, { cta: "log_in", logged_in: isLoggedIn });
+    navigate(isLoggedIn ? "/Home" : "/Login?mode=signin");
+  };
 
   const ref = useRef(null);
   return (
