@@ -498,6 +498,14 @@ export default function Tasks() {
         </div>
       )}
 
+      {tasks.length > 0 && filtered.length === 0 && (
+        <div className={`${RD_CARD_LG} text-center`}>
+          <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
+            No tasks in this category. Switch filters to see the rest.
+          </p>
+        </div>
+      )}
+
       {/* Task rows */}
       <div className="flex flex-col gap-2">
         {filtered.map((task) => {

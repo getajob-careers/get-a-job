@@ -95,7 +95,7 @@ export default function HomeTrackerTab() {
   };
 
   // Same canonical wide query + key Career/Home/old-Tracker all share.
-  const { data: applications = [] } = useQuery({
+  const { data: applications = [], isLoading: applicationsLoading } = useQuery({
     queryKey: ["applications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -274,7 +274,22 @@ export default function HomeTrackerTab() {
       </div>
 
       <div className="mt-3">
-        {applications.length === 0 ? (
+        {applicationsLoading ? (
+          <div
+            className="flex gap-3 overflow-x-auto pb-2"
+            aria-hidden="true"
+          >
+            {APPLICATION_STATUSES.map((s) => (
+              <div key={s} className="flex-1 min-w-[200px]">
+                <div className="h-3.5 w-20 rounded bg-rd-bg-soft animate-pulse mb-3" />
+                <div className="flex flex-col gap-2">
+                  <div className="h-16 rounded-[14px] bg-rd-bg-soft animate-pulse" />
+                  <div className="h-16 rounded-[14px] bg-rd-bg-soft animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : applications.length === 0 ? (
           <RdCard className="px-6 py-10 text-center">
             <Briefcase className="w-10 h-10 text-rd-teal mx-auto mb-3" />
             <p className="rd-t-body-m text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
