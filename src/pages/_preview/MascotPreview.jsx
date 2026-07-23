@@ -209,6 +209,25 @@ export default function MascotPreview() {
             </div>
           ))}
         </div>
+
+        <h2 className="mt-11 font-display text-[18px] font-semibold">
+          3 &middot; Journey lens (flagship: scroll-driven landing)
+        </h2>
+        <p className="mt-1 max-w-[68ch] text-[12.5px] text-rd-text-secondary">
+          The poses double as a narrative ARC for the scroll-driven landing
+          journey (anime.js scroll-observer): <strong>starting out</strong>{" "}
+          (upload-read) &rarr; <strong>working the tools</strong> (working /
+          review-pen) &rarr; <strong>progressing</strong> (tutorial-guide /
+          horizon-goal) &rarr; <strong>landing the role</strong> (springboard).
+          For scroll-SCRUBBING you scrub between BEATS, so the figure&rsquo;s
+          separable parts (arm angle, posture, held prop) interpolate along
+          scroll &mdash; a different model from the looping
+          &ldquo;working&rdquo; variants above (those are the per-section idle).
+          Gap to fill in the landing storyboard: a <em>practice / interview</em>{" "}
+          beat. Full section-by-section scroll-storyboard + perf budget is its
+          own concepts-first deliverable, gated on the eye-pick + the landing
+          recolor.
+        </p>
       </div>
     </div>
   );
