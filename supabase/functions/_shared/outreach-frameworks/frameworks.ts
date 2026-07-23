@@ -38,7 +38,7 @@ OPENER STRUCTURE (50-150 words, OR ≤200 chars if it's a connection-request not
 4. Closing — explicit, low-friction ask: "Open to a quick chat?" or "Happy to send my resume if there's a fit."
 
 EXAMPLES:
-- Good: "Hi Sarah — I'm a final-year business student graduating in June, targeting Customer Success roles in B2B SaaS. I saw your company is hiring for Customer Success Specialist; I built a Slack bot during my last internship that auto-flagged stuck deals and saved the CS team 8 hours/week. Open to a quick chat about whether the role might be a fit?"
+- Good: "Hi Sarah! Saw you're hiring for a Customer Success Specialist. I'm a final-year business student headed into CS in B2B SaaS, and on my last internship I built a Slack bot that auto-flagged stuck deals and saved the team 8 hours a week. Worth a quick chat about whether I'd be a fit?"
 - Bad: "Hi Sarah, I hope this finds you well. I came across your profile and was very impressed by your background. I would love to connect and learn more about opportunities at your company."
 
 ASK TIMING:
@@ -65,7 +65,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — soft ask. "Would love 15 minutes to learn how your team thinks about [specific thing]" beats "Are you hiring?" Hiring managers are more responsive to learning conversations than to direct asks (it's about how their job works, not coyness).
 
 EXAMPLES:
-- Good: "Hi Daniel — I'm finishing my undergrad business degree this June. Read your post last week on how your team is rethinking onboarding for SMB CS — really sharp framing on the 'time-to-value vs feature breadth' trade-off. I spent my last internship in CS shadowing the renewal cohort and built a Slack bot that flagged stuck deals; I'd love to learn how your team thinks about the same problem at your scale. Open to 15 minutes in the next two weeks?"
+- Good: "Hi Daniel - your post last week on rethinking onboarding for SMB CS stuck with me, especially the 'time-to-value vs feature breadth' framing. I spent my last internship shadowing the renewal cohort and built a Slack bot that flagged stuck deals, so I'd love to hear how your team thinks about the same problem at your scale. Open to 15 minutes in the next couple weeks?"
 - Bad: "Hi Daniel, I noticed your company is hiring and I would love to be considered. Please find my resume attached. Thank you for your time."
 
 ASK TIMING:
@@ -93,7 +93,7 @@ OPENER STRUCTURE (50-150 words, OR ≤200 chars connection note):
 4. Closing — explicit, easy-to-say-yes ask. "Open to a 20-min coffee?" "Happy to send a few specific questions you can answer async if easier."
 
 EXAMPLES:
-- Good: "Hi Maya — fellow alum from your program, I'm finishing this June. Saw you've been at your current company for 3 years now in CS, and that's exactly the path I'm targeting (B2B SaaS, CS function). Would love 20 minutes to ask how you decided between the offers you had post-grad and what you'd tell your final-year self. Easiest for you in person, async, or a quick call?"
+- Good: "Hi Maya! Fellow alum here, finishing my degree this June. Saw you've been in CS at your company for 3 years now - that's exactly the path I'm chasing (B2B SaaS, CS function). Would love 20 minutes to ask how you picked between the offers you had post-grad, and what you'd tell your final-year self about breaking into CS. Coffee, call, or async voice notes, whatever's easiest?"
 - Bad: "Hi Maya, I noticed you went to my school. I would love to connect and pick your brain about your career."
 
 ASK TIMING:
@@ -121,7 +121,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — explicit ask for time. 20-30 minutes is the standard. Phone or async are both fine — offer flexibility.
 
 EXAMPLES:
-- Good: "Hi David — I'm a final-year business student trying to decide between Customer Success and Product Marketing for my first role. Saw you spent 3 years in CS before moving to PMM at your current company — you're the rare person who's actually done both. Would love 25 minutes to ask: what surprised you about PMM coming from CS? What does the day-to-day actually look like? What would have made the move easier? Happy to do this async over voice notes if a call is hard to fit in."
+- Good: "Hi David! I'm trying to decide between Customer Success and Product Marketing for my first role, and you're the rare person who's actually done both - three years in CS, then the jump to PMM. Would love 25 minutes to ask: what surprised you about PMM coming from CS? What's the day-to-day actually like? What would've made the move easier? Happy to do it async over voice notes if a call's hard to fit."
 - Bad: "Hi David, I would love to learn more about your career path. Are you free for a coffee?"
 
 ASK TIMING:
@@ -149,7 +149,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — appropriate next-step. If interview: "Looking forward to hearing about next steps" + restate specific interest. If informational: "I'll keep you posted on what I decide" or "Definitely open to staying in touch."
 
 EXAMPLES:
-- Good: "Hi Maya — really appreciated the 25 minutes today. Your point about CS being the function where 'you learn what the customer's job actually is' before moving into product is reframing how I'm thinking about the next 2 years. I'm going to reach out to Daniel next week (the alum you mentioned) — thanks for the warm intro offer. If a CS slot opens up on your team in Q3, would love to be on your radar."
+- Good: "Hi Maya - really appreciated the 25 minutes today. Your point about CS being where 'you learn what the customer's job actually is' before moving into product is reframing how I'm thinking about the next two years. I'm reaching out to Daniel next week (the alum you mentioned) - thanks for the intro offer. And if a CS slot opens on your team in Q3, I'd love to be on your radar."
 - Bad: "Hi Maya, thank you so much for taking the time to chat with me yesterday. I really enjoyed our conversation and learned a lot. I would love to stay in touch."
 
 ASK TIMING:
@@ -177,7 +177,7 @@ OPENER STRUCTURE (50-100 words, lighter than other goals):
 4. Closing — leave it open. NO ask. NO meeting request. NO "would love to catch up sometime" (which translates to "I want something").
 
 EXAMPLES:
-- Good: "Hey Maya — feels like ages since the marketing strategy group. Saw your post about moving into the new PMM role last month — congrats. Last I knew you were torn between staying put and trying B2B SaaS, so it sounds like the call landed. How's the first 90 days going?"
+- Good: "Hey Maya! Feels like ages since the marketing strategy group. Saw your post about the move into the new PMM role last month - congrats! Last I knew you were torn between staying put and trying B2B SaaS, so sounds like the call landed. How are the first 90 days going?"
 - Bad: "Hi Maya, I hope this finds you well. It's been a while! I was wondering if you might be able to introduce me to someone at your company — I'm looking at PMM roles."
 
 ASK TIMING — CRITICAL:
@@ -217,7 +217,7 @@ PATH B (warm-up first — see RECONNECT_DORMANT_FRAMEWORK):
 First message is reconnection only. The ask goes in turn 2 or 3.
 
 EXAMPLES (Path A):
-- Good: "Hi Sarah — saw your company posted the Customer Success Specialist role yesterday (req here: [link]). You managed me in CS for 8 months and saw the renewal-cohort work directly — would you be open to referring me? Happy to send the tailored resume + a 1-page brief on why I think the fit makes sense given the team's ICP shift toward enterprise."
+- Good: "Hi Sarah! Saw your company posted the Customer Success Specialist role yesterday (req here: [link]) and thought of you right away - you managed me in CS for 8 months and saw the renewal-cohort work firsthand. Would you be open to referring me? Happy to send the tailored resume plus a 1-page brief on why the fit makes sense given the team's ICP shift toward enterprise."
 - Bad (Path B violation): "Hey, long time no speak! I saw a role at your company and was wondering if you'd be willing to refer me?"
 
 ASK TIMING:
@@ -245,7 +245,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — explicit timeline + easy out. "No rush, anytime in the next 3 weeks would be wonderful — and totally fine if your bandwidth doesn't allow, no pressure at all."
 
 EXAMPLES:
-- Good: "Hi Daniel — you managed me during my CS internship last summer. I'm starting my job search in earnest now ahead of June graduation, and a LinkedIn recommendation from you would mean a lot. Happy to make this as low-lift as possible — I can send you 3 specific moments from the internship I'd love you to reference (the renewal-cohort work, the Slack bot for stuck deals, the customer-call shadowing project), or send a draft you can edit. No rush — anytime in the next 3 weeks works, and totally fine if bandwidth is tight."
+- Good: "Hi Daniel - you managed me during my CS internship last summer. I'm deep into my job search now ahead of June graduation, and a LinkedIn recommendation from you would mean a lot. I'll make it as low-lift as I can - I can send you 3 specific moments to reference (the renewal-cohort work, the Slack bot for stuck deals, the customer-call shadowing project), or a full draft you just edit. No rush, anytime in the next 3 weeks works, and totally fine if bandwidth's tight."
 - Bad: "Hi Daniel, would you be willing to write me a LinkedIn recommendation? It would mean so much to me."
 
 ASK TIMING:
@@ -319,10 +319,10 @@ H6. HARD RULE 1 from SYSTEM_PROMPT still applies — no "hope this finds you wel
 EXAMPLES (user_data.in_practicum=true, school matches gate):
 
 Good — strong profile (user runs VIP CS at a cyber startup), target = 7AI (Series B AI security):
-"Hi Greg — I'm in Reichman University's Business Administration practicum (internship) program: a structured, supervised placement, ~12 hours a week from November to February. I'd love to do mine in product operations at a security company like 7AI. I currently run VIP customer success at a cybersecurity startup — turning what high-value users struggle with into product signal, which is exactly what I'd bring to your product ops. Worth a quick 15-minute call?"
+"Hi Greg! I'm in Reichman University's Business Administration practicum (internship) program: a structured, supervised placement, ~12 hours a week from November to February. I'd love to do mine in product operations at a security company like 7AI. I currently run VIP customer success at a cybersecurity startup — turning what high-value users struggle with into product signal, which is exactly what I'd bring to your product ops. Worth a quick 15-minute call?"
 
 Good — thin profile (first-job undergrad, led student consulting club), target = Aligned (Series A revenue platform, B2B SaaS):
-"Hi Maya — I'm a Reichman B.A. student doing the Business Administration practicum — a supervised placement, ~12 hrs/week from November–February. I'd love to spend mine in growth marketing at Aligned, where the GTM motion around revenue platforms feels like the right wedge to learn paid acquisition end-to-end. This year I led 3 client engagements at Reichman's student consulting club — including a B2B segmentation project for an IL fintech — same loop, smaller scale. Open to a 15-minute call?"
+"Hi Maya! I'm a Reichman B.A. student doing the Business Administration practicum — a supervised placement, ~12 hrs/week from November–February. I'd love to spend mine in growth marketing at Aligned, where the GTM motion around revenue platforms feels like the right wedge to learn paid acquisition end-to-end. This year I led 3 client engagements at Reichman's student consulting club — including a B2B segmentation project for an IL fintech — same loop, smaller scale. Open to a 15-minute call?"
 
 Good — connection_request_note (≤300 chars), strong profile, target = 7AI:
 "Hi Greg — I'm in Reichman's B.A. practicum (Nov–Feb, ~12 hrs/week) and would love to do mine in product ops at 7AI. I currently run VIP customer success at a cyber startup, turning user friction into product signal. Worth a 15-min call?"

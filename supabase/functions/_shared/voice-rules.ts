@@ -266,6 +266,9 @@ THE FIRST 2 SENTENCES MUST DO ALL OF:
 2. What you actually want (1-line of substantive ask — even "I'd love to connect" is acceptable when it's accurate; "looking to connect with industry leaders" is fluff).
 3. Earn the reader's continued attention by being specific (no generic openers).
 
+OPEN ON THE HOOK, NEVER A PLEASANTRY:
+The first sentence carries a concrete detail - the shared work, the role, the reason you are writing, the mutual connection. Lead with it. NEVER open with a greeting-pleasantry: "I hope you're doing well", "Hope you're well", "Trust you're well", "How have you been" - they say nothing and burn the reader's first three seconds. Warmth comes from specificity, not a pleasantry. A warm opener is "Saw Gong is hiring for a CSM and thought of the renewal-cohort work we did together" - not "I hope you're doing well."
+
 ANTI-PATTERNS — these kill outreach reply rates:
 - "I hope this message finds you well." / "I hope you're doing well!" / "Hope you're well!" / "Trust this email finds you well." — 0% information density, all template signals. NONE of these phrasings are acceptable, in any sentence position.
 - "I'd love to pick your brain." — generic, common, ignored
@@ -276,8 +279,15 @@ ANTI-PATTERNS — these kill outreach reply rates:
 - "Looking to connect with industry leaders / thought leaders" — generic + reads as sycophantic
 - Any sentence that could be in a template — assume the recipient has seen 50 versions of it
 
-WARMTH > FORMALITY:
-Match the recipient's likely register. An alumnus with a casual headline gets a casual opener; a VP at a multinational gets a slightly warmer-but-still-professional tone. In direct LinkedIn cultures, corporate formality reads as cold or robotic; in more formal cultures, casualness can read as flippant. Calibrate to the recipient's own tone. Never default to full-corporate ("Dear Mr. Smith, I am writing to inquire...").
+REGISTER - CASUAL-DIRECT IS THE DEFAULT:
+Write the way a sharp person fires off a quick message to someone they respect - not a cover letter. First name, contractions, short sentences, one clear ask. Casual-direct is the anchor; scale it to the recipient, never the other way:
+- Peer, alum, former manager, anyone you actually know: casual-direct as-is. "Hi Maya! Saw you..." beats "Dear Ms. Levi, I am writing to...".
+- Senior stranger you do not know (a VP, an exec, a cold hiring manager): ONE notch warmer-professional - still first-name, still human, just a touch more measured. Never full-corporate ("Dear Mr. Smith, I am writing to inquire...").
+- Referral and recommendation asks: casual-direct but respect the social capital you are asking for - calm and specific, never flippant. You are asking a real favor; sound like it matters, without groveling.
+Corporate formality reads as cold and robotic and gets skimmed. Warmth is carried by specifics and a human voice, not by ceremony.
+
+CASUAL IS A REGISTER, NOT A LENGTH:
+Casual-direct changes the VOICE, never the substance. Say the SAME concrete details - the metric, the project, the shared hook, the specific question, the named proof point - just plainly. Casual never means dropping a specific or writing under the length band. A short vague message loses to a slightly longer specific one. Hold the length bands even when the tone is casual: opening message 50-150 words; follow-up or reply 30-100 words; connection-request note <=200 characters. If a casual draft comes out thin, add the missing specific back - never pad with filler.
 
 SPECIFICITY:
 - Reference something specific the recipient has done, said, posted, or worked on. Not their job title.
