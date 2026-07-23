@@ -42,28 +42,49 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 - **#694** `eli/canvas-landing-link` squash `b56fe1b` - flag-ON "About Get A Job" -> `/Landing` eyebrow in the CanvasSidebar footer (Option C). Eli-certified; branch deleted; **prod serving `b56fe1b` via `dpl_HNiizxYzxzPpz7oMFmC9ZizzpP3V` (READY).**
 - #691 (CV self-heal) + #693 (onboarding brief, docs-only) also merged this window. origin/main HEAD `b56fe1b`. Zero edge fns in any of the design-lane merges.
 
-### HELD for Eli cert
+### MASCOT ROUND 1 — DONE this session (2026-07-23), on `eli/mascot-prototype`, for Eli's eye
 
-- **PR #<mascot>** `eli/mascot-prototype` (off `b56fe1b`) - MASCOT ARC STEP 2 eye-pick packet. New `src/components/redesign/mascot/MascotFigure.jsx` (refined hero-scale figure in the logo's glaze+lift material; separable `data-part` limbs; `pose` prop = the recurring-character vocabulary) + `src/pages/_preview/MascotPreview.jsx` (route `/_preview/mascot`, SHOW_PREVIEW_ROUTES-gated) with 3 anime.js-timeline "working" variants (Typing / Focus / Bob) + a 9-pose static grid. Installed `animejs@4.5.0` (per-submodule imports). Motion-discipline note added to `docs/design/design-resources.md` (two systems). reduced-motion->static. **Prod bundle delta ~0** (route folds out; anime.js DCE'd - no chunk in prod build). Adoption cost ~16.4KB gz (per-submodule) vs ~42.9KB full-lib. Gate: <pending>. **Cert URL (dev/preview only): `/_preview/mascot`.** BUILD/ADOPT into loaders/onboarding is a LATER PR after Eli picks a variant + blesses the vocabulary.
+The pause LIFTED (Eli's 4-image reference board landed). Round 1 delivered:
+
+- **Board committed:** `docs/design/mascot-reference/` (4 webp + `notes.md` = the shared-language recipe).
+- **`character-craft` skill authored** (`.claude/skills/character-craft/SKILL.md`): board recipe + appeal fundamentals + animation principles as rules + the standing MICRO-LIFE requirement. Registered (shows in the skills list).
+- **Character REDRAWN** (`MascotFigure.jsx`, full rewrite): round 0's thin-stroke skeleton → solid board-style MASSES (oversized head + chunky torso + small limbs, signature rosy nose, minimal face + glasses, in-figure grain [Eli-blessed exception], grounded shadow). Brand equity kept (person at the A-frame desk = the logotype's "A"). Canvas palette via tokens; new `--rd-mascot-*` skin tokens added to index.css `[data-next-design]`. Iterated in a scratchpad harness (screenshot → self-critique → revise ×3): hair-hole fix, grain from invisible→static→right chalk tooth (opacity 0.26), bigger seated laptop, integrated arms, crew-neck.
+- **SIGN-UP AMBIENT IDLE built** (`MascotPreview.jsx` `useSignupIdle`): breathing + random blinks + weight shifts + periodic COFFEE SIP + steam, each on its OWN randomized self-rescheduling timer (anti-metronome). reduced-motion → static. Preview now STAMPS `data-next-design` (round 0's silent bug: it rendered coral without the flag). Verified in-app on `/_preview/mascot`: renders canvas palette, no anime.js errors, breathing transform applied (live loop needs a visible tab; bg-tab rAF froze the sample — Eli to eyeball live motion).
+- **3 registers STORYBOARDED** (`docs/design/mascot-motion-registers.md`): landing scroll-journey (**incl. Eli's 2026-07-23 idea: mascot IS the "A" in the hero logotype, RISES out on first scroll + walks the page down with the user**; anime.js-homepage technique translation; practice/interview beat; CV-drop loader), onboarding state-acting, tutorial guide. Sign-up = built; other three built later, each gated on Eli's Round-1 sign-off.
+- **Ruled fallback:** Round 2 only on Eli's notes; if Round 2 misses → commissioned character sheet (flag, don't spiral).
+
+**#695 → this is its continuation** (same branch). Commits `797ffd7`+`1e15cb6` (old packet) + Round-1 commit(s). Open the held PR for Eli's Vercel-preview eye-pass on `/_preview/mascot`.
+
+- **KNOCK-ON now UNBLOCKED:** onboarding mascot moments = ADDITIVE SLOTS (work empty), landing loader + scroll-journey are storyboarded, all gated on Round-1 sign-off.
 
 **Rollback target (prod):** current = `dpl_HNiizxYzxzPpz7oMFmC9ZizzpP3V` (main `b56fe1b`, #694); prior = `dpl_Dt9gouA4CbFCMidAjv66LU5uNmWA` (main `f82b99d`, #692).
+
+### "About Get A Job" presentability (Eli logged a nitpick - PROPOSAL, awaiting his pick)
+
+Current link = plain muted uppercase-mono eyebrow. Richer treatments (still muted, still footer-weight), rides onboarding Phase 1 or a tiny follow-up (NOT #695 - it doesn't touch CanvasSidebar):
+
+- **A · Leading glyph + warmer eyebrow:** small `↗`/house lucide glyph (11px) + `text-rd-text-eyebrow` (vs -secondary) + hover underline-offset. Lowest-touch; reads as an intentional link.
+- **B · Hairline chip:** wrap in `rounded-full border border-rd-border px-2.5 py-1` + the glyph - a defined shape that still recedes.
+- **Copy note:** it points to the marketing LANDING, so "Get A Job homepage" / "Visit homepage" reads truer than "About Get A Job" - but change BOTH flag states (the flag-off `SidebarFooter` shares the string) for cross-flip parity.
 
 ## Rulings locked (do not re-litigate)
 
 - **CTA = Option A** ("Tailor to a job", filled rd-primary + leading Sparkles). Landed #690.
 - **Landing-link = Option C** (logo stays ->/Home; separate "About Get A Job" ->/Landing link). Built flag-on this session; flag-off already had it.
-- **Mascot arc** (memory [[mascot-logo-animation-arc]]): canonical = `CanvasLogo.jsx` MarkFullChair (11 separable shapes). Size-split = hero-only refine (keep 30px header pictogram; refined figure at hero/loader). Motion = **anime.js v4, per-submodule imports** (INSTALLED v4.5.0 in the mascot packet; ~16.4KB gz adoption cost). Motion-discipline note is committed to `docs/design/design-resources.md` - **TWO systems (Eli 2026-07-23): CSS = simple loops/transitions; anime.js = timelines + multi-part orchestration** (framer-motion dropped - being pruned). anime.js is the DEFAULT orchestration tool for all upcoming motion (mascot, onboarding, CV-gen theater, marquee, arrival). Asset runtimes (Rive/Lottie/Spline) pre-approved the moment a moment earns one. Prototype = 2-3 anime.js-timeline motion variants on a SHOW_PREVIEW_ROUTES-gated `_preview` route, no auth, reduced-motion->static. Build is its OWN later PR AFTER Eli approves the refined-SVG + prototype. reduced-motion->static + canvas-only gate + honest UI (never fakes progress) bind all mascot work.
+- **Mascot arc** (memory [[mascot-logo-animation-arc]]) - **PAUSED 2026-07-23; zero mascot work until Eli's reference board + hub kickoff (see HELD/PAUSED section).** The pipeline facts below still hold for when it resumes. canonical = `CanvasLogo.jsx` MarkFullChair (11 separable shapes). Size-split = hero-only refine (keep 30px header pictogram; refined figure at hero/loader). Motion = **anime.js v4, per-submodule imports** (INSTALLED v4.5.0 in the mascot packet; ~16.4KB gz adoption cost). Motion-discipline note is committed to `docs/design/design-resources.md` - **TWO systems (Eli 2026-07-23): CSS = simple loops/transitions; anime.js = timelines + multi-part orchestration** (framer-motion dropped - being pruned). anime.js is the DEFAULT orchestration tool for all upcoming motion (mascot, onboarding, CV-gen theater, marquee, arrival). Asset runtimes (Rive/Lottie/Spline) pre-approved the moment a moment earns one. Prototype = 2-3 anime.js-timeline motion variants on a SHOW_PREVIEW_ROUTES-gated `_preview` route, no auth, reduced-motion->static. Build is its OWN later PR AFTER Eli approves the refined-SVG + prototype. reduced-motion->static + canvas-only gate + honest UI (never fakes progress) bind all mascot work.
 - **Mascot x onboarding/tutorial (hub 2026-07-23, CREATIVE LICENSE granted):** once the refined mascot exists, Eli wants it as a RECURRING CHARACTER across tutorial + onboarding, illustrating REAL state per screen. Propose poses/scenes as concept OPTIONS for Eli's pick (concepts before builds). See "Mascot-as-character concept menu" below. Ties into the already-queued loader + sign-up-ambient roles. Same constraints bind (layered SVG + anime.js timelines + reduced-motion static + honest + canvas-only).
 - **Dependency audit done** (report-only): `framer-motion`/`three`/`canvas-confetti` installed but imported in 0 src files (dead weight; cleanup-PR question LOGGED not built). anime.js is the one genuinely-gated lib (install ruled).
 
-## NOMINATED queue order (hub confirms with Eli)
+## Queue (CONFIRMED by Eli 2026-07-23)
 
-Reasoning key: onboarding is BLOCKED on the CV-lane brief (not on disk yet) AND the mascot now FEEDS onboarding (character on upload-wait / review / tutorial / springboard) -> mascot prototype should precede onboarding builds so the restyle adopts the chosen character from the start (matches Eli's own "mascot before onboarding" hint).
-
-1. **Landing-link PR (#694)** - MERGED + LIVE this session.
-2. **Mascot arc Step 2** - BUILT this session (`eli/mascot-prototype`, HELD at `/_preview/mascot`). Awaiting Eli's variant pick + vocabulary blessing. Build/adopt into loaders/onboarding = the NEXT PR after the pick.
-3. **V2 Onboarding Phase 1** (canvas restyle screens 0-3 + springboard + tutorial rendering). Starts once (a) CV-lane brief lands AND (b) Eli picks a mascot variant. Blocked on brief regardless.
-4. **V2 Onboarding Phase 2** (UX composition: review-screen rework, upload-wait loading, location autocomplete, entrance motion, thin-profile empty-roadmap nudge). Mascot scenes land heaviest here.
+1. **Landing-link PR (#694)** - MERGED + LIVE.
+2. **Mascot arc Step 2 (#695)** - **PAUSED** (see above). Reference-board-gated. ZERO mascot work until the hub's reference-driven kickoff.
+3. **>> NEXT BUILD SLOT: V2 Onboarding Phase 1** (canvas restyle of screens 0-3 + springboard + tutorial rendering). **UNBLOCKED.** PLAN-FIRST (standing rule):
+   - READ `docs/handoffs/onboarding-restyle-brief.md` (ON MAIN, `d7b2b6a`) FIRST. **Respect its do-not-alter list.** CV lane cross-reviews ANYTHING touching persist paths (`src/lib/onboardingPersist` etc.).
+   - Deliverable = a per-SCREEN restyle plan with OPTION PAIRS where judgment splits + a PR-SPLIT proposal. Build only on Eli's approval.
+   - Mascot moments = **ADDITIVE SLOTS** (reserved beats that work EMPTY now, get the character post-reference-board), never blockers.
+   - **Landing recolor #696** is merging -> the LANDING PALETTE is now the LIVE reference for one-voice consistency; align the restyle to it.
+4. **V2 Onboarding Phase 2** (UX composition: review-screen rework, upload-wait loading, location autocomplete, entrance motion, thin-profile empty-roadmap nudge). Mascot scenes (additive slots) land heaviest here.
 5. **AgentComposer Phase 2** (ChatInterface agent pages: CareerAgent/InterviewCoach/SkillDevelopmentAdvisor) -> **Phase 3** (CVStudioView eval adopt-vs-keep-chips). Independent; interleavable.
 6. **CV-gen ring/theater** - standing queued (Eli loved it); pairs with mascot Step 3 adoption.
 7. **(c) tab-consistency** - move CV/Browse/Tracker tabs UP to fill empty space (nominate approach before building).
