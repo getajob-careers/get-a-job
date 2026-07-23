@@ -401,6 +401,27 @@
   height: 44px;
   transform: translate(-50%, -50%);
 }
+/* Honest generation-progress ring (CV RED OQ4). The ring NEVER fabricates a
+   completion meter: with no real { done, total } contract it runs INDETERMINATE
+   (a partial arc rotating = honest "working"); it only fills for real when the
+   backend emits progress. Rotating the whole <svg> keeps the spin about a clean
+   center (the full track circle is rotationally symmetric, so only the arc reads
+   as moving). Reduced-motion freezes it to a static partial arc (still honestly
+   "in progress"), never a claim of a percentage. */
+@keyframes rd-ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.rd-ring-indeterminate {
+  transform-origin: center;
+  animation: rd-ring-spin 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-ring-indeterminate {
+    animation: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .rd-press,
   .rd-press:active {

@@ -35,6 +35,9 @@ import {
 // (default `templates` prop) AND re-exported so existing
 // `import { CV_TEMPLATES } from ".../CVStudioView"` call sites keep working.
 import { CV_TEMPLATES } from "./cvTemplates";
+import CvGenerationProgress, {
+  GENERATION_ETA,
+} from "@/components/cv-studio/CvGenerationProgress";
 import { isNextDesign } from "@/lib/nextDesign";
 
 export { CV_TEMPLATES };
@@ -738,7 +741,6 @@ export default function CVStudioView({
   onTailorContext, // banner CTA → tailor the pending target
   tailoring = false, // the refine-cv select+reword call is running (~16s)
   tailorLabel = "this job",
-  tailorStage = "", // client-side staged progress label (Reading → Selecting → Rendering)
   tailorResult = null, // { cvId, role, company } — the just-finished tailored CV
   onViewTailored, // outcome card "View it" → load the new CV in the editor
   onDownloadTailored, // outcome card "Download" → re-render the new CV's PDF
@@ -1002,16 +1004,17 @@ export default function CVStudioView({
                 : "flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page"
             }
           >
-            {/* Tailoring progress — refine-cv is a single blocking call (~16s), so
-              the stage label is a client-side timed estimate that shows motion
-              (Reading → Selecting → Rendering), distinct from the chat dots. */}
+            {/* Tailoring progress - refine-cv is a single blocking call, so the
+              ring runs HONEST-INDETERMINATE (no fake timed stages). It goes
+              determinate automatically once the CV lane wires progress emission. */}
             {tailoring && (
               <div className="max-w-[720px] mx-auto mt-3 px-1">
-                <div className="flex items-center gap-2.5 text-[12.5px] text-rd-primary-dark bg-rd-primary-tint border border-rd-primary/30 rounded-lg px-3 py-2.5">
-                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-                  <span>
-                    {tailorStage || `Tailoring your CV to ${tailorLabel}…`}
-                  </span>
+                <div className="bg-rd-primary-tint border border-rd-primary/30 rounded-lg px-3 py-2.5">
+                  <CvGenerationProgress
+                    compact
+                    label={`Tailoring your CV to ${tailorLabel}…`}
+                    hint={GENERATION_ETA}
+                  />
                 </div>
               </div>
             )}
