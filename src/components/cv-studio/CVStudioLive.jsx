@@ -1601,6 +1601,13 @@ export default function CVStudioLive({
         onDownloadTailored={onDownloadTailored}
         rightRail={rightRail}
         onRevisePiece={enablePieceRevise ? onRevisePiece : null}
+        headerFallback={{
+          name: profile?.full_name,
+          email: profile?.email || user?.email,
+          linkedin: profile?.linkedin_url,
+          location: profile?.location,
+          phone: profile?.phone_number,
+        }}
       />
       {noJdOpen && (
         <NoJdCard
