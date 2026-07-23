@@ -93,7 +93,7 @@ OPENER STRUCTURE (50-150 words, OR ≤200 chars connection note):
 4. Closing — explicit, easy-to-say-yes ask. "Open to a 20-min coffee?" "Happy to send a few specific questions you can answer async if easier."
 
 EXAMPLES:
-- Good: "Hi Maya! Fellow alum here, finishing this June. Saw you've been in CS at your company for 3 years now - that's exactly the path I'm chasing (B2B SaaS, CS). Would love 20 minutes to ask how you picked between your post-grad offers and what you'd tell your final-year self. Coffee, call, or async, whatever's easiest?"
+- Good: "Hi Maya! Fellow alum here, finishing my degree this June. Saw you've been in CS at your company for 3 years now - that's exactly the path I'm chasing (B2B SaaS, CS function). Would love 20 minutes to ask how you picked between the offers you had post-grad, and what you'd tell your final-year self about breaking into CS. Coffee, call, or async voice notes, whatever's easiest?"
 - Bad: "Hi Maya, I noticed you went to my school. I would love to connect and pick your brain about your career."
 
 ASK TIMING:

@@ -286,6 +286,9 @@ Write the way a sharp person fires off a quick message to someone they respect -
 - Referral and recommendation asks: casual-direct but respect the social capital you are asking for - calm and specific, never flippant. You are asking a real favor; sound like it matters, without groveling.
 Corporate formality reads as cold and robotic and gets skimmed. Warmth is carried by specifics and a human voice, not by ceremony.
 
+CASUAL IS A REGISTER, NOT A LENGTH:
+Casual-direct changes the VOICE, never the substance. Say the SAME concrete details - the metric, the project, the shared hook, the specific question, the named proof point - just plainly. Casual never means dropping a specific or writing under the length band. A short vague message loses to a slightly longer specific one. Hold the length bands even when the tone is casual: opening message 50-150 words; follow-up or reply 30-100 words; connection-request note <=200 characters. If a casual draft comes out thin, add the missing specific back - never pad with filler.
+
 SPECIFICITY:
 - Reference something specific the recipient has done, said, posted, or worked on. Not their job title.
 - If you have shared context (school, mutual connection, attended their talk), name it specifically with the detail (year, course, event name) — not "I see we have shared connections."
