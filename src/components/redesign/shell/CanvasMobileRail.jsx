@@ -14,7 +14,7 @@ import CanvasAvatarChip from "./CanvasAvatarChip";
 function RailItem({ item }) {
   const Icon = item.icon;
   const cls =
-    "flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rd-r-sm text-rd-text-secondary hover:text-rd-primary hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary";
+    "flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rd-r-sm text-rd-text-secondary hover:text-rd-primary hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary";
   return (
     <Link
       to={createPageUrl(item.page)}
@@ -47,7 +47,7 @@ export default function CanvasMobileRail({ navItems = [], coach, account }) {
           onClick={() => setCoachOpen(true)}
           aria-label="Open coach"
           title="Coach"
-          className="flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rd-r-sm text-rd-primary hover:bg-rd-primary-tint transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
+          className="flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rd-r-sm text-rd-primary hover:bg-rd-primary-tint transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
         >
           <Sparkles
             className="w-[18px] h-[18px]"
@@ -78,7 +78,7 @@ export default function CanvasMobileRail({ navItems = [], coach, account }) {
                 type="button"
                 onClick={() => setCoachOpen(false)}
                 aria-label="Close coach"
-                className="inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-card transition-colors"
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-card transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>

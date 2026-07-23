@@ -62,7 +62,7 @@ export default function SidebarFooter({ profileFullName = null, onNavigate }) {
             </div>
             <button
               onClick={() => logout()}
-              className="p-1.5 rounded-md hover:bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
+              className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md hover:bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
               title="Sign out"
               aria-label="Sign out"
             >

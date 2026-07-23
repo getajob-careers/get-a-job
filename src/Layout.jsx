@@ -330,7 +330,7 @@ function LayoutBody({ children, currentPageName }) {
           <div className="flex items-center justify-between">
             <BrandMark />
             <button
-              className="lg:hidden p-1 rounded-md hover:bg-rd-bg-soft transition-colors"
+              className="lg:hidden min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded-md hover:bg-rd-bg-soft transition-colors"
               onClick={closeMobileSidebar}
               aria-label="Close menu"
             >

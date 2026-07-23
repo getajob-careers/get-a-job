@@ -656,7 +656,7 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
                       onDelete(o);
                     }}
                     aria-label={`Delete ${o.label}`}
-                    className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint shrink-0"
+                    className="hidden group-hover/cvopt:inline-flex items-center justify-center w-11 h-11 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint shrink-0"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -874,7 +874,7 @@ export default function CVStudioView({
               onClick={() => handleDelete(currentCv)}
               aria-label="Delete this CV"
               title="Delete this CV"
-              className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint transition-colors"
+              className="w-11 h-11 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-primary-dark hover:bg-rd-primary-tint transition-colors"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -911,7 +911,7 @@ export default function CVStudioView({
                 }
                 aria-label="Expand templates"
                 aria-expanded={false}
-                className="p-1 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+                className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -965,7 +965,7 @@ export default function CVStudioView({
                       }
                       aria-label="Collapse templates"
                       aria-expanded={true}
-                      className="p-0.5 rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+                      className="min-w-[44px] min-h-[44px] inline-flex items-center justify-center rounded text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
