@@ -269,6 +269,7 @@ export default function Career() {
   // into the same key in the same frame the button toggles to Tracked.
   const {
     data: applications = [],
+    isLoading: applicationsLoading,
     isError: applicationsError,
     error: applicationsErrorObj,
     refetch: refetchApplications,
@@ -754,6 +755,21 @@ export default function Career() {
                   Retry
                 </button>
               </RdCard>
+            ) : applicationsLoading ? (
+              <div
+                className="flex gap-3 overflow-x-auto pb-2"
+                aria-hidden="true"
+              >
+                {APPLICATION_STATUSES.map((s) => (
+                  <div key={s} className="flex-1 min-w-[200px]">
+                    <div className="h-3.5 w-20 rounded bg-rd-bg-soft animate-pulse mb-3" />
+                    <div className="flex flex-col gap-2">
+                      <div className="h-16 rounded-[14px] bg-rd-bg-soft animate-pulse" />
+                      <div className="h-16 rounded-[14px] bg-rd-bg-soft animate-pulse" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : applications.length === 0 ? (
               <RdCard className="px-6 py-10 text-center">
                 <Briefcase className="w-10 h-10 text-rd-primary mx-auto mb-3" />
