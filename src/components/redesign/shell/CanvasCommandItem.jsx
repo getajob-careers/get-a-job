@@ -8,7 +8,7 @@ import React from "react";
 export default function CanvasCommandItem({
   icon: Icon,
   label,
-  hint,
+  hint = null,
   active = false,
   onSelect,
   style,

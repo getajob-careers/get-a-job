@@ -26,6 +26,7 @@ import {
   restoreBullets,
   applyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
+import { DEFAULT_DOCK_PROMPTS } from "./coachPrompts";
 
 // CoachThread — shared message list rendered by both the sidebar dock
 // and the drawer panel. Reads from CoachConversationProvider so both
@@ -45,12 +46,6 @@ import {
 //
 // Scroll: own container with overscroll-behavior: contain so reaching
 // top/bottom never chains scroll to the page or the sidebar.
-
-const DEFAULT_DOCK_PROMPTS = [
-  "What should I focus on?",
-  "Am I ready to apply?",
-  "What's my biggest gap?",
-];
 
 function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy, downloadUrl, downloadName, studioAppId }) {
   const navigate = useNavigate();
@@ -445,19 +440,24 @@ export default function CoachThread({ variant = "dock" }) {
           <p className={`${isDock ? "text-[12px]" : "text-[13px]"} text-rd-text-secondary leading-[1.5]`}>
             Knows your roadmap, your pipeline, and this page.
           </p>
-          <div className="flex flex-col items-start gap-1.5">
-            {DEFAULT_DOCK_PROMPTS.map((p, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => conv.sendMessage(p)}
-                disabled={conv.sending}
-                className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark font-display font-semibold hover:bg-rd-primary hover:border-rd-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+          {/* Flag-ON: the composer pop-up is the primary suggestion affordance,
+              so the empty-state slims to the intro line (no duplicate chips).
+              Flag-OFF keeps the coral-tint pill chips. */}
+          {!alive && (
+            <div className="flex flex-col items-start gap-1.5">
+              {DEFAULT_DOCK_PROMPTS.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => conv.sendMessage(p)}
+                  disabled={conv.sending}
+                  className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark font-display font-semibold hover:bg-rd-primary hover:border-rd-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
