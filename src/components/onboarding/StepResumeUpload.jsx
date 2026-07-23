@@ -81,8 +81,6 @@ import {
   CheckCircle2,
   ArrowRight,
   Info,
-  ExternalLink,
-  X,
   GraduationCap,
   Briefcase,
   Search,
@@ -99,8 +97,6 @@ import RdButton from "@/components/redesign/RdButton";
 //   - `student` + `freelance` stack with everything
 // Resume-parse pipeline (ai-chat + extract-proof-signals in parallel)
 // preserved verbatim — onExtracted/onChange contracts unchanged.
-
-const LI_EXPORT_DISMISS_KEY = "gaj.onb.li_export_dismissed";
 
 const EMPLOYMENT_OPTIONS = [
   { value: "student", label: "Student", Icon: GraduationCap },
@@ -154,27 +150,8 @@ export default function StepResumeUpload({
   // path is byte-identical.
   const [uploadFailMode, setUploadFailMode] = useState(null);
   const [cvTruncated, setCvTruncated] = useState(false);
-  const [liExportDismissed, setLiExportDismissed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef();
-
-  useEffect(() => {
-    try {
-      if (localStorage.getItem(LI_EXPORT_DISMISS_KEY) === "1")
-        setLiExportDismissed(true);
-    } catch {
-      /* private mode */
-    }
-  }, []);
-
-  const dismissLiExport = () => {
-    setLiExportDismissed(true);
-    try {
-      localStorage.setItem(LI_EXPORT_DISMISS_KEY, "1");
-    } catch {
-      /* private mode */
-    }
-  };
 
   const toggleEmploymentStatus = (value) => {
     const current = profileData?.employment_status || [];
@@ -501,41 +478,6 @@ export default function StepResumeUpload({
 
   return (
     <div className="space-y-7">
-      {/* Dismissible LinkedIn export reminder — surfaces early so users can
-          request the export now and have it ready when LinkedIn Hub needs it
-          a few hours later. Suppressed in the V2 chromeless embed. */}
-      {!chromeless && !liExportDismissed && (
-        <div className="bg-rd-primary-tint border border-rd-primary/40 rounded-[14px] p-3.5 pr-10 text-[13px] text-rd-primary-dark flex items-start gap-3 relative">
-          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <div className="flex-1 leading-relaxed">
-            <p className="font-display font-semibold text-rd-text">
-              Get a head start on LinkedIn Hub - request your data export now
-            </p>
-            <p className="mt-1 text-rd-text-secondary">
-              We use it to optimise your profile, draft posts in your voice, and
-              find warm intros at companies you target. LinkedIn takes a few
-              hours to prepare the export.
-            </p>
-            <a
-              href="https://www.linkedin.com/mypreferences/d/download-my-data"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold text-rd-primary hover:text-rd-primary-dark underline underline-offset-2"
-            >
-              Request LinkedIn data export <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-          <button
-            type="button"
-            onClick={dismissLiExport}
-            className="absolute top-2.5 right-2.5 p-1 hover:bg-rd-bg-soft rounded-md"
-            aria-label="Dismiss"
-          >
-            <X className="w-4 h-4 text-rd-text-secondary" />
-          </button>
-        </div>
-      )}
-
       {!chromeless && (
         <div>
           <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">

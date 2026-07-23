@@ -276,7 +276,7 @@ export default function ProfilePreview({
         <div className="min-w-0">
           <p className="font-display font-bold text-[16px] text-rd-text">Profile optimizer</p>
           <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
-            How your profile will look on LinkedIn - coral marks what your agent improved.
+            How your profile will look on LinkedIn.
           </p>
         </div>
         {hasBaseline && (

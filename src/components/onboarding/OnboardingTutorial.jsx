@@ -11,7 +11,6 @@ import {
   MessageCircle,
   RotateCcw,
   CheckCircle2,
-  ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
@@ -59,7 +58,7 @@ const SLIDES = [
     name: "linkedin_hub",
     title: "LinkedIn hub",
     description:
-      "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist. Needs your LinkedIn data export - request it now if you haven't.",
+      "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist.",
     Icon: Linkedin,
   },
   {
@@ -412,7 +411,6 @@ export function OnboardingCompleteStep({ onDone }) {
 function Slide({ slide, isFirstSlide }) {
   const { Icon, title, description, name } = slide;
   const isBrowseJobs = name === "browse_jobs";
-  const isLinkedinHub = name === "linkedin_hub";
 
   return (
     <div className="text-center">
@@ -491,17 +489,6 @@ function Slide({ slide, isFirstSlide }) {
             </div>
           ))}
         </div>
-      )}
-
-      {isLinkedinHub && (
-        <a
-          href="https://www.linkedin.com/mypreferences/d/download-my-data"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-5 inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text bg-rd-bg-card border border-rd-border rounded-full px-4 py-2 hover:border-rd-border-hover transition-colors"
-        >
-          Request data export now <ExternalLink className="w-3.5 h-3.5" />
-        </a>
       )}
     </div>
   );
