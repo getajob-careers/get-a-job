@@ -22,7 +22,7 @@ import { ROLE_LOOKUP } from "@/lib/roleLookup";
 // Presentational: no own step chrome (the shell provides eyebrow + progress)
 // and no own Continue button (the shell drives advance so it can run the
 // inference write on the way out). Styling matches the cv_upload screen — rd-
-// tokens, compact rounded-[14px] cards.
+// tokens on the canvas type/radius scale (rd-r-md cards, canvas selected ring).
 
 const FAMILY_LABEL = {
   Admin_GA: "Admin / G&A",
@@ -70,7 +70,18 @@ const WORK_ARRANGEMENTS = [
 const FIELD_LABEL =
   "text-[11px] font-medium text-rd-text-tertiary uppercase tracking-wide mb-2.5";
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+  "w-full px-3.5 py-2.5 rd-r-sm border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+// Selectable canvas card - the one-voice icon-circle tile shared in spirit with
+// screen 0's situation grid and StepResumeUpload's employment cards. Selected =
+// primary border + tint fill + the 3px canvas ring; resting = hairline border
+// with a hover lift on the edge. rd-press gives the tactile settle; focus-visible
+// carries the AA keyboard affordance (design-craft rules 5 + 8).
+const CARD_BASE =
+  "rd-press rd-r-md border transition-[border-color,background-color,box-shadow] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2";
+const CARD_SELECTED =
+  "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+const CARD_RESTING =
+  "border-rd-border bg-rd-bg-card hover:border-rd-border-hover";
 
 export default function DirectionScreenV2({ data, onChange }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -180,11 +191,14 @@ export default function DirectionScreenV2({ data, onChange }) {
 
   return (
     <div className="space-y-7">
-      {/* Goal role */}
+      {/* Goal role. Mascot slot (reserved, empty beat): the horizon-gaze pose
+          lands beside this field in the later additive character PR - no
+          placeholder art renders here now (handoff: mascot slots render
+          nothing). */}
       <div ref={wrapperRef} className="relative">
         <p className={FIELD_LABEL}>Your 5-year goal role</p>
         {chosenRole ? (
-          <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-primary bg-rd-primary-tint">
+          <div className="flex items-start gap-3 p-4 rd-r-md border border-rd-primary bg-rd-primary-tint">
             <Check className="w-4 h-4 text-rd-primary mt-0.5 flex-shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="font-display font-semibold text-[14.5px] text-rd-text">
@@ -198,7 +212,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             <button
               type="button"
               onClick={clearPick}
-              className="text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-primary transition-colors"
+              className="rounded-full px-2 py-1 -mr-1 text-[12px] font-semibold text-rd-text-tertiary hover:text-rd-primary transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
             >
               Change
             </button>
@@ -233,14 +247,14 @@ export default function DirectionScreenV2({ data, onChange }) {
               )}
             </div>
             {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rounded-[12px] shadow-rd max-h-72 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rd-r-md shadow-rd max-h-72 overflow-y-auto">
                 {suggestions.map((r, idx) => (
                   <button
                     key={r.id}
                     type="button"
                     onClick={() => choose(r)}
                     onMouseEnter={() => setHighlightedIndex(idx)}
-                    className={`w-full text-left px-3.5 py-2.5 transition-colors ${
+                    className={`w-full text-left px-3.5 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rd-primary ${
                       idx === highlightedIndex
                         ? "bg-rd-primary-tint"
                         : "hover:bg-rd-bg-soft"
@@ -290,10 +304,8 @@ export default function DirectionScreenV2({ data, onChange }) {
                 type="button"
                 onClick={() => toggleWork(value)}
                 data-selected={isSelected}
-                className={`flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-colors ${
-                  isSelected
-                    ? "border-rd-primary bg-rd-primary-tint"
-                    : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
+                className={`flex flex-col items-center gap-2 p-3 ${CARD_BASE} ${
+                  isSelected ? CARD_SELECTED : CARD_RESTING
                 }`}
               >
                 <div
@@ -324,7 +336,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             type="button"
             onClick={chooseYesPracticum}
             data-selected={practicumYes}
-            className={`p-3 rounded-[14px] border text-[13px] font-display font-semibold transition-colors ${
+            className={`rd-press rd-r-md p-3 border text-[13px] font-display font-semibold transition-[border-color,background-color,color] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 ${
               practicumYes
                 ? "border-rd-primary bg-rd-primary-tint text-rd-text"
                 : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover"
@@ -336,7 +348,7 @@ export default function DirectionScreenV2({ data, onChange }) {
             type="button"
             onClick={chooseNoPracticum}
             data-selected={!practicumYes}
-            className={`p-3 rounded-[14px] border text-[13px] font-display font-semibold transition-colors ${
+            className={`rd-press rd-r-md p-3 border text-[13px] font-display font-semibold transition-[border-color,background-color,color] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 ${
               !practicumYes
                 ? "border-rd-primary bg-rd-primary-tint text-rd-text"
                 : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover"
@@ -375,7 +387,7 @@ function PracticumOption({ Icon, title, description, selected, onClick }) {
       type="button"
       onClick={onClick}
       data-selected={selected}
-      className={`w-full text-left flex items-start gap-3 p-3.5 rounded-[14px] border bg-rd-bg-card transition-colors ${
+      className={`rd-press w-full text-left flex items-start gap-3 p-3.5 rd-r-md border bg-rd-bg-card transition-[border-color,box-shadow] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 ${
         selected
           ? "border-rd-primary shadow-[0_0_0_3px_var(--rd-primary-tint)]"
           : "border-rd-border hover:border-rd-border-hover"

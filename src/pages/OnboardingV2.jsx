@@ -476,10 +476,10 @@ export default function OnboardingV2() {
 
           {screen.name === "cv_upload" ? (
             <>
-              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
+              <h1 className="font-display font-bold rd-t-display-l text-rd-text text-balance">
                 Let’s start with your CV.
               </h1>
-              <p className="text-[13.5px] text-rd-text-secondary mt-2">
+              <p className="rd-t-body-m text-rd-text-secondary mt-2">
                 Drop your CV and we’ll extract everything from it — no manual
                 entry. You can also skip and fill in the essentials yourself.
               </p>
@@ -491,27 +491,43 @@ export default function OnboardingV2() {
                   Your current situation — pick all that apply
                 </p>
                 <div className="grid grid-cols-5 gap-2">
-                  {SITUATIONS.map(({ value, label, Icon }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => toggleSituation(value)}
-                      aria-pressed={situations.includes(value)}
-                      className={`flex flex-col items-center gap-1.5 rounded-[14px] border p-2.5 transition-colors ${
-                        situations.includes(value)
-                          ? "border-rd-primary bg-rd-primary-tint"
-                          : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
-                      }`}
-                    >
-                      <Icon className="w-4 h-4 text-rd-primary" />
-                      <span className="text-[10.5px] font-medium text-rd-text text-center leading-tight">
-                        {label}
-                      </span>
-                    </button>
-                  ))}
+                  {SITUATIONS.map(({ value, label, Icon }) => {
+                    const isSelected = situations.includes(value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => toggleSituation(value)}
+                        aria-pressed={isSelected}
+                        className={`rd-press flex flex-col items-center gap-1.5 rd-r-md border p-2.5 transition-[border-color,background-color,box-shadow] duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 ${
+                          isSelected
+                            ? "border-rd-primary bg-rd-primary-tint"
+                            : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover"
+                        }`}
+                      >
+                        <span
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? "bg-rd-primary text-white"
+                              : "bg-rd-bg-soft text-rd-text-secondary"
+                          }`}
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                        </span>
+                        <span className="rd-t-micro font-medium text-rd-text text-center">
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
+              {/* Mascot slot (reserved, empty beat): the upload-read pose lands
+                  beside this dropzone in the later additive character PR - no
+                  placeholder art renders now (handoff: mascot slots render
+                  nothing). The calm single-card dropzone treatment (0-i) lives
+                  in StepResumeUpload's chromeless branch. */}
               <div className="mt-6">
                 {/* Reuse the hardened upload + extraction pipeline in a
                     chromeless embed — the shell above already provides the
@@ -557,10 +573,10 @@ export default function OnboardingV2() {
             </>
           ) : screen.name === "direction" ? (
             <>
-              <h1 className="font-display font-bold text-[24px] leading-tight text-rd-text text-balance">
+              <h1 className="font-display font-bold rd-t-display-l text-rd-text text-balance">
                 Where are you headed?
               </h1>
-              <p className="text-[13.5px] text-rd-text-secondary mt-2">
+              <p className="rd-t-body-m text-rd-text-secondary mt-2">
                 A few preferences that shape every recommendation — your goal,
                 where you want to work, and your internship track.
               </p>
@@ -577,7 +593,7 @@ export default function OnboardingV2() {
                   type="button"
                   onClick={advanceFromDirection}
                   disabled={advancing || !profileData.five_year_goal_role_id}
-                  className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="rd-press inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-5 py-2.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   Continue
                   <ArrowRight className="w-4 h-4" />
