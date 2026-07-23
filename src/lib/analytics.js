@@ -54,6 +54,13 @@ export const EVENTS = {
   // public.feedback with { category, route } so we can cohort users
   // who flagged each pain category in PostHog.
   FEEDBACK_SUBMITTED: "feedback_submitted",
+  // Public landing (logged-out marketing page) funnel. track() no-ops before
+  // PostHog init, so these fire only for consented visitors — no consent-surface
+  // change. See src/pages/_preview/LandingV2Preview.jsx.
+  LANDING_CTA_CLICKED: "landing_cta_clicked",
+  LANDING_CV_UPLOAD_STARTED: "landing_cv_upload_started",
+  LANDING_CV_UPLOAD_SUCCEEDED: "landing_cv_upload_succeeded",
+  LANDING_SECTION_REACHED: "landing_section_reached",
   // Stripe-driven — names reserved here so the convention is fixed.
   // Call sites land once Stripe webhooks / billing UI ship.
   SUBSCRIPTION_STARTED: "subscription_started",
