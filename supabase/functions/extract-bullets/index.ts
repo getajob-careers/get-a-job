@@ -2,6 +2,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric } from "../_shared/metrics.ts";
 import { openaiChatCompletion } from "../_shared/openai-chat.ts";
+import {
+  fetchGroundingSignal,
+  formatGroundingBlock,
+} from "../_shared/extraction-context.ts";
 
 // extract-bullets — the bullet-writer for the Story Bank -> experiences/education
 // migration. The bullet-writer sibling of extract-story-from-text.
@@ -256,8 +260,8 @@ Deno.serve(async (req) => {
       target_type === "education" ? "education" : "experiences";
     const targetCols =
       target_type === "education"
-        ? "degree_type, field_of_study, institution"
-        : "title, company";
+        ? "degree_type, field_of_study, institution, skills"
+        : "title, company, skills";
     const { data: entry } = await supabase
       .from(targetTable)
       .select(targetCols)
@@ -286,7 +290,20 @@ Deno.serve(async (req) => {
 - Role: ${String(ent.title || "").slice(0, 200)}
 - Company: ${String(ent.company || "").slice(0, 200)}`;
 
-    const userPrompt = `${entryLabel}
+    // Reference-only grounding (profile field + target role + this entry's
+    // existing skill names) so bullets use consistent skill labels and frame
+    // toward the user's goal. NEVER a source of facts — the anti-fab rules in
+    // SYSTEM_PROMPT stay ahead of it, and the block wording forbids adding
+    // anything not in the USER TEXT. Best-effort: empty on any miss, which makes
+    // the prompt byte-identical to the pre-grounding version.
+    const entrySkills = Array.isArray(ent.skills)
+      ? (ent.skills as string[])
+      : [];
+    const grounding = formatGroundingBlock(
+      await fetchGroundingSignal(supabase, user.id, entrySkills),
+    );
+
+    const userPrompt = `${entryLabel}${grounding}
 
 USER TEXT:
 ${text}
