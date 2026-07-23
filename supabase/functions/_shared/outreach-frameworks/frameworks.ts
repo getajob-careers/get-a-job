@@ -238,6 +238,13 @@ export const ASK_FOR_RECOMMENDATION_FRAMEWORK = `OUTREACH GOAL — ASK FOR A LIN
 
 The user wants a LinkedIn recommendation from someone they worked with — former manager, professor, mentor, internship lead. THIS IS A REAL ASK — writing a thoughtful recommendation takes 30+ minutes. The framework's job is to make it as easy as possible for the recommender to say yes.
 
+RELATIONSHIP-DEPTH GATE (check this FIRST, before writing any ask):
+A recommendation is only credible when the recommender has real working knowledge of the user - a former manager, professor, mentor, internship lead, or close collaborator. If the relationship is TOO THIN for that (you met once, at a single event, a brief one-off interaction, no supervisory or sustained working relationship), do NOT make the recommendation ask - there is nothing substantive for them to recommend, and asking reads as presumptuous. Instead:
+- Set warm_up_advice: explain plainly why a recommendation is premature here, and redirect - a referral or a short (15-minute) informational chat is the right ask now; a recommendation can come later, once there is a real working relationship to draw on.
+- Make suggested_text the lighter redirect message itself (a warm, low-pressure note proposing the referral or informational chat), NOT a recommendation request.
+- Set conversation_state = warming_up (not making_the_ask).
+Only when the relationship is genuinely established do you proceed to the OPENER STRUCTURE below.
+
 OPENER STRUCTURE (50-150 words):
 1. First sentence — name the relationship clearly. "You managed me during my internship at your company in 2025." This grounds them.
 2. Second sentence — why now. The user is preparing for the job search, applying to a specific role, refreshing their profile pre-graduation. Concrete.
@@ -247,6 +254,7 @@ OPENER STRUCTURE (50-150 words):
 EXAMPLES:
 - Good: "Hi Daniel - you managed me during my CS internship last summer. I'm deep into my job search now ahead of June graduation, and a LinkedIn recommendation from you would mean a lot. I'll make it as low-lift as I can - I can send you 3 specific moments to reference (the renewal-cohort work, the Slack bot for stuck deals, the customer-call shadowing project), or a full draft you just edit. No rush, anytime in the next 3 weeks works, and totally fine if bandwidth's tight."
 - Bad: "Hi Daniel, would you be willing to write me a LinkedIn recommendation? It would mean so much to me."
+- Good - too thin, redirect (NOT a recommendation ask): "Hi Gil! Good running into you on the adjacent team at the Reichman hackathon. I'm early in my job search and would love to actually learn how you think about building an early-stage team - any chance you'd be up for a quick 15-minute chat? No agenda beyond that." [warm_up_advice: "You met Gil once at a hackathon - that's too thin for a recommendation; he has no real working knowledge of you to draw on, and asking would read as presumptuous. Start with a short informational chat or a referral to build a genuine connection - a recommendation can come later, once there's real substance behind it."]
 
 ASK TIMING:
 Recommendations should be asked AFTER a working relationship is well-established. The timing question is about WHEN in the user's career, not WHEN in this conversation. In-conversation, the ask is in turn 1.
@@ -254,7 +262,7 @@ Recommendations should be asked AFTER a working relationship is well-established
 WARM-UP ADVICE TRIGGERS:
 - No lift-reduction offer (no draft, no specific moments, no examples) → coach to add one
 - Vague timeline / no easy out → coach to add both
-- The relationship is too thin for a recommendation (e.g. "we met at one event") → coach: "this is too thin for a recommendation ask; consider asking for a referral or informational interview instead"
+- The relationship is too thin for a recommendation (met once, one event, a brief one-off) → the RELATIONSHIP-DEPTH GATE fires: WITHHOLD the recommendation ask, set warm_up_advice with the redirect (a referral or a 15-minute informational chat first), and make suggested_text the redirect message, not the ask
 
 GOAL_COMPLETE SIGNAL:
 Recommender replied with: (a) a yes + accepted the lift-reduction offer (will use draft / specific moments), (b) a yes + will write from scratch, (c) a polite no. All three close the loop. The follow-through (actually getting the recommendation written and posted) happens outside this conversation.
