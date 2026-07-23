@@ -570,6 +570,7 @@ export default function StepResumeUpload({
           2px border on the soft fill verbatim - byte-identical flag-off. */}
       <div
         className={[
+          "rd-focus-ring",
           chromeless
             ? "rd-r-lg p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border border-dashed"
             : "rounded-[18px] p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border-2 border-dashed",
@@ -591,7 +592,21 @@ export default function StepResumeUpload({
                   ? "done"
                   : "idle"
         }
+        role="button"
+        tabIndex={uploading || extracting ? -1 : 0}
+        aria-label="Upload your resume (PDF or DOCX)"
+        aria-disabled={uploading || extracting || undefined}
         onClick={() => !uploading && !extracting && inputRef.current?.click()}
+        onKeyDown={(e) => {
+          if (
+            (e.key === "Enter" || e.key === " ") &&
+            !uploading &&
+            !extracting
+          ) {
+            e.preventDefault();
+            inputRef.current?.click();
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault();
           setDragOver(true);
