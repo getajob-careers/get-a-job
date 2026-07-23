@@ -138,11 +138,60 @@ The hub verified the autopsy against the raw JSONs and ruled:
 - **#2 deferred** as proposed.
 - **#4 rejected.**
 
+## Round-2 result — recalibration #1, gate PASS (2026-07-23)
+
+Re-run of both modes on the fixed harness + framing-only grounding, frozen set
+unchanged. JSONs: `docs/eval/results/*11-04-*.json`.
+
+| id                   | baseline | grounded | anti-fab (grnd) |
+| -------------------- | -------- | -------- | --------------- |
+| thin-swe             | 92.5     | 92.5     | pass            |
+| rich-swe             | 91.2     | **95.8** | pass            |
+| mid-ops              | 97.5     | 97.5     | pass            |
+| rich-marketing       | 89.2     | 89.2     | pass            |
+| messy-bizdev         | 82.2     | **85.0** | pass            |
+| hebrew-mixed-analyst | 97.5     | 97.5     | pass            |
+| thin-education       | 84.2     | 84.2     | pass            |
+| **set mean**         | **90.6** | **91.7** | **0 fails**     |
+
+**Gate PASS on all three criteria:** grounded real anti-fab fails = 0; mid-ops
+preserved (97.5); grounded ≥ baseline on every row (2 up, 5 identical).
+
+**Round 1 → round 2:** round 1 (grounding _with_ skill-vocabulary) produced 2
+real anti-fab leaks (thin-swe→Python/SQL, hebrew→SQL). Deleting that one line
+(recalibration #1) removed both — grounded is now clean and the two leaked rows
+score identically to baseline (thin-swe 92.5/92.5, hebrew 97.5/97.5). The net
+gain concentrates in two rows: `rich-swe` (+4.6, recovered the `cron`/
+`SQLAlchemy` detail baseline dropped) and `messy-bizdev` (+2.8, recovered the
+`$15k ARR` baseline had dropped — grounded `metric_fidelity` 1.0).
+
+**Caveats logged (do not change in this PR):**
+
+- `mid-ops` parity (97.5/97.5) is run-variance, not a lost benefit: round-1
+  baseline happened to omit the outcome clause (84) and round-2 baseline
+  included it (97.5). Temperature 0.2 is not deterministic; single-input deltas
+  are directional, not precise.
+- `rich-swe` grounded `bullet_discipline` 1.00→0.83: grounding split one bullet
+  into two; the second ("Deployed the fetcher on a nightly cron using
+  SQLAlchemy…") is a tooling bullet with no measurable-outcome clause, so the
+  rubric's outcome sub-check scores it 0. Not a regression — overall quality
+  rose 91→96. **Follow-up:** the outcome heuristic could credit tool/deploy
+  bullets differently.
+- `messy-bizdev` hedge-sharpening flag is **benign + a checker-list gap**:
+  source "20 something" → output "over 20" faithfully preserves the hedge, but
+  the checker's approximation-marker list (`~|about|around|roughly|approx`)
+  omits "over"/"more than"/"+", so it flagged a preserved hedge. Only real
+  softening was "~15k"→"$15k" (dropped the tilde). **Follow-up:** extend the
+  marker list; not touched here to keep the frozen-round scoring stable.
+
 ## Status
 
 - Harness fixes (key sanitize + metricNumbers regex + word-boundary tool gate)
   and the recalibration (#1) landed on #697. Scorer unit test committed
   (`scripts/story-extraction-eval.test.mjs`, runs under `npm test`).
-- **Round-2 re-run pending an OpenAI key.** Pass bar: grounded real anti-fab
-  fails = 0, mid-ops gain preserved, no new regressions vs baseline. Frozen set
-  unchanged. HELD for hub after the re-run.
+- **Gate PASSED (round 2).** HELD for the hub's merge ruling. On merge:
+  `supabase functions deploy extract-bullets --project-ref ilmqmodklutztuybsvwd`
+  - serving-fingerprint verify (merged ≠ live). Frozen set stays frozen.
+- **Open follow-ups (separate PRs):** hedge-marker list gap; outcome-heuristic
+  credit for tool/deploy bullets; deferred proposal #2 (skill-vocab → skill-ID
+  resolution).
