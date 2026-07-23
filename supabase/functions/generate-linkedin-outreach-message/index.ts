@@ -629,6 +629,14 @@ const TEMPLATE_PHRASES: string[] = [
   "i am reaching out because",
   "looking to connect with industry leaders",
   "looking to connect with thought leaders",
+]
+// SOFT tier (2026-07-23 hub ruling): "impressed by <specific, named company
+// detail>" is SPECIFIC flattery - legitimate outreach that specificity/register
+// judging (and Fix #2) own, not a hard gate. Mode C bans GENERIC flattery only.
+// detectViolations does NOT regenerate on soft-tier phrases; sanitizeSuggestion
+// STILL chips them (surfaced to the user); the eval scorer treats them as a
+// flag, not an anti_pattern hard-fail.
+const SOFT_TEMPLATE_PHRASES: string[] = [
   "was very impressed by",
   "was really impressed by",
   "i'm impressed by",
@@ -739,12 +747,13 @@ function sanitizeSuggestion(raw: unknown): OutreachSuggestion {
   // Programmatic anti-pattern detection. The LLM does not reliably follow
   // rules against high-frequency training-data phrases even with hard-rule
   // injection. Post Fix #1 this warn-chip is the FALLBACK (the regenerate loop
-  // is the primary defense); the list is the full TEMPLATE_PHRASES superset so
-  // anything that survives regeneration still surfaces a chip. normApos so a
-  // curly-apostrophe variant ("you're") can't evade the match.
+  // is the primary defense). It chips BOTH the hard TEMPLATE_PHRASES (which the
+  // gate regenerates on) AND the SOFT_TEMPLATE_PHRASES (which the gate does not
+  // regenerate on, but the user should still see). normApos so a curly-
+  // apostrophe variant ("you're") can't evade the match.
   const lower = normApos(suggested_text)
   const programmaticWarnings: string[] = []
-  for (const p of TEMPLATE_PHRASES) {
+  for (const p of [...TEMPLATE_PHRASES, ...SOFT_TEMPLATE_PHRASES]) {
     if (lower.includes(p)) {
       const warn = `"${p}" reads as template outreach - replace it with a specific reason for reaching out.`
       if (!programmaticWarnings.includes(warn)) programmaticWarnings.push(warn)

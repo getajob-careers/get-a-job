@@ -221,11 +221,12 @@ function sanitizeSuggestion(raw) {
     typeof r.suggested_text === "string"
       ? r.suggested_text.trim().slice(0, 4000)
       : "";
-  // Mirror the fn's widened warn-chip: append a chip for every TEMPLATE_PHRASES
-  // hit (the fallback once the regenerate loop exhausts). Same source list.
+  // Mirror the fn's widened warn-chip: chip BOTH the hard TEMPLATE_PHRASES and
+  // the SOFT_TEMPLATE_PHRASES (the gate regenerates on hard only, but the user
+  // still sees a chip for soft). Same source lists.
   const lower = norm(suggested_text);
   const programmaticWarnings = [];
-  for (const p of TEMPLATE_PHRASES) {
+  for (const p of [...TEMPLATE_PHRASES, ...SOFT_TEMPLATE_PHRASES]) {
     if (lower.includes(norm(p))) {
       const warn = `"${p}" reads as template outreach - replace it with a specific reason for reaching out.`;
       if (!programmaticWarnings.includes(warn)) programmaticWarnings.push(warn);
@@ -386,6 +387,10 @@ async function generate(input) {
 // harness sanitizer can never drift from what ships. (2026-07-23 fix: a
 // hardcoded stale SHIPPED_DETECTOR let "i'm impressed by" read as SILENT.)
 const TEMPLATE_PHRASES = readArrayConst(EDGE, "TEMPLATE_PHRASES");
+// SOFT tier (hub ruling 2026-07-23): "impressed by <specific company detail>"
+// is specific flattery - chipped but NOT regenerated and NOT an anti_pattern
+// hard-fail. specificity/register judging + Fix #2 own the nuance.
+const SOFT_TEMPLATE_PHRASES = readArrayConst(EDGE, "SOFT_TEMPLATE_PHRASES");
 const RECALL_PHRASES = readArrayConst(EDGE, "RECALL_PHRASES");
 const HEDGE_PHRASES = readArrayConst(EDGE, "HEDGE_PHRASES");
 // Engagement-bait / weak closes OUTREACH_VOICE_RULES says to SKIP. Harness-only
@@ -471,7 +476,8 @@ function scoreLayer1(input, suggestion) {
   const text = suggestion.suggested_text;
   const wc = words(text).length;
 
-  const template_hits = hasAny(text, TEMPLATE_PHRASES);
+  const template_hits = hasAny(text, TEMPLATE_PHRASES); // HARD tier only
+  const soft_template_hits = hasAny(text, SOFT_TEMPLATE_PHRASES); // flag, not fail
   const hedge_hits = hasAny(text, HEDGE_PHRASES);
   const weak_close_hits = hasAny(text, WEAK_CLOSE_PHRASES);
   const recall_hits = mutualContextSparse(input)
@@ -503,14 +509,16 @@ function scoreLayer1(input, suggestion) {
     return true;
   });
 
-  // Which template hits production's warn-chip would MISS (ship silently). The
-  // detector is now sanitizeSuggestion's list = the full TEMPLATE_PHRASES
-  // superset (Fix #1 widened it), read from the same source, so undetected is
-  // structurally empty. Kept as a live regression guard: if the fn's list and
-  // the sanitizer's iteration ever diverge, the verbatim sanitizer test (not
-  // this list) is what catches it. Pre-Fix-#1 this was a stale narrow copy that
-  // falsely reported "i'm impressed by" as SILENT.
-  const shipped_chip_hits = hasAny(text, TEMPLATE_PHRASES);
+  // Which HARD template hits production's warn-chip would MISS (ship silently).
+  // The chip catches BOTH tiers (TEMPLATE_PHRASES + SOFT_TEMPLATE_PHRASES), read
+  // from the same source, so undetected is structurally empty. Live regression
+  // guard against list/iteration drift; the verbatim sanitizer test is the
+  // behavioral guard. Pre-Fix-#1 a stale narrow copy falsely reported
+  // "i'm impressed by" as SILENT.
+  const shipped_chip_hits = hasAny(text, [
+    ...TEMPLATE_PHRASES,
+    ...SOFT_TEMPLATE_PHRASES,
+  ]);
   const undetected_template = template_hits.filter(
     (p) => !shipped_chip_hits.includes(p),
   );
@@ -541,6 +549,7 @@ function scoreLayer1(input, suggestion) {
     length_ok,
     anti_pattern_pass,
     template_hits,
+    soft_template_hits, // chipped + flagged, NOT an anti_pattern hard-fail
     undetected_template, // ships with NO warning in production
     anti_fab_pass,
     recall_hits,
@@ -651,6 +660,8 @@ function buildReport(rows, opts = {}) {
     const flags = [];
     if (l.undetected_template.length)
       flags.push(`SILENT_TEMPLATE(${l.undetected_template.length})`);
+    if (l.soft_template_hits && l.soft_template_hits.length)
+      flags.push("SOFT_TEMPLATE");
     if (l.recall_hits.length) flags.push("FABRICATED_RECALL");
     if (l.summer_hit) flags.push("SUMMER");
     if (l.hedge_hits.length) flags.push("HEDGE");

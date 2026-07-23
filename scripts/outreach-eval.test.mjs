@@ -467,27 +467,27 @@ describe("detectViolations - Fix #1 enforcement gate", () => {
     expect(v).toBeNull();
   });
 
-  // Regression for the Fix #1 gate-re-run miss (2026-07-23): this exact text
-  // shipped with "i'm impressed by" and read as SILENT because the harness
-  // SHIPPED_DETECTOR was a stale narrow copy. The lists are now one shared
-  // source, so BOTH the regenerate gate AND the widened warn-chip must catch it.
-  it("catches the verbatim gate-re-run survivor through BOTH gates", () => {
+  // The Riverside gate-re-run survivor, post-soften ruling (2026-07-23): its
+  // "i'm impressed by <specific named company detail>" is SOFT-tier. So it must
+  // PASS the regenerate gate (no hard violation) yet STILL get a chip, and NOT
+  // be an anti_pattern hard-fail. This is the exact case the ruling targets.
+  it("Riverside verbatim: SOFT phrase passes the gate but is still chipped", () => {
     const verbatim =
       "Hi Avi, I'm Maya Rosen, a final-year Business student at Tel Aviv University focusing on growth marketing. I'm impressed by Riverside's platform for recording studio-quality podcasts and videos remotely. In my role as Marketing Lead at the TAU Entrepreneurship Club, I successfully increased signups for our annual startup competition through strategic email and social campaigns. I'd love to explore opportunities to apply my skills at Riverside. Could we set up a brief 15-minute call to discuss this further?";
     const target = { mutual_context: null };
     const gscope = scope({ summary: "TAU entrepreneurship club marketing" });
-    // 1. detectViolations (the regenerate gate) catches it.
+    // 1. detectViolations does NOT regenerate on a soft phrase (no hard hit).
     const v = detectViolations(
       cand(verbatim),
       "propose_internship",
       target,
       gscope,
     );
-    expect(v).toMatch(/i'm impressed by/i);
-    // 2. sanitizeSuggestion (the widened warn-chip fallback) catches it too.
+    expect(v).toBeNull();
+    // 2. sanitizeSuggestion STILL chips the soft phrase (user sees it).
     const chips = sanitizeSuggestion({ suggested_text: verbatim }).warnings;
     expect(chips.some((w) => w.includes("impressed by"))).toBe(true);
-    // 3. And it is no longer falsely reported SILENT by the scorer.
+    // 3. The scorer: soft flag, NOT an anti_pattern hard-fail, not SILENT.
     const l1 = scoreLayer1(
       {
         goal: "propose_internship",
@@ -497,8 +497,49 @@ describe("detectViolations - Fix #1 enforcement gate", () => {
       },
       { suggested_text: verbatim, warm_up_advice: "" },
     );
+    expect(l1.anti_pattern_pass).toBe(true);
+    expect(l1.template_hits).toEqual([]);
+    expect(l1.soft_template_hits).toContain("i'm impressed by");
     expect(l1.undetected_template).toEqual([]);
-    // The framework structural number 15 must NOT be the flagged violation.
-    expect(v).not.toMatch(/number 15/);
+  });
+
+  it("SOFT tier: chipped + flagged but NOT a violation; HARD tier still regenerates", () => {
+    const soft = cand(
+      "Hi Dana, I'm impressed by Snyk's developer-first security scanning. I run CS at Guardio and would love to compare notes on the motion.",
+    );
+    const softV = detectViolations(
+      soft,
+      "message_hiring_manager",
+      { mutual_context: "posted" },
+      scope({ note: "guardio" }),
+    );
+    expect(softV).toBeNull(); // soft does not regenerate
+    const softL1 = scoreLayer1(
+      {
+        goal: "message_hiring_manager",
+        thread: [],
+        target_person: { mutual_context: "posted" },
+        user_data: { note: "guardio" },
+      },
+      { suggested_text: soft.suggested_text, warm_up_advice: "" },
+    );
+    expect(softL1.anti_pattern_pass).toBe(true);
+    expect(softL1.soft_template_hits).toContain("i'm impressed by");
+    expect(
+      sanitizeSuggestion(soft).warnings.some((w) => w.includes("impressed by")),
+    ).toBe(true);
+
+    // HARD tier phrase still regenerates + hard-fails.
+    const hard = cand(
+      "Hi Dana, I hope this finds you well. I run CS at Guardio.",
+    );
+    expect(
+      detectViolations(
+        hard,
+        "message_hiring_manager",
+        { mutual_context: "posted" },
+        scope({}),
+      ),
+    ).toMatch(/template phrase/i);
   });
 });
