@@ -106,8 +106,9 @@ const LANDING_CSS = `
 .lp-logo-mark { font-family: var(--lp-font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--lp-ink); }
 .lp-logo-dot { width: 7px; height: 7px; background: var(--lp-accent); border-radius: 50%; display: inline-block; transform: translateY(-2px); }
 .lp-nav-links { display: flex; gap: 36px; align-items: center; }
-.lp-nav-links a { font-size: 14px; color: var(--lp-ink-soft); text-decoration: none; font-weight: 500; transition: color 0.15s; }
+.lp-nav-links a { font-size: 14px; color: var(--lp-ink-soft); text-decoration: none; font-weight: 500; transition: color 0.15s; display: inline-flex; align-items: center; min-height: 44px; }
 .lp-nav-links a:hover { color: var(--lp-ink); }
+.lp-nav-links .btn { min-height: 44px; }
 
 .lp .btn { display: inline-flex; align-items: center; gap: 6px; padding: 11px 22px; border-radius: 100px; font-size: 14px; font-weight: 600; font-family: var(--lp-font-body); cursor: pointer; text-decoration: none; border: none; transition: transform 0.15s ease, background 0.15s ease; }
 .lp .btn:hover { transform: translateY(-1px); }
