@@ -373,7 +373,7 @@ describe("detectViolations - Fix #1 enforcement gate", () => {
   const cand = (t) => ({ suggested_text: t });
   const scope = (o) => JSON.stringify(o || {}).toLowerCase();
 
-  it("flags a template phrase (any goal)", () => {
+  it("flags a template phrase with the candidate-B no-pleasantry retry directive", () => {
     const v = detectViolations(
       cand("Hi Sarah, I hope this finds you well. I run CS at Guardio."),
       "message_recruiter",
@@ -381,6 +381,10 @@ describe("detectViolations - Fix #1 enforcement gate", () => {
       scope({ note: "guardio" }),
     );
     expect(v).toMatch(/template phrase/i);
+    // Candidate B: the retry instruction forbids a pleasantry opener and
+    // requires the first sentence to be the specific hook.
+    expect(v).toMatch(/pleasantry/i);
+    expect(v).toMatch(/first sentence/i);
   });
 
   it("flags a hedging phrase", () => {

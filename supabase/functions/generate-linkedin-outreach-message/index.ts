@@ -698,7 +698,11 @@ function detectViolations(
   const lower = normApos(text)
   for (const p of TEMPLATE_PHRASES) {
     if (lower.includes(p)) {
-      return `the message contains the template phrase "${p}", which reads as mass outreach and burns trust before the message starts. Rewrite that sentence with a specific reason for reaching out.`
+      // Candidate B (2026-07-23): the #1 prior "I hope you're doing well"
+      // resists a generic "rewrite" retry on relationship-warm goals (referral,
+      // reconnect). Make the retry POSITIVE and specific: forbid any opener
+      // pleasantry and require the first sentence to be the concrete hook.
+      return `the message contains the template phrase "${p}". Do NOT open with any greeting or pleasantry of any kind (no "I hope you're doing well", no "hope you're well", no "reaching out because" preamble). Make the FIRST sentence the specific hook or context - the role, the shared work, the mutual connection, or the concrete reason you are writing. Warmth comes from specificity, not a pleasantry.`
     }
   }
   for (const p of HEDGE_PHRASES) {

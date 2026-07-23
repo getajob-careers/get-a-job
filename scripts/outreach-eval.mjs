@@ -450,7 +450,9 @@ function detectViolations(candidate, goal, target, groundingScope) {
   const lower = norm(text);
   for (const p of TEMPLATE_PHRASES)
     if (lower.includes(norm(p)))
-      return `template phrase "${p}" reads as mass outreach; rewrite with a specific reason for reaching out.`;
+      // Candidate B: mirror index.ts - forbid any opener pleasantry, require
+      // the first sentence to be the specific hook.
+      return `template phrase "${p}" is banned. Do NOT open with any greeting or pleasantry; make the FIRST sentence the specific hook or context (the role, the shared work, the reason you are writing). Warmth comes from specificity, not a pleasantry.`;
   for (const p of HEDGE_PHRASES)
     if (lower.includes(norm(p)))
       return `low-confidence hedging phrase "${p}"; state the value directly.`;
