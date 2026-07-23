@@ -38,7 +38,10 @@ const JUDGE = args.includes("--judge");
 const MODEL = "gpt-4o-mini"; // must match extract-bullets/index.ts MODEL
 const JUDGE_MODEL = "gpt-4o";
 
-const KEY = process.env.OPENAI_API_KEY;
+// Strip anything outside printable ASCII (control chars, whitespace, and the
+// U+2028/U+2029 line/paragraph separators - char 8232 burned a full run on
+// 2026-07-23 - plus BOM/zero-width). An OpenAI key is printable ASCII, no spaces.
+const KEY = (process.env.OPENAI_API_KEY || "").replace(/[^\x21-\x7E]/g, "");
 if (MODE !== "baseline" && MODE !== "grounded") {
   console.error(`--mode must be baseline|grounded (got "${MODE}")`);
   process.exit(1);
@@ -171,7 +174,10 @@ async function chat(model, messages, opts = {}) {
 // (a "3-person team" grounded in text) are not gated to avoid false positives.
 function metricNumbers(text) {
   const out = new Set();
-  const re = /(\$)?\s?(\d[\d,]*\.?\d*)\s?(k|m|bn|b)?(%)?/gi;
+  // Magnitude suffix must be ATTACHED to the number and at a word boundary, or
+  // "20 meetings" reads as "20 m" -> 20,000,000 (the 2026-07-23 false-positive
+  // that failed messy-bizdev in both modes). The (?![a-z]) also blocks "29th".
+  const re = /(\$)?\s?(\d[\d,]*\.?\d*)(k|m|bn|b)?(%)?(?![a-z])/gi;
   let mm;
   while ((mm = re.exec(text))) {
     const hasCur = !!mm[1],
