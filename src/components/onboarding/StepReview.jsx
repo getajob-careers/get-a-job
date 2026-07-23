@@ -23,6 +23,7 @@ import {
   BadgeCheck,
   Pencil,
   Check,
+  ChevronDown,
 } from "lucide-react";
 import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
 import RdSkillChipBank from "@/components/redesign/RdSkillChipBank";
@@ -102,9 +103,56 @@ function Label({ children, required = false }) {
   );
 }
 
-function SectionHeader({ icon: Icon, title, subtitle, required }) {
-  return (
-    <div className="flex items-start gap-3 mb-3">
+// Cap an identity list for a collapsed section summary: the first few names,
+// then an ellipsis. `names` is whatever most identifies the entries (company
+// for experience, project/cert name, skill label). Identity - not a bare
+// count - is the point: "4 roles" invites rubber-stamping unseen extracted
+// data, which defeats the review screen. Real names let the user catch a
+// WRONG extraction at a glance without expanding.
+function identityList(names, max = 3) {
+  const clean = (names || [])
+    .map((n) => String(n || "").trim())
+    .filter(Boolean);
+  if (clean.length === 0) return "";
+  const shown = clean.slice(0, max).join(", ");
+  return clean.length > max ? `${shown}, …` : shown;
+}
+
+// Collapsed Education summary: institution + credential (level + field). Only
+// rendered when the section is collapsed, which only happens once it is
+// complete, so the required strings are always present here.
+function educationSummary(primary) {
+  const inst = primary?.institution?.trim();
+  const level =
+    EDU_LEVELS.find((l) => l.value === primary?.education_level)?.label ||
+    OTHER_LEVELS.find((l) => l.value === primary?.education_level)?.label ||
+    "";
+  const field = primary?.field_of_study?.trim();
+  const tail = [level, field].filter(Boolean).join(", ");
+  return [inst, tail].filter(Boolean).join(" · ");
+}
+
+// A collapsible review section. When `collapsible` is false (Education while
+// still incomplete/invalid) the header is a plain, always-open heading with no
+// chevron - a chevron that can't collapse would read as broken. Once
+// collapsible, the whole header is a toggle button (hover / focus-visible /
+// 44px). Collapsed shows the identity `summary`; expanded shows the subtitle
+// and the body. `bodyFocusProps` lets Education hold itself open while a field
+// inside is focused (so it never snaps shut under the cursor).
+function SectionShell({
+  icon: Icon,
+  title,
+  subtitle,
+  summary,
+  required = false,
+  collapsible = true,
+  open,
+  onToggle,
+  bodyFocusProps,
+  children,
+}) {
+  const headerInner = (
+    <>
       <div className="w-8 h-8 rd-r-sm bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-0.5">
         <Icon className="w-4 h-4 text-rd-primary" />
       </div>
@@ -113,13 +161,53 @@ function SectionHeader({ icon: Icon, title, subtitle, required }) {
           {title}
           {required ? <span className="text-rd-primary ml-1.5">*</span> : null}
         </h2>
-        {subtitle && (
-          <p className="text-[12px] text-rd-text-secondary mt-0.5 leading-snug">
-            {subtitle}
-          </p>
-        )}
+        {open
+          ? subtitle && (
+              <p className="text-[12px] text-rd-text-secondary mt-0.5 leading-snug">
+                {subtitle}
+              </p>
+            )
+          : summary && (
+              <p className="text-[12.5px] text-rd-text-secondary mt-0.5 leading-snug truncate">
+                {summary}
+              </p>
+            )}
       </div>
-    </div>
+      {collapsible && (
+        <ChevronDown
+          aria-hidden="true"
+          className={[
+            "w-4 h-4 text-rd-text-secondary flex-shrink-0 mt-1.5 transition-transform duration-150",
+            open ? "rotate-180" : "",
+          ].join(" ")}
+        />
+      )}
+    </>
+  );
+
+  return (
+    <section>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-expanded={open}
+          className="rd-focus-ring w-full flex items-start gap-3 -mx-2 px-2 py-2 mb-1 min-h-[44px] rd-r-md text-left hover:bg-rd-bg-soft transition-colors"
+        >
+          {headerInner}
+        </button>
+      ) : (
+        <div className="flex items-start gap-3 mb-3">{headerInner}</div>
+      )}
+      {open && (
+        <div
+          {...(bodyFocusProps || {})}
+          className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-1 motion-safe:duration-200"
+        >
+          {children}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -637,6 +725,36 @@ export default function StepReview({
     !!primary.start_date?.trim() &&
     hasEndOrCurrent;
 
+  // Collapse-by-default review (Phase 2). All five sections collapse to an
+  // identity summary; the header is a toggle. Education is the one required
+  // section: it stays force-expanded (no chevron) while incomplete or invalid
+  // (you can't finalize past a broken required field) and only becomes
+  // collapsible once complete, then defaults collapsed ("starts open, tidies
+  // once done"). `eduFocused` holds it open while a field inside is focused so
+  // completing the last field never snaps the card shut under the cursor.
+  const [openSections, setOpenSections] = useState({
+    exp: false,
+    proj: false,
+    cert: false,
+    skills: false,
+  });
+  const toggleSection = (key) =>
+    setOpenSections((s) => ({ ...s, [key]: !s[key] }));
+  const [eduUserOpen, setEduUserOpen] = useState(false);
+  const [eduFocused, setEduFocused] = useState(false);
+  const eduComplete = canProceed;
+  const eduOpen = !eduComplete || eduFocused || eduUserOpen;
+  const eduBodyFocus = {
+    onFocus: () => setEduFocused(true),
+    onBlur: (e) => {
+      // Release the focus-hold only when focus lands on a real element OUTSIDE
+      // the section body. relatedTarget=null (opening a Radix Select/portal)
+      // keeps it open - erring toward staying open beats a surprise collapse.
+      const rt = e.relatedTarget;
+      if (rt && !e.currentTarget.contains(rt)) setEduFocused(false);
+    },
+  };
+
   const degreeDropdownValue = useMemo(
     () => dropdownValueForDegreeType(primary.degree_type),
     [primary.degree_type],
@@ -698,6 +816,21 @@ export default function StepReview({
   const certList = Array.isArray(certifications) ? certifications : [];
   const extractedCount = expList.length + projList.length + certList.length;
 
+  // Identity summaries for the collapsed headers (see identityList).
+  const eduSummaryLine = educationSummary(primary);
+  const expSummary = expList.length
+    ? `${expList.length} · ${identityList(expList.map((e) => e.company || e.title))}`
+    : "None yet";
+  const projSummary = projList.length
+    ? `${projList.length} · ${identityList(projList.map((p) => p.name))}`
+    : "None yet";
+  const certSummary = certList.length
+    ? `${certList.length} · ${identityList(certList.map((c) => c.name))}`
+    : "None yet";
+  const skillsSummary = skills.length
+    ? `${skills.length} · ${identityList(skills)}`
+    : "None yet";
+
   return (
     <div className="space-y-8">
       <div>
@@ -730,13 +863,17 @@ export default function StepReview({
       {/* SECTION 1 — EDUCATION (hard-validated). Primary row only; the
           silent secondary_education path at display_order=1 (high school
           from the extractor) rides along untouched. */}
-      <section>
-        <SectionHeader
-          icon={GraduationCap}
-          title="Education"
-          subtitle="The primary degree powers role-fit scoring."
-          required
-        />
+      <SectionShell
+        icon={GraduationCap}
+        title="Education"
+        subtitle="The primary degree powers role-fit scoring."
+        required
+        collapsible={eduComplete}
+        open={eduOpen}
+        onToggle={() => setEduUserOpen((v) => !v)}
+        summary={eduSummaryLine}
+        bodyFocusProps={eduBodyFocus}
+      >
         <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5 space-y-5">
           <div>
             <Label required>Full name</Label>
@@ -938,19 +1075,21 @@ export default function StepReview({
             </p>
           )}
         </div>
-      </section>
+      </SectionShell>
 
       {/* SECTION 2 — EXPERIENCE. Confirmation-pass cards: parsed rows render
           collapsed (title + company · type · dates) so the user confirms at a
           glance and edits only on demand; per-card skills via RdSkillTagInput
           + RoleSuggestions where title matches the library. THIS IS THE
           LOAD-BEARING PIECE for skills_canonical. */}
-      <section>
-        <SectionHeader
-          icon={Briefcase}
-          title="Experience"
-          subtitle="Internships, jobs, volunteering, military service, leadership roles."
-        />
+      <SectionShell
+        icon={Briefcase}
+        title="Experience"
+        subtitle="Internships, jobs, volunteering, military service, leadership roles."
+        summary={expSummary}
+        open={openSections.exp}
+        onToggle={() => toggleSection("exp")}
+      >
         {expList.length === 0 ? (
           <EmptyState message="No experience extracted from your CV. Add one if you have any - otherwise continue and add later." />
         ) : (
@@ -972,15 +1111,17 @@ export default function StepReview({
         <div className="mt-3">
           <AddCardButton label="Add experience" onClick={addExp} />
         </div>
-      </section>
+      </SectionShell>
 
       {/* SECTION 3 — PROJECTS. Optional. */}
-      <section>
-        <SectionHeader
-          icon={FolderGit2}
-          title="Projects"
-          subtitle="Side projects, capstones, hackathons - anything you built end-to-end."
-        />
+      <SectionShell
+        icon={FolderGit2}
+        title="Projects"
+        subtitle="Side projects, capstones, hackathons - anything you built end-to-end."
+        summary={projSummary}
+        open={openSections.proj}
+        onToggle={() => toggleSection("proj")}
+      >
         {projList.length === 0 ? (
           <EmptyState message="No projects extracted. Add one if you have any - this section is optional." />
         ) : (
@@ -998,15 +1139,17 @@ export default function StepReview({
         <div className="mt-3">
           <AddCardButton label="Add project" onClick={addProj} />
         </div>
-      </section>
+      </SectionShell>
 
       {/* SECTION 4 — CERTIFICATIONS. Optional. */}
-      <section>
-        <SectionHeader
-          icon={BadgeCheck}
-          title="Certifications"
-          subtitle="Licences and credentials - surfaced in CV generation when relevant."
-        />
+      <SectionShell
+        icon={BadgeCheck}
+        title="Certifications"
+        subtitle="Licences and credentials - surfaced in CV generation when relevant."
+        summary={certSummary}
+        open={openSections.cert}
+        onToggle={() => toggleSection("cert")}
+      >
         {certList.length === 0 ? (
           <EmptyState message="No certifications extracted. Add one if you have any - this section is optional." />
         ) : (
@@ -1024,16 +1167,18 @@ export default function StepReview({
         <div className="mt-3">
           <AddCardButton label="Add certification" onClick={addCert} />
         </div>
-      </section>
+      </SectionShell>
 
       {/* SECTION 5 — CATCH-ALL SKILLS. Anything not tied to a specific
           entity. Joins per-entity skills in skills_canonical at finalize. */}
-      <section>
-        <SectionHeader
-          icon={Sparkles}
-          title="Other skills"
-          subtitle="Anything not tied to a specific experience - broad capabilities, self-taught, side learning."
-        />
+      <SectionShell
+        icon={Sparkles}
+        title="Other skills"
+        subtitle="Anything not tied to a specific experience - broad capabilities, self-taught, side learning."
+        summary={skillsSummary}
+        open={openSections.skills}
+        onToggle={() => toggleSection("skills")}
+      >
         <div className="space-y-3">
           <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5">
             <RdSkillTagInput
@@ -1051,7 +1196,7 @@ export default function StepReview({
             <RdSkillChipBank selected={skills} onToggle={toggleSkill} />
           </div>
         </div>
-      </section>
+      </SectionShell>
 
       <div className="flex justify-between items-center pt-2">
         <button
