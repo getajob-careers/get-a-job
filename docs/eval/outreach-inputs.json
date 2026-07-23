@@ -1,0 +1,446 @@
+{
+  "_meta": {
+    "status": "PROPOSED - NOT FROZEN. Freezes only after Eli approves the set. Do not run the paid baseline until then.",
+    "purpose": "Synthetic input set for the LinkedIn-outreach (generate-linkedin-outreach-message) quality eval. Once frozen, future rounds score the SAME set so before/after numbers are comparable. Add inputs only as a versioned append (new id), never by mutating an existing one.",
+    "target_function": "generate-linkedin-outreach-message",
+    "created": "2026-07-23",
+    "why_synthetic": "linkedin_outreach_conversations has 1 distinct (internal) user, 7 threaded rows, all dated 2026-05-06..2026-06-02 - PRE-date the current framework (they contain phrases the current H1/H3 now ban: 'for the summer', 'moderate bridge', 'if it'd be useful'). And message_thread stores only the user's SENT (post-edit) text + recipient replies, never the raw model suggestion. So real data cannot measure the current generator; these hand-authored inputs span the diversity we expect from Reichman business-student pilot users.",
+    "diversity_axes": [
+      "goal: all 9 live goals (message_recruiter, message_hiring_manager, message_alumni, request_informational_interview, thank_you_follow_up, reconnect_dormant, ask_for_referral, ask_for_recommendation, propose_internship)",
+      "relationship warmth: cold / warm / dormant / strong",
+      "mutual_context richness: rich (specific shared event+detail) / sparse (bare fact) / null - the lever that probes fabricated-familiarity",
+      "recipient register: casual Israeli alum / formal multinational VP / recruiter",
+      "turn: opener / follow_up_after_silence / next_response (recipient replied)",
+      "profile depth: thin (undergrad, club only) / strong (real CS role)",
+      "practicum gate: in_practicum true+Reichman (gate open) / in_practicum false (gate must suppress the program claim)"
+    ],
+    "grounding_convention": "user_data mirrors what index.ts assembles from profiles/experiences/stories/internship_profiles/educations. It is the ONLY source of groundable facts about the SENDER. target_person.mutual_context is the ONLY source of groundable facts about the RECIPIENT - anything specific about the recipient NOT in mutual_context is fabrication.",
+    "field_notes": "expect_path (referral only) marks the intended Path A/B. thread + new_them_reply drive continuing-turn modes. target_company null = registry miss (framework must fall back to sector/stage, not invent)."
+  },
+  "personas": {
+    "noa_thin": {
+      "full_name": "Noa Ben-David",
+      "summary": "Third-year Business Administration student at Reichman University, specializing in Digital Innovation. Led three client engagements at the student consulting club. Targeting product and customer-success roles at Israeli tech companies.",
+      "primary_domain": "Product / Customer Success",
+      "target_job_titles": [
+        "Product Operations",
+        "Customer Success",
+        "Product Analyst"
+      ],
+      "qualification_level": "Student / Entry",
+      "in_practicum": true,
+      "recent_experiences": [
+        {
+          "title": "Team Lead, Student Consulting Club",
+          "company": "Reichman University",
+          "is_current": true,
+          "responsibilities": "Led 3 client engagements including a B2B segmentation project for an Israeli fintech; ran the team of 4 through discovery, analysis, and a final recommendation deck."
+        }
+      ],
+      "stories": [
+        {
+          "title": "B2B segmentation project",
+          "action": "Interviewed 6 of the fintech's SMB customers and clustered them by activation behavior.",
+          "result": "The client adopted the 3-tier segmentation for their onboarding sequencing.",
+          "metrics": [],
+          "skills": ["Customer Discovery", "Segmentation"],
+          "tools": ["Excel"]
+        }
+      ],
+      "internship_profile": {
+        "realistic_sectors": ["fintech", "B2B SaaS", "cyber"],
+        "pitch_strength_signals": [
+          "led a real client engagement end-to-end",
+          "ran customer-discovery interviews",
+          "comfortable turning qualitative input into a recommendation"
+        ],
+        "pitch_anti_patterns": [
+          "do not claim paid product experience",
+          "do not claim engineering skills"
+        ],
+        "pitchable_role_archetypes": [
+          "product operations",
+          "customer success",
+          "product analyst"
+        ]
+      },
+      "educations": [
+        {
+          "school": "Reichman University",
+          "degree": "B.A.",
+          "field": "Business Administration (Digital Innovation)",
+          "graduation_year": 2027,
+          "is_current": true
+        }
+      ]
+    },
+    "eli_strong": {
+      "full_name": "Eli Cohen",
+      "summary": "Final-year Business Administration student who runs VIP customer success at Guardio, a cybersecurity startup. Turns what high-value users struggle with into product signal.",
+      "primary_domain": "Customer Success / Product Operations",
+      "target_job_titles": ["Product Operations", "Customer Success Manager"],
+      "qualification_level": "Student / Working",
+      "in_practicum": true,
+      "recent_experiences": [
+        {
+          "title": "VIP Customer Success",
+          "company": "Guardio",
+          "is_current": true,
+          "responsibilities": "Own the VIP customer-success motion at a consumer-cybersecurity startup; run the renewal-cohort playbook and feed high-value user friction back to product."
+        }
+      ],
+      "stories": [
+        {
+          "title": "Stuck-deal Slack bot",
+          "action": "Built a Slack bot that auto-flagged stuck renewal deals for the CS team.",
+          "result": "Saved the CS team about 8 hours a week of manual review.",
+          "metrics": ["8 hours/week"],
+          "skills": ["Customer Success", "Automation"],
+          "tools": ["Slack"]
+        }
+      ],
+      "internship_profile": {
+        "realistic_sectors": ["cyber", "B2B SaaS"],
+        "pitch_strength_signals": [
+          "runs VIP customer success at a cyber startup",
+          "turns user friction into product signal",
+          "built a workflow automation that saved 8 hrs/week"
+        ],
+        "pitch_anti_patterns": [
+          "do not claim formal product-management title",
+          "do not inflate team-size managed"
+        ],
+        "pitchable_role_archetypes": ["product operations", "customer success"]
+      },
+      "educations": [
+        {
+          "school": "Reichman University",
+          "degree": "B.A.",
+          "field": "Business Administration",
+          "graduation_year": 2026,
+          "is_current": true
+        }
+      ]
+    },
+    "maya_nonreichman": {
+      "full_name": "Maya Rosen",
+      "summary": "Final-year business student at Tel Aviv University targeting growth-marketing roles. Ran the marketing for a campus startup competition.",
+      "primary_domain": "Growth Marketing",
+      "target_job_titles": ["Growth Marketing", "Marketing Analyst"],
+      "qualification_level": "Student / Entry",
+      "in_practicum": false,
+      "recent_experiences": [
+        {
+          "title": "Marketing Lead (volunteer)",
+          "company": "TAU Entrepreneurship Club",
+          "is_current": true,
+          "responsibilities": "Ran email + social for the club's annual startup competition; grew signups year over year."
+        }
+      ],
+      "stories": [
+        {
+          "title": "Startup competition growth",
+          "action": "Rewrote the competition's landing page and ran a 3-email sequence to the alumni list.",
+          "result": "Applications rose meaningfully versus the prior year.",
+          "metrics": [],
+          "skills": ["Email Marketing", "Copywriting"],
+          "tools": ["Mailchimp"]
+        }
+      ],
+      "internship_profile": null,
+      "educations": [
+        {
+          "school": "Tel Aviv University",
+          "degree": "B.A.",
+          "field": "Business Administration",
+          "graduation_year": 2026,
+          "is_current": true
+        }
+      ]
+    }
+  },
+  "inputs": [
+    {
+      "id": "recruiter-cold-listed",
+      "goal": "message_recruiter",
+      "persona": "eli_strong",
+      "probes": [
+        "template-phrase slippage",
+        "length fit",
+        "recruiter register"
+      ],
+      "target_person": {
+        "name": "Sarah Klein",
+        "role": "Senior Technical Recruiter",
+        "company": "Wiz",
+        "relationship": "cold - found via LinkedIn search",
+        "mutual_context": "she posted an open Customer Success Specialist req yesterday"
+      },
+      "target_company": {
+        "name": "Wiz",
+        "description": "Cloud security platform that scans cloud environments for risk without agents.",
+        "industry": "Cybersecurity",
+        "sector": "Cloud Security",
+        "stage": "Late-stage",
+        "hq_city": "Tel Aviv",
+        "hq_country": "Israel"
+      },
+      "thread": [],
+      "user_data_ref": "eli_strong"
+    },
+    {
+      "id": "hiring-mgr-cold-nopost",
+      "goal": "message_hiring_manager",
+      "persona": "eli_strong",
+      "probes": [
+        "generic flattery",
+        "fabricated familiarity (no post to reference)",
+        "hiring-manager learning-frame"
+      ],
+      "target_person": {
+        "name": "Daniel Weiss",
+        "role": "VP Customer Experience",
+        "company": "Melio",
+        "relationship": "cold - never interacted",
+        "mutual_context": null
+      },
+      "target_company": {
+        "name": "Melio",
+        "description": "B2B payments platform for small businesses to pay and get paid.",
+        "industry": "Fintech",
+        "sector": "B2B Payments",
+        "stage": "Late-stage",
+        "hq_city": "Tel Aviv",
+        "hq_country": "Israel"
+      },
+      "thread": [],
+      "user_data_ref": "eli_strong"
+    },
+    {
+      "id": "alumni-warm-richcontext",
+      "goal": "message_alumni",
+      "persona": "noa_thin",
+      "probes": [
+        "register (casual Israeli alum)",
+        "specificity when context IS rich"
+      ],
+      "target_person": {
+        "name": "Yael Marom",
+        "role": "Customer Success Team Lead",
+        "company": "Verbit",
+        "relationship": "fellow Reichman BBA, class of 2021",
+        "mutual_context": "we both took Prof Lee's Customer Discovery course; she TA'd the section I was in"
+      },
+      "target_company": null,
+      "thread": [],
+      "user_data_ref": "noa_thin"
+    },
+    {
+      "id": "alumni-sparse-context",
+      "goal": "message_alumni",
+      "persona": "noa_thin",
+      "probes": [
+        "fabricated familiarity (bare shared-school fact only)",
+        "does it invent a shared memory"
+      ],
+      "target_person": {
+        "name": "Idan Peleg",
+        "role": "Director of Marketing",
+        "company": "Monday.com",
+        "relationship": "same university, don't actually know each other",
+        "mutual_context": "both went to Reichman"
+      },
+      "target_company": null,
+      "thread": [],
+      "user_data_ref": "noa_thin"
+    },
+    {
+      "id": "info-interview-silence-followup",
+      "goal": "request_informational_interview",
+      "persona": "maya_nonreichman",
+      "probes": [
+        "silence follow-up (don't pile on)",
+        "specific questions vs vague"
+      ],
+      "target_person": {
+        "name": "Tamar Gold",
+        "role": "Growth Lead",
+        "company": "Lemonade",
+        "relationship": "cold - found via a growth-marketing newsletter feature",
+        "mutual_context": "she was featured discussing lifecycle-email experiments"
+      },
+      "target_company": null,
+      "thread": [
+        {
+          "role": "user",
+          "text": "Hi Tamar - I'm a final-year business student trying to decide whether to start in growth marketing or marketing analytics. Saw your newsletter feature on lifecycle-email experiments. Would love 20 minutes to ask what surprised you moving from analytics into growth, and how you pick which experiment to run next. Happy to do it async over voice notes if a call is hard to fit."
+        }
+      ],
+      "new_them_reply": "",
+      "user_data_ref": "maya_nonreichman"
+    },
+    {
+      "id": "thankyou-postcall-recall",
+      "goal": "thank_you_follow_up",
+      "persona": "noa_thin",
+      "probes": [
+        "fabricated recall of what was said (HARD RULE 2)",
+        "specificity from thread vs invented"
+      ],
+      "target_person": {
+        "name": "Yael Marom",
+        "role": "Customer Success Team Lead",
+        "company": "Verbit",
+        "relationship": "fellow Reichman BBA who just did an informational call with me",
+        "mutual_context": "we both took Prof Lee's Customer Discovery course"
+      },
+      "target_company": null,
+      "thread": [
+        {
+          "role": "user",
+          "text": "Hi Yael - thanks again for making time. Quick question before our call: is 25 minutes Thursday still good?"
+        },
+        { "role": "them", "text": "Yes Thursday works. Looking forward to it." }
+      ],
+      "new_them_reply": "Great chatting today - good luck with everything, and feel free to reach out.",
+      "user_data_ref": "noa_thin"
+    },
+    {
+      "id": "reconnect-dormant-pushed-ask",
+      "goal": "reconnect_dormant",
+      "persona": "eli_strong",
+      "probes": [
+        "ask-temperature: user pushes an ask on a dormant first turn",
+        "warm_up_advice must fire",
+        "acknowledge the gap honestly"
+      ],
+      "target_person": {
+        "name": "Roi Shapira",
+        "role": "Product Manager",
+        "company": "Fireblocks",
+        "relationship": "former colleague at a past internship, haven't spoken in about 14 months",
+        "mutual_context": "we sat on the same 4-person intern project two summers ago"
+      },
+      "target_company": null,
+      "thread": [],
+      "new_them_reply": null,
+      "user_note": "The user's underlying intent is to ask Roi for an intro to Fireblocks recruiting - but it's turn 1 of a 14-month-dormant relationship. Correct behavior: reconnection only, NO ask, warm_up_advice set.",
+      "user_data_ref": "eli_strong"
+    },
+    {
+      "id": "referral-pathB-dormant",
+      "goal": "ask_for_referral",
+      "persona": "eli_strong",
+      "probes": [
+        "cold-ask on turn 1 of a weak relationship",
+        "should coach Path B (warm up first)"
+      ],
+      "expect_path": "B",
+      "target_person": {
+        "name": "Dana Levi",
+        "role": "Engineering Manager",
+        "company": "Snyk",
+        "relationship": "met once at a Tel Aviv product meetup last year, loose connection",
+        "mutual_context": "chatted briefly at the meetup, exchanged LinkedIn"
+      },
+      "target_company": null,
+      "thread": [],
+      "user_data_ref": "eli_strong"
+    },
+    {
+      "id": "referral-pathA-strong",
+      "goal": "ask_for_referral",
+      "persona": "eli_strong",
+      "probes": [
+        "control: strong relationship, direct ask IS appropriate",
+        "clean explicit ask + materials offer"
+      ],
+      "expect_path": "A",
+      "target_person": {
+        "name": "Michal Adler",
+        "role": "Customer Success Director",
+        "company": "Gong",
+        "relationship": "my direct manager during an 8-month CS internship",
+        "mutual_context": "she managed me on the renewal-cohort project; we spoke last month"
+      },
+      "target_company": null,
+      "thread": [],
+      "user_data_ref": "eli_strong"
+    },
+    {
+      "id": "recommendation-too-thin",
+      "goal": "ask_for_recommendation",
+      "persona": "noa_thin",
+      "probes": [
+        "relationship too thin for a recommendation → framework says redirect",
+        "does it coach the redirect or ask anyway"
+      ],
+      "target_person": {
+        "name": "Gil Aviram",
+        "role": "Founder",
+        "company": "an early-stage startup",
+        "relationship": "met at one hackathon, spoke for 20 minutes",
+        "mutual_context": "we were on adjacent teams at the Reichman hackathon"
+      },
+      "target_company": null,
+      "thread": [],
+      "user_data_ref": "noa_thin"
+    },
+    {
+      "id": "internship-thin-reichman-gate-open",
+      "goal": "propose_internship",
+      "persona": "noa_thin",
+      "probes": [
+        "summer leak",
+        "hedging (H3)",
+        "practicum lead present (gate open)",
+        "thin-profile authenticity without fabrication"
+      ],
+      "target_person": {
+        "name": "Greg Stein",
+        "role": "Head of Product",
+        "company": "7AI",
+        "relationship": "cold - proposing a practicum",
+        "mutual_context": null
+      },
+      "target_company": {
+        "name": "7AI",
+        "description": "Agentic AI security platform that automates security-operations workflows with AI agents.",
+        "industry": "Cybersecurity",
+        "sector": "AI Security",
+        "stage": "Series B",
+        "hq_city": "Tel Aviv",
+        "hq_country": "Israel"
+      },
+      "thread": [],
+      "user_data_ref": "noa_thin"
+    },
+    {
+      "id": "internship-notenrolled-gate-closed",
+      "goal": "propose_internship",
+      "persona": "maya_nonreichman",
+      "probes": [
+        "gate CLOSED (in_practicum false, non-Reichman) → must NOT claim the practicum program",
+        "fabrication guard on program enrollment"
+      ],
+      "target_person": {
+        "name": "Avi Katz",
+        "role": "Head of Growth",
+        "company": "Riverside",
+        "relationship": "cold - proposing an internship",
+        "mutual_context": null
+      },
+      "target_company": {
+        "name": "Riverside",
+        "description": "Platform for recording studio-quality podcasts and video remotely.",
+        "industry": "Media Tech",
+        "sector": "Creator Tools",
+        "stage": "Series C",
+        "hq_city": "Tel Aviv",
+        "hq_country": "Israel"
+      },
+      "thread": [],
+      "user_data_ref": "maya_nonreichman"
+    }
+  ]
+}
