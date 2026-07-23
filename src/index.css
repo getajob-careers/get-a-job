@@ -372,6 +372,18 @@
 .rd-btn-sheen {
   box-shadow: inset 0 1px 0 rgba(255, 251, 245, 0.22);
 }
+/* Focus ring - the one canonical keyboard-focus affordance (design-craft rules
+   5 + 8). Mirrors the inline `focus-visible:ring-2 ring-rd-primary ring-offset-2`
+   the redesign primitives already use, as a single DRY class: a new control adds
+   `rd-focus-ring` instead of re-typing the utility chain, and the ring stays
+   consistent (fixes the ring-1 vs ring-2 drift). Offset in bg-card so the 2px gap
+   reads clean on white cards and the cream page alike. */
+.rd-focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--rd-bg-card),
+    0 0 0 4px var(--rd-primary);
+}
 @media (prefers-reduced-motion: reduce) {
   .rd-press,
   .rd-press:active {
