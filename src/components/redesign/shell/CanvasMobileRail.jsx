@@ -4,6 +4,7 @@ import { Sparkles, X } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
 import CanvasAvatarChip from "./CanvasAvatarChip";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 // Below-md sidebar: content-first. The full sidebar is hidden and the nav + coach
 // + account collapse into a fixed bottom icon rail (standard mobile pattern) so
@@ -29,6 +30,7 @@ function RailItem({ item }) {
 
 export default function CanvasMobileRail({ navItems = [], coach, account }) {
   const [coachOpen, setCoachOpen] = useState(false);
+  const coachTrapRef = useFocusTrap(coachOpen, () => setCoachOpen(false));
 
   return (
     <div className="md:hidden">
@@ -69,7 +71,11 @@ export default function CanvasMobileRail({ navItems = [], coach, account }) {
             onClick={() => setCoachOpen(false)}
             aria-hidden="true"
           />
-          <div className="relative h-[72vh] bg-rd-bg-sidebar rounded-t-[20px] flex flex-col overflow-hidden shadow-[0_-16px_40px_rgba(40,25,10,0.25)]">
+          <div
+            ref={coachTrapRef}
+            tabIndex={-1}
+            className="relative h-[72vh] bg-rd-bg-sidebar rounded-t-[20px] flex flex-col overflow-hidden shadow-[0_-16px_40px_rgba(40,25,10,0.25)]"
+          >
             <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
               <span className="font-display font-bold rd-t-body-m text-rd-text">
                 Coach
