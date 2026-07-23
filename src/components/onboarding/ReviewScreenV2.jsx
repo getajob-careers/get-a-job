@@ -20,7 +20,7 @@ function StatCountUp({ value, label, delay }) {
   const n = useCountUp(value, { duration: 900, delay });
   return (
     <div className="flex flex-col items-center px-3">
-      <span className="font-display font-extrabold text-[26px] leading-none text-rd-primary tabular-nums">
+      <span className="font-display font-extrabold rd-t-display-l leading-none text-rd-primary tabular-nums">
         {n}
       </span>
       <span className="text-[11px] font-medium text-rd-text-secondary uppercase tracking-wide mt-1">
@@ -33,7 +33,7 @@ function StatCountUp({ value, label, delay }) {
 function ExtractingWait() {
   return (
     <div
-      className="rounded-[18px] border border-rd-border bg-rd-bg-card p-8 flex flex-col items-center text-center"
+      className="rd-r-lg border border-rd-border bg-rd-bg-card p-8 flex flex-col items-center text-center"
       role="status"
       aria-live="polite"
     >
@@ -65,7 +65,7 @@ function SuccessReveal({ experiences, educations, projects, skillsCount }) {
       : { value: projN, label: projN === 1 ? "project" : "projects" },
   ];
   return (
-    <div className="rounded-[18px] border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
+    <div className="rd-r-lg border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
       <div className="flex items-center gap-2 justify-center text-rd-teal-dark">
         <Check className="w-4 h-4" aria-hidden="true" />
         <p className="font-display font-bold text-[14px]">We read your CV</p>
@@ -90,7 +90,7 @@ function SuccessReveal({ experiences, educations, projects, skillsCount }) {
 
 function FailureBanner({ onRetry }) {
   return (
-    <div className="rounded-[18px] border border-rd-primary/40 bg-rd-primary-tint/50 p-5">
+    <div className="rd-r-lg border border-rd-primary/40 bg-rd-primary-tint/50 p-5">
       <div className="flex items-start gap-3">
         <AlertCircle
           className="w-5 h-5 text-rd-primary-dark flex-shrink-0 mt-0.5"
@@ -157,7 +157,7 @@ export default function ReviewScreenV2({
       )}
       {status === "failed" && <FailureBanner onRetry={onRetry} />}
       {status === "skipped" && (
-        <div className="rounded-[18px] border border-rd-border bg-rd-bg-card p-4 flex items-center gap-2.5 text-rd-text-secondary">
+        <div className="rd-r-lg border border-rd-border bg-rd-bg-card p-4 flex items-center gap-2.5 text-rd-text-secondary">
           <FileText className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
           <p className="text-[12.5px]">
             No CV yet — fill in the essentials below and you can always add your
