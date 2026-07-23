@@ -1,0 +1,189 @@
+// Unit tests for the deterministic scorer in outreach-eval.mjs.
+// Picked up by `npm test` (vitest default globs). Importing the harness runs
+// only module-level setup - main() is guarded behind a direct-invocation check,
+// so no OpenAI call fires here.
+import { describe, it, expect } from "vitest";
+import { scoreLayer1, composite } from "./outreach-eval.mjs";
+
+const alumniSparse = {
+  goal: "message_alumni",
+  thread: [],
+  target_person: { name: "Idan", mutual_context: "both went to Reichman" },
+  user_data: { full_name: "Noa", summary: "consulting club lead" },
+};
+
+describe("scoreLayer1 - template-phrase gate + detector gap", () => {
+  it("passes a clean, specific opener within band", () => {
+    const s = scoreLayer1(
+      {
+        goal: "message_recruiter",
+        thread: [],
+        target_person: { mutual_context: "posted a req" },
+        user_data: { note: "Guardio Slack bot saved 8 hours" },
+      },
+      {
+        suggested_text:
+          "Hi Sarah, I run VIP customer success at Guardio, a cyber startup, and I am targeting Customer Success roles. I saw Wiz posted a Customer Success Specialist req. I built a Slack bot that flagged stuck renewal deals and saved my team eight hours a week. Open to a quick chat, or happy to send my resume.",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.anti_pattern_pass).toBe(true);
+    expect(s.length_ok).toBe(true);
+    expect(composite(s, null)).toBe(1);
+  });
+
+  it("fails the template gate on 'I hope this finds you well'", () => {
+    const s = scoreLayer1(alumniSparse, {
+      suggested_text:
+        "Hi Idan, I hope this finds you well. Fellow Reichman grad here, would love to connect and hear about your path.",
+      warm_up_advice: "",
+    });
+    expect(s.anti_pattern_pass).toBe(false);
+    expect(s.template_hits).toContain("i hope this finds you well");
+  });
+
+  // Mode A: a phrase the SHIPPED sanitizeSuggestion detector misses ships with
+  // no warning chip. The harness flags it as undetected_template.
+  it("flags a silent-ship template variant the production detector misses", () => {
+    const s = scoreLayer1(alumniSparse, {
+      suggested_text:
+        "Hi Idan, I hope you're doing great. Fellow Reichman grad here and would love to connect about growth marketing.",
+      warm_up_advice: "",
+    });
+    expect(s.anti_pattern_pass).toBe(false);
+    expect(s.undetected_template).toContain("i hope you're doing great");
+  });
+
+  it("normalizes curly apostrophes so 'you’re' cannot evade the gate", () => {
+    const s = scoreLayer1(alumniSparse, {
+      suggested_text:
+        "Hi Idan, I hope you’re doing well. Reichman grad here, would love to connect and learn about your marketing path over the years.",
+      warm_up_advice: "",
+    });
+    expect(s.anti_pattern_pass).toBe(false);
+  });
+});
+
+describe("scoreLayer1 - fabricated-recall gate keys off mutual_context", () => {
+  const recallText = {
+    suggested_text:
+      "Hi Idan, I remember our chat about growth and your point about lifecycle really stuck with me. Reichman grads should stick together. Would love twenty minutes to hear how you approach marketing analytics today and where the field is heading.",
+    warm_up_advice: "",
+  };
+
+  it("fails when mutual_context is sparse (invents a shared memory)", () => {
+    const s = scoreLayer1(alumniSparse, recallText);
+    expect(s.anti_fab_pass).toBe(false);
+    expect(s.recall_hits.length).toBeGreaterThan(0);
+    expect(composite(s, null)).toBe(0);
+  });
+
+  it("does NOT fire when mutual_context actually supports recalled content", () => {
+    const richCtx = {
+      ...alumniSparse,
+      target_person: {
+        name: "Yael",
+        mutual_context:
+          "we both took Prof Lee's Customer Discovery course and she TA'd my section, we talked about segmentation after class",
+      },
+    };
+    const s = scoreLayer1(richCtx, recallText);
+    expect(s.recall_hits.length).toBe(0);
+  });
+});
+
+describe("scoreLayer1 - sender-side number fabrication", () => {
+  it("flags a metric-shaped number not groundable in user_data", () => {
+    const s = scoreLayer1(
+      {
+        goal: "message_recruiter",
+        thread: [],
+        target_person: { mutual_context: "req" },
+        user_data: { note: "saved 8 hours a week" },
+      },
+      {
+        suggested_text:
+          "Hi Sarah, I run customer success at Guardio and drove a 45% increase in renewals last quarter across the enterprise segment which is exactly the motion your team is scaling right now.",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.anti_fab_pass).toBe(false);
+    expect(s.invented_numbers).toContain("45");
+  });
+});
+
+describe("scoreLayer1 - hedging + length + ask calibration", () => {
+  it("fails the hedge gate on a propose_internship banned phrase", () => {
+    const s = scoreLayer1(
+      {
+        goal: "propose_internship",
+        thread: [],
+        target_person: { mutual_context: null },
+        user_data: {},
+      },
+      {
+        suggested_text:
+          "Hi Greg, I'm in Reichman's practicum program and would love to explore product ops at 7AI. My customer success work could be a moderate bridge to product operations, if it'd be useful to chat.",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.hedge_pass).toBe(false);
+    expect(s.hedge_hits).toContain("moderate bridge");
+    expect(s.hedge_hits).toContain("if it'd be useful");
+  });
+
+  it("flags a cold ask on a dormant reconnect first turn with no warm_up_advice", () => {
+    const s = scoreLayer1(
+      {
+        goal: "reconnect_dormant",
+        thread: [],
+        target_person: {
+          mutual_context: "sat on the same intern project two summers ago",
+        },
+        user_data: {},
+      },
+      {
+        suggested_text:
+          "Hey Roi, been a while since our intern project. I'm job hunting now and was wondering if you'd be open to introducing me to recruiting at Fireblocks. Would love to catch up sometime and hear how things are going for you over there.",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.ask_calibration_flag).toBe(true);
+  });
+
+  it("does not flag the cold ask when warm_up_advice is present", () => {
+    const s = scoreLayer1(
+      {
+        goal: "reconnect_dormant",
+        thread: [],
+        target_person: {
+          mutual_context: "sat on the same intern project two summers ago",
+        },
+        user_data: {},
+      },
+      {
+        suggested_text:
+          "Hey Roi, been a while since our intern project two years back. Saw you moved into product at Fireblocks, congrats. How are the first months treating you?",
+        warm_up_advice:
+          "Send this reconnection first, no ask. After Roi replies, we'll bring up the intro in your next turn.",
+      },
+    );
+    expect(s.ask_calibration_flag).toBe(false);
+  });
+
+  it("marks an off-band (too short) opener", () => {
+    const s = scoreLayer1(
+      {
+        goal: "message_recruiter",
+        thread: [],
+        target_person: { mutual_context: "req" },
+        user_data: {},
+      },
+      {
+        suggested_text: "Hi Sarah, are you hiring? Thanks.",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.length_ok).toBe(false);
+  });
+});
