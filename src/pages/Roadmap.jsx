@@ -18,6 +18,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Compass,
+  Sparkles,
+  X,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -125,6 +127,46 @@ export default function CareerRoadmap() {
   });
 
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
+
+  // Thin-profile nudge (Phase 2 item 3). A roadmap built from a light profile
+  // leans on defaults, so the tracks are shallower than they could be. When the
+  // user has a roadmap but little underlying signal, nudge them to enrich it.
+  // Identity-aware: the threshold is keyed on this user's own entity counts, and
+  // the copy names the real gap. Dismiss is view-only (localStorage), no persist.
+  const skillCount = Array.isArray(profile?.skills_canonical)
+    ? profile.skills_canonical.length
+    : 0;
+  const experienceCount = Array.isArray(experiences) ? experiences.length : 0;
+  const isThinProfile = experienceCount <= 1 || skillCount < 6;
+  const [thinNudgeDismissed, setThinNudgeDismissed] = useState(() => {
+    try {
+      return (
+        !!user?.id &&
+        localStorage.getItem(`roadmap_thin_nudge_dismissed_${user.id}`) === "1"
+      );
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    if (!user?.id) return;
+    try {
+      setThinNudgeDismissed(
+        localStorage.getItem(`roadmap_thin_nudge_dismissed_${user.id}`) === "1",
+      );
+    } catch {
+      /* localStorage unavailable (private mode): treat as not dismissed */
+    }
+  }, [user?.id]);
+  const dismissThinNudge = () => {
+    setThinNudgeDismissed(true);
+    try {
+      if (user?.id)
+        localStorage.setItem(`roadmap_thin_nudge_dismissed_${user.id}`, "1");
+    } catch {
+      /* dismiss is session-only when storage is unavailable */
+    }
+  };
 
   // P8: track filter reads `r.track` directly; no client-side re-tracking.
   const track1 = roles.filter((r) => r.track === "track_1");
@@ -306,6 +348,40 @@ export default function CareerRoadmap() {
           </button>
         </div>
       )}
+
+      {roles.length > 0 &&
+        profile &&
+        isThinProfile &&
+        !thinNudgeDismissed &&
+        !generatingState && (
+          <div className="mt-6 flex items-center justify-between gap-3 flex-wrap rounded-[14px] border border-rd-primary/25 bg-rd-primary-tint px-4 py-3 text-[13px] text-rd-text">
+            <p className="flex items-start gap-2.5 min-w-0">
+              <Sparkles className="w-4 h-4 flex-shrink-0 mt-0.5 text-rd-primary" />
+              <span>
+                This roadmap is built from a light profile ({experienceCount}{" "}
+                {experienceCount === 1 ? "experience" : "experiences"},{" "}
+                {skillCount} {skillCount === 1 ? "skill" : "skills"}). Add a few
+                more so your track matches sharpen.
+              </span>
+            </p>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Link
+                to={createPageUrl("Profile")}
+                className="rd-focus-ring inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-3.5 py-1.5 transition-colors"
+              >
+                Enrich profile <ArrowRight className="w-3 h-3" />
+              </Link>
+              <button
+                type="button"
+                onClick={dismissThinNudge}
+                aria-label="Dismiss"
+                className="rd-focus-ring inline-flex items-center justify-center w-11 h-11 -mr-1.5 rounded-full text-rd-text-secondary hover:text-rd-text hover:bg-rd-primary/10 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
       {roles.length > 0 && (
         <div
