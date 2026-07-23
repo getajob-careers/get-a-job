@@ -571,6 +571,18 @@ Deno.serve(async (req) => {
   let _ok = false;
   let _http = 500;
   let _err: string | null = null;
+  // Honest progress emission (cv_generation_progress row, polled by the CV-studio
+  // ring). {done,total,stage} contract — the SAME table generate-tailored-cv
+  // writes, but keyed with source='refine-cv' (composite PK user_id,source) so a
+  // refine row can never clobber or be confused with a concurrent gtc row.
+  // Fire-and-forget + internally guarded: a failed or slow emit can NEVER fail,
+  // block, or delay the tailor, and nothing is awaited on the critical path.
+  // Reassigned once user + serviceClient + application_id are known; stays a no-op
+  // until then, and on any !_ok exit the finally emits 'error'. total = 3
+  // milestones: keywords -> tailoring -> rendering.
+  const PROGRESS_TOTAL = 3;
+  let progressDone = 0;
+  let emitProgress: (stage: string, done: number) => void = () => {};
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
@@ -632,6 +644,32 @@ Deno.serve(async (req) => {
       _err = "missing_input";
       return json({ error: "application_id is required" }, 400);
     }
+    // Progress is best-effort; keep it entirely outside the tailor's control flow.
+    // Conflict key = (user_id, source); source pins this to the refine lane so it
+    // never touches the generate-tailored-cv row for the same user.
+    emitProgress = (stage: string, done: number) => {
+      progressDone = done;
+      try {
+        void serviceClient
+          .from("cv_generation_progress")
+          .upsert(
+            {
+              user_id: user.id,
+              source: "refine-cv",
+              application_id: application_id ?? null,
+              done,
+              total: PROGRESS_TOTAL,
+              stage,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id,source" },
+          )
+          .then(() => {}, () => {});
+      } catch (_) {
+        // never let a progress write touch the tailor
+      }
+    };
+    emitProgress("starting", 0);
     // JD resolution with a server-side fallback. The extension proposal-card
     // path sends job_description:"" when the user references a JD from an
     // earlier message (extension/popup.js), even though the JD is stored on
@@ -777,6 +815,7 @@ Deno.serve(async (req) => {
       _err = `no_${opsTransport.name}_key`;
       return json({ error: "Refine model not configured." }, 500);
     }
+    emitProgress("keywords", 0);
     const jdKeywords = openaiKey
       ? await extractJDKeywords(safeJobDescription, openaiKey, m, {
           userId: user.id,
@@ -856,6 +895,7 @@ Deno.serve(async (req) => {
       const cov = scoreCoverage(cv, jdKeywords.must_include_phrases);
       return { cv, cov, rejectedRewordings };
     };
+    emitProgress("tailoring", 1);
     let result = await runPass("");
     if (!result) {
       _http = 502;
@@ -869,6 +909,7 @@ Deno.serve(async (req) => {
       result.cov.tailoring_score < 50
     ) {
       retryFired = true;
+      emitProgress("coverage-retry", 1);
       const hint = `\n\nRETRY: the previous selection missed these JD phrases that may genuinely describe the user's experience: ${JSON.stringify(result.cov.missed_phrases)}. Re-select bullets / add minimal truthful rewordings to surface more of them where the user actually demonstrated them. Do NOT invent.`;
       const retry = await runPass(hint);
       if (retry && retry.cov.tailoring_score > result.cov.tailoring_score)
@@ -950,6 +991,7 @@ Deno.serve(async (req) => {
       roleLibrary as any,
       profile as any,
     );
+    emitProgress("rendering", 2);
     const { bytes: cvBytes } = await buildCvPdf(cvData, userContext as any, {
       style: safeTemplateStyle,
       theme: sectorResolution.theme,
@@ -1020,6 +1062,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    emitProgress("done", PROGRESS_TOTAL);
     _ok = true;
     _http = 200;
     return json({
@@ -1035,6 +1078,10 @@ Deno.serve(async (req) => {
     _err = "unhandled";
     return json({ error: (error as Error).message }, 500);
   } finally {
+    // One honest 'error' emit for any non-ok exit (thrown OR early-return
+    // failure); emitProgress is a no-op if we failed before it was wired, and is
+    // internally guarded so it can never throw and mask the real error.
+    if (!_ok) emitProgress("error", progressDone);
     finishMetric(m, { ok: _ok, httpStatus: _http, errorCode: _err });
   }
 });
