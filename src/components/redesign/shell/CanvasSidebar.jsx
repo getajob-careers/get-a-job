@@ -16,6 +16,7 @@ import {
   MessagesSquare,
   ChevronLeft,
   ChevronRight,
+  House,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -143,12 +144,14 @@ export default function CanvasSidebar({ coach, account }) {
           <CanvasAvatarChip account={account} />
           {/* Muted path to the public marketing page. /Landing (not /) so the
               authed-user bounce (gated to pathname "/") skips it. Mirrors the
-              flag-off SidebarFooter "About Get A Job" eyebrow. */}
+              flag-off SidebarFooter "Visit homepage" eyebrow (Option A: House
+              glyph + eyebrow tone + hover underline-offset). */}
           <Link
             to="/Landing"
-            className="block text-[10px] text-rd-text-secondary hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
+            className="flex items-center justify-center gap-1.5 text-[10px] text-rd-text-eyebrow hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors rounded-sm hover:underline underline-offset-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
           >
-            About Get A Job
+            <House className="w-[11px] h-[11px]" aria-hidden="true" />
+            Visit homepage
           </Link>
         </div>
       </div>

@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { createPageUrl } from "@/utils";
-import { LogOut } from "lucide-react";
+import { LogOut, House } from "lucide-react";
 
 // `profileFullName` (optional) — preferred name source from profiles.full_name,
 // which is populated by CV extraction during onboarding. Falls back to auth
@@ -14,7 +14,7 @@ import { LogOut } from "lucide-react";
 // to close the mobile sidebar overlay so the user lands on /Settings without
 // the overlay still covering the page.
 //
-// Visual: peach-on-cream avatar with white initials, "About Get A Job" link
+// Visual: peach-on-cream avatar with white initials, "Visit homepage" link
 // to /Landing in muted eyebrow style. Matches the home mockup's sidebar
 // footer (docs/design/redesign/getajob_home_locked_crowz_style.html).
 export default function SidebarFooter({ profileFullName = null, onNavigate }) {
@@ -27,7 +27,12 @@ export default function SidebarFooter({ profileFullName = null, onNavigate }) {
     "";
   const email = user?.email || "";
   const initials = fullName
-    ? fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    ? fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
     : "?";
 
   return (
@@ -69,9 +74,10 @@ export default function SidebarFooter({ profileFullName = null, onNavigate }) {
           <Link
             to="/Landing"
             onClick={onNavigate}
-            className="block mt-2.5 text-[10px] text-rd-text-secondary hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors"
+            className="flex items-center justify-center gap-1.5 mt-2.5 text-[10px] text-rd-text-eyebrow hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors hover:underline underline-offset-4"
           >
-            About Get A Job
+            <House className="w-[11px] h-[11px]" aria-hidden="true" />
+            Visit homepage
           </Link>
         </>
       ) : (
