@@ -323,7 +323,8 @@ function Tasks({ g }) {
 
 // Chat = a DIALOGUE: two overlapping bubbles + typing dots. Deliberately not the
 // coach's single-bubble-plus-waveform - two bubbles reads "conversation", one
-// reads "voice/prompt". Back bubble sits lighter (hi) so the front glazed bubble
+// reads "voice/prompt". Back bubble sits lighter (a translucent --to-tint - the
+// old hi=--card fill was invisible on the cream tile) so the front glazed bubble
 // pops forward; the three dots ripple on hover ("typing").
 function Chat({ g }) {
   return (
@@ -331,7 +332,8 @@ function Chat({ g }) {
       {/* back bubble (the reply, upper-right) */}
       <path
         d="M12 3.5 h9 a3.5 3.5 0 0 1 3.5 3.5 v4 a3.5 3.5 0 0 1 -3.5 3.5 h-3 l-3 3 v-3 h0 a3.5 3.5 0 0 1 -3.5 -3.5 v-4 a3.5 3.5 0 0 1 3.5 -3.5 Z"
-        fill="var(--to-hi)"
+        fill="var(--to-tint)"
+        fillOpacity="0.55"
         stroke="var(--to-ink)"
         strokeWidth="1.5"
         strokeLinejoin="round"
