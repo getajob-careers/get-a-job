@@ -38,6 +38,7 @@ import OnboardingPreview from "@/pages/_preview/OnboardingPreview";
 import AuthCallback from "@/pages/AuthCallback";
 import ShellPreview from "@/pages/_preview/ShellPreview";
 import CanvasGroundPreview from "@/pages/_preview/CanvasGroundPreview";
+import MascotPreview from "@/pages/_preview/MascotPreview";
 import HomePreview from "@/pages/_preview/HomePreview";
 import Home3TabRealPreview from "@/pages/_preview/Home3TabRealPreview";
 import CareerPreview from "@/pages/_preview/CareerPreview";
@@ -306,6 +307,9 @@ function App() {
                 path="/_preview/drawer/:state"
                 element={<DrawerPreview />}
               />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route path="/_preview/mascot" element={<MascotPreview />} />
             )}
             <Route path="/*" element={<AuthenticatedApp />} />
           </Routes>

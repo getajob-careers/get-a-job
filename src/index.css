@@ -141,6 +141,16 @@
       rgba(96, 72, 62, 0.05) 100%
     );
     --rd-logo-hi: #8b8ca3; /* --accent-soft */
+    /* Mascot skin family (character material only). Garments/props REUSE the
+       palette: sweater=--rd-primary, collar+mug=--rd-teal(mauve), desk/laptop/
+       hair=--rd-golden(brown)/--rd-text. Skin has no prior token, so these are
+       new. The in-figure GRAIN (design-craft-blessed exception) is the FIGURE's
+       own material and is exempt from the ground particulate-retirement above. */
+    --rd-mascot-skin: #e8b48f;
+    --rd-mascot-skin-hi: #f0c39f;
+    --rd-mascot-skin-sh: #d0996f;
+    --rd-mascot-nose: #dd875f;
+    --rd-mascot-blush: #e0967a;
     --rd-font-display: "Rokkitt", Georgia, serif;
 
     /* Component tokens. section-fg / mauve / coach map to mockup vars; the
@@ -488,22 +498,41 @@
    new message bubbles fade + slide up on mount. Idea 4: honest "thinking"
    shimmer on the in-flight sending indicator only (never decorative). */
 @keyframes rdMsgIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
-.animate-rd-msg-in { animation: rdMsgIn 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.animate-rd-msg-in {
+  animation: rdMsgIn 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
 
 @keyframes rdThinkingShimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 .rd-thinking-shimmer {
-  background-image: linear-gradient(100deg, transparent 42%, rgba(255, 255, 255, 0.55) 50%, transparent 58%);
+  background-image: linear-gradient(
+    100deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 58%
+  );
   background-size: 200% 100%;
   background-repeat: no-repeat;
   animation: rdThinkingShimmer 1.4s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-rd-msg-in,
-  .rd-thinking-shimmer { animation: none; }
+  .rd-thinking-shimmer {
+    animation: none;
+  }
 }
