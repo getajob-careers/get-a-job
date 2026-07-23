@@ -426,7 +426,7 @@ export default function CoachThread({ variant = "dock" }) {
       data-variant={variant}
     >
       {conv.loadingMessages && (
-        <div className="flex items-center justify-center py-4 text-[11px] text-rd-text-tertiary">
+        <div className="flex items-center justify-center py-4 text-[11px] text-rd-text-secondary">
           <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> Loading…
         </div>
       )}

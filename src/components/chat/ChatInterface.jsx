@@ -113,7 +113,7 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
               <span>Remove <strong className="font-display font-semibold text-rd-text">{change.role_title}</strong></span>
             )}
             {change.reason && (
-              <span className="text-rd-text-tertiary"> - {change.reason}</span>
+              <span className="text-rd-text-secondary"> - {change.reason}</span>
             )}
           </li>
         ))}
@@ -393,10 +393,10 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
         <p className="text-[13.5px] font-display font-bold text-rd-text">Generate tailored CV</p>
       </div>
       <ul className="space-y-1 mb-3 text-xs text-rd-text-secondary">
-        <li><span className="text-rd-text-tertiary">Role:</span> <strong className="font-display font-semibold text-rd-text">{proposal.target_role}</strong></li>
-        {appLabel && <li><span className="text-rd-text-tertiary">Application:</span> {appLabel}</li>}
+        <li><span className="text-rd-text-secondary">Role:</span> <strong className="font-display font-semibold text-rd-text">{proposal.target_role}</strong></li>
+        {appLabel && <li><span className="text-rd-text-secondary">Application:</span> {appLabel}</li>}
         {!appLabel && proposal.application_id && (
-          <li><span className="text-rd-text-tertiary">Application:</span> <span className="text-rd-text-tertiary italic">linked to tracked role</span></li>
+          <li><span className="text-rd-text-secondary">Application:</span> <span className="text-rd-text-secondary italic">linked to tracked role</span></li>
         )}
       </ul>
       {error && (
@@ -1251,7 +1251,7 @@ export default function ChatInterface({
         <div className="min-w-0">
           <h2 className="font-display font-bold text-[14.5px] text-rd-text leading-tight">{title}</h2>
           {description && !isDrawer && (
-            <p className="text-[12px] text-rd-text-tertiary leading-snug mt-0.5 max-w-[540px] truncate">{description}</p>
+            <p className="text-[12px] text-rd-text-secondary leading-snug mt-0.5 max-w-[540px] truncate">{description}</p>
           )}
         </div>
         {/* Conversation switcher hidden in drawer mode — one rolling
@@ -1316,7 +1316,7 @@ export default function ChatInterface({
                 {introMessage}
               </p>
             ) : (
-              <p className="text-sm text-rd-text-tertiary">
+              <p className="text-sm text-rd-text-secondary">
                 Start a conversation. Ask a question about your career path.
               </p>
             )}
@@ -1433,7 +1433,7 @@ export default function ChatInterface({
             <div className="w-[26px] h-[26px] rounded-full bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
               <div className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
             </div>
-            <div className="inline-flex gap-1 items-center px-3.5 py-2.5 bg-[#F3ECE0] rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]">
+            <div className="inline-flex gap-1 items-center px-3.5 py-2.5 bg-rd-bg-soft rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]">
               <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
               <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
               <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />

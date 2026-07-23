@@ -252,7 +252,7 @@ const FunctionDisplay = ({ toolCall }) => {
         <div className="mt-1.5 ml-3 pl-3 border-l-2 border-rd-border space-y-2">
           {toolCall.arguments_string && (
             <div>
-              <div className="text-xs text-rd-text-tertiary mb-1">
+              <div className="text-xs text-rd-text-secondary mb-1">
                 Parameters:
               </div>
               <pre className="bg-rd-bg-soft rounded-md p-2 text-xs text-rd-text-secondary whitespace-pre-wrap">
@@ -272,7 +272,7 @@ const FunctionDisplay = ({ toolCall }) => {
           )}
           {parsedResults && (
             <div>
-              <div className="text-xs text-rd-text-tertiary mb-1">Result:</div>
+              <div className="text-xs text-rd-text-secondary mb-1">Result:</div>
               <pre className="bg-rd-bg-soft rounded-md p-2 text-xs text-rd-text-secondary whitespace-pre-wrap max-h-48 overflow-auto">
                 {typeof parsedResults === "object"
                   ? JSON.stringify(parsedResults, null, 2)
@@ -346,10 +346,10 @@ export default function MessageBubble({ message, variant = "page" }) {
   // bottom-right; agent-left → tight bottom-left).
   const userBubbleClasses = isCoach
     ? "bg-rd-primary-tint text-rd-primary-dark rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
-    : "bg-[#211D18] text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]";
+    : "bg-rd-text text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]";
   const agentBubbleClasses = isCoach
     ? "bg-rd-bg-soft text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]"
-    : "bg-[#F3ECE0] text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]";
+    : "bg-rd-bg-soft text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]";
 
   return (
     <div

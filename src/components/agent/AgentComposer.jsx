@@ -118,7 +118,7 @@ export default function AgentComposer({ variant = "dock", suggestions = [] }) {
         <button
           type="button"
           onClick={() => conv.sendMessage()}
-          disabled={!hasText && !conv.sending}
+          disabled={!hasText || conv.sending}
           aria-label="Send message"
           className={`${isDock ? "w-7 h-7" : "w-8 h-8"} inline-flex items-center justify-center flex-shrink-0 rounded-full bg-rd-primary text-white hover:bg-rd-primary-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed transition-colors`}
         >

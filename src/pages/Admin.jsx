@@ -89,7 +89,7 @@ function Card({ title, icon: Icon, footer, children }) {
       </div>
       <div>{children}</div>
       {footer && (
-        <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#A3A3A3]">
+        <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#6E6E6E]">
           {footer}
         </div>
       )}
@@ -99,7 +99,7 @@ function Card({ title, icon: Icon, footer, children }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex items-center justify-center h-40 text-xs text-[#A3A3A3]">
+    <div className="flex items-center justify-center h-40 text-xs text-[#6E6E6E]">
       {message}
     </div>
   );
@@ -142,7 +142,7 @@ function UserCountsCard() {
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-24">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading counts: ${error.message}`} />
@@ -156,7 +156,7 @@ function UserCountsCard() {
               <div className="text-xs font-medium text-[#525252] mt-0.5">
                 {s.label}
               </div>
-              <div className="text-[11px] text-[#A3A3A3]">{s.sub}</div>
+              <div className="text-[11px] text-[#6E6E6E]">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -214,7 +214,7 @@ function TrendCard() {
       </div>
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading trend: ${error.message}`} />
@@ -303,7 +303,7 @@ function VolumeCard() {
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading volume: ${error.message}`} />
@@ -407,7 +407,7 @@ function FunnelCard() {
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading funnel: ${error.message}`} />
@@ -422,7 +422,7 @@ function FunnelCard() {
                 <span className="text-[#525252]">
                   <strong>{row.count}</strong>
                   {i > 0 && row.dropPct > 0 && (
-                    <span className="text-[#A3A3A3] ml-2">
+                    <span className="text-[#6E6E6E] ml-2">
                       −{row.dropPct}% from prev
                     </span>
                   )}
@@ -472,7 +472,7 @@ function ErrorFeedCard() {
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading feed: ${error.message}`} />
@@ -532,7 +532,7 @@ function EngagementCard() {
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading engagement: ${error.message}`} />
@@ -542,7 +542,7 @@ function EngagementCard() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px]">
             <thead>
-              <tr className="text-left text-[#A3A3A3] border-b border-[#F5F5F5]">
+              <tr className="text-left text-[#6E6E6E] border-b border-[#F5F5F5]">
                 <th className="py-2 pr-3 font-medium">Student</th>
                 <th className="py-2 pr-3 font-medium">Onboarded</th>
                 <th className="py-2 pr-3 font-medium text-right">Apps</th>
@@ -566,7 +566,7 @@ function EngagementCard() {
                     {r.onboarding_complete ? (
                       <span className="text-emerald-700">✓</span>
                     ) : (
-                      <span className="text-[#A3A3A3]">—</span>
+                      <span className="text-[#6E6E6E]">—</span>
                     )}
                   </td>
                   <td className="py-2 pr-3 text-right">
@@ -716,7 +716,7 @@ function ChatLogsCard() {
         <EmptyState message="Pick a student from the dropdown above." />
       ) : isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading messages: ${error.message}`} />
@@ -763,12 +763,12 @@ function ConversationBlock({ convo, expanded, onToggle }) {
             {convo.title || "(untitled)"}
           </span>
           {convo.application_id && (
-            <span className="text-[10px] text-[#A3A3A3] flex-shrink-0">
+            <span className="text-[10px] text-[#6E6E6E] flex-shrink-0">
               · app {convo.application_id.slice(0, 8)}…
             </span>
           )}
         </div>
-        <div className="text-[10px] text-[#A3A3A3] flex-shrink-0">
+        <div className="text-[10px] text-[#6E6E6E] flex-shrink-0">
           {convo.messages.length} msg · {lastTime}
         </div>
       </button>
@@ -799,7 +799,7 @@ function MessageBubble({ msg }) {
           {isUser ? "User" : "Assistant"}
           {isError && <span className="ml-2 text-red-700">· ERROR</span>}
         </span>
-        <span className="text-[10px] text-[#A3A3A3]">
+        <span className="text-[10px] text-[#6E6E6E]">
           {format(new Date(msg.created_at), "MMM d HH:mm:ss")}
         </span>
       </div>
@@ -821,7 +821,7 @@ function MessageBubble({ msg }) {
           {SUGGESTED_BLOCK_FIELDS.map(([key, label]) =>
             msg[key] == null ? null : (
               <div key={key}>
-                <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">
+                <div className="text-[9px] uppercase tracking-wider text-[#6E6E6E] font-medium mb-0.5">
                   {label}
                 </div>
                 <pre className="text-[10px] bg-[#FAFAFA] border border-[#E5E5E5] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap">
@@ -884,7 +884,7 @@ function StoryBrowserCard() {
       </div>
       {isLoading ? (
         <div className="flex items-center justify-center h-40">
-          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+          <Loader2 className="w-4 h-4 animate-spin text-[#6E6E6E]" />
         </div>
       ) : error ? (
         <EmptyState message={`Error loading stories: ${error.message}`} />
@@ -930,7 +930,7 @@ function StoryCard({ story, showStudentName }) {
           <span className="text-[9px] uppercase tracking-wider font-medium text-[#525252] px-1.5 py-0.5 bg-[#FAFAFA] border border-[#E5E5E5] rounded">
             {story.source}
           </span>
-          <span className="text-[10px] text-[#A3A3A3]">
+          <span className="text-[10px] text-[#6E6E6E]">
             {format(new Date(story.created_at), "MMM d")}
           </span>
         </div>
@@ -946,7 +946,7 @@ function StoryCard({ story, showStudentName }) {
         </div>
         {hasRawText && (
           <div>
-            <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">
+            <div className="text-[9px] uppercase tracking-wider text-[#6E6E6E] font-medium mb-0.5">
               Source text
             </div>
             <pre className="text-[11px] bg-[#FAFAFA] border border-[#E5E5E5] rounded px-2 py-1.5 whitespace-pre-wrap overflow-x-auto leading-snug">
@@ -1001,7 +1001,7 @@ function StoryCard({ story, showStudentName }) {
 function StarField({ label, value }) {
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+      <div className="text-[9px] uppercase tracking-wider text-[#6E6E6E] font-medium">
         {label}
       </div>
       {value ? (
@@ -1009,7 +1009,7 @@ function StarField({ label, value }) {
           {value}
         </p>
       ) : (
-        <p className="text-[11px] text-[#A3A3A3] italic">
+        <p className="text-[11px] text-[#6E6E6E] italic">
           — (extractor left null)
         </p>
       )}
@@ -1035,7 +1035,7 @@ export default function Admin() {
   if (checkingAdmin) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
+        <Loader2 className="w-5 h-5 animate-spin text-[#6E6E6E]" />
       </div>
     );
   }
@@ -1044,9 +1044,9 @@ export default function Admin() {
     // 404-style — don't acknowledge the route exists
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-2">
-        <AlertTriangle className="w-8 h-8 text-[#A3A3A3]" />
+        <AlertTriangle className="w-8 h-8 text-[#6E6E6E]" />
         <p className="text-sm font-medium text-[#525252]">Page not found</p>
-        <p className="text-xs text-[#A3A3A3]">
+        <p className="text-xs text-[#6E6E6E]">
           The page you're looking for doesn't exist.
         </p>
       </div>
@@ -1059,7 +1059,7 @@ export default function Admin() {
         <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
           Admin Dashboard
         </h1>
-        <p className="text-sm text-[#A3A3A3] mt-1">
+        <p className="text-sm text-[#6E6E6E] mt-1">
           Real-time observability over the platform. Auto-refreshes every
           30–60s.
         </p>
