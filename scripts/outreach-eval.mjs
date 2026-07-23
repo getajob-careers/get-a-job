@@ -39,6 +39,11 @@ const ROOT = join(__dirname, "..");
 const args = process.argv.slice(2);
 const JUDGE = args.includes("--judge");
 const ONLY = args.includes("--only") ? args[args.indexOf("--only") + 1] : null;
+// --dry-run exercises the ENTIRE path (generate loop, scoring, summary table,
+// JSON write) with STUBBED chat responses and NO paid calls. Mandatory gate
+// before any real baseline: a report-path bug (bare `l2`) crashed a full paid
+// run on 2026-07-23 after all 12 cases had already been billed.
+const DRY = args.includes("--dry-run");
 const MODEL = "gpt-4o"; // must match generate-linkedin-outreach-message MODEL
 const JUDGE_MODEL = "gpt-4o";
 
@@ -208,7 +213,52 @@ function sanitizeSuggestion(raw) {
 }
 
 // ---- OpenAI ---------------------------------------------------------------
+// Deterministic stub for --dry-run: no network, no key. Returns the same JSON
+// SHAPE the real API returns (a content string), keyed off the prompt so the
+// dry-run exercises gate-pass, gate-fail, the summer-retry loop, and the judge
+// path across the frozen set. NOT meaningful scores - a path exerciser only.
+function dryChat(messages) {
+  const system = messages[0]?.content || "";
+  const user = messages[1]?.content || "";
+  if (/quality judge/i.test(system)) {
+    return JSON.stringify({
+      specificity: 70,
+      register: 55,
+      ask_calibration: 60,
+      reply_worthiness: 72,
+    });
+  }
+  const goal =
+    (user.match(/OUTREACH GOAL: (\w+)/) || [])[1] || "message_recruiter";
+  const retry = user.includes("PREVIOUS ATTEMPT VIOLATED");
+  const CLEAN =
+    "Hi there, I run VIP customer success at Guardio, a cyber startup, and I am targeting customer success roles. I saw your team is scaling the function, and I built a Slack bot that flagged stuck renewal deals and saved my team eight hours a week. Would a quick chat work, or I can send my resume over.";
+  let text = CLEAN;
+  let turn_type = "opener";
+  if (goal === "message_hiring_manager") {
+    // triggers anti_pattern gate fail + SILENT_TEMPLATE (undetected variant)
+    text =
+      "Hi there, I hope you're doing great. I run customer success at Guardio and would love to connect about how your team is scaling.";
+  } else if (goal === "ask_for_recommendation") {
+    text = "Hi, would you write me a recommendation? Thanks so much."; // length OFF-BAND
+  } else if (goal === "propose_internship") {
+    // summer on first attempt exercises the regenerate loop; clean on retry
+    text = retry
+      ? "Hi there, I'm in Reichman's Business Administration practicum, a supervised placement from November to February at about 12 hours a week, and I'd love to do mine in product operations at your company where the security-ops automation is compelling. I run VIP customer success at a cyber startup. Worth a quick 15-minute call."
+      : "Hi there, I'd love to do a product operations internship for the summer at your company. I run VIP customer success at a cyber startup and would bring user-friction insight to product ops. Worth a quick call.";
+  }
+  return JSON.stringify({
+    suggested_text: text,
+    turn_type,
+    angle: "dry-run stub",
+    warm_up_advice: "",
+    conversation_state: "cold_open",
+    warnings: [],
+  });
+}
+
 async function chat(model, messages, opts = {}) {
+  if (DRY) return dryChat(messages);
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -519,6 +569,7 @@ export {
   scoreLayer1,
   composite,
   sanitizeSuggestion,
+  buildReport,
   WORD_BANDS,
   TEMPLATE_PHRASES,
 };
@@ -528,56 +579,20 @@ function pct(x) {
   return x == null ? " n/a" : (x * 100).toFixed(0).padStart(3) + "%";
 }
 
-export async function main() {
-  if (!KEY) {
-    console.error(
-      "OPENAI_API_KEY is required (export it or prefix the command).",
-    );
-    process.exit(1);
-  }
-  const rows = [];
-  for (const input of INPUTS) {
-    process.stderr.write(`· ${input.id} (${input.goal})… `);
-    let suggestion = null,
-      l1 = null,
-      l2 = null,
-      err = null,
-      attempts = 0;
-    try {
-      const g = await generate(input);
-      suggestion = g.suggestion;
-      err = g.err;
-      attempts = g.attempts;
-      if (suggestion) {
-        l1 = scoreLayer1(input, suggestion);
-        if (JUDGE) l2 = await judge(input, suggestion);
-      }
-    } catch (e) {
-      err = e.message;
-    }
-    const q = l1 ? composite(l1, l2) : 0;
-    rows.push({
-      id: input.id,
-      goal: input.goal,
-      persona: input.persona,
-      err,
-      attempts,
-      suggestion,
-      l1,
-      l2,
-      quality: q,
-    });
-    process.stderr.write(
-      err
-        ? `ERR ${err}\n`
-        : `q=${(q * 100).toFixed(0)}%${l1 && (!l1.anti_pattern_pass || !l1.anti_fab_pass) ? " GATE_FAIL" : ""}\n`,
-    );
-  }
-
-  // ---- report -------------------------------------------------------------
+// Pure report builder. Extracted + exported so the ENTIRE reporting path is
+// unit-testable with synthetic rows and NO OpenAI call - the 2026-07-23 bug was
+// a bare `l2` in this block that only fired AFTER a full paid run finished.
+// Reads nothing from module globals; all run metadata comes through opts.
+function buildReport(rows, opts = {}) {
+  const {
+    judge: withJudge = false,
+    model = MODEL,
+    judgeModel = JUDGE_MODEL,
+    n = rows.length,
+  } = opts;
   const lines = [];
   lines.push(
-    `\n=== Outreach eval - model=${MODEL}${JUDGE ? ` judge=${JUDGE_MODEL}` : ""} - SYNTHETIC (n=${INPUTS.length}) ===\n`,
+    `\n=== Outreach eval - model=${model}${withJudge ? ` judge=${judgeModel}` : ""} - SYNTHETIC (n=${n}) ===\n`,
   );
   lines.push(
     "id                          goal                     len  wc   antiPat antiFab hedge  spec reg ask rep  QUALITY  flags",
@@ -608,17 +623,17 @@ export async function main() {
         l.anti_pattern_pass ? " ok  " : "FAIL ",
         l.anti_fab_pass ? " ok  " : "FAIL ",
         l.hedge_pass ? " ok " : "FAIL",
-        l2 && typeof l2.specificity === "number"
-          ? String(l2.specificity).padStart(3)
+        r.l2 && typeof r.l2.specificity === "number"
+          ? String(r.l2.specificity).padStart(3)
           : "n/a",
-        l2 && typeof l2.register === "number"
-          ? String(l2.register).padStart(3)
+        r.l2 && typeof r.l2.register === "number"
+          ? String(r.l2.register).padStart(3)
           : "n/a",
-        l2 && typeof l2.ask_calibration === "number"
-          ? String(l2.ask_calibration).padStart(3)
+        r.l2 && typeof r.l2.ask_calibration === "number"
+          ? String(r.l2.ask_calibration).padStart(3)
           : "n/a",
-        l2 && typeof l2.reply_worthiness === "number"
-          ? String(l2.reply_worthiness).padStart(3)
+        r.l2 && typeof r.l2.reply_worthiness === "number"
+          ? String(r.l2.reply_worthiness).padStart(3)
           : "n/a",
         " " + pct(r.quality),
         " " + flags.join(","),
@@ -629,54 +644,25 @@ export async function main() {
   const scored = rows.filter((r) => r.l1);
   const mean = (f) =>
     scored.reduce((a, r) => a + f(r), 0) / Math.max(1, scored.length);
+  const ids = (pred) =>
+    scored
+      .filter(pred)
+      .map((r) => r.id)
+      .join(", ") || "none";
   lines.push(`SET MEAN quality: ${pct(mean((r) => r.quality))}`);
   lines.push(
-    `GATE FAILS  anti_pattern: ${
-      scored
-        .filter((r) => !r.l1.anti_pattern_pass)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
+    `GATE FAILS  anti_pattern: ${ids((r) => !r.l1.anti_pattern_pass)}`,
+  );
+  lines.push(`            anti_fab:     ${ids((r) => !r.l1.anti_fab_pass)}`);
+  lines.push(`            hedge:        ${ids((r) => !r.l1.hedge_pass)}`);
+  lines.push(
+    `SILENT TEMPLATE (ships w/ no warning chip): ${ids((r) => r.l1.undetected_template.length)}`,
   );
   lines.push(
-    `            anti_fab:     ${
-      scored
-        .filter((r) => !r.l1.anti_fab_pass)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
+    `FABRICATED RECALL (sparse mutual_context):   ${ids((r) => r.l1.recall_hits.length)}`,
   );
   lines.push(
-    `            hedge:        ${
-      scored
-        .filter((r) => !r.l1.hedge_pass)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
-  );
-  lines.push(
-    `SILENT TEMPLATE (ships w/ no warning chip): ${
-      scored
-        .filter((r) => r.l1.undetected_template.length)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
-  );
-  lines.push(
-    `FABRICATED RECALL (sparse mutual_context):   ${
-      scored
-        .filter((r) => r.l1.recall_hits.length)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
-  );
-  lines.push(
-    `COLD ASK (multi-step, ask w/o warm-up):      ${
-      scored
-        .filter((r) => r.l1.ask_calibration_flag)
-        .map((r) => r.id)
-        .join(", ") || "none"
-    }`,
+    `COLD ASK (multi-step, ask w/o warm-up):      ${ids((r) => r.l1.ask_calibration_flag)}`,
   );
   lines.push(
     `LENGTH OFF-BAND:                             ${
@@ -686,12 +672,69 @@ export async function main() {
         .join(", ") || "none"
     }`,
   );
-  if (JUDGE)
+  if (withJudge)
     lines.push(
       `JUDGE MEANS  specificity: ${mean((r) => r.l2?.specificity || 0).toFixed(0)}  register: ${mean((r) => r.l2?.register || 0).toFixed(0)}  ask_calibration: ${mean((r) => r.l2?.ask_calibration || 0).toFixed(0)}  reply_worthiness: ${mean((r) => r.l2?.reply_worthiness || 0).toFixed(0)}`,
     );
+  return lines.join("\n");
+}
 
-  const report = lines.join("\n");
+export async function main() {
+  if (!DRY && !KEY) {
+    console.error(
+      "OPENAI_API_KEY is required (export it or prefix the command). Use --dry-run to exercise the full path with no key.",
+    );
+    process.exit(1);
+  }
+  if (DRY)
+    process.stderr.write(
+      "[DRY-RUN] stubbed generation + judge; no paid calls.\n",
+    );
+  const rows = [];
+  for (const input of INPUTS) {
+    process.stderr.write(`· ${input.id} (${input.goal})… `);
+    let suggestion = null,
+      l1 = null,
+      l2 = null,
+      err = null,
+      attempts = 0;
+    try {
+      const g = await generate(input);
+      suggestion = g.suggestion;
+      err = g.err;
+      attempts = g.attempts;
+      if (suggestion) {
+        l1 = scoreLayer1(input, suggestion);
+        if (JUDGE || DRY) l2 = await judge(input, suggestion);
+      }
+    } catch (e) {
+      err = e.message;
+    }
+    const q = l1 ? composite(l1, l2) : 0;
+    rows.push({
+      id: input.id,
+      goal: input.goal,
+      persona: input.persona,
+      err,
+      attempts,
+      suggestion,
+      l1,
+      l2,
+      quality: q,
+    });
+    process.stderr.write(
+      err
+        ? `ERR ${err}\n`
+        : `q=${(q * 100).toFixed(0)}%${l1 && (!l1.anti_pattern_pass || !l1.anti_fab_pass) ? " GATE_FAIL" : ""}\n`,
+    );
+  }
+
+  const report = buildReport(rows, {
+    judge: JUDGE || DRY,
+    model: MODEL,
+    judgeModel: JUDGE_MODEL,
+    n: INPUTS.length,
+  });
   console.log(report);
 
   const outDir = join(ROOT, "docs/eval/results");
@@ -699,11 +742,15 @@ export async function main() {
   const stamp = new Date().toISOString().replace(/[:.]/g, "-");
   const outPath = join(
     outDir,
-    `outreach-baseline${JUDGE ? "-judged" : ""}-${stamp}.json`,
+    `${DRY ? "outreach-dryrun" : `outreach-baseline${JUDGE ? "-judged" : ""}`}-${stamp}.json`,
   );
   writeFileSync(
     outPath,
-    JSON.stringify({ model: MODEL, judge: JUDGE, ts: stamp, rows }, null, 2),
+    JSON.stringify(
+      { model: MODEL, judge: JUDGE, dry: DRY, ts: stamp, rows },
+      null,
+      2,
+    ),
   );
   console.log(
     `\nFull results (verbatim suggested_text) → ${outPath.replace(ROOT + "/", "")}`,

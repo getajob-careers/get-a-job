@@ -3,7 +3,7 @@
 // only module-level setup - main() is guarded behind a direct-invocation check,
 // so no OpenAI call fires here.
 import { describe, it, expect } from "vitest";
-import { scoreLayer1, composite } from "./outreach-eval.mjs";
+import { scoreLayer1, composite, buildReport } from "./outreach-eval.mjs";
 
 const alumniSparse = {
   goal: "message_alumni",
@@ -185,5 +185,119 @@ describe("scoreLayer1 - hedging + length + ask calibration", () => {
       },
     );
     expect(s.length_ok).toBe(false);
+  });
+});
+
+// Regression coverage for the 2026-07-23 crash: a bare `l2` (should be `r.l2`)
+// in the report loop threw ReferenceError AFTER a full paid run, killing the
+// summary + JSON write. buildReport is the extracted, pure report path; these
+// exercise every row shape it must render without throwing.
+describe("buildReport - reporting path (no OpenAI)", () => {
+  const l1full = {
+    word_count: 60,
+    length_ok: true,
+    anti_pattern_pass: true,
+    template_hits: [],
+    undetected_template: [],
+    anti_fab_pass: true,
+    recall_hits: [],
+    invented_numbers: [],
+    summer_hit: false,
+    hedge_pass: true,
+    hedge_hits: [],
+    weak_close_hits: [],
+    ask_calibration_flag: false,
+    warm_up_advice_present: false,
+  };
+  const gateFailL1 = {
+    ...l1full,
+    anti_pattern_pass: false,
+    template_hits: ["i hope you're doing great"],
+    undetected_template: ["i hope you're doing great"],
+    length_ok: false,
+    word_count: 24,
+  };
+
+  const rows = [
+    {
+      id: "with-judge",
+      goal: "message_recruiter",
+      l1: l1full,
+      l2: {
+        specificity: 70,
+        register: 55,
+        ask_calibration: 60,
+        reply_worthiness: 72,
+      },
+      quality: 0.71,
+    },
+    // The exact shape that crashed: an l1 row with NO l2 (judge absent).
+    {
+      id: "no-judge",
+      goal: "message_alumni",
+      l1: l1full,
+      l2: null,
+      quality: 0.5,
+    },
+    {
+      id: "gate-fail",
+      goal: "message_hiring_manager",
+      l1: gateFailL1,
+      l2: null,
+      quality: 0,
+    },
+    {
+      id: "err-row",
+      goal: "thank_you_follow_up",
+      l1: null,
+      l2: null,
+      err: "openai_502",
+      quality: 0,
+    },
+  ];
+
+  it("renders every row shape without throwing (judge on)", () => {
+    const out = buildReport(rows, {
+      judge: true,
+      model: "gpt-4o",
+      judgeModel: "gpt-4o",
+      n: rows.length,
+    });
+    expect(typeof out).toBe("string");
+    expect(out).toContain("with-judge");
+    expect(out).toContain("no-judge");
+    expect(out).toContain("n/a"); // the no-l2 row renders n/a, not a crash
+    expect(out).toContain("ERR openai_502");
+    expect(out).toContain("GATE FAILS  anti_pattern: gate-fail");
+    expect(out).toContain(
+      "SILENT TEMPLATE (ships w/ no warning chip): gate-fail",
+    );
+    expect(out).toContain("JUDGE MEANS");
+  });
+
+  it("renders without throwing when judge is off (no JUDGE MEANS line)", () => {
+    const out = buildReport(rows, {
+      judge: false,
+      model: "gpt-4o",
+      judgeModel: "gpt-4o",
+      n: rows.length,
+    });
+    expect(typeof out).toBe("string");
+    expect(out).not.toContain("JUDGE MEANS");
+    expect(out).toContain("LENGTH OFF-BAND:");
+  });
+
+  it("handles an all-error set (no scored rows) without dividing by zero", () => {
+    const errOnly = [
+      {
+        id: "e1",
+        goal: "message_recruiter",
+        l1: null,
+        l2: null,
+        err: "boom",
+        quality: 0,
+      },
+    ];
+    expect(() => buildReport(errOnly, { judge: true })).not.toThrow();
   });
 });
