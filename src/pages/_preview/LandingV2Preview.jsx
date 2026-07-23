@@ -29,7 +29,7 @@ const LV_CSS = `
   --bg-warm: #ECE0C9;
   --ink: #4A372D;
   --ink-soft: #7B675C;
-  --ink-faint: #A6957F;
+  --ink-faint: #6F6151;
   --accent: #60617D;
   --accent-deep: #4B4C66;
   --accent-tint: #E3E3EC;
@@ -37,11 +37,13 @@ const LV_CSS = `
   --teal-tint: #EFE3E9;
   --teal-deep: #7B606D;
   --golden: #60483E;
+  --golden-deep: #4A362D;
   --golden-tint: #E9DECF;
   --line: #E0D2B9;
   --line-soft: #E9DEC8;
   --card: #FFFCF4;
   --ink-deep: #3A2A20;
+  --err: #B0301F;
   --r-sm: 10px; --r: 16px; --r-lg: 24px; --r-pill: 999px;
   --font-d: 'Geist', system-ui, sans-serif;
   --font-b: 'Geist', system-ui, sans-serif;
@@ -163,7 +165,7 @@ const LV_CSS = `
 .lv-pchip-in .tag { font-family: var(--font-m); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); }
 .tag-t1 { background: var(--teal-tint); color: var(--teal-deep); }
 .tag-t2 { background: var(--accent-tint); color: var(--accent-deep); }
-.tag-t3 { background: var(--golden-tint); color: var(--golden); }
+.tag-t3 { background: var(--golden-tint); color: var(--golden-deep); }
 .lv-float { animation: lvfloat 7s ease-in-out infinite; }
 @keyframes lvfloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 .lv-floaty { animation: lvfloat 11s ease-in-out infinite; }
@@ -207,7 +209,7 @@ const LV_CSS = `
 .lv-offer.wide .lv-offer-ic { margin-bottom: 0; flex-shrink: 0; }
 .ic-coral { background: var(--accent-tint); color: var(--accent-deep); }
 .ic-teal { background: var(--teal-tint); color: var(--teal-deep); }
-.ic-gold { background: var(--golden-tint); color: var(--golden); }
+.ic-gold { background: var(--golden-tint); color: var(--golden-deep); }
 .ic-ink { background: var(--bg-warm); color: var(--ink); }
 .lv-offer h3 { font-family: var(--font-d); font-size: 18px; font-weight: 600; margin-bottom: 7px; letter-spacing: -.01em; }
 .lv-offer p { font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
@@ -271,8 +273,8 @@ const LV_CSS = `
 .lv-sc-sq { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
 .lv-sc-bar { height: 6px; border-radius: 999px; background: var(--bg-warm); overflow: hidden; }
 .lv-sc-bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
-.lv-ws-soon { margin-left: 8px; font-family: var(--font-m); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden); padding: 2px 7px; border-radius: 999px; font-weight: 700; }
-.lv-ws-soon-tag { margin-left: 10px; font-family: var(--font-m); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden); padding: 3px 9px; border-radius: 999px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
+.lv-ws-soon { margin-left: 8px; font-family: var(--font-m); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden-deep); padding: 2px 7px; border-radius: 999px; font-weight: 700; }
+.lv-ws-soon-tag { margin-left: 10px; font-family: var(--font-m); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden-deep); padding: 3px 9px; border-radius: 999px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
 @media (max-width: 900px) { .lv-fx { grid-template-columns: 1fr; } }
 
 /* feature workspace — selectable list · dominant screenshot · live explainer.
@@ -1007,18 +1009,46 @@ function Nav({ isLoggedIn, onCTA, onLogin }) {
 function DropZone({ onUpload }) {
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   const inputRef = useRef(null);
   // Real handoff (not a pantomime): stash the dropped CV in IndexedDB
   // (browser-only, no server call, no parse) so onboarding auto-consumes it
   // after signup, then route into the real signup funnel.
+  const validate = (file) => {
+    const okType =
+      /\.(pdf|docx?)$/i.test(file.name || "") ||
+      [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(file.type);
+    if (!okType) return "Please upload a PDF or Word (.doc/.docx) file.";
+    if (file.size > 10 * 1024 * 1024)
+      return "That file is over 10MB - please upload a smaller CV.";
+    return "";
+  };
   const start = async (file) => {
     if (busy || !file) return;
+    const invalid = validate(file);
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
+    setError("");
     setBusy(true);
     track(EVENTS.LANDING_CV_UPLOAD_STARTED, { file_type: file.type || "" });
-    const saved = await savePendingCv(file); // false in private mode / quota; we proceed either way
+    const saved = await savePendingCv(file);
     track(EVENTS.LANDING_CV_UPLOAD_SUCCEEDED, { saved: saved !== false });
+    if (saved === false) {
+      // Do not silently route: the CV would not carry into onboarding. Surface
+      // it and let the user choose to continue (they re-upload after signup).
+      setBusy(false);
+      setError("__save_failed__");
+      return;
+    }
     onUpload();
   };
+  const saveFailed = error === "__save_failed__";
   return (
     <div
       className={`lv-drop${drag ? " drag" : ""}${busy ? " busy" : ""}`}
@@ -1060,6 +1090,29 @@ function DropZone({ onUpload }) {
             Taking you to sign up. Your CV carries over.
           </div>
         </>
+      ) : saveFailed ? (
+        <>
+          <div className="lv-drop-ic">
+            <i className="ti ti-alert-triangle" />
+          </div>
+          <div className="lv-drop-t">Couldn&apos;t save to this browser</div>
+          <div className="lv-drop-s" role="alert">
+            Private mode or full storage means your CV can&apos;t carry over. You
+            can still sign up and upload it there.
+          </div>
+          <div className="lv-drop-cta">
+            <button
+              type="button"
+              className="btn btn-accent btn-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpload();
+              }}
+            >
+              Continue to sign up <i className="ti ti-arrow-up-right" />
+            </button>
+          </div>
+        </>
       ) : drag ? (
         <>
           <div className="lv-drop-ic">
@@ -1076,6 +1129,15 @@ function DropZone({ onUpload }) {
           <div className="lv-drop-s">
             or <span className="lk">browse files</span> · PDF or DOCX
           </div>
+          {error && !saveFailed && (
+            <div
+              className="lv-drop-s"
+              role="alert"
+              style={{ color: "var(--err)", fontWeight: 600 }}
+            >
+              {error}
+            </div>
+          )}
           <div className="lv-drop-cta">
             <span className="btn btn-accent btn-sm">
               Upload &amp; see your roadmap{" "}
