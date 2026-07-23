@@ -88,23 +88,23 @@ export function scoringV2Enabled() {
   }
 }
 
-// Onboarding redesign (V2). OFF by default -> the current Onboarding flow renders
-// byte-identically. When enabled, the reordered 4-screen flow (OnboardingV2 —
-// upload -> direction -> review -> springboard) renders instead. Enabled by the
-// build env flag VITE_FLAG_ONBOARDING_V2="on" OR a ?onboarding_v2=1 override for
-// branch verification. Rollout is new-signups-only, applied at flip time (not in
-// this flag) — flip only after in-flow acceptance. Off => legacy path unchanged.
+// Onboarding redesign (V2). Launch-1 flip 2026-07-23: ON by default -> the
+// reordered 4-screen flow (OnboardingV2: upload -> direction -> review ->
+// springboard) renders. Only reaches users who have NOT completed onboarding
+// (Layout's routing gate never sends onboarding_complete users to /Onboarding),
+// so existing completed users are untouched by the flip.
+// KILL SWITCH: set the build env flag VITE_FLAG_ONBOARDING_V2="off" (redeploy)
+// to revert every signup to the legacy V1 flow. Per-request overrides for
+// verification: ?onboarding_v2=1 forces V2, ?onboarding_v2=0 forces legacy V1.
 export function onboardingV2Enabled() {
   try {
-    if (
-      new URLSearchParams(window.location.search).get("onboarding_v2") === "1"
-    ) {
-      return true;
-    }
+    const q = new URLSearchParams(window.location.search).get("onboarding_v2");
+    if (q === "1") return true; // force V2 (branch verification)
+    if (q === "0") return false; // force legacy V1 (verification / local kill)
   } catch {
-    /* no window (SSR/test) — fall through to the env flag */
+    /* no window (SSR/test) - fall through to the env default */
   }
-  return import.meta.env.VITE_FLAG_ONBOARDING_V2 === "on";
+  return import.meta.env.VITE_FLAG_ONBOARDING_V2 !== "off";
 }
 
 // The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
