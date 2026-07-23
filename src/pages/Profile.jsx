@@ -23,6 +23,7 @@ import { useStoriesQuery } from "@/lib/queries/useStories";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
 import BulletsEditor from "@/components/profile/BulletsEditor";
+import RdTabs from "@/components/redesign/RdTabs";
 import { formatDateRange } from "../../supabase/functions/_shared/date-format.ts";
 import { createPageUrl } from "@/utils";
 
@@ -599,32 +600,14 @@ export default function Profile() {
         </div>
 
         {/* Tab pill bar — pattern shared with Tracker/Roadmap/Jobs. */}
-        <div
-          role="tablist"
+        <RdTabs
+          tabs={TABS}
+          value={activeTab}
+          onChange={setTab}
+          variant="pill"
+          className="gap-2 mb-6 overflow-x-auto pb-1"
           aria-label="Profile sections"
-          className="flex gap-2 mb-6 overflow-x-auto pb-1"
-        >
-          {TABS.map((t) => {
-            const selected = activeTab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => setTab(t.id)}
-                className={[
-                  "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
-                  selected
-                    ? "bg-rd-text text-white"
-                    : "bg-rd-bg-card text-rd-text-secondary border border-rd-border hover:border-rd-border-hover hover:text-rd-text",
-                ].join(" ")}
-              >
-                {t.label}
-              </button>
-            );
-          })}
-        </div>
+        />
 
         {/* Tab body — skeleton while profile/related queries load,
             real content once data is in. Tab pills above stay
