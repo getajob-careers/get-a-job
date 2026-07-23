@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import ProfileTab from "@/components/linkedin/ProfileTab";
 import PostsTab from "@/components/linkedin/PostsTab";
 import NetworkingTab from "@/components/linkedin/NetworkingTab";
+import RdTabs from "@/components/redesign/RdTabs";
 
 // LinkedIn hub — three-tab page (Profile / Posts / Networking),
 // URL-driven via ?tab=. All three tabs ship on rd-* tokens. The
@@ -59,32 +60,14 @@ export default function LinkedinOptimizer() {
           {/* Tab bar — underline pattern per Profile mockup
               (Rokkitt 600, 15px, coral underline 2.5px on selected,
               soft-line container divider 1.5px) */}
-          <div
-            className="flex gap-[22px] mt-5 border-b-[1.5px] border-rd-border-subtle"
-            role="tablist"
+          <RdTabs
+            tabs={TABS}
+            value={activeTab}
+            onChange={handleTabClick}
+            variant="underline"
+            className="mt-5"
             aria-label="LinkedIn hub sections"
-          >
-            {TABS.map(({ id, label }) => {
-              const selected = activeTab === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => handleTabClick(id)}
-                  className={[
-                    "appearance-none border-0 bg-transparent font-display text-[15px] font-semibold cursor-pointer pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
-                    selected
-                      ? "text-rd-text border-b-[2.5px] border-rd-primary"
-                      : "text-rd-text-secondary border-b-[2.5px] border-transparent hover:text-rd-text",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+          />
 
       {/* Tab content */}
       <div className="mt-4">

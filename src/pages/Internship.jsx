@@ -19,6 +19,7 @@ import AddOwnCompanyModal from "@/components/internship/AddOwnCompanyModal";
 import { InternshipStartHere, NoInternshipProfile } from "@/components/internship/EmptyStates";
 import CompanyBrowsePanel from "@/components/internship/browse/CompanyBrowsePanel";
 import { BROWSE_CSS } from "@/components/internship/browse/browseStyles";
+import RdTabs from "@/components/redesign/RdTabs";
 
 // Internship page — Browse + Pipeline tabs (PR2 redesign).
 //
@@ -219,29 +220,14 @@ export default function Internship() {
           />
 
           {/* Tab pill bar — Pipeline (default) | Browse */}
-          <div className="mt-6 mb-2 flex gap-1.5" role="tablist">
-            {TABS.map((t) => {
-              const selected = activeTab === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setTab(t.id)}
-                  className={[
-                    "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-body text-[12.5px] cursor-pointer transition-colors whitespace-nowrap",
-                    selected
-                      ? "bg-rd-primary text-white border border-rd-primary font-display font-semibold"
-                      : "bg-rd-bg-card text-rd-text-secondary border border-rd-border font-medium hover:border-rd-border-hover hover:text-rd-text",
-                  ].join(" ")}
-                  data-selected={selected ? "true" : "false"}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
+          <RdTabs
+            tabs={TABS}
+            value={activeTab}
+            onChange={setTab}
+            variant="pill"
+            className="gap-1.5 mt-6 mb-2"
+            aria-label="Internship sections"
+          />
 
           {activeTab === "browse" && <CompanyBrowsePanel />}
 
