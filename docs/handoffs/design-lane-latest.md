@@ -6,68 +6,93 @@ Overwrite this file each breakpoint (PR held / merged / ruling) and before endin
 ## Standing protocols (verbatim)
 
 - **Canary:** begin every reply to Eli with "Eli, ...". It is a context canary - when the name stops appearing, Eli says **"canary"**, and on that word: overwrite THIS file with a fresh resume point and tell him to `/clear`. (Full protocol text also in the root `CLAUDE.md`, both lanes.)
-- **Statusline:** `~/.claude/settings.json` runs `~/.claude/statusline-command.sh`, showing context-usage % first (green `<60`, yellow `60-79`, bold red `>=80`), then model / branch / dir. Proactively offer a handoff at ~80%.
-- **Ledger reports:** end every report with a compact ledger (PR, SHA, state, claims to verify, evidence pointers, open questions) - no narrative recap.
-- **Token tiering (HANDOFF-ONLY, per Eli):** for preview scaffolds + variant iteration, drop a model tier via `/model`; step back up for token-level implementation commits and craft-critical work. `/model` is Eli-driven. Do NOT mirror into CLAUDE.md.
-- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents in `.claude/agents/`, loaded + smoked OK this session). NOTE: newly-added/edited agents need a full quit+relaunch to load (a `/clear` does NOT re-scan `.claude/agents/`).
-- **Reporting discipline (Eli ruling, memory [[report-gated-means-flag-off-unreachable]]):** "gated" means EVERY changed line is unreachable flag-off. Shared components (render in both flag states) get an explicit UNCONDITIONAL-with-reason call-out. PR bodies for coach/canvas work lead with a FLAG SCOPE block.
+- **Statusline:** `~/.claude/settings.json` runs `~/.claude/statusline-command.sh`, showing context-usage % first. Proactively offer a handoff at ~80%.
+- **Ledger reports:** end every report with a compact ledger (PR, SHA, state, claims to verify, evidence pointers, open questions).
+- **Delegate:** searches -> `explorer`, gate runs -> `gatekeeper`, sweeps/counts -> `sweeper` (haiku subagents in `.claude/agents/`). Newly-added/edited agents need a full quit+relaunch to load (`/clear` does NOT re-scan).
+- **Reporting discipline (memory [[report-gated-means-flag-off-unreachable]]):** "gated" means EVERY changed line is unreachable flag-off. Shared components (render in both flag states) get an explicit UNCONDITIONAL-with-reason call-out. PR bodies for coach/canvas work lead with a FLAG SCOPE block.
+- **Token tiering (HANDOFF-ONLY):** for preview scaffolds + variant iteration, drop a model tier via `/model`; step back up for token-level commits + craft-critical work. `/model` is Eli-driven.
 
 ## Identity
 
-- The DESIGN lane, one terminal, persists across context clears. There is NO other design terminal - all redesign / canvas / CV-surface / token / onboarding-V2-surface work is this lane's.
+- The DESIGN lane, one terminal, persists across context clears. ALL redesign / canvas / CV-surface / token / onboarding-V2-surface work is this lane's. **NEW (hub 2026-07-23): design lane now OWNS V2 onboarding Phase 1 + Phase 2 (see arc below). CV lane keeps sequence/persistence correctness + cross-reviews any of our PRs touching persist paths.**
 - The "hub" (Eli) verifies claims, applies migrations, rules on merges. One writer per path. Merge ritual = CI-green -> squash -> delete branch after merged:true -> verify prod READY + serving SHA == squash SHA -> state edge-fn touch (none, for all frontend work).
 
 ## Owned paths
 
-- CV Studio: `src/components/cv-studio/*` (CVStudioView, CVStudioLive); `src/lib/{writeProfileEntity,serializedWriteThrough,revertCvDataField,cvDataAdapter,useSeededCvModel}`; `supabase/functions/_shared/write-mediation.ts`.
-- Coach/agents: `src/components/agent/*` (CoachDock, AgentDrawer, CoachInput, CoachThread); `src/lib/{CoachConversationContext,AgentDrawerContext}`; `src/components/chat/*` (ChatInterface, MessageBubble).
-- Redesign surface: `src/components/redesign/*` (home: ThreeTabHome, CvMatchedRolesRail, useTopMatches; shell: CanvasShell/CanvasSidebar; ground: DepthField/GroundWash); `src/pages/_preview/*` canvas previews (incl. `canvas/CanvasCoachDock.jsx` = AgentComposer reference).
-- Tokens/palette: `src/index.css` (`--rd-*` vars + coach polish keyframes), `tailwind.config.js` (`rd-*`), the `design-craft` skill doc.
-- Home owns the `?welcome=1` arrival moment.
+- CV Studio: `src/components/cv-studio/*`; `src/lib/{writeProfileEntity,serializedWriteThrough,revertCvDataField,cvDataAdapter,useSeededCvModel}`; `supabase/functions/_shared/write-mediation.ts`.
+- Coach/agents: `src/components/agent/*` (CoachDock, AgentDrawer, CoachInput, CoachThread, **AgentComposer**, **coachPrompts.js**); `src/lib/{CoachConversationContext,AgentDrawerContext}`; `src/components/chat/*` (ChatInterface, MessageBubble).
+- Redesign surface: `src/components/redesign/*` (shell: CanvasShell/CanvasSidebar/CanvasToolTile/CanvasToolIcon/CanvasCommandItem/**CanvasLogo**; ground: DepthField/GroundWash; home: ThreeTabHome); `src/pages/_preview/*` canvas previews (incl. `canvas/CanvasCoachDock.jsx` = AgentComposer reference).
+- **NEW - Onboarding V2:** `src/pages/Onboarding*.jsx` / `OnboardingV2*` + screens 0-3 + SpringboardScreenV2 + ReviewScreenV2 + OnboardingTutorial + `src/lib/onboardingPersist` (persist paths = CV-lane cross-review). READ `docs/handoffs/onboarding-restyle-brief.md` (CV lane is writing it) BEFORE any onboarding work - **not yet on disk as of 2026-07-23; onboarding work is BLOCKED until it lands.**
+- Tokens/palette: `src/index.css` (`--rd-*` vars + keyframes), `tailwind.config.js` (`rd-*`), the `design-craft` skill doc.
 
-## Current arc: canvas Phase 2 - coach surface hardened, CV-document + AgentComposer next
+## Flag + smoke facts (verbatim)
 
-**Merged + LIVE this session (all frontend, no edge fns, all serving-SHA verified on getajob.careers):**
+- Real flag param is `?next=1` (index.html bootstrap reads `URLSearchParams.get("next")`; "nextDesign" is the localStorage KEY, NOT a URL param). Flag-on reveal: `/Home?next=1`; `?next=0` clears. Flag-off editor: `/CVAgent`. CSS gate = `:root[data-next-design]`.
+- `CanvasShell` (Layout.jsx `if (isNextDesign()) return <CanvasShell>`) is FLAG-ON only in prod; flag-off returns legacy Layout. So CanvasToolIcon/CanvasSidebar/CanvasLogo render flag-on + dev `_preview` only. **PROD DEFAULT IS FLAG-OFF (legacy Layout) - most real users never see canvas work until the flip.**
+- FLAG-OFF BYTE-IDENTITY: edit shared components via python text-surgery (bypasses the PostToolUse formatter, which reflows whole files + strips just-added imports). Add imports WITH usage in the SAME edit, then grep to confirm survival; for lucide/JSX-component imports do a render check (build+lint pass a stripped one). **Python-surgery structurally eliminates the import-strip risk (formatter never runs) - grep+lint then suffice.**
+- **Playwright is NOT installed** (`@playwright/test` absent). Use Vitest render tests for flag-on verification; browser smoke via claude-in-chrome needs a dev server + (for the real app) auth. `/_preview/shell/:state` renders the LEGACY Layout (not canvas). Real CanvasSidebar mounts flag-on only.
+- Typecheck baseline drifts; MEASURE the real delta. Baseline this session ~521-524 (main). Landing-link PR = clean (no new TS errors).
 
-- **#684** GroundWash rename (`GrainGround`->`GroundWash`, names-can't-lie) - squash `5dc42a6`.
-- **#685** CV Studio: "Generate a job-specific version" filled `rd-primary` button + flag-on header-collision fix - squash `c2f635f`.
-- **#686** Coach: expand button now mounts `AgentDrawer` in `CanvasShell` (was flag-off-only); textarea auto-grow (dock 160px fixed / panel 40vh) + `rounded-lg` rectangle - squash `e8ee108`.
-- **#687** Coach polish bundle: spring-easing expand, message entrance, honest thinking-shimmer (coach is request-response not streaming - shimmer on the in-flight dots), scroll-pin - squash `2b7de0a` (dpl `B2zSjv8c...`).
-- Prior (earlier sessions): #659 CV RED Ph1, #675/#683 onboarding V2, #677 rd-coral->rd-primary, #678 Slice 1 ground, #681 subagents, #682 handoff.
+## Current arc: canvas Phase 2 + NEW onboarding V2 ownership
 
-**Rollback target (unchanged all session):** promote `dpl_BUowG3s1rn6FEC2Kes2v8pfHfRSk` (commit `543420f`, #682).
+### JUST MERGED + LIVE this session (2026-07-23)
 
-## Standing rulings / constraints (verbatim)
+- **#690** `eli/canvas-quickfix-tile-paper` squash `5fd3378` - chat tile duotone back-bubble + CV Studio white paper + CTA-A. LIVE.
+- **#692** `eli/agent-composer-phase1` squash `f82b99d` - shared `<AgentComposer>` adopted in CoachInput. LIVE.
+- Both hub-verified + Eli-certified pre-merge; branches deleted; **prod serving `f82b99d` via `dpl_Dt9gouA4CbFCMidAjv66LU5uNmWA` (READY).** #691 (CV lane onboarding self-heal) merged after -> origin/main HEAD `70bd110`. Zero edge fns in either.
 
-- FLAG-OFF BYTE-IDENTITY: every flag-on change gated on isNextDesign()/rightRail; flag-off output byte-identical. Preserve EXACT Tailwind class strings (no class-sorter; token order matters). Edit shared components via text-surgery (python) to bypass the format hook, not Edit/Write.
-- ONE WRITER PER PATH.
-- Real flag param is `?next=1` (index.html bootstrap reads URLSearchParams.get("next"); "nextDesign" is the localStorage KEY, not a URL param). Flag-on reveal: `/Home?next=1`; `?next=0` clears. Flag-off editor: `/CVAgent`.
-- NO whole-model persists in the CV write layer - per-field mediated writes only.
-- TOKEN: primary #60617d (slate/indigo) is the KEEPER. #D6421F coral is RETIRED (survives only as the flag-OFF pre-reveal value). `trackColor` EXCEPTED from the rd-coral sweep.
-- Canvas palette (live): `--rd-bg-card #FFFCF4` (chrome cards), `--rd-bg-page #F4EBDA` (ground), `--rd-primary #60617d`.
-- **CV DOCUMENT paper = WHITE (Eli, this session): supersedes the cream-card ruling FOR THE DOCUMENT ONLY.** Proposed `#FFFFFF` for the paper vs ground `#F4EBDA` (chrome cards stay cream). Not yet built - in the quick-fix split below.
-- GROUND: directional wash (shipped). Cream + wash only. ALL particulate texture retired at the category level. Canonical: `docs/design/canvas-tokens.md` + `phase2-canvas-arrival-plan.md`.
-- Coach auto-grow is UNCONDITIONAL (bug fix, both flag states); coach visual/motion polish is flag-on only. Idea 4 = thinking-shimmer accepted by hub as the honest impl (coach doesn't stream).
-- Browser smoke for auth'd surfaces: Playwright + `e2e/helpers/mockSupabase.js` (`injectFakeSession` + `mockSupabaseRoutes` + `MOCK_PROFILE_COMPLETE`); run a runner from INSIDE the repo (bare `playwright` import needs repo node_modules). Flag-off dock smoke pattern proven this session.
+### HELD for Eli cert
 
-## Queue (HELD - next work arrives via separate hub kickoffs)
+- **PR #<landing-link>** `eli/canvas-landing-link` (off `70bd110`) - flag-ON "About Get A Job" -> `/Landing` eyebrow added to the desktop CanvasSidebar footer (below CanvasAvatarChip), mirroring the flag-off SidebarFooter link that ALREADY exists. **Redirect-graph change: NONE** - `/Landing` is already a public non-bouncing route (the authed bounce in LandingV2Preview:3751 is gated to `pathname === "/"`; `/Landing` exempt by design, App.jsx:182). No `?stay=1` bypass needed (Eli's kickoff assumed a loop that the codebase already solves). FLAG SCOPE: CanvasSidebar renders flag-on + `_preview` only -> every changed line unreachable flag-off. Eli chose Option C (keep logo->/Home, add separate link). Gate GREEN. Mobile canvas rail intentionally NOT given the link (would be noise on an icon rail) - follow-up if wanted. **Cert URL: `/Home?next=1` -> desktop sidebar footer.**
 
-- **AgentComposer redesign (item 3): Phase 1 APPROVED, one PR, HELD until hub kickoff.** Build shared `<AgentComposer>` = rd-well bar (icon+textarea+send) + focus/empty pop-up suggestions (staggered reveal, keyboard nav) from `src/pages/_preview/canvas/CanvasCoachDock.jsx`. Rollout: **P1 CoachInput (dock+panel)**, P2 ChatInterface (CareerAgent/InterviewCoach/SkillDevelopmentAdvisor), P3 CVStudioView (may keep its chips). Gating: canvas visual flag-on only, flag-off keeps current look, auto-grow stays unconditional. Suggestions v1 = static per-surface starters (reuse DEFAULT_DOCK_PROMPTS / CANVAS_COACH_PROMPTS) + a `suggestions` prop for context-aware v2. Reuse CanvasCommandItem + stagger from _preview. One design decision to surface: pop-up supersedes the thread empty-state chips (avoid dup). Absorbs held idea 6 (prompt chips).
-- **Eli feedback batch 1-8 (live pass, split PROPOSED, awaiting Eli's pick + hub kickoff):**
-  1. CV paper WHITE (`#FFFFFF`) - QUICK-FIX.
-  2. CV header "messy"/too low - composition rework - DESIGN (propose mock/options first; pairs with 1 as a CV-document design PR).
-  3. Reach landing page from inside app (logo link shape) - QUICK-FIX **with gotcha**: `/` (LandingV2Preview) redirects authed users back to /Home (2026-07-19 loop lesson); needs a bypass (e.g. `/?stay=1` honored by the landing guard). Its own small PR (touches shared redirect graph).
-  4. "Generate a job-specific version" weak CTA - 4a copy+treatment QUICK-FIX (bring options); 4b better pop-up/flow DESIGN (folds into AgentComposer pop-up + CV-gen ring).
-  5. Chat toolkit tile missing its duotone back-bubble (other tiles have it) - QUICK-FIX (find toolkit-rail icon / toolColors.js).
-  6. CV-gen ring/theater (loading design Eli loved) - STANDING queued design item, do not drop.
-  7. AUDIT scope widened to EVERY page incl. legacy (Profile called out: pressing edit on an experience silently reorders it to top with no indication) - hunt this "disorienting silent state change" class everywhere.
-  8. AUDIT quality bar (verbatim intent): errors/transitions/feedback states feel like a real product, "not a student who vibe coded a project." The audit doc is graded against this.
-  - Suggested grouping: quick-fix PR = {5, 1, 4a}; item 3 = own PR (redirect graph); {2, 4b} = CV-document design pass.
-- **(c) tab-consistency** - move CV/Browse/Tracker tabs UP to fill empty space (Eli ruling stands unless a competing use is nominated). Nominate approach before building (ask-don't-tell).
-- **Slice 2 (arrival moment)** - phase-2 queue; sequencing with hub.
+**Rollback target (prod):** promote `dpl_Dt9gouA4CbFCMidAjv66LU5uNmWA` (main `f82b99d`) is current; prior = `dpl_5jF6gS24aG1hzN2zGS5CMWQtxwQC` (main `833be19`, #689).
+
+## Rulings locked (do not re-litigate)
+
+- **CTA = Option A** ("Tailor to a job", filled rd-primary + leading Sparkles). Landed #690.
+- **Landing-link = Option C** (logo stays ->/Home; separate "About Get A Job" ->/Landing link). Built flag-on this session; flag-off already had it.
+- **Mascot arc** (memory [[mascot-logo-animation-arc]]): canonical = `CanvasLogo.jsx` MarkFullChair (11 separable shapes). Size-split = hero-only refine (keep 30px header pictogram; refined figure at hero/loader). Motion = **anime.js v4, per-submodule imports, note bundle delta in PR**; commit a motion-discipline note to `docs/design/design-resources.md` (CSS = simple loops/transitions; framer-motion = React enter/exit; anime.js = timelines/orchestration). Prototype = 2-3 anime.js-timeline motion variants on a SHOW_PREVIEW_ROUTES-gated `_preview` route, no auth, reduced-motion->static. Build is its OWN later PR AFTER Eli approves the refined-SVG + prototype. reduced-motion->static + canvas-only gate + honest UI (never fakes progress) bind all mascot work.
+- **Mascot x onboarding/tutorial (hub 2026-07-23, CREATIVE LICENSE granted):** once the refined mascot exists, Eli wants it as a RECURRING CHARACTER across tutorial + onboarding, illustrating REAL state per screen. Propose poses/scenes as concept OPTIONS for Eli's pick (concepts before builds). See "Mascot-as-character concept menu" below. Ties into the already-queued loader + sign-up-ambient roles. Same constraints bind (layered SVG + anime.js timelines + reduced-motion static + honest + canvas-only).
+- **Dependency audit done** (report-only): `framer-motion`/`three`/`canvas-confetti` installed but imported in 0 src files (dead weight; cleanup-PR question LOGGED not built). anime.js is the one genuinely-gated lib (install ruled).
+
+## NOMINATED queue order (hub confirms with Eli)
+
+Reasoning key: onboarding is BLOCKED on the CV-lane brief (not on disk yet) AND the mascot now FEEDS onboarding (character on upload-wait / review / tutorial / springboard) -> mascot prototype should precede onboarding builds so the restyle adopts the chosen character from the start (matches Eli's own "mascot before onboarding" hint).
+
+1. **Landing-link PR** - HELD for cert (done this session).
+2. **Mascot arc Step 2** (propose-first): refined hero SVG mock + install anime.js v4 + motion-discipline note + 2-3 timeline variants on a `_preview` route + the mascot-as-character concept menu (below) as the eye-pick packet. Build/adopt only after Eli picks. UNBLOCKED - do next.
+3. **V2 Onboarding Phase 1** (canvas restyle screens 0-3 + springboard + tutorial rendering). Starts once (a) CV-lane brief lands AND (b) Eli picks a mascot variant. Blocked on brief regardless.
+4. **V2 Onboarding Phase 2** (UX composition: review-screen rework, upload-wait loading, location autocomplete, entrance motion, thin-profile empty-roadmap nudge). Mascot scenes land heaviest here.
+5. **AgentComposer Phase 2** (ChatInterface agent pages: CareerAgent/InterviewCoach/SkillDevelopmentAdvisor) -> **Phase 3** (CVStudioView eval adopt-vs-keep-chips). Independent; interleavable.
+6. **CV-gen ring/theater** - standing queued (Eli loved it); pairs with mascot Step 3 adoption.
+7. **(c) tab-consistency** - move CV/Browse/Tracker tabs UP to fill empty space (nominate approach before building).
+8. **FULL DESIGN AUDIT** - every page incl. legacy Profile (hunt silent-reorder-on-edit). After the build queue.
+9. **Slice 2 (arrival moment)** - phase-2, sequence with hub.
+
+- **FLIP = LAST**, after onboarding Phase 2 (Eli confirmed).
+
+## Mascot-as-character concept menu (concepts before builds; Eli's pick)
+
+ONE character, small pose vocabulary as variants of the same layered SVG (shared silhouette + palette); anime.js timelines animate neutral<->pose + working micro-motions; reduced-motion = static pose; canvas-only.
+
+- **Upload wait (CV parse):** figure LEANS IN reading a CV page - head ticks line-by-line, page glow. Plays ONLY while extraction genuinely in-flight; sets page down / looks up when done. Honest.
+- **Review screen:** figure REVIEWS a document with a pen; check-mark gesture as fields confirm.
+- **Tutorial slides:** figure PRESENTS/POINTS at the highlighted feature; per-slide pose variation. The "guide" role.
+- **Springboard (completion):** figure CELEBRATES (arms up / small hop). The payoff.
+- **Direction/goal screen:** figure LOOKS UP at a horizon/path (5-year goal framing).
+- **Thin-profile empty-roadmap nudge:** figure holds an EMPTY page / gestures "let's add more."
+- **Loader (queued):** figure TYPING (working tick) as the honest in-flight indicator; pairs with CV-gen ring/theater.
+- **Sign-up ambient (queued):** calm posture-bob variant, decorative-but-honest (brand character, claims no progress).
+- **Where it would be NOISE (say no):** dense data pages (Career grid, Tracker table, CV Studio editing) - a character competes with the user's own work; anywhere it would imply progress that isn't real; on every screen (overuse kills delight - punctuate transitions/waits/milestones, not steady-state work).
+
+## Deferred / do-not-build-yet (logged)
+
+- CV header composition rework + Generate pop-up/flow -> CV-document design pass (bring mock/options first).
+- Dead-dep cleanup (framer-motion/three/canvas-confetti prune) - LOGGED, Eli's call, not built.
 
 ## Open questions for the hub
 
-- Eli's pick from the 1-5 quick-fix vs design split; hub kickoff for AgentComposer Phase 1.
-- Slice 2 vs the quick-fix/design/audit work ordering.
-- Competing use for the space freed by moving tabs up in (c)?
+- Eli cert on the landing-link PR (URL `/Home?next=1` -> desktop sidebar footer "About Get A Job").
+- Confirm the nominated queue order (esp. mascot Step 2 BEFORE onboarding Phase 1).
+- Mascot-as-character: which scenes to build first once a variant is picked.
+- Dead-dep cleanup: prune or keep.

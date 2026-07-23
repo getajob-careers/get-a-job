@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
 import CanvasToolTile from "./CanvasToolTile";
@@ -138,7 +139,18 @@ export default function CanvasSidebar({ coach, account }) {
         <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-rd-bg-sidebar rd-r-lg">
           {coach || <CoachDock />}
         </div>
-        <CanvasAvatarChip account={account} />
+        <div className="flex flex-col gap-2.5">
+          <CanvasAvatarChip account={account} />
+          {/* Muted path to the public marketing page. /Landing (not /) so the
+              authed-user bounce (gated to pathname "/") skips it. Mirrors the
+              flag-off SidebarFooter "About Get A Job" eyebrow. */}
+          <Link
+            to="/Landing"
+            className="block text-[10px] text-rd-text-secondary hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary"
+          >
+            About Get A Job
+          </Link>
+        </div>
       </div>
 
       {/* Below md: fixed bottom icon rail (out of flow -> work fills first). */}
