@@ -1,6 +1,9 @@
 import React, { useRef, useLayoutEffect } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
+import { isNextDesign } from "@/lib/nextDesign";
+import AgentComposer from "./AgentComposer";
+import { DEFAULT_DOCK_PROMPTS } from "./coachPrompts";
 
 // Persistent input row. Reads/writes shared input + sending state from
 // CoachConversationProvider so the dock and panel surfaces stay in sync
@@ -34,6 +37,13 @@ export default function CoachInput({ variant = "dock" }) {
   }, [conv?.input, isDock]);
 
   if (!conv) return null;
+  // Flag-ON: the shared canvas composer (rd-well bar + focus/empty suggestion
+  // pop-up). Flag-OFF keeps the markup below byte-identical. Auto-grow is
+  // unconditional - AgentComposer carries its own for the flag-on path.
+  if (isNextDesign())
+    return (
+      <AgentComposer variant={variant} suggestions={DEFAULT_DOCK_PROMPTS} />
+    );
   const hasText = !!conv.input.trim();
   const canSend = hasText && !conv.sending;
 
