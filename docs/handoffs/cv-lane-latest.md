@@ -45,17 +45,36 @@ Owned paths: `src/pages/Onboarding.jsx` (V1), `OnboardingV2.jsx`,
   behavior-identity tests + **live 3-run preview drive, hub-verified against the
   live DB** (skip-pickers, real-CV extraction→persist seam, deliberate failure
   floor). **Prod-deploy READY on `25ff5a2` = hub's gate (live signup path).**
-- **PR 6b — BUILT + HELD (#683)** on `eli/cv-lane-6b` (cut from origin/main
-  25ff5a2 + this handoff commit). Two commits: (1) ReviewScreenV2
-  `rd-coral`→`rd-primary` rename-only [9 occ / 5 lines]; (2) V2 entity persist
-  via the shared helper + springboard + `?welcome=1`. HEAD `8fe9f84`. **Gates
-  green (lint / typecheck-baseline / build / 1586 tests) + CI green on #683.**
-  Preview READY: `get-a-job-git-eli-cv-lane-6b-getajob-team.vercel.app`.
-  **In-flow acceptance drive (launch-1 gate) is PENDING Eli** — full guide at
-  `docs/handoffs/6b-acceptance-guide.md`. **OPEN (pre-flip, not a 6b blocker):**
-  V2 runs no career analysis and handleFinalise stamps `last_reality_check_date`,
-  which suppresses Home's roadmap self-heal (`Home.jsx:292`) — V2 users land
-  with no roadmap; needs a V2 analysis trigger before the flag flips live.
+  Onboarding-V2 lane is post-6b. Sequence (Eli-ruled): #683 → PR-1 → **PR-2** →
+  Phase 1 restyle → Phase 2 UX → FLAG FLIP LAST (new-signups-only, after Phase 2).
+
+- **PR 6b — MERGED (#683, squash `49d7847`, prod deploy READY).** V2 gate-routing
+  fix (pages.lazy.js → OnboardingEntry) + screen-0 chromeless fix + entity persist
+  - springboard + `?welcome=1`. Acceptance: 4 live-DB drives (extracted / inferred /
+    inferred-noop / failure), all hub-verified.
+- **PR-1 — MERGED (#688, squash `bb9dc6e5`, prod deploy READY).** Situation
+  XOR-multi + `situations` audit; goal required; completed-user guard; review
+  degree-Select uncontrolled→controlled fix (shared V1+V2). All 4 items live-verified.
+- **PR-2 — BUILT + HELD (PR #691, branch `eli/onboarding-v2-selfheal-tutorial`).**
+  Two commits: **A `cbddee2`** self-heal (b) — NEW `src/lib/careerAnalysis.js`
+  `runCareerAnalysisAndReplaceRoles(...)`; wired 3 callers (handleSurveyNext w/
+  shouldContinue-abort, Roadmap handleGenerate, V2 finalise background-fire +
+  careerRoles invalidate). **B `788388c`** tutorial — OnboardingTutorial after the
+  V2 springboard + has_seen persist via handleTutorialEnd + always-visible
+  "Skip tour" for fresh users (UNCONDITIONAL — also on V1's fresh tour).
+  Gates GREEN (lint clean · typecheck 522 vs 524 baseline · build · 1586/1586).
+  No edge-fn deploy (generate-career-analysis untouched). **Acceptance drive DONE
+  (comment on #691), all 3 criteria PASS:** (2) tutorial-after-springboard +
+  working Skip→/Home?welcome=1 (has_seen=true); (3) situations=["student","looking"]
+  on onboarding_primary_domain_inferred (PostHog, flow=v2); (1) producer proven —
+  V2 bg-fire fired (200) but thin skip-path profile → 0 roles BY FUNCTION DESIGN,
+  so enriched profile + live Roadmap generate (same shared helper) wrote 5
+  career_roles + profile stamp. **HELD for hub before merge.** Nuance: skip-path
+  no-experience completions still land empty-roadmap (function declines thin
+  profiles; manual Build is recovery) — not a PR-2 defect. Tutorial next-design
+  palette visually unverified (Phase 1 restyles V2 anyway).
+- Test accounts to purge pre-flip: `email LIKE '%+6b-%'` (now incl.
+  `+6b-selfheal-1784763814` uid `0e940208-a6f7-47f8-8c12-4c6b24a9526e`).
 
 ## PR 6b spec (BUILT — #683; acceptance guide `docs/handoffs/6b-acceptance-guide.md`)
 

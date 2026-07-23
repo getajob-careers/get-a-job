@@ -4,6 +4,7 @@ import { resolveDueDate } from "@/lib/taskDueDate";
 import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
 import { prewarmMasterCv } from "@/lib/prewarmMasterCv";
+import { runCareerAnalysisAndReplaceRoles } from "@/lib/careerAnalysis";
 
 // Shared onboarding persist helper — the four DB-write functions lifted
 // VERBATIM out of the V1 Onboarding.jsx component (PR 6a). This is a pure
@@ -332,94 +333,27 @@ export const handleSurveyNext = async (ctx) => {
       );
     }
 
-    // Refresh session so we don't invoke with an expired access token
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.refreshSession();
-    const accessToken = sessionData?.session?.access_token;
-    if (sessionError || !accessToken) {
-      throw new Error("Session expired. Please log out and log back in.");
-    }
-
-    const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-analysis`;
-    const response = await fetch(fnUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-      },
-      body: JSON.stringify({
-        dream_roles: profileData.five_year_role
-          ? [profileData.five_year_role]
-          : [],
-      }),
+    // Career analysis + atomic role replace, via the shared helper. Passing
+    // shouldContinue preserves the original `if (!mountedRef.current) return`
+    // skip: the helper aborts BEFORE the RPC when the component has unmounted,
+    // and we bail below on result.aborted so the profiles update + finalise
+    // chain are skipped exactly as before.
+    const result = await runCareerAnalysisAndReplaceRoles({
+      userId: user.id,
+      dreamRoles: profileData.five_year_role
+        ? [profileData.five_year_role]
+        : [],
+      shouldContinue: () => mountedRef.current,
     });
-
-    const responseText = await response.text();
-    let data;
-    try {
-      data = responseText ? JSON.parse(responseText) : {};
-    } catch {
-      console.error("Career analysis: non-JSON response", {
-        status: response.status,
-        body: responseText,
-      });
-      throw new Error(`HTTP ${response.status}: invalid response`);
-    }
-    if (!response.ok) {
-      console.error("Career analysis: HTTP error", {
-        status: response.status,
-        body: data,
-      });
-      const httpErr = new Error(
-        data?.error || data?.msg || `HTTP ${response.status}`,
-      );
-      httpErr.status = response.status;
-      throw httpErr;
-    }
-    if (data?.error) {
-      console.error("Career analysis: function error", { body: data });
-      throw new Error(data.error);
-    }
-
-    const analysisRoles = data?.roles || [];
-    if (!mountedRef.current) return;
-
-    // Cached path: onboarding never expects this (first run for the
-    // user), but defensively no-op if the server hits cache for some
-    // reason — career_roles for these inputs is already in DB.
+    const data = result.data;
+    if (result.aborted) return;
+    // Cached path: onboarding never expects this (first run for the user), but
+    // defensively no-op if the server hits cache for some reason — career_roles
+    // for these inputs is already in DB (the helper already skipped the RPC).
     if (data?.cached) {
       console.warn(
         "[onboarding] unexpected cached:true on first analysis run — skipping RPC",
       );
-    } else if (user && analysisRoles.length > 0) {
-      // Atomically replace career roles using a DB transaction via RPC
-      const rolesPayload = analysisRoles.map((r) => ({
-        title: r.title,
-        track: r.track,
-        match_score: r.readiness_score,
-        readiness_score: r.readiness_score,
-        goal_alignment_score: r.goal_alignment_score ?? null,
-        matched_skills: r.matched_skills || [],
-        missing_skills: r.missing_skills || [],
-        skills_gap: r.missing_skills || [],
-        alignment_to_goal: r.alignment_to_goal || "",
-        alignment_reason: r.alignment_reason || "",
-        reasoning: r.reasoning || "",
-        action_items: r.action_items || [],
-      }));
-
-      const { error: rpcError } = await supabase.rpc("replace_career_roles", {
-        p_user_id: user.id,
-        p_roles: rolesPayload,
-        // Edge function returns the hash of inputs that drove this analysis.
-        // Forwarded so the RPC writes function_cache atomically with the
-        // career_roles rows, letting subsequent calls (Home, Refresh) skip
-        // regeneration when inputs haven't changed. See PR B.
-        p_input_hash: data?.input_hash || null,
-      });
-
-      if (rpcError) throw rpcError;
     }
 
     if (existingProfileId) {

@@ -6,6 +6,7 @@ import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
+import { runCareerAnalysisAndReplaceRoles } from "@/lib/careerAnalysis";
 import { Link } from "react-router-dom";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -143,61 +144,27 @@ export default function CareerRoadmap() {
     }
   }, [roles]);
 
-  // P1: handleGenerate flow — refreshSession → POST generate-career-
-  // analysis with force:true → defensive cached:true branch →
-  // replace_career_roles RPC with full 12-field payload → profile stamp
-  // (last_reality_check_date, qualification_level, overall_assessment,
-  // skill_gaps) → invalidateAfterCareerAnalysis. Preserved verbatim.
+  // P1: handleGenerate flow — runCareerAnalysisAndReplaceRoles (force:true)
+  // does the refreshSession → POST generate-career-analysis → defensive
+  // cached:true branch → replace_career_roles RPC with the full 12-field
+  // payload; the caller keeps its CAREER_ANALYSIS_REFRESHED events + profile
+  // stamp (last_reality_check_date, qualification_level, overall_assessment,
+  // skill_gaps) → invalidateAfterCareerAnalysis. Behavior preserved.
   const handleGenerate = async () => {
     if (!profile) return;
     setGenerating(true);
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      const accessToken = sessionData?.session?.access_token;
-      if (sessionError || !accessToken) throw new Error("Session expired. Please log out and log back in.");
-
-      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-analysis`;
-      const response = await fetch(fnUrl, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          dream_roles: profile?.five_year_role ? [profile.five_year_role] : [],
-          force: true,
-        }),
+      const { data, rolesWritten } = await runCareerAnalysisAndReplaceRoles({
+        userId: user.id,
+        dreamRoles: profile?.five_year_role ? [profile.five_year_role] : [],
+        force: true,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error || data?.msg || `HTTP ${response.status}`);
-      if (data?.error) throw new Error(data.error);
 
       if (data?.cached) {
         console.warn("[career-roadmap] unexpected cached:true on force-refresh — skipping rewrite");
         track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: 0, cached: true });
-      } else if (data?.roles?.length > 0) {
-        const rolesPayload = data.roles.map((r) => ({
-          title: r.title,
-          track: r.track,
-          match_score: r.readiness_score,
-          readiness_score: r.readiness_score,
-          goal_alignment_score: r.goal_alignment_score ?? null,
-          matched_skills: r.matched_skills || [],
-          missing_skills: r.missing_skills || [],
-          skills_gap: r.missing_skills || [],
-          alignment_to_goal: r.alignment_to_goal || "",
-          alignment_reason: r.alignment_reason || "",
-          reasoning: r.reasoning || "",
-          action_items: r.action_items || [],
-        }));
-        const { error: rpcError } = await supabase.rpc("replace_career_roles", {
-          p_user_id: user.id,
-          p_roles: rolesPayload,
-          p_input_hash: data?.input_hash || null,
-        });
-        if (rpcError) throw rpcError;
-        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesPayload.length, cached: false });
+      } else if (rolesWritten > 0) {
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesWritten, cached: false });
 
         const { error: persistErr } = await supabase
           .from("profiles")
