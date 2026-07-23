@@ -2,6 +2,7 @@ import React from "react";
 import { Loader2, FileText, AlertCircle, RotateCcw, Check } from "lucide-react";
 import StepReview from "@/components/onboarding/StepReview";
 import { useCountUp } from "@/hooks/useCountUp";
+import { buildExtractionObservations } from "@/lib/extractionObservations";
 
 // Onboarding V2 — review screen (index 1). One screen, one moment of truth:
 // extraction resolves on THIS screen's watch (screen 0 kicked it off), so we
@@ -52,7 +53,14 @@ function ExtractingWait() {
   );
 }
 
-function SuccessReveal({ experiences, educations, projects, skillsCount }) {
+function SuccessReveal({
+  experiences,
+  educations,
+  projects,
+  certifications,
+  profileData,
+  skillsCount,
+}) {
   const expN = (experiences || []).length;
   const eduN = (educations || []).filter((e) => e?.institution?.trim()).length;
   const projN = (projects || []).length;
@@ -64,6 +72,14 @@ function SuccessReveal({ experiences, educations, projects, skillsCount }) {
       ? { value: eduN, label: eduN === 1 ? "degree" : "degrees" }
       : { value: projN, label: projN === 1 ? "project" : "projects" },
   ];
+  // Factual "what stood out" lines drawn only from the extracted data. Empty
+  // when extraction is thin, in which case the reveal is just the counts above.
+  const observations = buildExtractionObservations({
+    experiences,
+    educations,
+    certifications,
+    profileData,
+  });
   return (
     <div className="rd-r-lg border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
       <div className="flex items-center gap-2 justify-center text-rd-teal-dark">
@@ -80,6 +96,27 @@ function SuccessReveal({ experiences, educations, projects, skillsCount }) {
           />
         ))}
       </div>
+      {observations.length > 0 && (
+        <div className="mt-4 border-t border-rd-teal/25 pt-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
+          <p className="text-[11px] font-medium text-rd-text-secondary uppercase tracking-wide text-center mb-2">
+            What stood out
+          </p>
+          <ul className="space-y-1.5 max-w-[420px] mx-auto">
+            {observations.map((text, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 text-[12.5px] text-rd-text leading-snug"
+              >
+                <span
+                  className="w-1 h-1 rounded-full bg-rd-teal-dark flex-shrink-0 mt-[7px]"
+                  aria-hidden="true"
+                />
+                <span>{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <p className="text-[12px] text-rd-text-secondary text-center mt-3">
         Check it below — edit anything that isn&apos;t right, add what&apos;s
         missing.
@@ -152,6 +189,8 @@ export default function ReviewScreenV2({
           experiences={experiences}
           educations={educations}
           projects={projects}
+          certifications={certifications}
+          profileData={profileData}
           skillsCount={skillsCount}
         />
       )}
