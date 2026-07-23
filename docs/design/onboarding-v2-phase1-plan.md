@@ -37,9 +37,14 @@ color on every screen.** Options:
   flow's palette from the rest of the canvas. Pick only if 0A can't be used
   because onboarding must stay legacy-palette for some flag-off reason.
 
-**Ask for Eli:** confirm 0A (stamp the flag) as the palette basis, or tell me
-#696 fixed the landing a different way and we mirror that. Everything below
-assumes the canvas palette is the target.
+**RULED (Eli, 2026-07-23): 0A — stamp `data-next-design` on the V2 route** as the
+palette basis. AND: the **flag-off V1 byte-identity invariant STANDS** — the stamp
+must be scoped so `/Onboarding` flag-off V1 stays byte-identical to legacy (stamp
+on the V2 shell mount only, removed on unmount, exactly like the canvas previews;
+never a global/root change that would bleed into V1 or other flag-off routes).
+Verify at build: confirm #696's landing renders under the same canvas values so
+the two are truly one-voice, and smoke that no onboarding token relied on a
+legacy value for contrast.
 
 ---
 
