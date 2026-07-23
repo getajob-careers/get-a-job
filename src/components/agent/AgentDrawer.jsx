@@ -5,6 +5,7 @@ import { useCoachConversation } from "@/lib/CoachConversationContext";
 import CoachThread from "./CoachThread";
 import CoachInput from "./CoachInput";
 import { isNextDesign } from "@/lib/nextDesign";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 // Agent drawer panel. PR-A3 originally shipped a right-edge floating
 // tab; PR-#295 attempt moved the entry to a Coach sidebar nav item.
@@ -57,6 +58,8 @@ export default function AgentDrawer() {
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, close]);
 
+  const trapRef = useFocusTrap(isOpen);
+
   return (
     <>
       {isOpen && (
@@ -68,6 +71,8 @@ export default function AgentDrawer() {
       )}
 
       <aside
+        ref={trapRef}
+        tabIndex={-1}
         id="agent-drawer-panel"
         role="dialog"
         aria-label="Career coach"

@@ -15,6 +15,7 @@ import { useJobDescription } from "@/lib/queries/useJobDescription";
 import { addJobToTracker } from "@/components/jobs/JobCard";
 import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
 import { isNextDesign } from "@/lib/nextDesign";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 // Flag-on enter/exit for the modal. 200ms is in the approved motion set; the
 // exit is deferred-unmount (the panel plays the reverse, THEN the parent
@@ -132,6 +133,8 @@ export default function JobDetailModal({
     .filter(Boolean)
     .join(" · ");
 
+  const trapRef = useFocusTrap(true);
+
   const handleAdd = async () => {
     setAdding(true);
     setAdded(true);
@@ -161,6 +164,8 @@ export default function JobDetailModal({
             ? ` transition-[opacity,transform] duration-200 ease-out ${shown ? "opacity-100 scale-100" : "opacity-0 scale-95"}`
             : ""
         }`}
+        ref={trapRef}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header. Flag-on: a faint band-tinted wash for depth. When the

@@ -37,6 +37,7 @@ import {
 import JobGridCard from "./JobGridCard";
 import JobDetailModal from "./JobDetailModal";
 import { isNextDesign } from "@/lib/nextDesign";
+import { useFocusTrap } from "@/lib/useFocusTrap";
 
 // Flag-on aliveness (Plan 1): only the first rows get the entrance + score
 // count-up so a long list doesn't jank (same cap the matches grid uses).
@@ -198,6 +199,10 @@ export default function JobsSearchTab({
   // desktop inline collapse) so the desktop default stays "open" while the
   // drawer starts closed - no scrim popping over results on load.
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const filterTrapRef = useFocusTrap(
+    alive && mobileFiltersOpen,
+    () => setMobileFiltersOpen(false),
+  );
 
   // Location picker options derived from the ALREADY-cached corpus (no extra
   // query): every real city with its live count + the region groups.
@@ -507,7 +512,11 @@ export default function JobsSearchTab({
               background: "color-mix(in srgb, var(--rd-text) 40%, transparent)",
             }}
           />
-          <div className="cx-sheet relative z-10 max-h-[85vh] overflow-y-auto rounded-t-[18px] bg-rd-bg-page px-4 pb-6 pt-4 shadow-rd">
+          <div
+            ref={filterTrapRef}
+            tabIndex={-1}
+            className="cx-sheet relative z-10 max-h-[85vh] overflow-y-auto rounded-t-[18px] bg-rd-bg-page px-4 pb-6 pt-4 shadow-rd"
+          >
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-display font-bold text-[15px] text-rd-text">
                 Filters
