@@ -3,7 +3,12 @@
 // only module-level setup - main() is guarded behind a direct-invocation check,
 // so no OpenAI call fires here.
 import { describe, it, expect } from "vitest";
-import { scoreLayer1, composite, buildReport } from "./outreach-eval.mjs";
+import {
+  scoreLayer1,
+  composite,
+  buildReport,
+  detectViolations,
+} from "./outreach-eval.mjs";
 
 const alumniSparse = {
   goal: "message_alumni",
@@ -355,5 +360,106 @@ describe("buildReport - reporting path (no OpenAI)", () => {
       },
     ];
     expect(() => buildReport(errOnly, { judge: true })).not.toThrow();
+  });
+});
+
+// Fix #1 (2026-07-23): detectViolations is the generation-side gate that drives
+// the regenerate loop for ALL goals. It mirrors index.ts detectViolations.
+describe("detectViolations - Fix #1 enforcement gate", () => {
+  const cand = (t) => ({ suggested_text: t });
+  const scope = (o) => JSON.stringify(o || {}).toLowerCase();
+
+  it("flags a template phrase (any goal)", () => {
+    const v = detectViolations(
+      cand("Hi Sarah, I hope this finds you well. I run CS at Guardio."),
+      "message_recruiter",
+      { mutual_context: "req" },
+      scope({ note: "guardio" }),
+    );
+    expect(v).toMatch(/template phrase/i);
+  });
+
+  it("flags a hedging phrase", () => {
+    const v = detectViolations(
+      cand("Hi, my CS work could be a moderate bridge to product ops."),
+      "message_hiring_manager",
+      { mutual_context: "posted" },
+      scope({}),
+    );
+    expect(v).toMatch(/hedging/i);
+  });
+
+  it("flags fabricated recall only when mutual_context is sparse", () => {
+    const sparse = detectViolations(
+      cand("Great to reconnect - your point about growth stuck with me."),
+      "message_alumni",
+      { mutual_context: "both at Reichman" },
+      scope({}),
+    );
+    expect(sparse).toMatch(/recalled/i);
+    const rich = detectViolations(
+      cand("Great to reconnect - your point about growth stuck with me."),
+      "message_alumni",
+      {
+        mutual_context:
+          "we took Prof Lee's Customer Discovery course and talked after class about segmentation",
+      },
+      scope({}),
+    );
+    expect(rich).toBeNull();
+  });
+
+  it("flags summer for propose_internship", () => {
+    const v = detectViolations(
+      cand("I'd love a product ops internship for the summer at your company."),
+      "propose_internship",
+      { mutual_context: null },
+      scope({}),
+    );
+    expect(v).toMatch(/summer/i);
+  });
+
+  it("flags an invented number not in the grounding scope", () => {
+    const v = detectViolations(
+      cand("I drove a 45% lift in renewals last quarter."),
+      "message_recruiter",
+      { mutual_context: "req" },
+      scope({ note: "customer success" }),
+    );
+    expect(v).toMatch(/45/);
+  });
+
+  it("passes a number that IS grounded (in scope)", () => {
+    const v = detectViolations(
+      cand("My Slack bot saved the team 40 hours a month."),
+      "message_recruiter",
+      { mutual_context: "req" },
+      scope({ story: "saved 40 hours a month" }),
+    );
+    expect(v).toBeNull();
+  });
+
+  it("passes framework-structural 12/15 for propose_internship", () => {
+    const v = detectViolations(
+      cand(
+        "Reichman practicum, ~12 hrs/week, Nov-Feb. Open to a 15-minute call?",
+      ),
+      "propose_internship",
+      { mutual_context: null },
+      scope({ summary: "consulting club" }),
+    );
+    expect(v).toBeNull();
+  });
+
+  it("returns null for a clean, grounded message", () => {
+    const v = detectViolations(
+      cand(
+        "Hi Sarah, I run customer success at Guardio and saw your Customer Success req. Open to a quick chat about the fit?",
+      ),
+      "message_recruiter",
+      { mutual_context: "posted a req" },
+      scope({ note: "customer success at guardio" }),
+    );
+    expect(v).toBeNull();
   });
 });

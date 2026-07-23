@@ -281,11 +281,19 @@ async function chat(model, messages, opts = {}) {
   return j.choices?.[0]?.message?.content || "{}";
 }
 
-// Reproduce the production generate loop: propose_internship gets the
-// summer/300-char regenerate; every other goal gets exactly one call.
+// Reproduce the production generate loop. Fix #1 (2026-07-23): detectViolations
+// enforces the rubric layer-1 gates for ALL goals with one regenerate; on
+// exhaustion it falls through and accepts the last candidate. Mirrors
+// index.ts detectViolations + the loop EXACTLY (harness must not be more/less
+// strict than production).
 async function generate(input) {
   const sys = buildSystemPrompt(input.goal);
   const base = userPrompt(input);
+  const groundingScope = JSON.stringify({
+    userData: input.user_data,
+    targetCompany: input.target_company,
+    activeTarget: input.target_person,
+  }).toLowerCase();
   const MAX = 2;
   let lastViolation = null;
   for (let attempt = 0; attempt < MAX; attempt++) {
@@ -310,19 +318,23 @@ async function generate(input) {
         err: "empty_suggestion",
         attempts: attempt + 1,
       };
-    if (input.goal === "propose_internship") {
-      if (/\bsummer\b/i.test(cand.suggested_text)) {
-        lastViolation =
-          'output contained the word "summer" - the practicum is November - February. Remove all references to summer.';
-        if (attempt < MAX - 1) continue;
-      }
-      if (
-        cand.turn_type === "connection_request_note" &&
-        cand.suggested_text.length > 300
-      ) {
-        lastViolation = `output was ${cand.suggested_text.length} chars - connection_request_note must be ≤ 300 chars.`;
-        if (attempt < MAX - 1) continue;
-      }
+    const violation = detectViolations(
+      cand,
+      input.goal,
+      input.target_person,
+      groundingScope,
+    );
+    if (violation) {
+      lastViolation = violation;
+      if (attempt < MAX - 1) continue;
+    }
+    if (
+      input.goal === "propose_internship" &&
+      cand.turn_type === "connection_request_note" &&
+      cand.suggested_text.length > 300
+    ) {
+      lastViolation = `output was ${cand.suggested_text.length} chars - connection_request_note must be <= 300 chars.`;
+      if (attempt < MAX - 1) continue;
     }
     return { suggestion: cand, err: null, attempts: attempt + 1 };
   }
@@ -437,6 +449,37 @@ function hasAny(text, list) {
 function mutualContextSparse(input) {
   const mc = (input.target_person?.mutual_context || "").trim();
   return words(mc).length < 6;
+}
+
+// Generation-side gate: mirrors index.ts detectViolations EXACTLY so the
+// harness reproduces Fix #1's regenerate loop and measures its effect. Returns
+// a regenerate-hint string on the first violation, else null. This drives
+// generate() only; the frozen scorer (scoreLayer1) is unchanged.
+function detectViolations(candidate, goal, target, groundingScope) {
+  const text = candidate.suggested_text;
+  const lower = norm(text);
+  for (const p of TEMPLATE_PHRASES)
+    if (lower.includes(norm(p)))
+      return `template phrase "${p}" reads as mass outreach; rewrite with a specific reason for reaching out.`;
+  for (const p of HEDGE_PHRASES)
+    if (lower.includes(norm(p)))
+      return `low-confidence hedging phrase "${p}"; state the value directly.`;
+  if (mutualContextSparse({ target_person: target }))
+    for (const p of RECALL_PHRASES)
+      if (lower.includes(norm(p)))
+        return `recalled shared-conversation content ("${p}") with no mutual_context to support it; reference only the fact of the connection.`;
+  if (goal === "propose_internship" && /\bsummer\b/i.test(text))
+    return 'the output contains "summer"; the practicum runs November to February.';
+  const nums = (text.match(/\b\d[\d,]*\.?\d*%?\b/g) || [])
+    .map((n) => n.replace(/[,%]/g, ""))
+    .filter((n) => parseFloat(n) >= 10);
+  for (const n of nums) {
+    if (groundingScope.includes(n)) continue;
+    if (goal === "propose_internship" && FRAMEWORK_STRUCTURAL_NUMBERS.has(n))
+      continue;
+    return `the number ${n} is not grounded in the provided data; remove invented figures.`;
+  }
+  return null;
 }
 
 function scoreLayer1(input, suggestion) {
@@ -590,6 +633,7 @@ export {
   composite,
   sanitizeSuggestion,
   buildReport,
+  detectViolations,
   WORD_BANDS,
   TEMPLATE_PHRASES,
 };

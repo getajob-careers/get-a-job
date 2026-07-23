@@ -448,11 +448,15 @@ TURN HINT: ${turnHint}
 
 Now produce the next AI-coached suggestion as JSON per the output spec. Apply the goal-specific framework above + OUTREACH_VOICE_RULES strictly. If the user is pushing for the goal's ask in a turn that's premature given thread state, set warm_up_advice with explicit coaching for the warm-up turn instead.`
 
-    // Defense-in-depth retry loop. The framework forbids "summer" and
-    // caps connection_request_note at 300 chars; if the LLM slips, we
-    // regenerate ONCE with a sharper instruction appended. We don't
-    // trim silently — if the model can't comply after one retry we
-    // surface the violation back to the client (visible in warnings).
+    // Defense-in-depth retry loop. Fix #1 (2026-07-23): the rubric's layer-1
+    // gates (template phrases, hedging, fabricated recall, invented numbers,
+    // summer) are enforced for ALL goals via detectViolations; on a violation
+    // we regenerate ONCE with a sharper instruction, and on exhaustion we fall
+    // through and accept the last candidate (the sanitizeSuggestion warn-chip
+    // is the fallback - we never error the user for a style violation).
+    // groundingScope = everything the model was grounded on, so a legitimately
+    // grounded number is not treated as invented.
+    const groundingScope = JSON.stringify({ userData, targetCompany, activeTarget }).toLowerCase()
     const MAX_GEN_ATTEMPTS = 2
     let suggestion: OutreachSuggestion | null = null
     let lastViolation: string | null = null
@@ -524,17 +528,18 @@ Now produce the next AI-coached suggestion as JSON per the output spec. Apply th
         })
       }
 
-      // Defense-in-depth checks — only enforced for propose_internship.
-      // Other goals are unaffected.
-      if (activeGoal === 'propose_internship') {
-        if (/\bsummer\b/i.test(candidate.suggested_text)) {
-          lastViolation = 'output contained the word "summer" — the practicum is November–February. Remove all references to summer.'
-          if (attempt < MAX_GEN_ATTEMPTS - 1) continue
-        }
-        if (candidate.turn_type === 'connection_request_note' && candidate.suggested_text.length > 300) {
-          lastViolation = `output was ${candidate.suggested_text.length} chars — connection_request_note must be ≤ 300 chars (LinkedIn limit). Tighten the message.`
-          if (attempt < MAX_GEN_ATTEMPTS - 1) continue
-        }
+      // Fix #1: enforce the rubric layer-1 gates for ALL goals. On violation,
+      // regenerate; on exhaustion, fall through and accept the last candidate.
+      const violation = detectViolations(candidate, activeGoal, activeTarget, groundingScope)
+      if (violation) {
+        lastViolation = violation
+        if (attempt < MAX_GEN_ATTEMPTS - 1) continue
+      }
+      // The 300-char connection-note cap is a hard LinkedIn limit, kept as its
+      // own check (propose_internship connection-request notes only).
+      if (activeGoal === 'propose_internship' && candidate.turn_type === 'connection_request_note' && candidate.suggested_text.length > 300) {
+        lastViolation = `output was ${candidate.suggested_text.length} chars - connection_request_note must be <= 300 chars (LinkedIn limit). Tighten the message.`
+        if (attempt < MAX_GEN_ATTEMPTS - 1) continue
       }
       suggestion = candidate
       break
@@ -588,6 +593,132 @@ function sanitizeTargetPerson(raw: unknown): TargetPerson | null {
   return out
 }
 
+// Fix #1 (enforcement, 2026-07-23): the outreach eval rubric's layer-1 gates
+// (docs/eval/outreach-rubric.md), ported so the regenerate loop enforces them
+// for ALL 9 goals - not just propose_internship. Kept in lockstep with the
+// harness (scripts/outreach-eval.mjs: TEMPLATE_PHRASES / HEDGE_PHRASES /
+// RECALL_PHRASES / FRAMEWORK_STRUCTURAL_NUMBERS). No prompt/framework/voice
+// change - enforcement only (that recalibration is Fix #2).
+//
+// TEMPLATE_PHRASES = superset of SYSTEM_PROMPT hard-rule-1 + OUTREACH_VOICE_RULES
+// anti-patterns + the old sanitizeSuggestion list (which missed "how have you
+// been", "hope all is good", and the "i hope you're doing great at [co]"
+// variant that shipped silently in the baseline).
+const TEMPLATE_PHRASES: string[] = [
+  "i hope this finds you well",
+  "i hope this email finds you well",
+  "i hope this message finds you well",
+  "i hope you're doing well",
+  "i hope you are doing well",
+  "i hope you're well",
+  "i hope you are well",
+  "hope you're doing well",
+  "hope you are doing well",
+  "hope you're well",
+  "hope you are well",
+  "hope all is good",
+  "hope all is well",
+  "how have you been",
+  "trust this finds you well",
+  "trust this email finds you well",
+  "i hope you're doing great",
+  "i hope you are doing great",
+  "pick your brain",
+  "i came across your profile",
+  "i'm reaching out because",
+  "i am reaching out because",
+  "looking to connect with industry leaders",
+  "looking to connect with thought leaders",
+  "was very impressed by",
+  "was really impressed by",
+  "i'm impressed by",
+]
+// Low-confidence hedging (the propose_internship framework H3 banned these; the
+// gate now applies them to every goal).
+const HEDGE_PHRASES: string[] = [
+  "i don't have much experience",
+  "i'm still learning",
+  "if it'd be useful",
+  "if it would be useful",
+  "to see if that could be a fit",
+  "moderate bridge",
+  "happy to chat anywhere",
+  "open to anything",
+]
+// Asserted recalled shared-conversation content - only a violation when
+// mutual_context is too thin to support it (fabricated familiarity).
+const RECALL_PHRASES: string[] = [
+  "i remember our chat",
+  "i remember our conversation",
+  "i recall you shared",
+  "i recall our",
+  "i remember we discussed",
+  "i remember when we",
+  "your point about",
+  "stuck with me",
+  "i often think back",
+  "the insights i gained",
+  "what you shared about",
+  "when we discussed",
+  "our discussion about",
+]
+// Framework-injected logistics numbers for propose_internship ONLY (practicum
+// ~10-12 hrs/week + call-duration ask 15/20/30 min). Not sender-claimed
+// metrics, so exempt from the invented-number gate for that goal (mirrors the
+// harness exemption).
+const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(['10', '12', '15', '20', '30'])
+
+function normApos(s: string): string {
+  return s.toLowerCase().replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
+}
+function mutualContextSparse(target: TargetPerson | null | undefined): boolean {
+  const mc = (target?.mutual_context || '').trim()
+  return mc.split(/\s+/).filter(Boolean).length < 6
+}
+
+// Returns a regenerate instruction string on the first violation found, else
+// null. groundingScope is the lowercased JSON of everything the model was
+// grounded on (userData + targetCompany + target) so a legitimately-grounded
+// number (e.g. from the company description) is not treated as invented.
+function detectViolations(
+  candidate: OutreachSuggestion,
+  goal: OutreachGoal,
+  target: TargetPerson | null | undefined,
+  groundingScope: string,
+): string | null {
+  const text = candidate.suggested_text
+  const lower = normApos(text)
+  for (const p of TEMPLATE_PHRASES) {
+    if (lower.includes(p)) {
+      return `the message contains the template phrase "${p}", which reads as mass outreach and burns trust before the message starts. Rewrite that sentence with a specific reason for reaching out.`
+    }
+  }
+  for (const p of HEDGE_PHRASES) {
+    if (lower.includes(p)) {
+      return `the message contains the low-confidence hedging phrase "${p}". State the value directly and confidently instead.`
+    }
+  }
+  if (mutualContextSparse(target)) {
+    for (const p of RECALL_PHRASES) {
+      if (lower.includes(p)) {
+        return `the message references recalled shared-conversation content ("${p}") but there is no mutual_context supporting it. Reference only the fact of the connection, never invented specifics of what was discussed.`
+      }
+    }
+  }
+  if (goal === 'propose_internship' && /\bsummer\b/i.test(text)) {
+    return 'the output contains the word "summer" - the practicum runs November to February. Remove all references to summer.'
+  }
+  const nums = (text.match(/\b\d[\d,]*\.?\d*%?\b/g) || [])
+    .map((n) => n.replace(/[,%]/g, ''))
+    .filter((n) => parseFloat(n) >= 10)
+  for (const n of nums) {
+    if (groundingScope.includes(n)) continue
+    if (goal === 'propose_internship' && FRAMEWORK_STRUCTURAL_NUMBERS.has(n)) continue
+    return `the number ${n} does not appear in the user's data or the target-company details provided. Remove figures that are not grounded in the provided data - never invent numbers.`
+  }
+  return null
+}
+
 function sanitizeSuggestion(raw: unknown): OutreachSuggestion {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
   const validTurnTypes = ['opener', 'follow_up_after_silence', 'next_response', 'connection_request_note']
@@ -605,28 +736,18 @@ function sanitizeSuggestion(raw: unknown): OutreachSuggestion {
 
   const suggested_text = typeof r.suggested_text === 'string' ? r.suggested_text.trim().slice(0, 4000) : ''
 
-  // Programmatic anti-pattern detection. The LLM does not reliably
-  // follow rules against high-frequency training-data phrases ("I hope
-  // you're doing well") even with hard-rule injection. Catch them in
-  // post and surface a warning chip — the message is editable so the
-  // user sees the warning, edits the line, sends.
-  const lower = suggested_text.toLowerCase()
-  const antiPatterns: { match: string; warn: string }[] = [
-    { match: 'i hope this finds you well', warn: '"I hope this finds you well" is template phrasing — consider replacing with something specific.' },
-    { match: 'i hope this email finds you well', warn: '"I hope this email finds you well" is template phrasing — consider replacing.' },
-    { match: 'i hope this message finds you well', warn: '"I hope this message finds you well" is template phrasing — consider replacing.' },
-    { match: "i hope you're doing well", warn: `"I hope you're doing well" is template phrasing — consider replacing with a specific reason for reaching out.` },
-    { match: "i hope you're well", warn: `"I hope you're well" is template phrasing — consider replacing.` },
-    { match: 'hope you are doing well', warn: '"Hope you are doing well" is template phrasing — consider replacing.' },
-    { match: 'hope you are well', warn: '"Hope you are well" is template phrasing — consider replacing.' },
-    { match: 'trust this finds you well', warn: '"Trust this finds you well" is template phrasing — consider replacing.' },
-    { match: 'pick your brain', warn: '"Pick your brain" is overused outreach phrasing — consider naming a specific question instead.' },
-    { match: 'i came across your profile', warn: '"I came across your profile" is template phrasing — consider opening with the specific reason instead.' },
-  ]
+  // Programmatic anti-pattern detection. The LLM does not reliably follow
+  // rules against high-frequency training-data phrases even with hard-rule
+  // injection. Post Fix #1 this warn-chip is the FALLBACK (the regenerate loop
+  // is the primary defense); the list is the full TEMPLATE_PHRASES superset so
+  // anything that survives regeneration still surfaces a chip. normApos so a
+  // curly-apostrophe variant ("you're") can't evade the match.
+  const lower = normApos(suggested_text)
   const programmaticWarnings: string[] = []
-  for (const { match, warn } of antiPatterns) {
-    if (lower.includes(match) && !programmaticWarnings.includes(warn)) {
-      programmaticWarnings.push(warn)
+  for (const p of TEMPLATE_PHRASES) {
+    if (lower.includes(p)) {
+      const warn = `"${p}" reads as template outreach - replace it with a specific reason for reaching out.`
+      if (!programmaticWarnings.includes(warn)) programmaticWarnings.push(warn)
     }
   }
 
