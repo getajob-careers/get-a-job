@@ -74,7 +74,7 @@ const OTHER_LEVELS = [
 ];
 
 const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
+  "w-full px-3.5 py-2.5 rd-r-sm border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-primary focus:shadow-[0_0_0_3px_var(--rd-primary-tint)]";
 
 const EMPTY_EXP = {
   title: "",
@@ -105,11 +105,11 @@ function Label({ children, required = false }) {
 function SectionHeader({ icon: Icon, title, subtitle, required }) {
   return (
     <div className="flex items-start gap-3 mb-3">
-      <div className="w-8 h-8 rounded-lg bg-rd-bg-soft flex items-center justify-center flex-shrink-0 mt-0.5">
-        <Icon className="w-4 h-4 text-rd-text-secondary" />
+      <div className="w-8 h-8 rd-r-sm bg-rd-primary-tint flex items-center justify-center flex-shrink-0 mt-0.5">
+        <Icon className="w-4 h-4 text-rd-primary" />
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="font-display font-bold text-[17px] leading-tight text-rd-text">
+        <h2 className="font-display font-bold rd-t-display-s text-rd-text">
           {title}
           {required ? <span className="text-rd-primary ml-1.5">*</span> : null}
         </h2>
@@ -232,7 +232,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
       .filter(Boolean)
       .join(" · ");
     return (
-      <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-4 flex items-start justify-between gap-3">
+      <div className="bg-rd-bg-card border border-rd-border rd-r-md p-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-display font-semibold text-[14px] text-rd-text truncate">
             {exp.title?.trim() || "(New experience)"}
@@ -265,7 +265,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
   }
 
   return (
-    <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-4">
+    <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-display font-semibold text-[14px] text-rd-text">
           {exp.title?.trim() || "(New experience)"}
@@ -423,7 +423,7 @@ function ProjectCard({ proj, onChange, onRemove }) {
   const skills = proj.skills || [];
 
   return (
-    <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-4">
+    <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-display font-semibold text-[14px] text-rd-text">
           {proj.name?.trim() || "(New project)"}
@@ -485,7 +485,7 @@ function CertificationCard({ cert, onChange, onRemove }) {
   const set = (key, val) => onChange({ ...cert, [key]: val });
 
   return (
-    <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-4">
+    <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <h3 className="font-display font-semibold text-[14px] text-rd-text">
           {cert.name?.trim() || "(New certification)"}
@@ -538,7 +538,7 @@ function AddCardButton({ label, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-rd-border-hover rounded-[14px] text-[13px] text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary hover:bg-rd-primary-tint transition-colors bg-rd-bg-card"
+      className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-rd-border-hover rd-r-md text-[13px] text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary hover:bg-rd-primary-tint transition-colors bg-rd-bg-card"
     >
       <Plus className="w-4 h-4" />
       {label}
@@ -548,7 +548,7 @@ function AddCardButton({ label, onClick }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="bg-rd-bg-soft border border-rd-border rounded-[14px] px-4 py-3 text-[12.5px] text-rd-text-secondary">
+    <div className="bg-rd-bg-soft border border-rd-border rd-r-md px-4 py-3 text-[12.5px] text-rd-text-secondary">
       {message}
     </div>
   );
@@ -716,7 +716,7 @@ export default function StepReview({
       </div>
 
       {showExtractedBanner && extractedCount > 0 && (
-        <div className="bg-rd-teal-tint border border-rd-teal/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-teal-dark flex items-center gap-2.5">
+        <div className="bg-rd-teal-tint border border-rd-teal/40 rd-r-md px-3.5 py-2.5 text-[13px] text-rd-teal-dark flex items-center gap-2.5">
           <FileText className="w-4 h-4 flex-shrink-0" />
           <p>
             <span className="font-display font-semibold text-rd-text">
@@ -737,7 +737,7 @@ export default function StepReview({
           subtitle="The primary degree powers role-fit scoring."
           required
         />
-        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-5">
+        <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5 space-y-5">
           <div>
             <Label required>Full name</Label>
             <input
@@ -772,7 +772,7 @@ export default function StepReview({
                     onClick={() => setEduField("education_level", value)}
                     data-selected={isSelected}
                     className={[
-                      "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
+                      "flex flex-col items-center gap-2 p-3 rd-r-md border transition-[border-color,background-color,box-shadow] duration-150",
                       isSelected
                         ? "border-rd-primary bg-rd-primary-tint shadow-[0_0_0_3px_var(--rd-primary-tint)]"
                         : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
@@ -1035,7 +1035,7 @@ export default function StepReview({
           subtitle="Anything not tied to a specific experience - broad capabilities, self-taught, side learning."
         />
         <div className="space-y-3">
-          <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
+          <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5">
             <RdSkillTagInput
               label={
                 skills.length > 0 ? `Selected (${skills.length})` : undefined
@@ -1047,7 +1047,7 @@ export default function StepReview({
               placeholder="Search skills, or type and press Enter to add custom"
             />
           </div>
-          <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
+          <div className="bg-rd-bg-card border border-rd-border rd-r-md p-5">
             <RdSkillChipBank selected={skills} onToggle={toggleSkill} />
           </div>
         </div>
