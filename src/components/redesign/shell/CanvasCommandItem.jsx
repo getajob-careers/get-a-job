@@ -26,7 +26,7 @@ export default function CanvasCommandItem({
         e.preventDefault();
         onSelect?.();
       }}
-      className={`${className} w-full flex items-start gap-2 px-2.5 py-1.5 rd-r-xs text-left transition-colors ${
+      className={`${className} rd-focus-ring w-full flex items-start gap-2 px-2.5 py-1.5 rd-r-xs text-left transition-colors ${
         active
           ? "bg-rd-primary-tint text-rd-primary-dark"
           : "text-rd-text-secondary hover:bg-rd-bg-soft"
