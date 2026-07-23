@@ -108,6 +108,15 @@ const EMPLOYMENT_OPTIONS = [
 
 const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
 
+// Honest ambient reassurance shown while the CV extracts - each line names
+// something the extraction genuinely does (no fabricated %/staged checkmarks;
+// design-craft rule 9). Rotated on a timer unless prefers-reduced-motion.
+const EXTRACT_MESSAGES = [
+  "Reading your experience and education",
+  "Finding your skills",
+  "Organizing everything for you",
+];
+
 export default function StepResumeUpload({
   onNext,
   onExtracted,
@@ -151,6 +160,25 @@ export default function StepResumeUpload({
   const [uploadFailMode, setUploadFailMode] = useState(null);
   const [cvTruncated, setCvTruncated] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+
+  // Rotate the extract reassurance line while extraction runs; reset when
+  // idle, and stay static under reduced-motion so copy does not churn.
+  const [extractMsgIdx, setExtractMsgIdx] = useState(0);
+  useEffect(() => {
+    if (!extracting) {
+      setExtractMsgIdx(0);
+      return;
+    }
+    const reduce = window.matchMedia?.(
+      "(prefers-reduced-motion: reduce)",
+    )?.matches;
+    if (reduce) return;
+    const id = setInterval(
+      () => setExtractMsgIdx((i) => (i + 1) % EXTRACT_MESSAGES.length),
+      2600,
+    );
+    return () => clearInterval(id);
+  }, [extracting]);
   const inputRef = useRef();
 
   const toggleEmploymentStatus = (value) => {
@@ -617,13 +645,22 @@ export default function StepResumeUpload({
 
         {(uploading || extracting) && (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-rd-primary" />
-            <p className="font-display font-semibold text-[14px] text-rd-text">
-              {uploading ? "Uploading…" : "Extracting your details…"}
-            </p>
-            {fileName && (
-              <p className="text-[11.5px] text-rd-text-secondary">{fileName}</p>
-            )}
+            <div className="w-14 h-14 rounded-full bg-rd-primary-tint flex items-center justify-center">
+              <Loader2 className="w-6 h-6 text-rd-primary animate-spin motion-reduce:animate-none" />
+            </div>
+            <div className="text-center">
+              <p className="font-display font-semibold text-[15px] text-rd-text">
+                {uploading ? "Uploading your CV…" : "Extracting your details…"}
+              </p>
+              <p
+                key={uploading ? "up" : extractMsgIdx}
+                className="text-[11.5px] text-rd-text-secondary mt-1 min-h-[16px] animate-in fade-in duration-500"
+              >
+                {uploading
+                  ? fileName || "Getting your file ready…"
+                  : EXTRACT_MESSAGES[extractMsgIdx]}
+              </p>
+            </div>
           </div>
         )}
 
