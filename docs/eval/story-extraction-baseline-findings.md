@@ -120,9 +120,29 @@ The autopsy localizes the entire problem to one line. Ranked:
 
 **Recommendation: ship #1, optionally with #3 as a deterministic net; defer #2.**
 
+## Hub ruling (2026-07-23) — recalibration = #1 ALONE
+
+The hub verified the autopsy against the raw JSONs and ruled:
+
+- **BUILT: #1 alone.** Skill-vocabulary line deleted from the grounding block;
+  domain + target-role framing kept. Single-variable change — nothing else in
+  the prompt moves. Applied to `_shared/extraction-context.ts` (skill-vocab
+  plumbing removed entirely, no dead code) and mirrored in the harness.
+- **#3 NOT bundled — parked with a counterexample.** As specified, the
+  deterministic contamination gate false-drops a _legitimate_ skill: in the
+  Hebrew baseline, `"Data Analysis"` is both profile vocabulary AND genuinely
+  grounded in the Hebrew paste, but naive source string-matching (English gate
+  term vs Hebrew source) fails and the gate would delete a correct skill.
+  Cross-language / synonym cases break naive string matching. Revisit only if
+  translation/synonym matching can be solved cheaply.
+- **#2 deferred** as proposed.
+- **#4 rejected.**
+
 ## Status
 
-- Harness fixes (key sanitize + metricNumbers regex) landed on #697 — correctness
-  only, no grounding-lever change.
-- Grounding recalibration is a PROPOSAL; **not built.** Re-run the gate only
-  after the hub confirms the chosen fix. Frozen set stays frozen.
+- Harness fixes (key sanitize + metricNumbers regex + word-boundary tool gate)
+  and the recalibration (#1) landed on #697. Scorer unit test committed
+  (`scripts/story-extraction-eval.test.mjs`, runs under `npm test`).
+- **Round-2 re-run pending an OpenAI key.** Pass bar: grounded real anti-fab
+  fails = 0, mid-ops gain preserved, no new regressions vs baseline. Frozen set
+  unchanged. HELD for hub after the re-run.

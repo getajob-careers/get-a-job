@@ -81,27 +81,22 @@ function entryLabel(input) {
 }
 
 // The grounding-context lever. Kept in lockstep with the shared edge module
-// (_shared/extraction-context.ts). Reference-only: shapes skill vocabulary +
-// framing, never a source of facts.
+// (_shared/extraction-context.ts formatGroundingBlock). Reference-only: frames
+// toward the goal, never a source of facts. Round-1 recalibration: field +
+// target-role ONLY (the skill-vocabulary line leaked profile skills into output
+// and was removed — see docs/eval/story-extraction-baseline-findings.md).
 function groundingBlock(input) {
   const p = input.profile;
   if (!p) return "";
-  // Mirror _shared/extraction-context.ts formatGroundingBlock EXACTLY: same
-  // lines, same order, same wording. In production: field <- primary_domain,
-  // working-toward <- five_year_role, skill names <- the target entry's skills.
-  // Here the frozen fixture supplies the analogs (target_roles[0], top_skills).
+  // Mirror formatGroundingBlock EXACTLY. Production: field <- primary_domain,
+  // working-toward <- five_year_role. Here the frozen fixture supplies the
+  // analogs (primary_domain, target_roles[0]).
   const lines = [];
   if (p.primary_domain) lines.push(`- The user's field: ${p.primary_domain}`);
   const targetRole = (p.target_roles || [])[0];
   if (targetRole) lines.push(`- Working toward: ${targetRole}`);
-  const skills = (p.top_skills || []).filter(Boolean).slice(0, 12);
-  if (skills.length) {
-    lines.push(
-      `- Skill names the user already uses (match this wording/casing when a bullet demonstrates one — do NOT add a skill that isn't in the USER TEXT): ${skills.join(", ")}`,
-    );
-  }
   if (!lines.length) return "";
-  return `\n\nGROUNDING CONTEXT (reference only — shapes skill NAMES and framing toward the goal; NEVER a source of facts, metrics, tools, or skills to add. Every claim in a bullet still comes from the USER TEXT alone):
+  return `\n\nGROUNDING CONTEXT (reference only — frames the bullet toward the user's goal; NEVER a source of facts, metrics, tools, or skills to add. Every claim in a bullet still comes from the USER TEXT alone):
 ${lines.join("\n")}`;
 }
 
@@ -326,13 +321,21 @@ function scoreLayer1(input, out) {
   const inventedNums = [...outNums].filter((v) => !inNums.has(v));
   const inLower = input.text.toLowerCase();
   const haystack = (bulletsText + " " + out.skills.join(" ")).toLowerCase();
+  // Word-boundary match so the invention gate never false-fires on a substring
+  // (e.g. "sql" inside "postgresql", "postgres" inside "postgresql"). Strict on
+  // purpose: a false positive here forces quality to 0.
+  const wordHit = (text, term) =>
+    new RegExp(
+      `\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+      "i",
+    ).test(text);
   const inventedTools = TOOL_LEXICON.filter((tool) => {
-    if (!haystack.includes(tool)) return false;
+    if (!wordHit(haystack, tool)) return false;
     const canon = TOOL_ALIASES[tool] || tool;
     const aliases = Object.keys(TOOL_ALIASES)
       .filter((k) => TOOL_ALIASES[k] === canon)
       .concat(tool);
-    return !aliases.some((a) => inLower.includes(a));
+    return !aliases.some((a) => wordHit(inLower, a));
   });
   const anti_fab_pass = inventedNums.length === 0 && inventedTools.length === 0;
 
