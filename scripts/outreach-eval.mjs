@@ -85,6 +85,32 @@ function readConst(file, name) {
   return m[1];
 }
 
+// Read a string-array const (or `new Set([...])`) out of source. Fix #1.5
+// (2026-07-23): the phrase lists MUST be one source of truth shared by the
+// edge fn (detectViolations + sanitizeSuggestion) and this harness, or they
+// drift - a SHIPPED_DETECTOR stale copy let "i'm impressed by" read as SILENT
+// while production actually chipped it. index.ts is that source; the harness
+// consumes it here so drift is impossible.
+function readArrayConst(file, name) {
+  const src = readFileSync(file, "utf8");
+  // Anchor on `=` so a `: string[]` type annotation's empty brackets are not
+  // mistaken for the array; allow an optional `new Set(` wrapper. Entries are
+  // double-quoted (apostrophes inside phrases are safe since the delimiter is ").
+  const m = src.match(
+    new RegExp(`const ${name}[^=]*=\\s*(?:new Set\\()?\\[([\\s\\S]*?)\\]`),
+  );
+  if (!m) {
+    console.error(`Could not read array const ${name} from ${file}.`);
+    process.exit(1);
+  }
+  const out = [...m[1].matchAll(/"([^"]*)"/g)].map((x) => x[1]);
+  if (out.length === 0) {
+    console.error(`Array const ${name} parsed to 0 entries - regex drift.`);
+    process.exit(1);
+  }
+  return out;
+}
+
 const SYSTEM_PROMPT = readConst(EDGE, "SYSTEM_PROMPT");
 const OUTREACH_VOICE_RULES = readConst(VOICE, "OUTREACH_VOICE_RULES");
 // FRAMEWORK_BY_GOAL maps goal -> the *_FRAMEWORK const; mirror it here by
@@ -195,6 +221,21 @@ function sanitizeSuggestion(raw) {
     typeof r.suggested_text === "string"
       ? r.suggested_text.trim().slice(0, 4000)
       : "";
+  // Mirror the fn's widened warn-chip: append a chip for every TEMPLATE_PHRASES
+  // hit (the fallback once the regenerate loop exhausts). Same source list.
+  const lower = norm(suggested_text);
+  const programmaticWarnings = [];
+  for (const p of TEMPLATE_PHRASES) {
+    if (lower.includes(norm(p))) {
+      const warn = `"${p}" reads as template outreach - replace it with a specific reason for reaching out.`;
+      if (!programmaticWarnings.includes(warn)) programmaticWarnings.push(warn);
+    }
+  }
+  const rawWarnings = Array.isArray(r.warnings)
+    ? r.warnings
+        .filter((w) => typeof w === "string" && w.trim())
+        .map((w) => w.trim().slice(0, 300))
+    : [];
   return {
     suggested_text,
     turn_type,
@@ -204,11 +245,7 @@ function sanitizeSuggestion(raw) {
         ? r.warm_up_advice.trim().slice(0, 800)
         : "",
     conversation_state,
-    warnings: Array.isArray(r.warnings)
-      ? r.warnings
-          .filter((w) => typeof w === "string" && w.trim())
-          .map((w) => w.trim().slice(0, 300))
-      : [],
+    warnings: [...rawWarnings, ...programmaticWarnings].slice(0, 8),
   };
 }
 
@@ -342,69 +379,17 @@ async function generate(input) {
 }
 
 // ---- Layer 1 scoring (deterministic hard gates) ---------------------------
-// Superset of the SYSTEM_PROMPT hard-rule-1 phrases + OUTREACH_VOICE_RULES
-// anti-patterns + sanitizeSuggestion list. This is intentionally WIDER than
-// the shipped sanitizeSuggestion detector - the gap between the two is itself
-// a finding (see docs/eval/outreach-failure-taxonomy.md, Mode A).
-const TEMPLATE_PHRASES = [
-  "i hope this finds you well",
-  "i hope this email finds you well",
-  "i hope this message finds you well",
-  "i hope you're doing well",
-  "i hope you are doing well",
-  "i hope you're well",
-  "i hope you are well",
-  "hope you're doing well",
-  "hope you are doing well",
-  "hope you're well",
-  "hope you are well",
-  "hope all is good",
-  "hope all is well",
-  "how have you been",
-  "trust this finds you well",
-  "trust this email finds you well",
-  "i hope you're doing great", // shmuel-row variant sanitizeSuggestion misses
-  "i hope you are doing great",
-  "pick your brain",
-  "i came across your profile",
-  "i'm reaching out because",
-  "i am reaching out because",
-  "looking to connect with industry leaders",
-  "looking to connect with thought leaders",
-  "was very impressed by",
-  "was really impressed by",
-  "i'm impressed by",
-];
-// Phrases that assert recalled shared-conversation content - HARD RULE 2/3
-// fabrication risk. Only a violation when the input's mutual_context does NOT
-// support recalled content (sparse / factual-only).
-const RECALL_PHRASES = [
-  "i remember our chat",
-  "i remember our conversation",
-  "i recall you shared",
-  "i recall our",
-  "i remember we discussed",
-  "i remember when we",
-  "your point about",
-  "stuck with me",
-  "i often think back",
-  "the insights i gained",
-  "what you shared about",
-  "when we discussed",
-  "our discussion about",
-];
-// Hedging phrases the propose_internship framework H3 bans outright.
-const HEDGE_PHRASES = [
-  "i don't have much experience",
-  "i'm still learning",
-  "if it'd be useful",
-  "if it would be useful",
-  "to see if that could be a fit",
-  "moderate bridge",
-  "happy to chat anywhere",
-  "open to anything",
-];
-// Engagement-bait / weak closes OUTREACH_VOICE_RULES says to SKIP.
+// SINGLE SOURCE OF TRUTH: these lists are read verbatim from the edge fn
+// (index.ts), which consumes them in BOTH detectViolations (the regenerate
+// gate) and sanitizeSuggestion (the widened warn-chip). Reading them here
+// means the harness scorer, the harness detectViolations mirror, and the
+// harness sanitizer can never drift from what ships. (2026-07-23 fix: a
+// hardcoded stale SHIPPED_DETECTOR let "i'm impressed by" read as SILENT.)
+const TEMPLATE_PHRASES = readArrayConst(EDGE, "TEMPLATE_PHRASES");
+const RECALL_PHRASES = readArrayConst(EDGE, "RECALL_PHRASES");
+const HEDGE_PHRASES = readArrayConst(EDGE, "HEDGE_PHRASES");
+// Engagement-bait / weak closes OUTREACH_VOICE_RULES says to SKIP. Harness-only
+// soft flag (not a gate, not in the edge fn).
 const WEAK_CLOSE_PHRASES = [
   "looking forward to hearing from you",
   "excited to chat",
@@ -425,12 +410,12 @@ const WORD_BANDS = {
   propose_internship: [1, 80], // opener ≤ 80 words
 };
 
-// Framework-injected logistics numbers for propose_internship ONLY: the
-// practicum load (~10-12 hrs/week per the practicum lead) and the call-duration
-// ask (15/20/30 min per the ASK examples). These come FROM THE FRAMEWORK, not
-// the sender's data, so they must not trip the sender-fabrication number gate.
-// Scoped to this goal only (2026-07-23). See docs/eval/outreach-rubric.md.
-const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(["10", "12", "15", "20", "30"]);
+// Framework-injected logistics numbers for propose_internship ONLY (practicum
+// ~10-12 hrs/week + call-duration ask 15/20/30 min). Read from the edge fn so
+// the exemption can't drift from production. See docs/eval/outreach-rubric.md.
+const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(
+  readArrayConst(EDGE, "FRAMEWORK_STRUCTURAL_NUMBERS"),
+);
 
 function words(s) {
   return s.trim().split(/\s+/).filter(Boolean);
@@ -518,21 +503,14 @@ function scoreLayer1(input, suggestion) {
     return true;
   });
 
-  // whether the anti-pattern chip WOULD fire in production (narrower list) - // lets us measure the detector-gap directly.
-  const SHIPPED_DETECTOR = [
-    "i hope this finds you well",
-    "i hope this email finds you well",
-    "i hope this message finds you well",
-    "i hope you're doing well",
-    "i hope you're well",
-    "hope you are doing well",
-    "hope you are well",
-    "trust this finds you well",
-    "pick your brain",
-    "i came across your profile",
-  ];
-  const shipped_chip_hits = hasAny(text, SHIPPED_DETECTOR);
-  // template phrases we catch that production would ship SILENTLY (no chip):
+  // Which template hits production's warn-chip would MISS (ship silently). The
+  // detector is now sanitizeSuggestion's list = the full TEMPLATE_PHRASES
+  // superset (Fix #1 widened it), read from the same source, so undetected is
+  // structurally empty. Kept as a live regression guard: if the fn's list and
+  // the sanitizer's iteration ever diverge, the verbatim sanitizer test (not
+  // this list) is what catches it. Pre-Fix-#1 this was a stale narrow copy that
+  // falsely reported "i'm impressed by" as SILENT.
+  const shipped_chip_hits = hasAny(text, TEMPLATE_PHRASES);
   const undetected_template = template_hits.filter(
     (p) => !shipped_chip_hits.includes(p),
   );

@@ -8,6 +8,7 @@ import {
   composite,
   buildReport,
   detectViolations,
+  sanitizeSuggestion,
 } from "./outreach-eval.mjs";
 
 const alumniSparse = {
@@ -47,16 +48,19 @@ describe("scoreLayer1 - template-phrase gate + detector gap", () => {
     expect(s.template_hits).toContain("i hope this finds you well");
   });
 
-  // Mode A: a phrase the SHIPPED sanitizeSuggestion detector misses ships with
-  // no warning chip. The harness flags it as undetected_template.
-  it("flags a silent-ship template variant the production detector misses", () => {
+  // Mode A closed by Fix #1: "i hope you're doing great" was silent pre-fix
+  // (shipped detector missed it). Post-fix the sanitizer's list == the full
+  // shared TEMPLATE_PHRASES, so it is DETECTED (chipped), not silent. It is
+  // still an anti_pattern hard-fail because the phrase is in the text.
+  it("no longer reports a widened-list template variant as silent (Fix #1)", () => {
     const s = scoreLayer1(alumniSparse, {
       suggested_text:
         "Hi Idan, I hope you're doing great. Fellow Reichman grad here and would love to connect about growth marketing.",
       warm_up_advice: "",
     });
     expect(s.anti_pattern_pass).toBe(false);
-    expect(s.undetected_template).toContain("i hope you're doing great");
+    expect(s.template_hits).toContain("i hope you're doing great");
+    expect(s.undetected_template).toEqual([]);
   });
 
   it("normalizes curly apostrophes so 'you’re' cannot evade the gate", () => {
@@ -461,5 +465,40 @@ describe("detectViolations - Fix #1 enforcement gate", () => {
       scope({ note: "customer success at guardio" }),
     );
     expect(v).toBeNull();
+  });
+
+  // Regression for the Fix #1 gate-re-run miss (2026-07-23): this exact text
+  // shipped with "i'm impressed by" and read as SILENT because the harness
+  // SHIPPED_DETECTOR was a stale narrow copy. The lists are now one shared
+  // source, so BOTH the regenerate gate AND the widened warn-chip must catch it.
+  it("catches the verbatim gate-re-run survivor through BOTH gates", () => {
+    const verbatim =
+      "Hi Avi, I'm Maya Rosen, a final-year Business student at Tel Aviv University focusing on growth marketing. I'm impressed by Riverside's platform for recording studio-quality podcasts and videos remotely. In my role as Marketing Lead at the TAU Entrepreneurship Club, I successfully increased signups for our annual startup competition through strategic email and social campaigns. I'd love to explore opportunities to apply my skills at Riverside. Could we set up a brief 15-minute call to discuss this further?";
+    const target = { mutual_context: null };
+    const gscope = scope({ summary: "TAU entrepreneurship club marketing" });
+    // 1. detectViolations (the regenerate gate) catches it.
+    const v = detectViolations(
+      cand(verbatim),
+      "propose_internship",
+      target,
+      gscope,
+    );
+    expect(v).toMatch(/i'm impressed by/i);
+    // 2. sanitizeSuggestion (the widened warn-chip fallback) catches it too.
+    const chips = sanitizeSuggestion({ suggested_text: verbatim }).warnings;
+    expect(chips.some((w) => w.includes("impressed by"))).toBe(true);
+    // 3. And it is no longer falsely reported SILENT by the scorer.
+    const l1 = scoreLayer1(
+      {
+        goal: "propose_internship",
+        thread: [],
+        target_person: target,
+        user_data: { summary: "TAU" },
+      },
+      { suggested_text: verbatim, warm_up_advice: "" },
+    );
+    expect(l1.undetected_template).toEqual([]);
+    // The framework structural number 15 must NOT be the flagged violation.
+    expect(v).not.toMatch(/number 15/);
   });
 });

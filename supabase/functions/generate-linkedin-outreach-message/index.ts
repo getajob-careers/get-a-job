@@ -666,7 +666,7 @@ const RECALL_PHRASES: string[] = [
 // ~10-12 hrs/week + call-duration ask 15/20/30 min). Not sender-claimed
 // metrics, so exempt from the invented-number gate for that goal (mirrors the
 // harness exemption).
-const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(['10', '12', '15', '20', '30'])
+const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(["10", "12", "15", "20", "30"])
 
 function normApos(s: string): string {
   return s.toLowerCase().replace(/[‘’ʼ]/g, "'").replace(/[“”]/g, '"')
