@@ -54,43 +54,100 @@ git log + `docs/eval/scoring-formula-design.md` §7–8, 2026-07-23):
 
 ---
 
-## ACTIVE ARC — Landing canvas-recolor adaptation (Eli-ruled 2026-07-23: ADAPTATION, not rework)
+## LANDING RECOLOR ARC — DONE + LIVE (#696, 2026-07-23)
 
-Eli LIKES the current landing. Scope = adapt its colour to the canvas scheme; keep
-structure/copy/sections unless factually stale.
+Recolored the public landing (`src/pages/_preview/LandingV2Preview.jsx`, live `/`) to
+the canvas palette + added a minimal consent-respecting analytics funnel. Eli CERT
+PASSED, hub VERIFIED. **Squash-merged `bc221d0`; prod deploy READY** (Vercel prod
+deployment `5xsizkWrF7d2ZwSeoeKwVCwKDFes`). No edge functions. Rollback = `b56fe1b`.
 
-- **(a) CORE (buildable here — token application, canvas spec is law):** recolor the
-  public landing to the canvas palette (`--rd-primary` #60617D family; canvas ground/card
-  per `docs/design/canvas-tokens.md`). **KEY FINDING (2026-07-23):** the landing
-  (`src/pages/_preview/LandingV2Preview.jsx`, the LIVE `/` route) is **self-contained** —
-  it defines its OWN inline token block `LV_CSS` (`.lv { --bg / --ink / --accent / --teal
-/ --golden / ... }`, coral `--accent: #EF5A41`), NOT the app's `--rd-*` tokens. So the
-  `[data-next-design]` reachability problem does NOT apply: the recolor = **remap the
-  `.lv` var VALUES to the canvas hexes** (bg→#F4EBDA, card→#FFFCF4, ink→#4A372D,
-  accent→#60617D, teal→mauve #9B7D8A, golden→brown #60483E). Flag-free, works logged-out.
-  Structure/copy STAY; flag factually-stale claims, never silently rewrite
-  (anti-fabrication applies to marketing).
-- **(b) INVITED idea menu (options, not commitments):** mascot (once the refined version
-  exists — [[mascot-logo-animation-arc]]) + anime.js motion moments; cite the
-  design-resource galleries (`docs/design/design-resources.md`). Eli picks; nothing
-  builds uninvited.
-- **(c) analytics check:** is the landing instrumented? If effectively unmeasured, propose
-  MINIMAL instrumentation so we can see the page working post-flip.
-- **(d) ownership:** recolor = mine; anything compositional (type unification,
-  ground-texture language, new sections) → **design lane**. Cross-review if I touch any
-  shared redirect/auth surface.
+- **Recolor:** `.lv` self-scoped token block remapped to canvas hexes (accent
+  coral→slate `#60617D`, teal→mauve `#9B7D8A`, golden→brown `#60483E`, bg `#F4EBDA`);
+  hardcoded coral/ink rgba swept to slate/warm-brown; AA guard = mauve-deep `#7B606D`
+  for small text/icons. Zero coral in DOM; flag-free public surface.
+- **Analytics:** reuses `src/lib/analytics.js` `track()` (no-ops before PostHog init →
+  consent-respecting). Events: `landing_cta_clicked`, `landing_cv_upload_started`,
+  `landing_cv_upload_succeeded`, `landing_section_reached`. No `main.jsx`/consent touch.
+- **HUB-OWNED follow-up:** PostHog landing-event check runs once consented traffic exists
+  (I can run it via PostHog MCP on the flag-on prod build when asked).
 
-**Watch (tension to flag, not silently fix):** the landing's `.lv-dots` radial-gradient
-dotted backdrop is exactly the particulate texture the canvas **retired at the category
-level** (canvas-tokens.md, THE GROUND). Recoloring keeps the dots; aligning to the canvas
-cream+directional-wash ground is compositional → design-lane / idea-menu.
+**Landing-motion follow-up (NOT this lane yet):** ideas 2/3/4 — mascot CV-drop loader,
+SVG line-draw on scroll, staggered stat/feature reveals — **gated on the design lane's
+anime.js install PR** + Eli's mascot eye-pick. Do NOT build on framer-motion (ruled for
+pruning). The recolor is the clean foundation the design lane's scroll-driven
+mascot-journey flagship composes on top of.
 
-## ON DECK — story bank extraction quality (after the landing arc)
+**Routed to DESIGN LANE (log, do not touch):** the `.lv-dots`/`griddots` particulate
+backdrop (retired category in-app) and Geist-vs-canvas font unification — both
+compositional.
 
 ---
 
+## ACTIVE ARC — Story bank extraction quality (PR #697, HELD, 2026-07-23)
+
+**Target = `extract-bullets`** (the reachable capture path; Eli-ruled over the legacy
+`extract-story-from-text` on the undiscoverable /StoryBank page). Branch
+`eli/story-extraction-quality`. **No deploy yet.**
+
+**Root cause (VERIFIED):** extractor is anti-fab-correct but starved by thin input —
+`situation`/`task` NULL in 100% of the 13 existing stories, 0 real-user rows. Dominant
+lever = richer INPUT (guided elicitation, design-lane) since anti-fab forbids the
+extractor from enriching. `extract-story-from-text` + `extract-bullets` share the same
+thin-input shape.
+
+**What's built + HELD on #697:**
+
+- **Eval harness** `scripts/story-extraction-eval.mjs` (mirrors extract-bullets prompt+parse
+  EXACTLY; reads live SYSTEM_PROMPT out of the edge fn) + **committed vitest test**
+  `scripts/story-extraction-eval.test.mjs` (13/13, runs under `npm test`).
+- **Frozen synthetic set** `docs/eval/story-extraction-inputs.json` (7 inputs: thin→rich,
+  software+ops/mktg/BD/analytics, EN+Hebrew-mixed, messy paste, exp+edu). **STAYS FROZEN.**
+  Rubric `docs/eval/story-extraction-rubric.md`; findings + autopsy
+  `docs/eval/story-extraction-baseline-findings.md`; run JSONs in `docs/eval/results/`.
+- **Grounding-context module** `_shared/extraction-context.ts` wired into extract-bullets.
+  **Round-1 grounding (with skill-vocab) LEAKED** (grounded emitted profile top_skills as
+  demonstrated skills on pastes that never named them: thin-swe→Python/SQL, hebrew→SQL).
+  Gate fired → **recalibration #1 (hub-ruled) BUILT:** skill-vocab line deleted, domain +
+  target-role framing kept (mid-ops 84→98, leaked nothing). #2 (skill-vocab→resolution)
+  deferred; #3 (contamination gate) parked (false-drops Hebrew "Data Analysis"); #4 rejected.
+- **Harness fixes:** OPENAI_API_KEY sanitize (U+2028 burned a run); metricNumbers regex
+  ("20 meetings"→20M bug); word-boundary tool gate (sql-in-postgresql).
+
+**STATE: ARC CLOSED + LIVE (2026-07-23).** #697 squash-merged (`d89821c`), branch deleted.
+extract-bullets deployed **v12->v13** (`--project-ref ilmqmodklutztuybsvwd`); serving-fingerprint
+VERIFIED on the deployed bundle (framing-only grounding block: field + working-toward, NO
+skill-vocabulary line; targetCols reverted). Prod Vercel `dpl_2RkhXAaY2PVxyqXfHi1kZmrhbEwd`
+READY on `d89821c`. Gate PASS: grounded anti-fab 0, mid-ops preserved, grounded >= baseline all 7,
+set mean 90.6->91.7.
+
+**ROLLBACK:** predecessor prod commit `4337d2c` (Vercel `dpl_DmawvSTqEvwj7FPiuwFQDNWvUebY`);
+extract-bullets prior **v12** (redeploy prior source to revert the edge fn). Full revert = revert
+the squash + redeploy extract-bullets from `4337d2c`.
+
+**Queued follow-ups (separate PRs, NOT kicked):** (1) hedge-marker checker-list gap
+("over"/"+" unrecognised); (2) outcome-heuristic credit for tool/deploy bullets (rich-swe
+discipline dip); (3) deferred proposal #2 (skill-vocab -> skill-ID resolution). Design-lane
+elicitation brief `docs/handoffs/story-elicitation-brief.md` still HELD for Eli's go.
+
+**NEXT ARC: NOT kicked - Eli rules it later.** Candidates on record: interview bot, skill hub,
+browser extension, graphify. Stand by.
+
+**Design-lane brief** `docs/handoffs/story-elicitation-brief.md` (guided STAR elicitation,
+client-side block assembly, zero edge-fn change) — held for Eli's go. HELD (this lane):
+prompt-rework + model-tier, done once against the real elicited input shape.
+
 ## Reusable techniques (from this arc)
 
+- **Palette recolor cert = computed values, NOT screenshots.** The landing's reveal
+  crossfade (opacity tracks scroll) washes out screenshot colours mid-scroll. Cert via
+  `getComputedStyle` on the `.lv` token vars + sample elements (eyebrow / logo dot /
+  `.btn-accent`) → exact hexes, opacity-independent; and an `outerHTML` scan for the OLD
+  literals (`#ef5a41` / `239,90,65`) proves zero leftover. For the one holistic visual
+  shot, inject `.lv *{opacity:1!important;transform:none!important}` then screenshot.
+  Local `npm run dev` drive is enough for a flagless public page — no Vercel-SSO dance.
+- **Two clean commits from an interleaved working tree:** back up the gate-passed file,
+  `git checkout origin/main -- <file>`, re-run each change as its own asserted python
+  script, commit between; then `diff -q` the final tree vs the backup to prove identical.
 - **Preview drive under Vercel SSO + Turnstile:** mint a Vercel share URL
   (`get_access_to_vercel_url`) to bypass deployment protection in a browser logged
   into Vercel; enter the app via admin-created `+test` user + magic link (service_role
