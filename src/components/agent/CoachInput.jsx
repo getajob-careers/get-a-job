@@ -81,7 +81,7 @@ export default function CoachInput({ variant = "dock" }) {
         onClick={() => conv.sendMessage()}
         disabled={!canSend}
         aria-label="Send message"
-        className={`${isDock ? "w-8 h-8" : "w-[42px] h-[42px]"} rounded-full inline-flex items-center justify-center flex-shrink-0 active:scale-[0.97] transition-all ${sendBtnClasses}`}
+        className={`${isDock ? "w-8 h-8" : "w-[42px] h-[42px]"} rd-hit-44 rd-focus-ring rounded-full inline-flex items-center justify-center flex-shrink-0 active:scale-[0.97] transition-all ${sendBtnClasses}`}
       >
         {conv.sending ? (
           <Loader2 className={`${isDock ? "w-3 h-3" : "w-4 h-4"} animate-spin`} />
