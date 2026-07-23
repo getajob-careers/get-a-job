@@ -24,22 +24,23 @@ import { supabase } from "@/api/supabaseClient";
 const LV_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700;800;900&display=swap');
 .lv {
-  --bg: #FBF8F1;
-  --bg-warm: #F4EEE2;
-  --ink: #1C1815;
-  --ink-soft: #6B6258;
-  --ink-faint: #A39A8C;
-  --accent: #EF5A41;
-  --accent-deep: #C7461F;
-  --accent-tint: #FCE6DF;
-  --teal: #2E7C6B;
-  --teal-tint: #DBEEE5;
-  --golden: #B8841C;
-  --golden-tint: #F7ECCF;
-  --line: #E7DECE;
-  --line-soft: #EFE8DA;
-  --card: #FFFFFF;
-  --ink-deep: #181410;
+  --bg: #F4EBDA;
+  --bg-warm: #ECE0C9;
+  --ink: #4A372D;
+  --ink-soft: #7B675C;
+  --ink-faint: #A6957F;
+  --accent: #60617D;
+  --accent-deep: #4B4C66;
+  --accent-tint: #E3E3EC;
+  --teal: #9B7D8A;
+  --teal-tint: #EFE3E9;
+  --teal-deep: #7B606D;
+  --golden: #60483E;
+  --golden-tint: #E9DECF;
+  --line: #E0D2B9;
+  --line-soft: #E9DEC8;
+  --card: #FFFCF4;
+  --ink-deep: #3A2A20;
   --r-sm: 10px; --r: 16px; --r-lg: 24px; --r-pill: 999px;
   --font-d: 'Geist', system-ui, sans-serif;
   --font-b: 'Geist', system-ui, sans-serif;
@@ -69,8 +70,8 @@ const LV_CSS = `
 .lv .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: var(--r-pill); font-family: var(--font-b); font-size: 15px; font-weight: 600; cursor: pointer; border: none; text-decoration: none; transition: transform .18s ease, background .18s ease, box-shadow .18s ease, color .18s ease; }
 .lv .btn:hover { transform: translateY(-2px); }
 .lv .btn:active { transform: translateY(0) scale(.98); }
-.lv .btn-accent { background: var(--accent); color: #fff; box-shadow: 0 8px 22px -6px rgba(239,90,65,.5); }
-.lv .btn-accent:hover { background: var(--accent-deep); box-shadow: 0 12px 28px -6px rgba(239,90,65,.55); }
+.lv .btn-accent { background: var(--accent); color: #fff; box-shadow: 0 8px 22px -6px rgba(96,97,125,.5); }
+.lv .btn-accent:hover { background: var(--accent-deep); box-shadow: 0 12px 28px -6px rgba(96,97,125,.55); }
 .lv .btn-ink { background: var(--ink-deep); color: var(--bg); }
 .lv .btn-ink:hover { background: var(--accent); }
 .lv .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
@@ -92,7 +93,7 @@ const LV_CSS = `
 .lv-nav-in { display: flex; align-items: center; justify-content: space-between; height: 70px; }
 .lv-logo { display: flex; align-items: baseline; gap: 5px; font-family: var(--font-d); font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
 .lv-logo .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); transform: translateY(-2px); }
-.lv-nav-pill { display: flex; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 6px; box-shadow: 0 2px 10px rgba(28,24,21,.04); }
+.lv-nav-pill { display: flex; align-items: center; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 6px; box-shadow: 0 2px 10px rgba(96,72,62,.04); }
 .lv-nav-pill a { font-size: 14px; color: var(--ink-soft); text-decoration: none; font-weight: 500; padding: 8px 14px; border-radius: var(--r-pill); transition: background .15s, color .15s; }
 .lv-nav-pill a:hover { color: var(--ink); background: var(--bg-warm); }
 .lv-nav-right { display: flex; align-items: center; gap: 12px; }
@@ -108,7 +109,7 @@ const LV_CSS = `
 .lv-hero-sub strong { color: var(--ink); font-weight: 600; }
 .lv-hero-meta { display: flex; justify-content: center; gap: 16px; margin-top: 6px; font-size: 12.5px; color: var(--ink-faint); flex-wrap: wrap; }
 .lv-hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
-.lv-hero-meta i { color: var(--teal); font-size: 14px; }
+.lv-hero-meta i { color: var(--teal-deep); font-size: 14px; }
 .lv-hero-cta { display: flex; align-items: center; justify-content: center; gap: 22px; margin-top: 34px; flex-wrap: wrap; }
 .lv-hero-link { display: inline-flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; transition: color .15s; }
 .lv-hero-link:hover { color: var(--accent); }
@@ -140,8 +141,8 @@ const LV_CSS = `
 
 /* drop zone — the hero CTA */
 .lv-hero-drop { display: flex; justify-content: center; margin: 40px 0 0; }
-.lv-drop { position: relative; z-index: 3; width: 480px; max-width: 100%; min-height: 312px; background: var(--card); border: 2px dashed var(--line); border-radius: var(--r-lg); padding: 44px 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; box-shadow: 0 38px 84px -30px rgba(28,24,21,.36); transition: border-color .2s, box-shadow .2s, transform .2s, background .2s; }
-.lv-drop:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 38px 78px -28px rgba(239,90,65,.4); }
+.lv-drop { position: relative; z-index: 3; width: 480px; max-width: 100%; min-height: 312px; background: var(--card); border: 2px dashed var(--line); border-radius: var(--r-lg); padding: 44px 36px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; cursor: pointer; box-shadow: 0 38px 84px -30px rgba(96,72,62,.36); transition: border-color .2s, box-shadow .2s, transform .2s, background .2s; }
+.lv-drop:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 38px 78px -28px rgba(96,97,125,.4); }
 .lv-drop:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-tint); }
 .lv-drop.drag { border-style: solid; border-color: var(--accent); background: var(--accent-tint); transform: scale(1.03); }
 .lv-drop.busy { border-style: solid; border-color: var(--teal); cursor: default; }
@@ -156,10 +157,10 @@ const LV_CSS = `
 
 /* parallax chips (mouse-reactive) */
 .lv-pchip { position: absolute; z-index: 2; transform: translate(calc(var(--px, 0) * var(--mul, 16px)), calc(var(--py, 0) * var(--mul, 16px))); transition: transform .35s cubic-bezier(.22,.61,.36,1); }
-.lv-pchip-in { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 9px 15px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; box-shadow: 0 16px 34px -12px rgba(28,24,21,.24); }
+.lv-pchip-in { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 9px 15px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; box-shadow: 0 16px 34px -12px rgba(96,72,62,.24); }
 .lv-pchip-in i { font-size: 16px; }
 .lv-pchip-in .tag { font-family: var(--font-m); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); }
-.tag-t1 { background: var(--teal-tint); color: var(--teal); }
+.tag-t1 { background: var(--teal-tint); color: var(--teal-deep); }
 .tag-t2 { background: var(--accent-tint); color: var(--accent-deep); }
 .tag-t3 { background: var(--golden-tint); color: var(--golden); }
 .lv-float { animation: lvfloat 7s ease-in-out infinite; }
@@ -198,13 +199,13 @@ const LV_CSS = `
 /* offer stack */
 .lv-offer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .lv-offer { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 26px; transition: transform .2s, box-shadow .2s, border-color .2s; }
-.lv-offer:hover { transform: translateY(-3px); box-shadow: 0 16px 40px -16px rgba(28,24,21,.16); border-color: var(--line); }
+.lv-offer:hover { transform: translateY(-3px); box-shadow: 0 16px 40px -16px rgba(96,72,62,.16); border-color: var(--line); }
 .lv-offer.wide { grid-column: span 2; display: flex; gap: 24px; align-items: center; }
 .lv-offer.wide .lv-offer-body { flex: 1; }
 .lv-offer-ic { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 16px; }
 .lv-offer.wide .lv-offer-ic { margin-bottom: 0; flex-shrink: 0; }
 .ic-coral { background: var(--accent-tint); color: var(--accent-deep); }
-.ic-teal { background: var(--teal-tint); color: var(--teal); }
+.ic-teal { background: var(--teal-tint); color: var(--teal-deep); }
 .ic-gold { background: var(--golden-tint); color: var(--golden); }
 .ic-ink { background: var(--bg-warm); color: var(--ink); }
 .lv-offer h3 { font-family: var(--font-d); font-size: 18px; font-weight: 600; margin-bottom: 7px; letter-spacing: -.01em; }
@@ -251,13 +252,13 @@ const LV_CSS = `
 .lv-fx { display: grid; grid-template-columns: 360px 1fr; gap: 22px; align-items: start; }
 .lv-fx-list { display: flex; flex-direction: column; gap: 9px; }
 .lv-fx-tab { display: flex; gap: 14px; align-items: flex-start; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 15px 17px; cursor: pointer; font-family: var(--font-b); transition: border-color .15s, background .15s, transform .15s, box-shadow .15s; }
-.lv-fx-tab:hover { transform: translateX(3px); box-shadow: 0 12px 26px -16px rgba(28,24,21,.2); }
+.lv-fx-tab:hover { transform: translateX(3px); box-shadow: 0 12px 26px -16px rgba(96,72,62,.2); }
 .lv-fx-tab.on { border-color: var(--accent); background: var(--accent-tint); }
 .lv-fx-tab .fx-ic { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; background: var(--bg-warm); color: var(--ink); transition: background .15s, color .15s; }
 .lv-fx-tab.on .fx-ic { background: var(--accent); color: #fff; }
 .lv-fx-tab h4 { font-family: var(--font-d); font-size: 16px; font-weight: 600; }
 .lv-fx-tab p { font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; line-height: 1.4; }
-.lv-fx-screen { background: var(--ink-deep); border-radius: var(--r-lg); padding: 13px; box-shadow: 0 34px 80px -30px rgba(28,24,21,.45); }
+.lv-fx-screen { background: var(--ink-deep); border-radius: var(--r-lg); padding: 13px; box-shadow: 0 34px 80px -30px rgba(96,72,62,.45); }
 .lv-fx-chrome { display: flex; align-items: center; gap: 6px; padding: 6px 8px 11px; }
 .lv-fx-chrome span { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.16); }
 .lv-fx-chrome .url { margin-left: 12px; font-family: var(--font-m); font-size: 11px; color: rgba(255,255,255,.4); }
@@ -289,12 +290,12 @@ const LV_CSS = `
 .lv-ws-list { display: flex; flex-direction: column; gap: 6px; }
 .lv-ws-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 15px; border: 1px solid transparent; background: transparent; cursor: pointer; text-align: left; font-family: var(--font-b); transition: background .15s, border-color .15s, box-shadow .15s; }
 .lv-ws-item:hover { background: var(--card); }
-.lv-ws-item.on { background: var(--card); border-color: var(--line); box-shadow: 0 16px 34px -18px rgba(28,24,21,.22); }
+.lv-ws-item.on { background: var(--card); border-color: var(--line); box-shadow: 0 16px 34px -18px rgba(96,72,62,.22); }
 .lv-ws-item .fx-ic { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-warm); color: var(--ink); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; transition: background .15s, color .15s; }
 .lv-ws-item.on .fx-ic { background: var(--accent); color: #fff; }
 .lv-ws-item-name { font-family: var(--font-d); font-size: 17px; font-weight: 600; color: var(--ink); }
 
-.lv-ws-screen { background: var(--ink-deep); border-radius: var(--r-lg); padding: 16px; box-shadow: 0 44px 100px -34px rgba(28,24,21,.55); }
+.lv-ws-screen { background: var(--ink-deep); border-radius: var(--r-lg); padding: 16px; box-shadow: 0 44px 100px -34px rgba(96,72,62,.55); }
 .lv-ws-screen .lv-fxr-frame { min-height: 522px; padding: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
 /* every mockup is authored at ~404px wide — scale the whole thing up uniformly so
    it fills the larger frame at a readable size. Dialled down on narrower screens
@@ -310,7 +311,7 @@ const LV_CSS = `
 .lv-ws-info p { font-size: 18px; line-height: 1.6; color: var(--ink-soft); margin-top: 16px; }
 .lv-ws-info ul { list-style: none; margin-top: 24px; display: flex; flex-direction: column; gap: 15px; }
 .lv-ws-info li { display: flex; gap: 11px; align-items: flex-start; font-size: 17px; color: var(--ink); line-height: 1.45; }
-.lv-ws-info li i { color: var(--teal); font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.lv-ws-info li i { color: var(--teal-deep); font-size: 20px; flex-shrink: 0; margin-top: 1px; }
 
 /* browser chrome + frame, shared by the centre screenshot */
 .lv-fxr-chrome { display: flex; gap: 6px; align-items: center; padding: 6px 8px 13px; }
@@ -409,15 +410,15 @@ const LV_CSS = `
    this cycle — it only survives as a small internal accent (e.g. a pill tag)
    inside a preview, never as a card's own background. */
 .lv-hs-card { width: 336px; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; transition: transform .2s, box-shadow .2s, border-color .2s; }
-.lv-hs-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(28,24,21,.2); }
+.lv-hs-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(96,72,62,.2); }
 /* Ambient glow on hover — same diffused, bled-outward technique as the CV
    DropZone's hover state (large blur, negative spread, translucent color),
    just recolored per card tint instead of DropZone's fixed accent. Layered
    alongside the neutral lift-shadow above rather than replacing it. */
-.lv-hs-card.t-orange:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(239,90,65,.4); }
-.lv-hs-card.t-gold:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
-.lv-hs-card.t-ink:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
-.lv-hs-card.t-white:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
+.lv-hs-card.t-orange:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(96,97,125,.4); }
+.lv-hs-card.t-gold:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
+.lv-hs-card.t-ink:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
+.lv-hs-card.t-white:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
 .lv-hs-card.t-orange { background: var(--accent); border-color: transparent; }
 .lv-hs-card.t-orange .lv-hs-name { color: #fff; }
 .lv-hs-card.t-orange .lv-hs-desc { color: rgba(255,255,255,.78); }
@@ -438,12 +439,12 @@ const LV_CSS = `
 
 /* solve-the-challenge cards — background tint matches the top-border color */
 .lv-ch-card { width: 320px; border: 1px solid var(--line); border-top: 4px solid var(--ink-faint); border-radius: var(--r-lg); padding: 24px; display: flex; flex-direction: column; gap: 13px; transition: transform .2s, box-shadow .2s; }
-.lv-ch-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(28,24,21,.2); }
+.lv-ch-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(96,72,62,.2); }
 /* Same DropZone-style ambient glow as .lv-hs-card above, recolored per tint. */
-.lv-ch-card.b-orange:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(239,90,65,.4); }
-.lv-ch-card.b-gold:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
-.lv-ch-card.b-black:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
-.lv-ch-card.b-white:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
+.lv-ch-card.b-orange:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(96,97,125,.4); }
+.lv-ch-card.b-gold:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
+.lv-ch-card.b-black:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
+.lv-ch-card.b-white:hover { box-shadow: 0 20px 46px -22px rgba(96,72,62,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
 .lv-ch-card.b-orange { border-top-color: var(--accent); background: var(--accent); border-color: transparent; }
 .lv-ch-card.b-orange .lv-ch-name { color: rgba(255,255,255,.65); }
 .lv-ch-card.b-orange .lv-ch-prob { color: #fff; }
@@ -519,7 +520,7 @@ const LV_CSS = `
    slide never replays after its one-time mount animation. */
 .lv-exres { max-width: 720px; margin: 42px auto 0; }
 .lv-exres-label { font-family: var(--font-m); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); text-align: center; margin-bottom: 14px; }
-.lv-exres-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; box-shadow: 0 26px 64px -34px rgba(28,24,21,.26); overflow: hidden; }
+.lv-exres-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; box-shadow: 0 26px 64px -34px rgba(96,72,62,.26); overflow: hidden; }
 .lv-exres-slide { animation: lvexresin .5s cubic-bezier(.22,.61,.36,1); }
 @keyframes lvexresin { from { opacity: 0; transform: translateX(22px) scale(.97); } to { opacity: 1; transform: none; } }
 .lv-exres-top { display: flex; gap: 24px; align-items: center; }
@@ -569,8 +570,8 @@ function useLandingV2Head() {
     // the browser's default white. Restored on unmount.
     const prevBodyBg = document.body.style.background;
     const prevHtmlBg = document.documentElement.style.background;
-    document.body.style.background = "#FBF8F1";
-    document.documentElement.style.background = "#FBF8F1";
+    document.body.style.background = "#F4EBDA";
+    document.documentElement.style.background = "#F4EBDA";
     let tabler = document.head.querySelector("link[data-lv-tabler]");
     const existed = !!tabler;
     if (!tabler) {
@@ -2032,7 +2033,7 @@ const FEATURES = [
             borderRadius: 12,
             padding: 14,
             color: "#fff",
-            boxShadow: "-20px 0 44px -24px rgba(28,24,21,.5)",
+            boxShadow: "-20px 0 44px -24px rgba(96,72,62,.5)",
           }}
         >
           <div
@@ -2188,7 +2189,7 @@ const FEATURES = [
               gap: 8,
               fontSize: 12,
               fontWeight: 600,
-              color: "var(--teal)",
+              color: "var(--teal-deep)",
             }}
           >
             <i className="ti ti-circle-check" style={{ fontSize: 15 }} />
@@ -2396,7 +2397,7 @@ const HEAD_START = [
             gap: 5,
             marginTop: 12,
             fontSize: 10.5,
-            color: "var(--teal)",
+            color: "var(--teal-deep)",
             fontWeight: 600,
           }}
         >
@@ -2486,7 +2487,7 @@ const HEAD_START = [
         >
           <span
             className="lv-sc-sq"
-            style={{ background: "var(--teal-tint)", color: "var(--teal)" }}
+            style={{ background: "var(--teal-tint)", color: "var(--teal-deep)" }}
           >
             <i className="ti ti-bell" style={{ fontSize: 16 }} />
           </span>
@@ -2576,7 +2577,7 @@ const HEAD_START = [
               style={{
                 fontSize: 9,
                 fontWeight: 700,
-                color: "var(--teal)",
+                color: "var(--teal-deep)",
                 marginBottom: 5,
               }}
             >
@@ -2807,7 +2808,7 @@ const HEAD_START = [
             gap: 7,
             fontSize: 11,
             fontWeight: 600,
-            color: "var(--teal)",
+            color: "var(--teal-deep)",
           }}
         >
           <i className="ti ti-circle-check" style={{ fontSize: 14 }} />3
@@ -3314,7 +3315,7 @@ const MEMORY_ROWS = [
         >
           <i
             className="ti ti-circle-check"
-            style={{ fontSize: 12, color: "var(--teal)" }}
+            style={{ fontSize: 12, color: "var(--teal-deep)" }}
           />
           NVIDIA moved to Interview · 2 days ago
         </div>
@@ -3403,7 +3404,7 @@ const MEMORY_ROWS = [
             gap: 7,
             fontSize: 10.5,
             fontWeight: 600,
-            color: "var(--teal)",
+            color: "var(--teal-deep)",
             marginTop: 8,
           }}
         >
@@ -3452,7 +3453,7 @@ const MEMORY_ROWS = [
               gap: 6,
               fontSize: 10.5,
               fontWeight: 600,
-              color: "var(--teal)",
+              color: "var(--teal-deep)",
             }}
           >
             <i className="ti ti-circle-check" style={{ fontSize: 13 }} />
