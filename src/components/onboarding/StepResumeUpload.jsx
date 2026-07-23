@@ -594,13 +594,20 @@ export default function StepResumeUpload({
         </div>
       )}
 
-      {/* Drop zone — primary action on the page */}
+      {/* Drop zone - primary action on the page. V2 (chromeless) uses the calm
+          single-card treatment: a hairline dashed border on the card surface
+          (0-i), reading confident not busy. V1 (full chrome) keeps the heavier
+          2px border on the soft fill verbatim - byte-identical flag-off. */}
       <div
         className={[
-          "rounded-[18px] p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border-2 border-dashed",
+          chromeless
+            ? "rd-r-lg p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border border-dashed"
+            : "rounded-[18px] p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border-2 border-dashed",
           dragOver
             ? "border-rd-primary bg-rd-primary-tint"
-            : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-primary hover:bg-rd-primary-tint",
+            : chromeless
+              ? "border-rd-border-hover bg-rd-bg-card hover:border-rd-primary hover:bg-rd-primary-tint"
+              : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-primary hover:bg-rd-primary-tint",
         ].join(" ")}
         data-dragover={dragOver}
         data-state={
