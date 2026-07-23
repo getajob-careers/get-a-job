@@ -505,7 +505,7 @@ export default function StepResumeUpload({
   const selected = new Set(profileData?.employment_status || []);
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-7 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
       {!chromeless && (
         <div>
           <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
