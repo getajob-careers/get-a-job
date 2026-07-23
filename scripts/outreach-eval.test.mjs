@@ -110,6 +110,62 @@ describe("scoreLayer1 - sender-side number fabrication", () => {
     expect(s.anti_fab_pass).toBe(false);
     expect(s.invented_numbers).toContain("45");
   });
+
+  // Scoped exemption (2026-07-23): propose_internship's framework-injected
+  // logistics numbers (~12 hrs/week practicum, 15-min ask) must NOT gate.
+  it("does NOT flag framework-structural 12/15 for propose_internship", () => {
+    const s = scoreLayer1(
+      {
+        goal: "propose_internship",
+        thread: [],
+        target_person: { mutual_context: null },
+        user_data: { summary: "consulting club lead, B2B segmentation" },
+      },
+      {
+        suggested_text:
+          "Hi Greg, I'm doing Reichman's Business Administration practicum this year (structured placement, Nov-Feb, ~12 hrs/week). I led three client engagements at the consulting club including a B2B segmentation project. Open to a 15-minute conversation?",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.invented_numbers).toEqual([]);
+    expect(s.anti_fab_pass).toBe(true);
+  });
+
+  it("STILL flags a fabricated non-structural number for propose_internship", () => {
+    const s = scoreLayer1(
+      {
+        goal: "propose_internship",
+        thread: [],
+        target_person: { mutual_context: null },
+        user_data: { summary: "consulting club lead" },
+      },
+      {
+        suggested_text:
+          "Hi Greg, I'm in Reichman's practicum (~12 hrs/week). I drove a 45% lift in adoption on a client project. Open to a 15-minute conversation?",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.invented_numbers).toContain("45");
+    expect(s.anti_fab_pass).toBe(false);
+  });
+
+  it("keeps the exemption SCOPED: 15 still gates for non-internship goals", () => {
+    const s = scoreLayer1(
+      {
+        goal: "message_recruiter",
+        thread: [],
+        target_person: { mutual_context: "posted a req" },
+        user_data: { note: "customer success at Guardio" },
+      },
+      {
+        suggested_text:
+          "Hi Sarah, I run customer success at Guardio and I am targeting customer success roles at your company where the team is scaling fast. I closed 15 enterprise renewals last quarter and would bring that motion to the role. Open to a quick chat about the fit soon?",
+        warm_up_advice: "",
+      },
+    );
+    expect(s.invented_numbers).toContain("15");
+    expect(s.anti_fab_pass).toBe(false);
+  });
 });
 
 describe("scoreLayer1 - hedging + length + ask calibration", () => {

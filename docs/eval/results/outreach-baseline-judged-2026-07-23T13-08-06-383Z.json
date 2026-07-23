@@ -1,0 +1,484 @@
+{
+  "model": "gpt-4o",
+  "judge": true,
+  "dry": false,
+  "ts": "2026-07-23T13-08-06-383Z",
+  "rows": [
+    {
+      "id": "recruiter-cold-listed",
+      "goal": "message_recruiter",
+      "persona": "eli_strong",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Sarah — I'm Eli Cohen, a final-year Business Administration student at Reichman University, currently running VIP customer success at Guardio, a cybersecurity startup. I noticed your post about the Customer Success Specialist role at Wiz. During my internship, I built a Slack bot that saved our CS team 8 hours a week by automating the flagging of stuck deals. I believe my experience in customer success and automation could be a great fit for the role. Open to a quick chat to explore this further?",
+        "turn_type": "opener",
+        "angle": "direct opener referencing the open Customer Success Specialist role",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 86,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 85,
+        "ask_calibration": 70,
+        "reply_worthiness": 75
+      },
+      "quality": 0.82
+    },
+    {
+      "id": "hiring-mgr-cold-nopost",
+      "goal": "message_hiring_manager",
+      "persona": "eli_strong",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Daniel, I'm Eli Cohen, a final-year Business Administration student at Reichman University. I currently manage VIP customer success at Guardio, a cybersecurity startup. I noticed Melio is making significant strides in the B2B payments space, especially in enhancing customer experience for small businesses. At Guardio, I developed a Slack bot that saved our CS team 8 hours a week by automating the flagging of stuck renewal deals. I'd love to learn how your team at Melio approaches similar challenges in customer experience. Would you be open to a brief call in the next couple of weeks?",
+        "turn_type": "opener",
+        "angle": "introduce with specific relevance to Melio's work in B2B payments",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 97,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 50,
+        "register": 60,
+        "ask_calibration": 40,
+        "reply_worthiness": 50
+      },
+      "quality": 0.6
+    },
+    {
+      "id": "alumni-warm-richcontext",
+      "goal": "message_alumni",
+      "persona": "noa_thin",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Yael, fellow Reichman BBA here, currently in my third year and focusing on Digital Innovation. I noticed you’re leading the Customer Success team at Verbit, which aligns with my interest in product and customer success roles in the tech sector. We both took Prof Lee's Customer Discovery course, and I remember you were the TA for my section. I’d love to hear how you transitioned into your current role and any advice you might have for someone looking to follow a similar path. Would you be open to a quick 20-minute chat over coffee or a call? Thanks so much!",
+        "turn_type": "opener",
+        "angle": "warm opener referencing the shared alumni connection and course experience",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 101,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 70,
+        "ask_calibration": 80,
+        "reply_worthiness": 75
+      },
+      "quality": 0.8099999999999999
+    },
+    {
+      "id": "alumni-sparse-context",
+      "goal": "message_alumni",
+      "persona": "noa_thin",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Idan, fellow Reichman alum here! I'm currently in my third year studying Business Administration with a focus on Digital Innovation. I noticed you're the Director of Marketing at Monday.com, and I'm really interested in exploring roles in product and customer success within the tech sector. I'd love to hear about your journey and any insights you could share about transitioning into these roles. Would you be open to a 20-minute chat sometime next week? Happy to work around your schedule!",
+        "turn_type": "opener",
+        "angle": "alumni connection with a specific interest in tech roles",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 81,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 60,
+        "register": 70,
+        "ask_calibration": 50,
+        "reply_worthiness": 60
+      },
+      "quality": 0.6799999999999999
+    },
+    {
+      "id": "info-interview-silence-followup",
+      "goal": "request_informational_interview",
+      "persona": "maya_nonreichman",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Tamar, just wanted to circle back on my previous message. I know your schedule might be packed, but if there's a chance to connect or even exchange a few thoughts over email, I'd really appreciate it. No worries if now isn't a good time!",
+        "turn_type": "follow_up_after_silence",
+        "angle": "soft follow-up after initial silence",
+        "warm_up_advice": "",
+        "conversation_state": "awaiting_reply",
+        "warnings": [
+          "Keep the tone light and understanding, as the recipient may be busy."
+        ]
+      },
+      "l1": {
+        "word_count": 45,
+        "length_ok": false,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 85,
+        "ask_calibration": 90,
+        "reply_worthiness": 85
+      },
+      "quality": 0.6799999999999999
+    },
+    {
+      "id": "thankyou-postcall-recall",
+      "goal": "thank_you_follow_up",
+      "persona": "noa_thin",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Yael, thanks so much for our conversation! I found your insights on the importance of understanding customer needs in CS roles particularly valuable. I'm planning to apply your advice to some upcoming projects in my consulting club. I'll definitely keep you updated on my progress and would love to stay in touch.",
+        "turn_type": "next_response",
+        "angle": "specific thank you referencing insights from the call",
+        "warm_up_advice": "",
+        "conversation_state": "goal_complete",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 53,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 85,
+        "ask_calibration": 90,
+        "reply_worthiness": 85
+      },
+      "quality": 0.8799999999999999
+    },
+    {
+      "id": "reconnect-dormant-pushed-ask",
+      "goal": "reconnect_dormant",
+      "persona": "eli_strong",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hey Roi — it's been quite a while since our internship days at [Company]. I was just thinking about how our project team tackled those challenges together. I noticed you're now a Product Manager at Fireblocks — that's fantastic! How have things been going for you there?",
+        "turn_type": "opener",
+        "angle": "warm opener referencing shared internship project",
+        "warm_up_advice": "Reconnection messages with an ask in turn 1 read as transactional. Send this without the ask first. After they reply, in your next turn we'll work the ask in naturally.",
+        "conversation_state": "cold_open",
+        "warnings": [
+          "Make sure to replace [Company] with the actual company name if you remember it."
+        ]
+      },
+      "l1": {
+        "word_count": 47,
+        "length_ok": false,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": true
+      },
+      "l2": {
+        "specificity": 70,
+        "register": 85,
+        "ask_calibration": 90,
+        "reply_worthiness": 80
+      },
+      "quality": 0.65
+    },
+    {
+      "id": "referral-pathB-dormant",
+      "goal": "ask_for_referral",
+      "persona": "eli_strong",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Dana, I hope you're doing well. We met briefly at the Tel Aviv product meetup last year and had a chance to exchange LinkedIn. I'm currently running VIP customer success at Guardio, a cybersecurity startup, and I'm eager to explore opportunities in product operations or customer success management. I'd love to reconnect and hear about your experiences at Snyk, especially in the engineering space. Let me know if you'd be open to a quick chat sometime this week.",
+        "turn_type": "opener",
+        "angle": "warm opener referencing the meetup connection",
+        "warm_up_advice": "This relationship is warm but not strong enough for a turn-1 ask. Send a reconnection message first, then bring up the referral in your next turn. Path B is the play here.",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 79,
+        "length_ok": true,
+        "anti_pattern_pass": false,
+        "template_hits": [
+          "i hope you're doing well",
+          "hope you're doing well"
+        ],
+        "undetected_template": [
+          "hope you're doing well"
+        ],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": true
+      },
+      "l2": {
+        "specificity": 60,
+        "register": 70,
+        "ask_calibration": 80,
+        "reply_worthiness": 75
+      },
+      "quality": 0
+    },
+    {
+      "id": "referral-pathA-strong",
+      "goal": "ask_for_referral",
+      "persona": "eli_strong",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Michal, I hope you're doing great! It was fantastic catching up last month. I've been really diving into the VIP customer success role at Guardio, especially focusing on the renewal-cohort strategies we worked on. I noticed that Gong has an opening for a Customer Success Manager, which aligns perfectly with my current experience and interests. I'd love to reconnect and chat about the role if you have some time. Let me know if you'd be open to a quick call or coffee sometime soon!",
+        "turn_type": "opener",
+        "angle": "warm opener referencing recent conversation and shared project",
+        "warm_up_advice": "This relationship is warm but not strong enough for a turn-1 ask. Send a reconnection message first, then bring up the referral in your next turn. Path B is the play here.",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 85,
+        "length_ok": true,
+        "anti_pattern_pass": false,
+        "template_hits": [
+          "i hope you're doing great"
+        ],
+        "undetected_template": [
+          "i hope you're doing great"
+        ],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": true
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 70,
+        "ask_calibration": 40,
+        "reply_worthiness": 60
+      },
+      "quality": 0
+    },
+    {
+      "id": "recommendation-too-thin",
+      "goal": "ask_for_recommendation",
+      "persona": "noa_thin",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Gil, we met briefly at the Reichman hackathon where we were on adjacent teams. I'm currently a third-year Business Administration student at Reichman University, focusing on Digital Innovation, and I'm preparing to enter the job market, targeting roles in product and customer success. I know this is a bit of an ask, but would you consider writing me a LinkedIn recommendation? I can make it as easy as possible by sending over a draft or a few key points about my recent experiences, such as leading a B2B segmentation project. No rush at all—anytime in the next few weeks would be wonderful, and I completely understand if your schedule is too tight. Thanks so much for considering it!",
+        "turn_type": "opener",
+        "angle": "introduce relationship from hackathon, ask for recommendation with lift-reduction offer",
+        "warm_up_advice": "This is too thin for a recommendation ask; consider asking for a referral or informational interview instead.",
+        "conversation_state": "cold_open",
+        "warnings": [
+          "The relationship is too thin for a recommendation ask; consider a different goal."
+        ]
+      },
+      "l1": {
+        "word_count": 119,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": true,
+        "recall_hits": [],
+        "invented_numbers": [],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": true
+      },
+      "l2": {
+        "specificity": 40,
+        "register": 60,
+        "ask_calibration": 20,
+        "reply_worthiness": 30
+      },
+      "quality": 0.5
+    },
+    {
+      "id": "internship-thin-reichman-gate-open",
+      "goal": "propose_internship",
+      "persona": "noa_thin",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Greg — I'm doing Reichman's Business Administration practicum this year (structured placement, Nov–Feb, ~12 hrs/week). I'm interested in product operations at 7AI, where your AI agents automate security-operations workflows. I led three client engagements at Reichman's consulting club, including a B2B segmentation project that drove real client adoption. Open to a 15-minute conversation?",
+        "turn_type": "opener",
+        "angle": "practicum lead with specific company hook and user experience tie-in",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 54,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": false,
+        "recall_hits": [],
+        "invented_numbers": [
+          "12",
+          "15"
+        ],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 80,
+        "register": 85,
+        "ask_calibration": 70,
+        "reply_worthiness": 75
+      },
+      "quality": 0
+    },
+    {
+      "id": "internship-notenrolled-gate-closed",
+      "goal": "propose_internship",
+      "persona": "maya_nonreichman",
+      "err": null,
+      "attempts": 1,
+      "suggestion": {
+        "suggested_text": "Hi Avi, I'm Maya Rosen, a final-year business student at Tel Aviv University. I'm targeting growth marketing roles and have led marketing efforts for our campus startup competition, where I grew signups significantly. Riverside's platform for recording studio-quality podcasts and video remotely is impressive, and I'd love to explore contributing to your growth team. Open to a 15-minute conversation?",
+        "turn_type": "opener",
+        "angle": "introduce self with relevant experience in growth marketing and specific company hook",
+        "warm_up_advice": "",
+        "conversation_state": "cold_open",
+        "warnings": []
+      },
+      "l1": {
+        "word_count": 59,
+        "length_ok": true,
+        "anti_pattern_pass": true,
+        "template_hits": [],
+        "undetected_template": [],
+        "anti_fab_pass": false,
+        "recall_hits": [],
+        "invented_numbers": [
+          "15"
+        ],
+        "summer_hit": false,
+        "hedge_pass": true,
+        "hedge_hits": [],
+        "weak_close_hits": [],
+        "ask_calibration_flag": false,
+        "warm_up_advice_present": false
+      },
+      "l2": {
+        "specificity": 50,
+        "register": 70,
+        "ask_calibration": 60,
+        "reply_worthiness": 65
+      },
+      "quality": 0
+    }
+  ]
+}

@@ -413,6 +413,13 @@ const WORD_BANDS = {
   propose_internship: [1, 80], // opener ≤ 80 words
 };
 
+// Framework-injected logistics numbers for propose_internship ONLY: the
+// practicum load (~10-12 hrs/week per the practicum lead) and the call-duration
+// ask (15/20/30 min per the ASK examples). These come FROM THE FRAMEWORK, not
+// the sender's data, so they must not trip the sender-fabrication number gate.
+// Scoped to this goal only (2026-07-23). See docs/eval/outreach-rubric.md.
+const FRAMEWORK_STRUCTURAL_NUMBERS = new Set(["10", "12", "15", "20", "30"]);
+
 function words(s) {
   return s.trim().split(/\s+/).filter(Boolean);
 }
@@ -451,9 +458,22 @@ function scoreLayer1(input, suggestion) {
   const outNums = [...(text.match(/\b\d[\d,]*\.?\d*%?\b/g) || [])]
     .map((n) => n.replace(/[,%]/g, ""))
     .filter((n) => parseFloat(n) >= 10); // metric-shaped only
-  const invented_numbers = outNums.filter(
-    (n) => !inScope.includes(n.toLowerCase()),
-  );
+  const invented_numbers = outNums.filter((n) => {
+    if (inScope.includes(n.toLowerCase())) return false;
+    // Scoped exemption (2026-07-23, hub-authorized on verbatim confirmation):
+    // propose_internship injects logistics numbers BY THE FRAMEWORK - the
+    // practicum load (~10-12 hrs/week) and the call-duration ask (15/20/30
+    // min) - which are not sender-claimed achievement metrics. Exempt them for
+    // this goal ONLY so the anti_fab gate stops false-firing on every
+    // internship message. Non-structural numbers (a fabricated 45% etc.) still
+    // gate. See docs/eval/outreach-rubric.md anti_fab note.
+    if (
+      input.goal === "propose_internship" &&
+      FRAMEWORK_STRUCTURAL_NUMBERS.has(n)
+    )
+      return false;
+    return true;
+  });
 
   // whether the anti-pattern chip WOULD fire in production (narrower list) - // lets us measure the detector-gap directly.
   const SHIPPED_DETECTOR = [
