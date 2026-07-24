@@ -191,6 +191,7 @@ function Editable({
   block = false,
   readOnly = false,
   hint = "",
+  ariaLabel = "",
 }) {
   const ref = useRef(null);
   const Tag = block ? "div" : "span";
@@ -227,6 +228,9 @@ function Editable({
       contentEditable
       suppressContentEditableWarning
       spellCheck={false}
+      role="textbox"
+      aria-label={ariaLabel || placeholder || undefined}
+      aria-multiline={block ? "true" : "false"}
       data-ph={placeholder}
       onBlur={() =>
         onCommit?.(ref.current.innerText.replace(/\n+/g, " ").trim())
@@ -1189,6 +1193,7 @@ export default function CVStudioView({
                   onCommit={(v) => onPatchHeader({ headline: v })}
                   className="cv-headline"
                   block
+                  ariaLabel="Professional headline"
                 />
                 <div className="cv-contact">
                   <Editable
