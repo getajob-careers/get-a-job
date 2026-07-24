@@ -114,7 +114,11 @@ export default function ScoreRing({
 
   return (
     <span
-      className={`relative flex-shrink-0 inline-flex ${interactive ? "cursor-pointer" : ""}`}
+      className={`relative flex-shrink-0 inline-flex ${interactive ? "cursor-pointer rounded-full rd-focus-ring" : ""}`}
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-expanded={interactive ? legend : undefined}
+      aria-label={interactive ? `Match ${pct}%, toggle score breakdown` : undefined}
       onMouseEnter={interactive ? openLegend : undefined}
       onMouseLeave={interactive ? closeLegend : undefined}
       onClick={
@@ -122,6 +126,17 @@ export default function ScoreRing({
           ? (e) => {
               e.stopPropagation();
               setLegend((x) => !x);
+            }
+          : undefined
+      }
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                setLegend((x) => !x);
+              }
             }
           : undefined
       }
