@@ -82,7 +82,8 @@ depth exceeded`).** Same root cause as S-A1: the page-context `useEffect`
 <button>`). Works today via `stopPropagation`, but nested interactive controls
   are invalid HTML and break keyboard/screen-reader semantics. **Fix:** make the
   outer card a non-interactive `<div>`; the toggle button and the action cluster
-  become siblings. Own scoped PR.
+  become siblings. **FIXED**: re-swept StoryBank after the fix - 0 nesting
+  warnings, story cards + edit/delete controls still render, toggle still expands.
 
 ### Pass 2 console-health matrix
 
