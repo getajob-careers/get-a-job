@@ -11,7 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
-import { scoreJobFit } from "@/lib/scoreJobFit";
+import { useChunkedScored } from "@/lib/chunkedScore";
 import { scoringOpts } from "@/lib/flags";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import {
@@ -167,19 +167,28 @@ export default function JobsSearchTab({
 
   // Render the fuller of the two; spinner only blocks until the first page.
   const corpus = fullCorpus.length > firstPage.length ? fullCorpus : firstPage;
-  const isLoading = firstLoading && corpus.length === 0;
   const error = firstError || fullError;
 
-  // 2. Score every job ONCE. Recomputes only when the corpus or profile
-  //    changes — NOT on facet change.
-  const scored = useMemo(() => {
-    if (!profile || corpus.length === 0) return [];
-    const opts = scoringOpts();
-    return corpus.map((job) => ({
-      job,
-      score: scoreJobFit({ profile, experiences, educations }, job, opts),
-    }));
-  }, [corpus, profile, experiences, educations]);
+  // 2. Score every job against the profile, but OFF the critical path: the
+  //    first page scores synchronously (instant results) and the rest streams
+  //    in across requestIdleCallback slices, so a ~4,000-row corpus no longer
+  //    freezes the main thread ~0.5-1s on first paint / profile change
+  //    (prelaunch-audit S4). Scores are byte-identical to the old synchronous
+  //    map (chunkedScore.test.js pins it); the ranking below refines as slices
+  //    land - the same progressive refine the two-stage corpus load already
+  //    produced, now non-blocking. Empty until profile + corpus both exist.
+  const scored = useChunkedScored(
+    profile ? { profile, experiences, educations } : null,
+    profile ? corpus : [],
+    scoringOpts(),
+  );
+
+  // Also hold the loader through the first render where the corpus exists but
+  // the async scorer hasn't emitted its first batch yet - otherwise the
+  // zero-length `scored` would flash the empty state for one frame.
+  const isLoading =
+    (firstLoading && corpus.length === 0) ||
+    (corpus.length > 0 && scored.length === 0);
 
   // 3. Facet state. PR B: seniority + work-type (track/family/location → PR C).
   // Seeded from initialKeyword for the /Career?role= deep link (PR3); "" = no
@@ -199,9 +208,8 @@ export default function JobsSearchTab({
   // desktop inline collapse) so the desktop default stays "open" while the
   // drawer starts closed - no scrim popping over results on load.
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const filterTrapRef = useFocusTrap(
-    alive && mobileFiltersOpen,
-    () => setMobileFiltersOpen(false),
+  const filterTrapRef = useFocusTrap(alive && mobileFiltersOpen, () =>
+    setMobileFiltersOpen(false),
   );
 
   // Location picker options derived from the ALREADY-cached corpus (no extra
