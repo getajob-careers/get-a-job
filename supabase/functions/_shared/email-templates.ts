@@ -75,7 +75,7 @@ export function renderJobDigestEmail(args: {
 }): { subject: string; html: string; text: string } {
   const name = firstName(args.fullName);
   const n = args.jobs.length;
-  const subject = `${n} new ${n === 1 ? "job" : "jobs"} that match your profile`;
+  const subject = `${n} new ${n === 1 ? "job that matches" : "jobs that match"} your profile`;
 
   const jobCards = args.jobs
     .map(
