@@ -333,7 +333,7 @@ export default function Login() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] font-semibold hover:border-rd-primary transition-[border-color] duration-150 disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 min-h-[44px] rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] font-semibold hover:border-rd-primary transition-[border-color] duration-150 disabled:opacity-60"
                 >
                   <GoogleGlyph />
                   Continue with Google
