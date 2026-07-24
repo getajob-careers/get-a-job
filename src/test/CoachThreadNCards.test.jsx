@@ -7,6 +7,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Auto-fire + apply handlers are network — stub the whole module. The CV in the
 // fixtures below is already "done" (has result.cv_url) so the auto-fire effect
@@ -43,16 +44,23 @@ const conv = {
 };
 
 function renderRow(message) {
+  // SuggestionRow now polls cv_generation_progress via react-query (the honest
+  // CV ring), so it needs a QueryClient in context like the real app.
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
   return render(
-    <MemoryRouter>
-      <SuggestionRow
-        message={message}
-        conv={conv}
-        user={{ id: "u1" }}
-        queryClient={{ invalidateQueries: vi.fn() }}
-        profileSkills={[]}
-      />
-    </MemoryRouter>,
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <SuggestionRow
+          message={message}
+          conv={conv}
+          user={{ id: "u1" }}
+          queryClient={{ invalidateQueries: vi.fn() }}
+          profileSkills={[]}
+        />
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 

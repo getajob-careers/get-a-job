@@ -744,6 +744,7 @@ export default function CVStudioView({
   tailorContext = null, // { role, company } when on master with a pending tailor target
   onTailorContext, // banner CTA → tailor the pending target
   tailoring = false, // the refine-cv select+reword call is running (~16s)
+  tailorProgress = null, // live { done, total, stage } from cv_generation_progress (refine-cv)
   tailorLabel = "this job",
   tailorResult = null, // { cvId, role, company } — the just-finished tailored CV
   onViewTailored, // outcome card "View it" → load the new CV in the editor
@@ -757,7 +758,13 @@ export default function CVStudioView({
   // Profile-backed header fallback ({ name, email, linkedin, location, phone }),
   // mirrors the PDF renderHeader cascade so the on-screen preview shows the same
   // real contact data the download carries instead of template placeholders.
-  headerFallback = { name: "", email: "", linkedin: "", location: "", phone: "" },
+  headerFallback = {
+    name: "",
+    email: "",
+    linkedin: "",
+    location: "",
+    phone: "",
+  },
 }) {
   // Flag-on gates the Batch-D redesign additions (doc-top unified header, the
   // collapse-to-strip Templates rail). Flag off -> today's pill + always-open
@@ -1016,6 +1023,7 @@ export default function CVStudioView({
                 <div className="bg-rd-primary-tint border border-rd-primary/30 rounded-lg px-3 py-2.5">
                   <CvGenerationProgress
                     compact
+                    progress={tailorProgress}
                     label={`Tailoring your CV to ${tailorLabel}…`}
                     hint={GENERATION_ETA}
                   />

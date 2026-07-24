@@ -55,11 +55,9 @@ function ProgressRing({ progress, size, stroke }) {
         strokeDasharray={circ}
         strokeDashoffset={determinate ? circ * (1 - pct) : circ * 0.72}
         transform={`rotate(-90 ${center} ${center})`}
-        style={
-          determinate
-            ? { transition: "stroke-dashoffset 400ms ease" }
-            : undefined
-        }
+        // Determinate fill eases between milestones; the transition lives in CSS
+        // (not inline) so prefers-reduced-motion can drop it to an instant jump.
+        className={determinate ? "rd-ring-fill" : undefined}
       />
     </svg>
   );
