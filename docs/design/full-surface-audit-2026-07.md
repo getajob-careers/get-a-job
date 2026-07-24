@@ -127,16 +127,69 @@ content present, over a ~5.5-6s post-load window.
 
 ## Not yet audited (outstanding for Pass 2+)
 
-- **Surfaces not loaded:** Landing, Login/ResetPassword/AuthCallback, Onboarding /
-  OnboardingV2 / OnboardingEntry (the onboarding FLOW, high-value), StoryBank,
-  Roadmap, Resources, Calendar, Internship, SkillDevelopmentAdvisor, Linkedin,
-  CareerAgent, Admin / AdminLaunch / Subagents, Privacy / Terms, Jobs/JobsRouteGate
-  redirects.
+- **Surfaces not loaded:** AuthCallback (needs a real token), Onboarding /
+  OnboardingV2 / OnboardingEntry (the onboarding FLOW lifecycle, high-value - HELD,
+  needs an un-onboarded test user), StoryBank, Roadmap, Resources, Calendar,
+  Internship, SkillDevelopmentAdvisor, Linkedin, CareerAgent, Admin / AdminLaunch /
+  Subagents, Privacy / Terms, Jobs/JobsRouteGate redirects.
+  (Landing, Login, ResetPassword, onboarding step-preview: DONE in Pass 2 above.)
 - **Depth not yet done on ANY surface:** button-by-button dead-click testing;
   empty / loading / error state coverage per surface (force each state); mobile
   breakpoint pass (narrow viewport, drawers, sticky bars); keyboard/focus a11y walk;
   form submit/validation paths; both flag states for every surface (Pass 1 only did
   both for Home + Career).
+
+## Pass 2 - logged-out surfaces (2026-07-24)
+
+Method: logged-out dev session (localhost `sb-*-auth-token` cleared; localhost
+origin only, production session untouched). Per-surface console tap (interceptor
+
+- client-nav) + a static interaction/a11y probe (dead controls, accessible names,
+  alt text, tap-target < 44px, unlabeled inputs, heading order).
+
+Console health: **Landing, Login, ResetPassword, and the onboarding step preview
+all CLEAN** (0 `Maximum update depth`, 0 `validateDOMNesting`, 0 other console
+errors) over a ~6s post-load window.
+
+Findings:
+
+- **P1 - ResetPassword infinite "Verifying reset link…"** - FIXED this pass
+  (PR pending on branch `eli/reset-password-expired-link-state`). Reached WITHOUT a
+  valid recovery token (expired/reused link, or a direct visit), Supabase never
+  fires `PASSWORD_RECOVERY`, so `ready` stays false and the page hangs on the
+  "Verifying reset link…" spinner forever - no timeout, no error, no escape
+  (design-craft rule 7). Fix: an 8s timeout flips to an honest "This reset link
+  isn't valid" state with a "Back to sign in" button -> `/login`. Verified live on
+  dev (error state renders at 8s; button routes to /login).
+- **P2 - sub-44px tap targets** (WCAG 2.5.5 / design-craft rule 8):
+  - Landing: 22 interactive els < 44px, incl. carousel Prev/Next arrows 40x40 (two
+    carousels), header "Log in" 48x33, "Start" 70x39, plus several 18-20px text-link
+    CTAs ("See how it works", "See your roadmap").
+  - Login: "Continue with Google" 362x42 and Turnstile "Verifying…" 362x40 (2-4px
+    under), "Forgot?" 44x17, "Create an account" 112x19 (text links).
+  - Onboarding step: primary "Upload to continue" 148x40 (4px under), "Skip - I'll
+    enter details" 177x18, "About Get A Job" 93x18.
+    Inline text links are commonly exempt; the defensible fixes are the icon/CTA
+    controls (carousel arrows 40x40, header buttons, primary CTAs at 40-42px height).
+    Scope as one batched tap-target pass, not per-PR.
+- **P2 - ResetPassword is entirely off-token** (design-craft rule 1): raw hex
+  (`#FAFAFA`/`#0A0A0A`/`#E5E5E5`, `bg-red-50`, a gradient), no `rd-*` tokens. The
+  P1 dead-end fix matched the file's local idiom to stay surgical; a full token
+  migration of this page is a separate cosmetic pass.
+- **P2 - unlabeled `<input type=file>`** on Landing + the onboarding step (no
+  label / aria-label). On Landing this is likely the known "fake dropzone" (queued
+  for removal); still an a11y gap - add an aria-label or associate a `<label>`.
+
+HELD (blocked): the REAL onboarding FLOW lifecycle (`OnboardingEntry` /
+`OnboardingV2`) needs an authenticated-but-UN-onboarded user - I'm onboarded, so
+it redirects, and Eli's `onboarding_step` must not be reset. `/_preview/onboarding/
+:state` audits the styled steps but not the flow's state machine. Needs a fresh /
+throwaway un-onboarded test account.
+
+Still outstanding for Pass 2: AuthCallback (needs a real token in the URL),
+and the interaction-DEPTH pass on the authenticated surfaces (button-by-button
+dead-click, forced empty/loading/error states, mobile breakpoints, keyboard/focus
+walk, both flag states).
 
 ## Closed this session (context)
 
