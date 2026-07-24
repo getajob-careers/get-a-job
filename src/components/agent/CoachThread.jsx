@@ -18,6 +18,7 @@ import { useEducationQuery } from "@/lib/queries/useEducation";
 import CvGenerationProgress, {
   GENERATION_ETA,
 } from "@/components/cv-studio/CvGenerationProgress";
+import { useCvGenerationProgress } from "@/hooks/useCvGenerationProgress";
 import {
   applyAllTaskSuggestions,
   applyRoadmapChanges,
@@ -171,6 +172,14 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
   // clicks it, exactly once, via conv.generateCvForMessage (single-owner across
   // dock + panel; result merges back into the message).
   const cvState = conv.cvGenStates?.[message.id];
+  // Honest determinate ring while THIS message's CV generation runs. Only the
+  // one generating message polls (enabled is false for every other card); with
+  // the cvFanout flag off there is no row, so the ring stays indeterminate.
+  const cvProgress = useCvGenerationProgress({
+    userId: user?.id,
+    source: "generate-tailored-cv",
+    enabled: cvState?.status === "generating",
+  });
 
   // Render EVERY action block the turn carries. A single coach turn can emit any
   // combination of tasks + roadmap + application + company-target + CV; the user
@@ -289,6 +298,7 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
             <div className="mt-2">
               <CvGenerationProgress
                 compact
+                progress={cvProgress}
                 label="Generating your CV…"
                 hint={GENERATION_ETA}
               />

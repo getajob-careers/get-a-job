@@ -35,6 +35,7 @@ import {
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { trackCvGenerated } from "@/lib/analytics";
 import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
+import { useCvGenerationProgress } from "@/hooks/useCvGenerationProgress";
 import {
   useEducationQuery,
   educationQueryKey,
@@ -108,6 +109,12 @@ export default function CVStudioLive({
   // banner over the real master content.
   const [pendingTailor, setPendingTailor] = useState(null); // { applicationId } | null
   const [tailoring, setTailoring] = useState(false); // the refine-cv select+reword call (~16s)
+  // Honest determinate ring: poll the refine-cv progress row while tailoring.
+  const tailorProgress = useCvGenerationProgress({
+    userId: user?.id,
+    source: "refine-cv",
+    enabled: tailoring,
+  });
   const [tailorResult, setTailorResult] = useState(null); // { cvId, role, company } — outcome card
   const [noJdOpen, setNoJdOpen] = useState(false); // no-JD card overlay
   const { data: tailorApp } = useApplicationForTailor(
@@ -1195,7 +1202,6 @@ export default function CVStudioLive({
     [selectedCvId, cvOptions, onPatchSummary, onPatchBullet],
   );
 
-
   // Tailor via refine-cv — the extension's proven select-and-reword path
   // (~16s): it picks + reframes the JD-relevant material from the user's master
   // reservoir and persists a new is_master=false row tied to application_id.
@@ -1558,6 +1564,7 @@ export default function CVStudioLive({
         tailorContext={tailorContext}
         onTailorContext={startTailor}
         tailoring={tailoring}
+        tailorProgress={tailorProgress}
         tailorLabel={tailorLabel}
         tailorResult={tailorResult}
         onViewTailored={onViewTailored}

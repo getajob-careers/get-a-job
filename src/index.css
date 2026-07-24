@@ -422,6 +422,16 @@
     animation: none;
   }
 }
+/* Determinate fill: the arc eases as real milestones land. Reduced-motion drops
+   the tween so the ring jumps straight to the honest fraction, no sweep. */
+.rd-ring-fill {
+  transition: stroke-dashoffset 400ms ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-ring-fill {
+    transition: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .rd-press,
   .rd-press:active {
