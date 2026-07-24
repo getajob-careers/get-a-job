@@ -56,14 +56,15 @@ export default function StoryCard({ story, experienceLabel, onEdit, onDelete }) 
       data-story-id={story.id}
       className="rounded-[18px] border border-rd-border bg-rd-bg-card shadow-rd hover:border-rd-border-hover transition-colors"
     >
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        data-story-toggle={story.id}
-        aria-expanded={expanded}
-        className="w-full text-left px-5 py-4 flex items-start justify-between gap-3.5 cursor-pointer"
-      >
-        <div className="min-w-0 flex-1">
+      <div className="w-full px-5 py-4 flex items-start justify-between gap-3.5">
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          data-story-toggle={story.id}
+          aria-expanded={expanded}
+          className="min-w-0 flex-1 text-left cursor-pointer"
+        >
+          <div className="min-w-0">
           <p className="font-display font-bold text-[14.5px] text-rd-text leading-[1.3]">
             {story.title || "Untitled story"}
           </p>
@@ -87,6 +88,7 @@ export default function StoryCard({ story, experienceLabel, onEdit, onDelete }) 
             {story.source && <span>· {story.source.replace(/_/g, " ")}</span>}
           </div>
         </div>
+        </button>
         <div className="flex items-center gap-1 flex-shrink-0">
           <button
             type="button"
@@ -131,7 +133,7 @@ export default function StoryCard({ story, experienceLabel, onEdit, onDelete }) 
             ? <ChevronUp className="w-4 h-4 text-rd-text-tertiary mt-1.5" />
             : <ChevronDown className="w-4 h-4 text-rd-text-tertiary mt-1.5" />}
         </div>
-      </button>
+      </div>
 
       {expanded && (
         <div className="px-5 pt-1 pb-5 border-t border-rd-border-subtle flex flex-col gap-3.5">
