@@ -39,6 +39,16 @@ export const SENIORITY_RANK: Record<string, number> = {
   Staff: 4,
   Director: 5,
   VP: 6,
+  // Combined tiers emitted by the extractor vocab (00_role_library.ts
+  // seniority_levels: Entry/Entry_Mid/Mid/Senior/Lead_Manager/Director_Head/
+  // VP_Executive). These are what jobs.req_seniority actually stores; without
+  // them the three most-senior tiers (621 active jobs) hit the `?? null`
+  // unknown_value branch in computeSeniorityAxis and scored a neutral 0.5 for
+  // everyone — no above-ceiling penalty, no band cap. Ranks mirror the split
+  // forms above (Lead/Manager=4, Director=5, VP=6).
+  Lead_Manager: 4,
+  Director_Head: 5,
+  VP_Executive: 6,
 };
 
 // User-stage seniority ceiling for Track 1 ("can be hired NOW").
