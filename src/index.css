@@ -592,3 +592,23 @@
     animation: none;
   }
 }
+
+/* Global reduced-motion fallback (prelaunch-audit N2). Motion-safe BY DEFAULT:
+   any element that does not use one of the gated motion classes still honors the
+   OS "reduce motion" preference, so future motion is safe without remembering a
+   per-component guard. The !important also overrides inline transitions - e.g.
+   Home's today's-moves progress ring `style={{transition:"stroke-dasharray .35s"}}`
+   (audit N1). 0.01ms (instant-complete), not `none`, so a single-shot transition
+   still snaps to its end state. Existing per-class guards remain the primary path;
+   this is the backstop. Load-bearing state is never motion-only (spinners carry a
+   label, score/count animations short-circuit to their final value). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
