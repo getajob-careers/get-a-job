@@ -7,7 +7,7 @@
 # Cadence: the function enforces a per-user 2-day gap, so this cron is intended to
 # run DAILY once enabled ("every two days per user" = daily cron + per-user gate).
 # To go live for real: (1) uncomment the schedule below, (2) set the send flags per
-# the PR, targeting the first real send for Sunday 2026-07-27.
+# the PR, targeting the first real send for Sunday 2026-07-26.
 #
 # Required repo secrets (same as refresh-jobs.yml):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
