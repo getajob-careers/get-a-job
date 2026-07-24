@@ -421,8 +421,17 @@ export default function Career() {
   // src/test/career-page-context.test.js unit suite — proves the wiring
   // emits the right IDs without rendering the full page tree.
   const agentDrawer = useAgentDrawer();
+  // Depend on the STABLE setPageContext (a useCallback), not the whole
+  // agentDrawer object, which changes identity every time isOpen/pageContext
+  // updates. With agentDrawer in the deps the effect ping-pongs: its cleanup
+  // fires setPageContext(null) then the body sets the ctx back, each a real
+  // state change that mints a new agentDrawer and re-triggers the effect, so
+  // React caps it at "Maximum update depth exceeded". setPageContext keeps a
+  // fixed identity, so the effect now re-runs only when the page-context
+  // inputs actually change. Same fix Home.jsx already carries.
+  const { setPageContext } = agentDrawer;
   useEffect(() => {
-    agentDrawer.setPageContext(
+    setPageContext(
       buildCareerPageContext({
         // No selected track anymore (track-card model retired) and the live
         // jobs list lives inside <UnifiedJobsFeed>, so Career surfaces neither
@@ -435,8 +444,8 @@ export default function Career() {
         visibleRoleIds,
       }),
     );
-    return () => agentDrawer.setPageContext(null);
-  }, [effectiveExpandedId, drawerAppId, visibleRoleIds, agentDrawer]);
+    return () => setPageContext(null);
+  }, [effectiveExpandedId, drawerAppId, visibleRoleIds, setPageContext]);
 
   // Fixed shell (md+): the page itself doesn't scroll, so wheeling over the
   // empty margins beside the centered content, the header/pipeline, or the
