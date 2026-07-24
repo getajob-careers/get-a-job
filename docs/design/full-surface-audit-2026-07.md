@@ -172,6 +172,17 @@ Findings:
     Inline text links are commonly exempt; the defensible fixes are the icon/CTA
     controls (carousel arrows 40x40, header buttons, primary CTAs at 40-42px height).
     Scope as one batched tap-target pass, not per-PR.
+  - **FIXED (2026-07-24, PR tap-target-44-batch):** the defensible CTA controls now
+    meet the 44px floor. On re-verify against current `main`, the two Landing carousel
+    arrows (`.lv-caro-btn`) were ALREADY 44x44 (the audit's 40x40 was a stale live
+    measurement, fixed by a prior change) - no action needed. Bumped: (1) shared
+    `RdButton` (`min-h-[44px]`) - covers onboarding "Upload to continue" + Login submit
+    - every primary pill app-wide; (2) Login "Continue with Google" (`min-h-[44px]`,
+      matches the submit beneath it); (3) Landing nav "Log in" (`.lv-nav-login`) and
+      (4) "Start" (`.btn-sm`) via the `rd-hit-44` invisible-::before pattern (keeps the
+      compact 33/39px visual, extends the hit area to 44x44). Browser-verified live on
+      dev: Landing Log in/Start = 44x44 ::before; Login Google + submit = h44. Text-link
+      CTAs (Forgot?, Create an account, Skip, About, See how it works) left exempt.
 - **P2 - ResetPassword is entirely off-token** (design-craft rule 1): raw hex
   (`#FAFAFA`/`#0A0A0A`/`#E5E5E5`, `bg-red-50`, a gradient), no `rd-*` tokens. The
   P1 dead-end fix matched the file's local idiom to stay surgical; a full token

@@ -18,7 +18,10 @@ export default function RdButton({ className = "", children, ...rest }) {
       {...rest}
       className={[
         "inline-flex items-center justify-center gap-2",
-        "rounded-full px-5 py-2.5",
+        // min-h-[44px] holds the WCAG 2.5.5 / design-craft rule-8 touch-target
+        // floor even though py-2.5 alone renders ~40px; the flex centering keeps
+        // the label vertically centered as the box grows the last few px.
+        "rounded-full px-5 py-2.5 min-h-[44px]",
         "bg-rd-primary text-white",
         "font-display font-bold text-sm tracking-tight",
         "shadow-sm",

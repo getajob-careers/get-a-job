@@ -993,11 +993,19 @@ function Nav({ isLoggedIn, onCTA, onLogin }) {
         </div>
         <div className="lv-nav-right">
           {!isLoggedIn && (
-            <button type="button" className="lv-nav-login" onClick={onLogin}>
+            <button
+              type="button"
+              className="lv-nav-login rd-hit-44"
+              onClick={onLogin}
+            >
               Log in
             </button>
           )}
-          <button type="button" className="btn btn-ink btn-sm" onClick={onCTA}>
+          <button
+            type="button"
+            className="btn btn-ink btn-sm rd-hit-44"
+            onClick={onCTA}
+          >
             {isLoggedIn ? "Dashboard" : "Start"}
           </button>
         </div>
