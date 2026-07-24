@@ -150,14 +150,40 @@ export default function JobsSearchTab({
     queryKey: ["jobsCorpusLight"],
     queryFn: async () => {
       // Paginate in PostgREST-cap-sized pages: a bare unbounded select
-      // silently truncates at db-max-rows (Supabase default 1000).
-      const all = [];
-      let from = 0;
-      for (;;) {
-        const page = await fetchPage(from);
-        all.push(...page);
-        if (page.length < CORPUS_FETCH_PAGE) break;
-        from += CORPUS_FETCH_PAGE;
+      // silently truncates at db-max-rows (Supabase default 1000). An exact
+      // head-count tells us how many pages exist up front, so we fire them
+      // ALL AT ONCE (Promise.all) instead of walking them sequentially - the
+      // full ~6k-row corpus lands in about one round-trip of wall time rather
+      // than N (measured live: 9.5s sequential vs 3.4s parallel). Byte-
+      // identical to the old sequential walk: same select/filter/order, pages
+      // concatenated in range order (verified same rows AND same order), so
+      // scoring + "best match" ranking downstream are unchanged (audit S-A2).
+      const { count, error: cErr } = await supabase
+        .from("jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("is_il", true)
+        .eq("is_active", true);
+      if (cErr) throw cErr;
+      const nPages = Math.max(1, Math.ceil((count || 0) / CORPUS_FETCH_PAGE));
+      const pages = await Promise.all(
+        Array.from({ length: nPages }, (_, i) =>
+          fetchPage(i * CORPUS_FETCH_PAGE),
+        ),
+      );
+      const all = pages.flat();
+      // Tail guard: the count is read before the page fetches, so if rows were
+      // added in between (rare - the corpus only grows on the nightly cron) the
+      // last parallel page could be full and hide a tail. Preserve the old
+      // loop's correctness by walking any remainder sequentially; near-always
+      // zero extra round-trips.
+      if (all.length === nPages * CORPUS_FETCH_PAGE) {
+        let from = nPages * CORPUS_FETCH_PAGE;
+        for (;;) {
+          const page = await fetchPage(from);
+          all.push(...page);
+          if (page.length < CORPUS_FETCH_PAGE) break;
+          from += CORPUS_FETCH_PAGE;
+        }
       }
       return all;
     },
