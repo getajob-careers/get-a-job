@@ -102,11 +102,15 @@ export default function Calendar() {
   // the agent meaningful situational awareness; per-item application_id
   // wiring can land as a follow-up when the surface gains a single-event
   // selection state.
-  const agentDrawer = useAgentDrawer();
+  // Depend on the STABLE setPageContext, not the whole agentDrawer object,
+  // which changes identity on every pageContext/isOpen update and ping-pongs
+  // this effect into "Maximum update depth exceeded" (audit S-B1). Same fix
+  // Home.jsx and Career.jsx carry.
+  const { setPageContext } = useAgentDrawer();
   useEffect(() => {
-    agentDrawer.setPageContext({ page: "Calendar" });
-    return () => agentDrawer.setPageContext(null);
-  }, [agentDrawer]);
+    setPageContext({ page: "Calendar" });
+    return () => setPageContext(null);
+  }, [setPageContext]);
 
   const { data: events = [], isLoading: loadingEvents, isError: eventsError } = useQuery({
     queryKey: ["calendarEvents", user?.id],

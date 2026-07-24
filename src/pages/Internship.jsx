@@ -58,13 +58,17 @@ export default function Internship() {
   // companies. openTarget.id is the row's UUID — no titles or content
   // travel through the client; the server fetches everything under
   // user-scoped auth.
-  const agentDrawer = useAgentDrawer();
+  // Depend on the STABLE setPageContext, not the whole agentDrawer object,
+  // which changes identity on every pageContext/isOpen update and ping-pongs
+  // this effect into "Maximum update depth exceeded" (audit S-B1). Same fix
+  // Home.jsx and Career.jsx carry.
+  const { setPageContext } = useAgentDrawer();
   useEffect(() => {
     const ctx = { page: "Internship" };
     if (openTarget?.id) ctx.company_target_id = openTarget.id;
-    agentDrawer.setPageContext(ctx);
-    return () => agentDrawer.setPageContext(null);
-  }, [openTarget?.id, agentDrawer]);
+    setPageContext(ctx);
+    return () => setPageContext(null);
+  }, [openTarget?.id, setPageContext]);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TABS.find((t) => t.id === searchParams.get("tab"))?.id || DEFAULT_TAB;
 

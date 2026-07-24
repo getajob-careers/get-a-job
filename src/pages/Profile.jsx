@@ -287,11 +287,14 @@ export default function Profile() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // PR-B2: page-only context so the agent knows the user is on Profile.
-  const agentDrawer = useAgentDrawer();
+  // Depend on the STABLE setPageContext, not the whole agentDrawer object
+  // (latent version of the S-B1 render-loop anti-pattern; kept consistent with
+  // Home/Career/Calendar/Internship so it can never regress into the loop).
+  const { setPageContext } = useAgentDrawer();
   useEffect(() => {
-    agentDrawer.setPageContext({ page: "Profile" });
-    return () => agentDrawer.setPageContext(null);
-  }, [agentDrawer]);
+    setPageContext({ page: "Profile" });
+    return () => setPageContext(null);
+  }, [setPageContext]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = React.useRef(null);

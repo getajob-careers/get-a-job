@@ -54,6 +54,61 @@ and empty/loading/error states. Findings ranked **blocker / should / nice** with
   continue-on-error in CI. Tracked separately (edge-function-typecheck-backlog); noted
   here so the audit's net-delta discipline stays honest.
 
+## Pass 2 findings (2026-07-24)
+
+Pass 2 swept every remaining authenticated surface (console-health + render
+smoke, both by client-side nav so a fresh mount is measured), using the same
+`console.error` interceptor method as Pass 1. Signed in as Eli
+(already-onboarded), so the logged-out surfaces (Landing, Login /
+ResetPassword / AuthCallback, the Onboarding FLOW) redirect and are still
+outstanding, called out below (no silent cap).
+
+### SHOULD (Pass 2)
+
+- **S-B1 - Calendar + Internship agent-drawer render loops (`Maximum update
+depth exceeded`).** Same root cause as S-A1: the page-context `useEffect`
+  listed the whole `agentDrawer` context object as a dependency, so it
+  ping-ponged (cleanup `setPageContext(null)` + body `setPageContext(ctx)` are
+  `null<->ctx` transitions the shallow guard never bails on, each minting a
+  fresh `agentDrawer`). Measured fresh-mount: Calendar 110 warnings, Internship 34. Profile carried the identical anti-pattern but happened to settle clean;
+  fixed alongside so it can never regress. **FIXED** (PR #743): destructure the
+  stable `setPageContext` and depend on that, mirroring Home/Career. Re-swept:
+  Calendar 0, Internship 0, Profile 0.
+
+- **S-B3 - StoryBank nested `<button>` (invalid DOM nesting / a11y).**
+  `StoryCard` renders the whole card header as a `<button>` (the expand toggle)
+  with the edit / delete / confirm action `<button>`s nested inside it, tripping
+  React's `validateDOMNesting` warning (`<button> cannot be a descendant of
+<button>`). Works today via `stopPropagation`, but nested interactive controls
+  are invalid HTML and break keyboard/screen-reader semantics. **Fix:** make the
+  outer card a non-interactive `<div>`; the toggle button and the action cluster
+  become siblings. Own scoped PR.
+
+### Pass 2 console-health matrix
+
+All swept over a ~5s fresh-mount window; "clean" = 0 errors, 0 uncaught, 0
+`Maximum update depth`, content rendered.
+
+| Surface                    | result                        |
+| -------------------------- | ----------------------------- |
+| Profile                    | clean                         |
+| Roadmap                    | clean                         |
+| Resources                  | clean                         |
+| Tasks                      | clean                         |
+| Calendar                   | **loop x110** (S-B1, fixed)   |
+| StoryBank                  | **nested-button warn** (S-B3) |
+| CareerAgent                | clean                         |
+| CVAgent                    | clean                         |
+| InterviewCoach             | clean                         |
+| SkillDevelopmentAdvisor    | clean                         |
+| Linkedin                   | clean                         |
+| Internship                 | **loop x34** (S-B1, fixed)    |
+| Jobs (-> Home redirect)    | clean                         |
+| Subagents (-> CareerAgent) | clean                         |
+| Admin                      | clean                         |
+| AdminLaunch                | clean                         |
+| Settings                   | clean                         |
+
 ## Console-health matrix (Pass 1)
 
 | Surface             | flag-off (`?next=0`) | flag-on (`?next=1`) | content rendered |
