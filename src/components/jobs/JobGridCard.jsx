@@ -255,21 +255,12 @@ export default function JobGridCard({
     >
       <div
         ref={cardRef}
-        role="button"
-        tabIndex={0}
         onClick={open}
         onMouseMove={alive ? onCardMove : undefined}
-        onFocus={() => prefetchJobDescription(queryClient, job.id)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            open();
-          }
-        }}
         className={
           alive
-            ? "group relative isolate cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
-            : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
+            ? "group relative isolate cursor-pointer h-full flex flex-col bg-rd-bg-card rounded-[14px] p-3 rd-lift rd-lift-hover focus-within:ring-2 focus-within:ring-rd-primary focus-within:ring-offset-2"
+            : "group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus-within:ring-2 focus-within:ring-rd-primary focus-within:ring-offset-2"
         }
       >
         {alive && <span className="cx-spot" aria-hidden="true" />}
@@ -320,8 +311,19 @@ export default function JobGridCard({
           ) : null}
         </div>
 
-        <h3 className="font-display font-bold text-[13.5px] leading-[1.18] text-rd-text line-clamp-2 break-words">
-          {job.title}
+        <h3 className="leading-[1.18]">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              open();
+            }}
+            onFocus={() => prefetchJobDescription(queryClient, job.id)}
+            onMouseEnter={() => prefetchJobDescription(queryClient, job.id)}
+            className="block w-full text-left font-display font-bold text-[13.5px] text-rd-text line-clamp-2 break-words focus:outline-none hover:underline"
+          >
+            {job.title}
+          </button>
         </h3>
         <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
           {[job.company_name, job.location_city || job.location_raw]
