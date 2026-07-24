@@ -1,5 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import { useCountUp } from "@/hooks/useCountUp";
+import { honestMatchLabelsEnabled } from "@/lib/flags";
 
 // Flag-on job-card match visual, ported from the canvas "sheen arc": one arc with
 // a luminosity gradient + round cap over a faint band-tint backing, the match %
@@ -44,11 +45,22 @@ export function ScoreBreakdown({ scoreResult, color, className = "" }) {
       <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
         Match breakdown
       </p>
-      {[
-        ["Skills", axes.skill],
-        ["Experience", axes.experience],
-        ["Seniority", axes.seniority],
-      ].map(([label, val]) => (
+      {/* Display-only honesty relabel (honest_match_labels flag): the middle row
+          shows attainability (the whole composite) and the last shows fit_score -
+          neither is the "Experience" or "Seniority" axis. When the flag is on, the
+          labels tell the truth. No values change - only the words. */}
+      {(honestMatchLabelsEnabled()
+        ? [
+            ["Skills", axes.skill],
+            ["Overall", axes.experience],
+            ["Search fit", axes.seniority],
+          ]
+        : [
+            ["Skills", axes.skill],
+            ["Experience", axes.experience],
+            ["Seniority", axes.seniority],
+          ]
+      ).map(([label, val]) => (
         <div key={label} className="mb-1.5 last:mb-0">
           <div className="flex items-center justify-between rd-t-micro mb-0.5">
             <span className="text-rd-text-secondary">{label}</span>
@@ -118,7 +130,9 @@ export default function ScoreRing({
       role={interactive ? "button" : undefined}
       tabIndex={interactive ? 0 : undefined}
       aria-expanded={interactive ? legend : undefined}
-      aria-label={interactive ? `Match ${pct}%, toggle score breakdown` : undefined}
+      aria-label={
+        interactive ? `Match ${pct}%, toggle score breakdown` : undefined
+      }
       onMouseEnter={interactive ? openLegend : undefined}
       onMouseLeave={interactive ? closeLegend : undefined}
       onClick={

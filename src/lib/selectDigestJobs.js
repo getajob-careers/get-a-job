@@ -8,8 +8,17 @@
 // Actions runner, which can import scoreJobFit directly. See
 // docs/handoffs/email-automation-arc.md for the arc context.
 //
-// It mirrors the live for-you feed exactly:
-//   • membership gate  — relevance_match !== "off" (off-direction roles dropped)
+// It reuses the live for-you feed's scorer + bar + sort, but applies a STRICTER
+// membership gate than the feed (the digest is a pushed email, so it must be
+// on-goal-path, not exploratory):
+//   • membership gate  — relevance_match === "primary" ONLY (Eli ruling
+//                        2026-07-24). The feed also shows adjacent/unknown; the
+//                        digest does not. Cross-field roles that only cleared the
+//                        feed via adjacency (Finance/Consulting/Operations, or an
+//                        Engineering dev role via product/cyber adjacency) are the
+//                        exact leak the field-mismatch audit found, so the digest
+//                        drops everything but the user's own goal-path families.
+//                        Never pads: <topN primary picks => fewer; 0 => user skipped.
 //   • quality bar      — attainability_score >= GOOD tier (0.42)
 //   • sort key         — rank_score desc (direction-boosted), the feed's sort
 //   • display number   — attainability_score (the badge the feed shows)
@@ -51,8 +60,10 @@ export function selectTopJobsForUser(userInput, candidates, cfg = {}) {
   const scored = [];
   for (const job of Array.isArray(candidates) ? candidates : []) {
     const r = scoreJobFit(userInput, job, opts);
-    // Feed membership: off-direction roles are dropped from the for-you list.
-    if (r.relevance_match === "off") continue;
+    // Digest membership (Eli 2026-07-24): PRIMARY-direction only — stricter than
+    // the for-you feed, which also admits adjacent/unknown. Drops the cross-field
+    // leaks the field-mismatch audit surfaced. Never pads (see docstring).
+    if (r.relevance_match !== "primary") continue;
     if (r.attainability_score < bar) continue;
     scored.push({
       job,

@@ -695,7 +695,17 @@ export function scoreJobFit(input, job, opts = {}) {
   if (skill.matched_skills.length >= 3) {
     strengths.push(`${skill.matched_skills.length} matching skills`);
   }
-  if (years.status === "in_range") strengths.push("Experience matches");
+  // "Experience matches" is field-blind: the years axis compares TOTAL years to
+  // req_years_min with no family filter, so an off-goal-path role the user has zero
+  // field experience in still earns this chip (the field-mismatch audit's "100%
+  // experience match on a different profession"). Display-only honest-labels flag
+  // (opts.honestLabels): only claim an experience match on the user's goal path
+  // (relevance_match === "primary"). No score/band/rank changes - just this string.
+  if (
+    years.status === "in_range" &&
+    (!opts.honestLabels || relevance_match === "primary")
+  )
+    strengths.push("Experience matches");
   if (education.match === "met") strengths.push("Education met");
   if (family.match) strengths.push("On-domain role");
 
