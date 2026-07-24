@@ -16,6 +16,7 @@ describe("scoring flags — v2 default-on", () => {
       confidenceAware: true,
       mustHave: true,
       directionBlend: true,
+      honestLabels: false,
     });
   });
 
@@ -26,6 +27,7 @@ describe("scoring flags — v2 default-on", () => {
       confidenceAware: false,
       mustHave: false,
       directionBlend: false,
+      honestLabels: false,
     });
   });
 
@@ -39,6 +41,21 @@ describe("scoring flags — v2 default-on", () => {
       confidenceAware: true,
       mustHave: false,
       directionBlend: false,
+      honestLabels: false,
+    });
+  });
+
+  it("honest_match_labels is display-only and off by default, on via ?honest_match_labels=1", () => {
+    window.history.replaceState({}, "", "/Career");
+    expect(scoringOpts().honestLabels).toBe(false);
+    window.history.replaceState({}, "", "/Career?honest_match_labels=1");
+    expect(scoringOpts().honestLabels).toBe(true);
+    // display-only: it never changes the v2 stack flags
+    expect(scoringOpts()).toEqual({
+      confidenceAware: true,
+      mustHave: true,
+      directionBlend: true,
+      honestLabels: true,
     });
   });
 });

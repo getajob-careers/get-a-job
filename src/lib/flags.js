@@ -107,15 +107,37 @@ export function onboardingV2Enabled() {
   return import.meta.env.VITE_FLAG_ONBOARDING_V2 !== "off";
 }
 
+// Honest match-labels (display-only). The card breakdown mislabels its rows -
+// "Experience" actually shows attainability (the whole composite) and "Seniority"
+// shows fit_score - and scoreJobFit pushes an "Experience matches" strength
+// whenever the YEARS axis is in_range, even for an off-goal-path role the user has
+// zero field experience in (the field-mismatch audit's "100% experience match on a
+// different profession" symptom). This flag makes those labels truthful. It is
+// DISPLAY-ONLY: no score, band, track, rank, or selection changes - only which
+// words/labels the card shows. Opt-in via ?honest_match_labels=1 for verification
+// before any default flip. Off by default => labels are byte-identical to today.
+export function honestMatchLabelsEnabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("honest_match_labels") ===
+      "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
 // The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
 // compose so every call site stays in lockstep: C1 turns on under EITHER flag
 // (scoring_confidence is the C1-only alias); 2a turns on under scoring_v2 only.
 // Both off => opts are empty and scoreJobFit is byte-identical to legacy.
+// honestLabels only gates a reasoning STRING (display copy), never a number.
 export function scoringOpts() {
   const v2 = scoringV2Enabled();
   return {
     confidenceAware: v2 || scoringConfidenceEnabled(),
     mustHave: v2,
     directionBlend: v2,
+    honestLabels: honestMatchLabelsEnabled(),
   };
 }

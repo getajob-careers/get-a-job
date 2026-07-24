@@ -56,23 +56,45 @@ const underspecified = (n) => ({
   req_education_levels: [],
   req_seniority: null,
 });
+// A second PRIMARY (Finance) match, weaker than strongMatch, so the primary-only
+// selection still has a real (non-constant) spread to rank.
+const secondFinance = {
+  id: "finance2",
+  title: "Junior FP&A Analyst",
+  function_family: "Finance",
+  req_skills_core: [
+    "financial_modeling",
+    "excel_advanced_finance",
+    "budget_forecasting",
+  ],
+  req_skills_nice: [],
+  req_years_min: 1,
+  req_education_levels: ["bachelor"],
+  req_seniority: "entry",
+  extraction_confidence: 0.8,
+  skill_coverage_ratio: 0.5,
+};
+// Adjacent (Operations ∈ finance adjacency) — admitted by the FEED but NOT the
+// digest under the primary-only policy.
+const adjacentWeak = {
+  id: "adjacent",
+  title: "Ops Coordinator",
+  function_family: "Operations",
+  req_skills_core: ["analytical_thinking"],
+  req_skills_nice: [],
+  req_years_min: 3,
+  req_education_levels: ["bachelor"],
+  req_seniority: "mid",
+  extraction_confidence: 0.3,
+  skill_coverage_ratio: 0.1,
+};
 const candidates = [
-  underspecified(1),
+  underspecified(1), // unknown family — dropped by primary-only
   underspecified(2),
   underspecified(3),
-  strongMatch,
-  {
-    id: "weak",
-    title: "Ops Coordinator",
-    function_family: "Operations",
-    req_skills_core: ["analytical_thinking"],
-    req_skills_nice: [],
-    req_years_min: 3,
-    req_education_levels: ["bachelor"],
-    req_seniority: "mid",
-    extraction_confidence: 0.3,
-    skill_coverage_ratio: 0.1,
-  },
+  strongMatch, // Finance — primary
+  secondFinance, // Finance — primary
+  adjacentWeak, // Operations — adjacent, dropped by primary-only
 ];
 
 describe("selectDigestJobs — anti-saturation", () => {
@@ -87,9 +109,13 @@ describe("selectDigestJobs — anti-saturation", () => {
     expect(Math.max(...scores)).toBeLessThan(1);
   });
 
-  it("ranks a real on-domain match above under-specified jobs", () => {
+  it("ranks the stronger primary match first, and returns only primary jobs", () => {
     const selected = selectTopJobsForUser(userInput, candidates);
     expect(selected[0].job.id).toBe("strong");
+    // primary-only: every returned job is a Finance (primary) match; the
+    // under-specified (unknown) and Operations (adjacent) candidates are gone.
+    const ids = selected.map((s) => s.job.id).sort();
+    expect(ids).toEqual(["finance2", "strong"]);
   });
 
   it("scores an under-specified job at the neutral prior (0.5), not 1.0", () => {
@@ -108,11 +134,12 @@ describe("selectDigestJobs — anti-saturation", () => {
     }
   });
 
-  it("drops off-direction roles (relevance_match === 'off')", () => {
+  it("keeps ONLY primary-direction roles — drops off, adjacent, and unknown", () => {
+    // Digest policy (Eli 2026-07-24) is stricter than the feed: primary only.
     const offDirection = {
       id: "off",
       title: "Backend Engineer",
-      function_family: "Software_Engineering",
+      function_family: "Software_Engineering", // off for a finance user
       req_skills_core: ["python", "kubernetes", "go"],
       req_skills_nice: ["aws"],
       req_years_min: 4,
@@ -121,7 +148,27 @@ describe("selectDigestJobs — anti-saturation", () => {
       extraction_confidence: 0.9,
       skill_coverage_ratio: 0.9,
     };
-    const selected = selectTopJobsForUser(userInput, [offDirection]);
-    expect(selected.find((s) => s.job.id === "off")).toBeUndefined();
+    // off + adjacent (Operations) + unknown (null family) all excluded; only the
+    // two Finance (primary) jobs survive.
+    const selected = selectTopJobsForUser(userInput, [
+      offDirection,
+      adjacentWeak,
+      underspecified(9),
+      strongMatch,
+      secondFinance,
+    ]);
+    const ids = selected.map((s) => s.job.id).sort();
+    expect(ids).toEqual(["finance2", "strong"]);
+  });
+
+  it("returns fewer than topN when few primary picks clear the bar — never pads", () => {
+    // Only one primary job available => exactly one pick, not padded to topN.
+    const selected = selectTopJobsForUser(
+      userInput,
+      [strongMatch, adjacentWeak, underspecified(9)],
+      { topN: 5 },
+    );
+    expect(selected.length).toBe(1);
+    expect(selected[0].job.id).toBe("strong");
   });
 });
