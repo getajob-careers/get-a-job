@@ -118,3 +118,16 @@ verify_jwt = true
 
 [functions.delete-account]
 verify_jwt = true
+
+# Email automation arc (dry-run). email-unsubscribe is a public one-click link
+# (token in the URL, no login) so verify_jwt is false. The two batch send
+# functions require a valid JWT at the gateway AND a service-role bearer in-code
+# (isServiceRoleCaller), so ordinary users cannot invoke them.
+[functions.email-unsubscribe]
+verify_jwt = false
+
+[functions.send-job-digest]
+verify_jwt = true
+
+[functions.send-reengagement-email]
+verify_jwt = true
