@@ -358,7 +358,7 @@ export default function JobGridCard({
             {d.chips.map((c, i) => (
               <span
                 key={i}
-                className="text-[10px] bg-rd-bg-soft text-rd-text-tertiary rounded-[5px] px-1.5 py-0.5"
+                className="text-[10px] bg-rd-bg-soft text-rd-text-secondary rounded-[5px] px-1.5 py-0.5"
               >
                 {c}
               </span>
@@ -526,7 +526,7 @@ export default function JobGridCard({
                 {d.missingCoreSkills.slice(0, 3).map((s, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center gap-0.5 text-[10px] bg-rd-bg-soft text-rd-text-tertiary border border-rd-border rounded-full px-1.5 py-0.5"
+                    className="inline-flex items-center gap-0.5 text-[10px] bg-rd-bg-soft text-rd-text-secondary border border-rd-border rounded-full px-1.5 py-0.5"
                   >
                     <X className="w-2.5 h-2.5" />
                     {s}

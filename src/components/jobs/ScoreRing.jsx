@@ -52,7 +52,7 @@ export function ScoreBreakdown({ scoreResult, color, className = "" }) {
         <div key={label} className="mb-1.5 last:mb-0">
           <div className="flex items-center justify-between rd-t-micro mb-0.5">
             <span className="text-rd-text-secondary">{label}</span>
-            <span className="font-mono text-rd-text-tertiary">
+            <span className="font-mono text-rd-text-secondary">
               {Math.round(val * 100)}
             </span>
           </div>
