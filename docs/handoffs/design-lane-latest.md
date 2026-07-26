@@ -37,112 +37,147 @@ from scratch. Verify every PR/prod claim against `gh` / Vercel before trusting i
 - **Screen 2 `direction`** - `DirectionScreenV2`. Goal-role search (debounced, ArrowUp/Down + Enter + Escape + clear-X), location free-text, work-arrangement multi-select, practicum inline-expand (Yes reveals faculty/self). No own Continue - shell drives advance + runs the primary_domain inference write. Continue gated on goal role.
 - **Screen 3 `springboard`** - `SpringboardScreenV2`. anime.js code-split pop-in (CSS `onbv2-rise` fallback, reduced-motion static). `hasCv` copy branch. **POINT OF NO RETURN = the "Go to my workspace" button** -> `finaliseAndLaunch()` -> `handleFinalise()` (`onboardingPersist.js:729-730` sets `onboarding_complete=true`, `onboarding_step=6`). NEVER click it on a fresh/test account.
 
-## >>> CURRENT (2026-07-26, pass2d) <<<
+## >>> CURRENT (2026-07-26, pass2e) <<<
 
 ### Serving truth (verify on resume)
 
-- **origin/main HEAD = `5d46fd4`** (#756, the pass2c handoff docs squash - DOCS-ONLY on top of
-  code-tip `dc801fe`). FIRST ACTION on resume: `git fetch`, confirm this is still the tip.
-  (If the pass2d handoff PR has merged by the time you read this, HEAD will be its squash commit,
-  docs-only over the same `dc801fe` code-tip - re-verify.)
-- **Serving production deployment = `dpl_BLCCpNQ5JwAgdZ1jd1gPqkN4nJTu`** (READY, sha `5d46fd4`,
-  aliases `www.getajob.careers` + `getajob.careers`). Confirm via get_deployment on
-  `get-a-job-git-main-getajob-team.vercel.app`, teamId `getajob-team`,
-  `meta.githubCommitSha == origin/main`. Note `5d46fd4` is docs-only, so served CODE = `dc801fe`.
-- **Rollback CODE target = `b8a384b`** (#751) - the last code change was `dc801fe` (#752);
-  rolling back further = `b8a384b`. (Docs-only handoff commits roll back to nothing meaningful.)
-- After a merge the LOCAL `origin/main` ref is stale until `git fetch`. `main` is checked out in
-  a SEPARATE worktree (`/Users/elienglard/getajob-eval`), so you CANNOT `git checkout main` here
-  - branch off `origin/main`.
+- **origin/main HEAD = `8ca318e`** (#764, CV-lane handoff docs). Includes the 5-PR batch this
+  session squash-merged: #758 `6375ac3`, #759 `7a274d1`, #754 `b6c2700`, #753 `2fd3a96`,
+  #755 `533ff00`, plus CV-lane #760/#763/#764. FIRST ACTION on resume: `git fetch`, confirm tip.
+- **Two design PRs HELD (not merged), both carry a full VERIFICATION block; batch-merge when Eli
+  is ready:**
+  - **#765 `eli/cvgen-theater` @ `65f3a57`** - CV-gen progress theater fix (mascot-less). Ring
+    rendered OUTSIDE `.cx-actions` (visible off-hover), shared card/modal state via new module
+    store `src/lib/cvGenerationJob.js`, honest ring off the `(user_id,'generate-tailored-cv')`
+    poller, in-place "CV ready" -> View CV + Apply (auto-redirect killed). Dev harness in
+    JobsGridPreview. Verified 4/4 live. QA P2 (superseded CV-ready toast) FIXED in `65f3a57`.
+    CI: recheck the P2 commit run (green locally: lint/typecheck 519).
+  - **#767 `eli/feedback-avatar` @ `64543b3`** - feedback pill -> avatar menu (FLAG-ON only; pill
+    kept flag-off since that shell has no avatar menu, retires at Flip 2) + flip-aware avatar
+    dropdown placement (was opening upward off-screen) + `CanvasCommandItem` `style` default
+    (typecheck 519->517). New `src/lib/feedbackStore.js` + `feedbackStore.test.js`. Verified
+    4/4 live on `/_preview/shell/shell-home-active?next=1`. Gate GREEN.
+    FLAG-SCOPE PRECISION (hub correction): FeedbackWidget's open state moved to a module store
+    UNCONDITIONALLY (both flag states); only the launcher is flag-gated. Flag-off is BEHAVIORALLY
+    identical (same pill -> same dialog -> same `public.feedback` insert), NOT byte-identical.
+- **This handoff = PR `eli/design-handoff-pass2e`** (docs-only). Merge it before /clear so the next
+  session reads the fresh resume point on origin/main.
+- `main` is checked out in a SEPARATE worktree (`/Users/elienglard/getajob-eval`); branch off
+  `origin/main` here, never `git checkout main`.
 
-### Where the product actually is
+### Self-verification pipeline (STANDING PROTOCOL, Eli 2026-07-26 - replaces per-PR human review)
 
-- V2 onboarding is BUILT + LIVE-reachable (default onboarding now, renders even flag-OFF; the
-  0A slate palette is stamped regardless of the reveal flag). We are **pre-Flip-2**. The reveal
-  (NEXT_DESIGN flag) is NOT flipped in prod (default OFF). Reveal cert + Flip 2 stay Eli's; do
-  NOT touch the reveal flag.
-- **Task 4 (onboarding steps 3-4 depth audit) is DONE** (walked screens 0-3 live on `+v2test`,
-  stopped short of the PONR). It produced two fixes, both now HELD PRs (#758, #759, below).
+Per queue item, after the build is done, spawn IN PARALLEL (general-purpose agents, fresh context):
 
-### HELD PRs (open, awaiting Eli - BATCH MERGE; NONE block the next queue item)
+1. **Spec Verifier** - given ONLY the ruled spec + the diff: does it implement exactly what was
+   ruled, nothing missing/extra, no scope creep?
+2. **QA Breaker** - adversarial, given acceptance criteria + the preview/harness: try to break it
+   (edge inputs, rapid interactions, mid-run nav, refresh, double-fire, mobile, reduced-motion;
+   console must stay clean). Pass/fail per criterion + repro steps.
+3. **Flag-Scope Auditor** (when flag gating claimed) - every changed line unreachable flag-off, or
+   explicitly UNCONDITIONAL-with-reason; render-identity evidence, not assertion.
+4. **Gatekeeper** - full CI gate.
+   DISAGREEMENT RULE: any verifier failure or doubt = fix it or drop that piece and log it; never
+   argue a finding down. PR body gains a **VERIFICATION block** (one line per verifier + evidence); a
+   PR without it is not HELD-ready. Clean-block PRs merge at batch time on hub verification alone.
+   Still ELI-ONLY: reserved categories (real users, emails, auth-config, reveal flag, schema beyond
+   approved migrations, anything irreversible), taste/IA proposals marked HOLD (e.g. Career
+   convergence), and the final re-audit triage.
 
-- **#758** `eli/fix-goal-role-exact-match` (P1) - goal-role search returned an EMPTY dropdown on
-  any exact canonical-title query, incl. "Product Manager" / "Data Analyst" (the field's own
-  placeholder examples), on the required Continue-gating field. Root cause (hub-verified):
-  `matchRoles` (`roleMatch.js:47-55`) Pass 1 returns the exact hit SEPARATELY with empty
-  `suggestions`; `DirectionScreenV2.jsx:123` read only `suggestions`, dropping `exact`. Fix =
-  surface `exact` as top row, de-duped. **CI green + LIVE-VERIFIED** on branch preview
-  (product manager -> Product Manager; data analyst -> Data Analyst).
-- **#759** `eli/fix-upload-error-copy` (P2) - dropping a legacy `.doc` or a parse-failing PDF
-  showed "We couldn't upload that file / the upload didn't go through / check your connection" -
-  but the upload SUCCEEDED; the resilient catch (`StepResumeUpload.jsx` ~445) bucketed all
-  non-empty_text/non-timeout errors into `upload_failed`, discarding the actionable message and
-  causing a doomed retry loop. Fix = code the `.doc` throw `unsupported_format` + route it to a
-  new honest recovery mode; route `pdf_parse_failed` -> existing `extract_none` copy. **CI green.
-  Eli RULED: skip the live check, CI green suffices for a copy change.**
-- **#753** `eli/pre-flip2-copy` (`4a8546a`) - 3a signup copy + CanvasLogo. Needs: (a) ruling on
-  flag-OFF `--rd-logo-hi` glaze (reveal-token touch = Eli's call); (b) OnboardingShell dot-grid
-  mark swap?
-- **#754** `eli/humanize-tags` (`cff0e90`) - `humanizeTag.js` + raw-tag-leak fixes. Needs review;
-  fresh-lane TODO: add the swept/ruled-out sites to the PR body.
-- **#755** `eli/reveal-pop` (`6013bdf`) - "We read your CV" reveal motion. Needs eye + a
-  `/_preview/onboarding` success-reveal harness state (SuccessReveal isn't diff-reviewable).
+### >>> CRITICAL OPERATIONAL LESSON (this session) <<<
 
-### Queue (in order; STANDING ORDER: finish one, proceed IMMEDIATELY to the next without asking)
+**Do NOT spawn parallel agents that run `git checkout`/`git stash`/branch-switching in the SHARED
+working tree.** This session a background Gatekeeper agent measured a typecheck baseline by
+checking out another ref, and concurrent verifier git ops raced - the working tree got switched off
+my feature branch mid-work with a spurious `tasks/lessons.md` UU conflict. The PRs were safe (all
+work was committed+pushed first), but the tree needed manual recovery (`git checkout HEAD --
+tasks/lessons.md`; `git restore --staged .claude/settings.local.json`). RULES: (a) always COMMIT +
+PUSH your branch BEFORE spawning verifier agents; (b) verifiers may READ via `git diff
+origin/main...BRANCH` / `git show BRANCH:file` (no branch switch) but must NOT checkout/stash;
+(c) TELL the Gatekeeper the baseline number (519) rather than have it measure via checkout;
+(d) prefer running QA verifiers against the PUSHED branch / its Vercel preview when they need a
+live app, not the shared local tree.
 
-1. **CV-gen "Generate CV" progress theater - PROMOTED to next (Eli 2026-07-26). SHIPS
-   MASCOT-LESS.** Eli live-tested the jobs-card Generate CV entry point on prod flag-on. Four
-   specifics on top of the standing spec:
-   - (a) NO generation indicator unless HOVERING the card.
-   - (b) EXPANDING the card mid-run shows no generation state - state must be SHARED across the
-     compact and expanded views of the same job.
-   - (c) NO progress ring anywhere, despite `CvGenerationProgress` and the `(user_id, source)`
-     poller already existing.
-   - (d) on completion the user is dumped into the CV surface with NO apply link and no route
-     back to the job - completion must keep the APPLY path one tap away.
-     Standing spec (from the prior handoff): wire this path into the full `CvGenerationProgress`
-     ring per the #747 pattern ((user_id, source='generate-tailored-cv'), terminal-stage stop);
-     KILL the hover-coupled spinner (in-progress persists independent of hover, button DISABLED
-     while running); inventory EVERY CV-gen entry point (job cards, CV page, onboarding, Coach,
-     Studio), list which show the ring vs have this gap, fix small stragglers same PR. **Ships the
-     RING / staged honest-progress standing alone, NO mascot** (character is a later additive
-     upgrade once the commissioned sheet is rigged; do NOT go looking for or build a mascot).
-2. **Back-navigation (Eli RULED yes, 2026-07-26).** Add Back. Answers PERSIST on advance, so Back
-   restores the prior screen with saved values. Screens 2-3 are the clear cases. Screen 1
-   back-to-upload is AWKWARD (re-upload reruns extraction) - PROPOSE its handling, do NOT build
-   blind. Queued AFTER the theater item.
-3. **3d - situation MULTI-SELECT** (after theater + back-nav). RULED yes (multi-select, min 1).
-   INVESTIGATE FIRST, build only if shallow: report the situation field storage + EVERY
-   single-value consumer (scoring, copy, digest eligibility) with file:line; shallow -> array +
-   map existing values forward + primary-situation rule (first = primary); deep -> STOP + report.
-   **Corroborated lead:** `employment_status` is ALREADY an array on main (`Profile.jsx:372,:401,
-:460`; `StepResumeUpload.jsx` array add/remove; written via `SITUATION_TO_EMPLOYMENT`). Storage
-   may already be multi; the stop-condition stands - map every single-value CONSUMER first.
-4. **Task 3 retry - reset-www proof (BLOCKED on SMTP quota).** To CLOSE the audit reset finding
-   (HELD -> FIXED-config) need the verbatim `redirect_to` from a real prod reset email. From
-   `www.getajob.careers/login?mode=forgot`, prefill `+v2test`, submit ONCE (60s rate limit),
-   read email (Gmail MCP, `from:noreply@getajob.careers`); expect
-   `redirect_to=https://www.getajob.careers/reset-password`. Last attempt returned 200 but NO
-   email (anti-enum 200 + SMTP quota contention). Retry when quota resets. AUTH-CONFIG = reserved,
-   report-only.
-5. **Interaction-depth pass** on authenticated surfaces (dead clicks, forced empty/loading/error,
-   mobile breakpoints, keyboard/focus). NOTE: mobile-breakpoint verification via the browser
-   harness `resize_window` is UNRELIABLE (innerWidth/outerWidth/screenshot disagree, no clean
-   mobile viewport); verify responsive via source classes + real device / DevTools emulation.
+### Queue (STANDING ORDER: finish one, proceed IMMEDIATELY to the next; held merges are batch and never block)
 
-### Standing order (in force until Flip 2, Eli 2026-07-26)
+1. DONE - CV-gen theater (#765 HELD).
+2. DONE - feedback pill + avatar menu (#767 HELD). (c) mobile coach entry EXISTS
+   (`CanvasMobileRail.jsx:49` Sparkles -> CoachDock sheet); pill removal clears the occlusion.
 
-Finish a queue item, then proceed IMMEDIATELY to the next without asking. Held-PR merges happen in
-BATCH and NEVER block your next item. Stop ONLY for: a reserved category, a failing gate, or 80%
-context. Full autonomy within the queue; decide, log here, keep moving.
+2b. **NEXT - pre-item-3 cleanup PR (ONE sitting, BEFORE the CV-tab mobile pass). Hub findings on
+#765/#767 that the verifiers missed; do these first:** - (a) **Em-dash sweep of 4 added-line sites:** `FeedbackWidget.jsx` (the FLAG-OFF ONLY
+comment), `JobsGridPreview.jsx` (2, harness copy), `tasks/lessons.md` (the 2026-07-26 entry).
+ALSO replace the Unicode ellipsis in the "Tailoring your CV" label (JobGridCard +
+JobDetailModal) with three ASCII periods. AND add an em-dash grep to the Gatekeeper's gate so
+the pipeline catches this itself from now on. - (b) **Gate the error toast** in `useJobCardActions` on the SAME guard as the ready toast:
+make `markCvGenerationError` return a boolean and toast only when it applied. Same defect
+class as the P2 already fixed - a superseded FAILING run currently reports failure over a
+different job's live run. - (c) **Add unit tests for `cvGenerationJob`:** ready-on-superseded returns false,
+error-on-superseded is a no-op, `clear(jobKey)` only clears a matching run.
+NOTE: (b) and (c) touch #765's files (`cvGenerationJob.js`, `useJobCardActions.js`) - if #765
+has already batch-merged by pickup, this is a fresh PR off main; if not, coordinate so it does
+not conflict with the held #765 branch (cleanest: land after #765 merges).
+
+3. **CV-tab mobile pass** - CV page is a mess at mobile widths (Tracker + Browse Jobs are fine).
+   Audit CV tab at mobile widths, findings file:line, fix defensible layout breaks in ONE scoped
+   PR; anything needing an IA decision -> HELD in the report. (resize_window is UNRELIABLE; verify
+   via source classes + real device / DevTools.)
+4. **Coach panel fixes (one PR)** - (a) suggested-message blocks must STOP covering the
+   conversation: show only at thread start before the first message, dismissible with an x, never
+   overlay/re-appear over the thread; (b) composer reads as a search bar (magnifying-glass icon,
+   placeholder low) - make it read as a chat input. Coach SURFACES only; ai-chat backend is the CV
+   lane's - do NOT touch it. (Saw the search-bar composer live in ShellPreview: "Ask about this
+   page..." with a magnifier icon.)
+5. **Tasks tile (small PR)** - coach-accepted tasks land on the Tasks page, which has NO entry in
+   the flag-on sidebar (`TOOL_TILES` in `CanvasSidebar.jsx`, 8 tiles, Tasks absent). Add a Tasks
+   tile matching the existing pattern. No Tasks-page redesign, just the door.
+6. **Copy + profile paper cuts (one PR)** - (a) flag-on jobs status line "N roles matched to you"
+   -> "N roles, ranked for you" (keep the live count); (b) Profile: edit silently fills the form up
+   top without scrolling -> auto-scroll to the form on edit; (c) Profile: leaving with unsaved
+   changes loses work -> unsaved-changes confirm (save/discard).
+7. **OnboardingShell logo (RULED pre-flip)** - swap the OnboardingShell dot-mark for CanvasLogo
+   (carried from #753). Fold the #755 em-dash sweep ("counts - a soft golden" in ReviewScreenV2)
+   into whichever PR touches ReviewScreenV2 first.
+8. **Fresh-load flash (investigate-first, then fix)** - cold load briefly flashes a
+   complete-your-onboarding-style page before the real page renders. Likely a guard rendering
+   before auth/profile queries resolve. Reproduce cold/throttled, find the flashing component, fix
+   so unresolved auth/profile shows a NEUTRAL loading state, never guard copy. First-impression bug.
+9. **Career convergence (investigate + PROPOSE, HOLD for Eli's ruling before building)** - Career
+   diverges from the three-tab home (Career carries the track-roles panel, Browse Jobs does not;
+   per-role buttons cramped). Investigate both layouts, propose the convergence (which wins, what
+   moves, what it costs), HOLD. No building before his ruling.
+10. Standing tail: **back-nav** (RULED yes: Back restores prior screen with saved values; screens
+    2-3 clear; screen-1 back-to-upload awkward - PROPOSE its handling, do not build blind) ->
+    **3d situation MULTI-SELECT** (RULED yes, min 1; INVESTIGATE FIRST - report every single-value
+    CONSUMER with file:line; shallow -> array + map forward + first=primary; deep -> STOP.
+    Corroborated lead: `employment_status` already an array on main) -> **Task 3 reset PRODUCTION
+    proof** (now a CERT BLOCKER: reset is login-critical, prove on prod before Eli's cert; from
+    `www.getajob.careers/login?mode=forgot`, prefill `+v2test`, submit ONCE (60s limit), read email
+    via Gmail MCP `from:noreply@getajob.careers`, expect
+    `redirect_to=https://www.getajob.careers/reset-password`; retry when SMTP quota allows.
+    AUTH-CONFIG = reserved, report-only).
+11. **FINAL PRE-CERT RE-AUDIT (last, after everything above merged)** - full-platform audit of the
+    CURRENT state, both flag states (flag-on priority = reveal cohort), every registered page, both
+    shells, public landing, mobile widths. Structure as PARALLEL specialist tracks (general-purpose
+    agents for judgment; haiku subagents for searches/counts ONLY): (1) design-craft (9-rule bar,
+    per-surface, audit-2026-07 method), (2) FUNCTIONAL QA (feature correctness: every button does
+    what it claims, every flow completes, every state empty/loading/error/mid-run renders honestly,
+    console clean per surface via the `window.__audit` sweep), (3) mobile, (4) copy/honesty (no
+    dishonest counts, no leaked internal tags, no false action/match claims). Synthesize ONE
+    severity-ranked findings doc, blockers at top, for Eli's cert triage. If you can't reach it
+    before 80% context, hand off cleanly and let a fresh session run it whole.
+
+### Logged follow-ups
+
+- #753 OnboardingShell dot-mark -> CanvasLogo (now queue item 7, RULED pre-flip).
+- #755 em-dash "counts - a soft golden" in ReviewScreenV2 comment -> sweep in next PR touching it.
+- Icon-language consistency (tool logos vs brand icon set) - LOGGED, not queued; flag cheap wins.
 
 ### Post-audit purge list (Eli to purge; do NOT delete - [[never-delete-rows-without-ruling]])
 
-Junk test files in the `resumes` storage bucket under user `2df9b1bc-7c12-4dd3-b12f-e4eb4a3e6564`:
-
-- `1785060591196_my-cv.doc`
-- `1785060670695_audit-cv.pdf`
-  `+v2test` was walked to screen 2/3 during Task 4 but NOT finalized (`onboarding_complete=false`).
+Junk test files in the `resumes` bucket under user `2df9b1bc-7c12-4dd3-b12f-e4eb4a3e6564`:
+`1785060591196_my-cv.doc`, `1785060670695_audit-cv.pdf`. `+v2test` walked to screen 2/3, NOT
+finalized (`onboarding_complete=false`).
 
 ## Rulings locked (do not re-litigate)
 
@@ -157,6 +192,9 @@ Junk test files in the `resumes` storage bucket under user `2df9b1bc-7c12-4dd3-b
   regardless of the global reveal flag).
 - **#759 copy fix: CI green suffices, skip live check** (2026-07-26).
 - **Back-nav: yes** (2026-07-26; screen-1 handling to be proposed not built blind).
+- **Completion (d) = in-place** (2026-07-26): kill auto-redirect; ready -> View CV + Apply on card and modal, no nav without a tap.
+- **Feedback pill flag-OFF-only** (2026-07-26): flag-off has no avatar menu; pill retires at Flip 2, relocated to CanvasAvatarChip flag-on. Verifiers blessed; Eli to confirm.
+- **Self-verification pipeline REPLACES per-PR human review** (2026-07-26); see the CURRENT section.
 
 ## Autonomy contract (in force, Eli)
 
