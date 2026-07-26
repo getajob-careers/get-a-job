@@ -33,7 +33,7 @@ const BROWN = { hi: MATERIAL, tint: "#E9DECF", ink: "#4A362E" }; // --brown-tint
 const LINKEDIN = { hi: "#EAF2FC", tint: "#D2E4F6", ink: "#0A66C2" }; // brand
 
 // Grouped by concept so the repetition reads intentional: direction/growth = blue
-// (Career, Skill hub, Tasks — the forward-action set); you/history = brown
+// (Career, Skill hub, Tasks - the forward-action set); you/history = brown
 // (Profile, Story bank); documents/talk = mauve (CV bank, Interview coach, Chat).
 const MOCKUP_TOOLS = {
   career: BLUE,
