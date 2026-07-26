@@ -1283,6 +1283,30 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "azure_devops": ["cloud_platforms_devops"],
   "embedded software development": ["embedded_systems"],
   "full stack development": ["frontend_development", "backend_development"],
+  // ── Batch 2: Finance / accounting functions (2026-07-27) ─────────────────
+  // Both-sided (real-user labels + JD-demanded) finance concepts. Each maps to
+  // the existing library ID that already covers it (concept-verified against
+  // the 619-ID set, reviewer-confirmed); no dup-concept IDs minted here. The
+  // one genuine gap, accounts_payable, is a new library ID (auto-resolves via
+  // the snake-ID step, so it needs no alias key). "accounts receivable" credits
+  // collections_management (its "& Receivables" counterpart); "invoice
+  // processing" is the AP sub-function. Keys dehyphenated so both surface forms
+  // resolve (step-1 direct + step-5 dehyphen retry).
+  "journal entries": ["accounting_general"],
+  "accruals": ["accounting_general"],
+  "month end close": ["accounting_general"],
+  "financial statements": ["financial_reporting"],
+  "reconciliation": ["bookkeeping"],
+  "account reconciliations": ["bookkeeping"],
+  "cash management": ["cash_flow_management"],
+  "treasury": ["cash_flow_management"],
+  "variance analysis": ["bva_analysis"],
+  "financial planning": ["budget_forecasting"],
+  "accounts receivable": ["collections_management"],
+  "internal controls": ["risk_compliance_consulting"],
+  "invoice processing": ["accounts_payable"],
+  "quickbooks": ["bookkeeping"],
+  "xero": ["bookkeeping"],
 };
 
 // THE one shared skill resolver. extract-job-requirements,
