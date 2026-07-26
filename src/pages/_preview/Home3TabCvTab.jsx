@@ -1,119 +1,68 @@
 // CV tab content for the 3-tab homepage demo (Home3TabPreview.jsx).
 //
-// Center column reuses the REAL CV studio as-is (CVStudioLive - already
-// "Layout-LESS on purpose" per its own header comment, built to be mounted
-// standalone). Left-bottom reuses the REAL docked coach chat (CoachDock -
-// reads/writes CoachConversationProvider, which Layout.jsx already mounts,
-// so this is live, not a stub). Right column is new: a compact "top
-// matches" list built from the same data hooks + picks/stretch sectioning
-// UnifiedJobsFeed.jsx uses, rendered with the existing JobGridCard, opening
-// the existing JobDetailModal (which already has a real Track action via
-// addJobToTracker). "Tailor CV" has no existing standalone entry point from
-// a bare job row (today it only exists inside CVStudioLive's own "Tailor to
-// a job" flow, which expects a tracked application, not a raw feed job) -
-// per investigation, that's a visual stub here, called out as such.
+// Revision 4: reverted the CV-bank dropdown from a teal accent back to
+// coral - an earlier pass had steered every new component in this branch
+// away from coral toward teal/neutral as an in-progress experiment, not a
+// real decision. Coral is the live app's actual accent color (see
+// Home3TabPreview.jsx's revision 4 note), so this now matches it. The
+// Track button's teal-tint-when-tracked state is UNCHANGED here - that's
+// not a coral-avoidance choice, it's copied verbatim from the real
+// JobDetailModal.jsx's handleAdd button (`background: "var(--rd-teal-
+// tint)"` when added), which is a functional success-state color, not a
+// stand-in for the accent color.
+//
+// Revision 3:
+// - The static "Master CV" label above the mock CV is now a dropdown
+//   selector - a stand-in for a future real "CV bank" of saved CVs.
+//   Visual only: picking an option just swaps in a different hardcoded
+//   mock CV object below, nothing reads or writes application_cvs.
+// - The top-matches cards' second action is renamed "Generate tailored
+//   CV" and styled in --rd-coral.
+//
+// Both the master CV and the top-matches list remain hardcoded, visual-
+// only mock content (see Home3TabFixtures.js) rather than live queries -
+// see the previous revision's notes for why (empty-state fidelity for a
+// reviewing account with no profile data, and outdated Roadmap-required
+// empty-state copy).
+//
+// The icon grid + coach dock that lived in this tab's left column before
+// now live in Home3TabSidebar.jsx, which wraps all three tabs.
 
-import React, { useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 import { toast } from "sonner";
-import {
-  Linkedin,
-  BookMarked,
-  FileText,
-  UserCircle,
-  KanbanSquare,
-  Search,
-  Loader2,
-  AlertCircle,
-  Check,
-  Plus,
-  Wand2,
-} from "lucide-react";
-import { supabase } from "@/api/supabaseClient";
-import { useAuth } from "@/lib/AuthContext";
-import { createPageUrl } from "@/utils";
-import CVStudioLive from "@/components/cv-studio/CVStudioLive";
-import CoachDock from "@/components/agent/CoachDock";
+import { Check, Plus, Wand2, ChevronDown } from "lucide-react";
+import { TRACK_CONFIG } from "@/lib/trackConfig";
 import JobGridCard from "@/components/jobs/JobGridCard";
-import JobDetailModal from "@/components/jobs/JobDetailModal";
-import { addJobToTracker } from "@/components/jobs/JobCard";
-import { useProfileQuery } from "@/lib/queries/useProfile";
-import { useExperiencesQuery } from "@/lib/queries/useExperiences";
-import { useEducationQuery } from "@/lib/queries/useEducation";
-import { useCareerRolesQuery } from "@/lib/queries/useCareerRoles";
-import {
-  inferExperienceLevel,
-  allowedSenioritiesForLevel,
-} from "@/lib/experienceLevel";
-import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
-import { scoreJobFit } from "@/lib/scoreJobFit";
-import {
-  UNIFIED_MAX_ROLES,
-  TRACK_SIMILARITY_THRESHOLD,
-  JOBS_SELECT_LIGHT,
-  stretchAwareSeniorityFor,
-} from "@/lib/jobsFeed";
+import { CV_OPTIONS, MOCK_JOBS } from "./Home3TabFixtures";
 
-const TOP_MATCHES_FETCH_SIZE = 30;
-const TOP_MATCHES_SHOWN = 6;
+const CV_TAB_PICKS = MOCK_JOBS.slice(0, 4);
+const CV_TAB_STRETCH = MOCK_JOBS.slice(4, 6);
 
-const ICON_TILES = (onSwitchTab) => [
-  {
-    id: "linkedin",
-    label: "LinkedIn tools",
-    icon: Linkedin,
-    href: createPageUrl("Linkedin"),
-  },
-  {
-    id: "storybank",
-    label: "Story bank",
-    icon: BookMarked,
-    href: createPageUrl("StoryBank"),
-  },
-  {
-    id: "cvbank",
-    label: "CV bank",
-    icon: FileText,
-    href: createPageUrl("CVAgent"),
-  },
-  {
-    id: "profile",
-    label: "Profile",
-    icon: UserCircle,
-    href: createPageUrl("Profile"),
-  },
-  {
-    id: "tracker",
-    label: "Tracker",
-    icon: KanbanSquare,
-    onClick: () => onSwitchTab?.("tracker"),
-  },
-  {
-    id: "jobs",
-    label: "Browse jobs",
-    icon: Search,
-    onClick: () => onSwitchTab?.("jobs"),
-  },
-];
+function tailorStub() {
+  toast.info("Generate tailored CV isn't wired up yet in this prototype.");
+}
+function trackStub(setTracked, id) {
+  setTracked((prev) => new Set(prev).add(id));
+  toast.info(
+    "Track is a visual stub here - this job is a sample, not a real listing.",
+  );
+}
 
-export default function Home3TabCvTab({ onSwitchTab }) {
+export default function Home3TabCvTab() {
+  const [selectedCvId, setSelectedCvId] = useState(CV_OPTIONS[0].id);
+  const selectedCv =
+    CV_OPTIONS.find((o) => o.id === selectedCvId)?.cv || CV_OPTIONS[0].cv;
+
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full min-h-0">
-      {/* Left - icon grid (top) + coach dock (bottom) */}
-      <div className="w-full md:w-[220px] flex-shrink-0 flex flex-col gap-4 md:h-full min-h-0">
-        <IconGrid tiles={ICON_TILES(onSwitchTab)} />
-        <div className="flex-1 min-h-[280px] md:min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
-          <CoachDock />
-        </div>
-      </div>
-
-      {/* Center - the real CV studio, mounted as-is */}
       <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
-        <CVStudioLive />
+        <MockMasterCv
+          cv={selectedCv}
+          selectedCvId={selectedCvId}
+          onSelectCv={setSelectedCvId}
+        />
       </div>
 
-      {/* Right - compact top-matches list */}
       <div className="w-full md:w-[320px] flex-shrink-0 md:h-full md:overflow-y-auto">
         <TopMatchesPanel />
       </div>
@@ -121,321 +70,181 @@ export default function Home3TabCvTab({ onSwitchTab }) {
   );
 }
 
-// ───── Left: icon grid ─────
+// ───── Center: mock master CV + CV-bank dropdown ─────
 
-function IconGrid({ tiles }) {
+function MockMasterCv({ cv, selectedCvId, onSelectCv }) {
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {tiles.map((tile) => {
-        const Icon = tile.icon;
-        const content = (
-          <>
-            <Icon
-              className="w-5 h-5 text-rd-text-secondary group-hover:text-rd-text transition-colors"
-              aria-hidden="true"
-            />
-            <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
-              {tile.label}
-            </span>
-          </>
-        );
-        const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rounded-[12px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
-        if (tile.href) {
-          return (
-            <Link key={tile.id} to={tile.href} className={className}>
-              {content}
-            </Link>
-          );
-        }
-        return (
-          <button
-            key={tile.id}
-            type="button"
-            onClick={tile.onClick}
-            className={className}
+    <div className="h-full overflow-y-auto p-6">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <p className="text-[10px] uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono">
+          Sample content for this prototype
+        </p>
+        <CvBankDropdown value={selectedCvId} onChange={onSelectCv} />
+      </div>
+      <div className="max-w-2xl">
+        <h2 className="font-display font-extrabold text-[22px] text-rd-text">
+          {cv.name}
+        </h2>
+        <p className="text-[13px] text-rd-text-secondary mt-0.5">{cv.title}</p>
+        <p className="text-[11.5px] text-rd-text-tertiary mt-1">{cv.contact}</p>
+
+        <SectionLabel>Summary</SectionLabel>
+        <p className="text-[12.5px] text-rd-text-secondary leading-[1.6]">
+          {cv.summary}
+        </p>
+
+        <SectionLabel>Experience</SectionLabel>
+        <div className="flex flex-col gap-4">
+          {cv.experience.map((exp) => (
+            <div key={exp.company}>
+              <div className="flex items-baseline justify-between gap-2 flex-wrap">
+                <p className="text-[13px] font-display font-bold text-rd-text">
+                  {exp.role}{" "}
+                  <span className="font-normal text-rd-text-secondary">
+                    · {exp.company}
+                  </span>
+                </p>
+                <p className="text-[11px] text-rd-text-tertiary whitespace-nowrap">
+                  {exp.dates}
+                </p>
+              </div>
+              <ul className="mt-1.5 flex flex-col gap-1">
+                {exp.bullets.map((b, i) => (
+                  <li
+                    key={i}
+                    className="text-[12.5px] text-rd-text-secondary leading-[1.55] pl-3.5 relative before:content-['·'] before:absolute before:left-0 before:text-rd-text-tertiary"
+                  >
+                    {b}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        <SectionLabel>Education</SectionLabel>
+        {cv.education.map((ed) => (
+          <div
+            key={ed.school}
+            className="flex items-baseline justify-between gap-2 flex-wrap"
           >
-            {content}
-          </button>
-        );
-      })}
+            <p className="text-[13px] font-display font-bold text-rd-text">
+              {ed.school}{" "}
+              <span className="font-normal text-rd-text-secondary">
+                · {ed.degree}
+              </span>
+            </p>
+            <p className="text-[11px] text-rd-text-tertiary whitespace-nowrap">
+              {ed.dates}
+            </p>
+          </div>
+        ))}
+
+        <SectionLabel>Skills</SectionLabel>
+        <p className="text-[12.5px] text-rd-text-secondary leading-[1.6]">
+          {cv.skills.join(" · ")}
+        </p>
+        <p className="text-[11.5px] text-rd-text-tertiary mt-1.5">
+          Tools: {cv.tools.join(" · ")}
+        </p>
+
+        <SectionLabel>Languages</SectionLabel>
+        <p className="text-[12.5px] text-rd-text-secondary leading-[1.6]">
+          {cv.languages.join(" · ")}
+        </p>
+      </div>
     </div>
   );
 }
 
-// ───── Right: top matches (mirrors UnifiedJobsFeed's fetch + gate + sort +
-// picks/stretch sectioning, trimmed to a single compact reveal for this
-// panel - no pagination, no search tab) ─────
-
-function useTopMatches() {
-  const { user } = useAuth();
-  const { data: profile } = useProfileQuery(user?.id);
-  const { data: experiences = [] } = useExperiencesQuery(user?.id);
-  const { data: educations = [] } = useEducationQuery(user?.id);
-  const { data: careerRoles = [] } = useCareerRolesQuery(user?.id, { profile });
-
-  const experienceLevel = useMemo(
-    () => inferExperienceLevel(experiences, educations),
-    [experiences, educations],
+// Styled to visually read as "click me": teal border + text, chevron,
+// hover state - a stand-in for a future real CV-bank selector. Native
+// <select> for the demo (keyboard/a11y come free); the option list is the
+// visible control, the icon overlay is decorative only.
+function CvBankDropdown({ value, onChange }) {
+  return (
+    <div className="relative inline-flex items-center">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none cursor-pointer font-display font-bold text-[13px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/40 hover:border-rd-coral hover:bg-rd-coral-tint rounded-full pl-3.5 pr-8 py-1.5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
+      >
+        {CV_OPTIONS.map((opt) => (
+          <option key={opt.id} value={opt.id}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        className="w-3.5 h-3.5 text-rd-coral-dark absolute right-2.5 pointer-events-none"
+        aria-hidden="true"
+      />
+    </div>
   );
-  const allowedSeniorities = useMemo(
-    () => allowedSenioritiesForLevel(experienceLevel),
-    [experienceLevel],
-  );
-
-  const rolesByTrack = useMemo(() => {
-    const groups = { track_1: [], track_2: [], track_3: [] };
-    for (const r of careerRoles) {
-      if (!r?.title || !groups[r.track]) continue;
-      groups[r.track].push(r);
-    }
-    for (const t of TRACK_ORDER) {
-      groups[t].sort(
-        (a, b) =>
-          (Number(b.readiness_score) || 0) - (Number(a.readiness_score) || 0),
-      );
-    }
-    return groups;
-  }, [careerRoles]);
-
-  const unionedRoles = useMemo(() => {
-    const out = [];
-    const seen = new Set();
-    for (const t of TRACK_ORDER) {
-      for (const r of rolesByTrack[t] || []) {
-        if (!r?.title || seen.has(r.title)) continue;
-        seen.add(r.title);
-        out.push(r.title);
-        if (out.length >= UNIFIED_MAX_ROLES) break;
-      }
-      if (out.length >= UNIFIED_MAX_ROLES) break;
-    }
-    return out;
-  }, [rolesByTrack]);
-
-  const jobsQuery = useQuery({
-    queryKey: ["home3tabTopMatches", user?.id, unionedRoles.join("|")],
-    queryFn: async () => {
-      const stretchSeniorities = stretchAwareSeniorityFor(allowedSeniorities);
-      const workTypes = Array.isArray(profile?.work_type)
-        ? profile.work_type
-        : [];
-      const { data, error } = await supabase
-        .rpc("search_jobs_by_role_titles", {
-          p_role_titles: unionedRoles,
-          p_limit: TOP_MATCHES_FETCH_SIZE,
-          p_offset: 0,
-          p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
-          p_max_seniority: stretchSeniorities,
-          p_work_types: workTypes.length > 0 ? workTypes : null,
-        })
-        .select(JOBS_SELECT_LIGHT);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id && unionedRoles.length > 0,
-  });
-
-  const jobs = jobsQuery.data || [];
-
-  const scoredById = useMemo(() => {
-    if (!profile || jobs.length === 0) return {};
-    const out = {};
-    for (const job of jobs) {
-      out[job.id] = scoreJobFit({ profile, experiences, educations }, job);
-    }
-    return out;
-  }, [profile, experiences, educations, jobs]);
-
-  const sectioned = useMemo(() => {
-    if (jobs.length === 0 || !profile) return { picks: [], stretch: [] };
-    const rankRel = { primary: 0, adjacent: 1, unknown: 2 };
-    const gated = jobs.filter((job) => {
-      const r = scoredById[job.id];
-      if (!r) return false;
-      return r.relevance_match && r.relevance_match !== "off";
-    });
-    gated.sort((a, b) => {
-      const ra = rankRel[scoredById[a.id].relevance_match];
-      const rb = rankRel[scoredById[b.id].relevance_match];
-      if (ra !== rb) return ra - rb;
-      const aa = scoredById[a.id].attainability_score ?? 0;
-      const ab = scoredById[b.id].attainability_score ?? 0;
-      return ab - aa;
-    });
-    const shown = gated.slice(0, TOP_MATCHES_SHOWN);
-    const picks = [];
-    const stretch = [];
-    for (const job of shown) {
-      const b = scoredById[job.id]?.attainability_band;
-      if (b === "strong" || b === "good") picks.push(job);
-      else stretch.push(job);
-    }
-    return { picks, stretch };
-  }, [jobs, scoredById, profile]);
-
-  return {
-    ...sectioned,
-    scoredById,
-    isLoading: jobsQuery.isLoading,
-    isError: jobsQuery.isError,
-    noRoles: unionedRoles.length === 0,
-  };
 }
 
-function TopMatchesPanel() {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { picks, stretch, scoredById, isLoading, isError, noRoles } =
-    useTopMatches();
-  const [openJob, setOpenJob] = useState(null);
-  const [trackedIds, setTrackedIds] = useState(() => new Set());
-  const [trackingId, setTrackingId] = useState(null);
-
-  const handleTrack = useCallback(
-    async (job, scoreResult) => {
-      setTrackingId(job.id);
-      const res = await addJobToTracker({
-        user,
-        queryClient,
-        job,
-        scoreResult,
-      });
-      setTrackingId(null);
-      if (res?.error) {
-        toast.error("Couldn't add to your pipeline. Try again.");
-        return;
-      }
-      if (res?.duplicate) {
-        toast.info("Already in your pipeline.");
-      } else {
-        toast.success("Added to your pipeline.");
-      }
-      setTrackedIds((prev) => new Set(prev).add(job.id));
-    },
-    [user, queryClient],
+function SectionLabel({ children }) {
+  return (
+    <p className="text-[10px] uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono mt-5 mb-2 pb-1 border-b border-rd-border-subtle">
+      {children}
+    </p>
   );
+}
 
-  const handleTailorStub = () => {
-    toast.info(
-      "Tailor CV from here isn't wired up yet in this prototype - use the CV studio's \"Tailor to a job\" flow for now.",
-    );
-  };
+// ───── Right: mock top matches ─────
+
+function TopMatchesPanel() {
+  const [trackedIds, setTrackedIds] = useState(() => new Set());
 
   return (
     <div className="flex flex-col gap-3">
       <h2 className="font-display font-bold text-[14px] text-rd-text px-0.5">
         Top matches for you
       </h2>
+      <p className="text-[10.5px] text-rd-text-tertiary px-0.5 -mt-2">
+        Sample listings for this prototype
+      </p>
 
-      {isLoading ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-8 text-center">
-          <Loader2 className="w-5 h-5 animate-spin text-rd-text-secondary mx-auto mb-2" />
-          <p className="text-[12px] text-rd-text-secondary">
-            Finding your matches…
-          </p>
-        </div>
-      ) : isError ? (
-        <div className="flex items-center gap-2 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 text-[12.5px] text-[#991B1B]">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>Couldn't load matches - try again.</span>
-        </div>
-      ) : noRoles ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5]">
-            Run your Career Roadmap to generate matched roles, then top matches
-            show up here.
-          </p>
-        </div>
-      ) : picks.length === 0 && stretch.length === 0 ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5]">
-            No matches right now - check the Browse Jobs tab for the full
-            search.
-          </p>
-        </div>
-      ) : (
-        <>
-          {picks.length > 0 && (
-            <MatchSection
-              title="Our picks for you"
-              jobs={picks}
-              scoredById={scoredById}
-              trackedIds={trackedIds}
-              trackingId={trackingId}
-              onOpen={setOpenJob}
-              onTrack={handleTrack}
-              onTailorStub={handleTailorStub}
-            />
-          )}
-          {stretch.length > 0 && (
-            <MatchSection
-              title="Worth a stretch"
-              jobs={stretch}
-              scoredById={scoredById}
-              trackedIds={trackedIds}
-              trackingId={trackingId}
-              onOpen={setOpenJob}
-              onTrack={handleTrack}
-              onTailorStub={handleTailorStub}
-            />
-          )}
-        </>
-      )}
-
-      {openJob && (
-        <JobDetailModal
-          job={openJob.job}
-          scoreResult={openJob.scoreResult}
-          trackColor={openJob.trackColor}
-          unified
-          onClose={() => setOpenJob(null)}
-        />
-      )}
+      <MatchSection
+        title="Our picks for you"
+        entries={CV_TAB_PICKS}
+        trackedIds={trackedIds}
+        setTrackedIds={setTrackedIds}
+      />
+      <MatchSection
+        title="Worth a stretch"
+        entries={CV_TAB_STRETCH}
+        trackedIds={trackedIds}
+        setTrackedIds={setTrackedIds}
+      />
     </div>
   );
 }
 
-function MatchSection({
-  title,
-  jobs,
-  scoredById,
-  trackedIds,
-  trackingId,
-  onOpen,
-  onTrack,
-  onTailorStub,
-}) {
+function MatchSection({ title, entries, trackedIds, setTrackedIds }) {
   return (
     <div>
       <p className="text-[10px] uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono mb-1.5 px-0.5">
         {title}
       </p>
       <div className="flex flex-col gap-2">
-        {jobs.map((job) => {
-          const scoreResult = scoredById[job.id];
-          const perJobTrack = scoreResult?.track;
-          const trackColor = perJobTrack
-            ? TRACK_CONFIG[perJobTrack]?.rdColor
-            : null;
+        {entries.map(({ job, score }) => {
+          const trackColor = TRACK_CONFIG[score.track]?.rdColor || null;
           const tracked = trackedIds.has(job.id);
-          const tracking = trackingId === job.id;
           return (
             <div key={job.id} className="flex flex-col gap-1.5">
               <JobGridCard
                 job={job}
-                scoreResult={scoreResult}
+                scoreResult={score}
                 trackColor={trackColor}
                 unified
-                onOpen={(j, s) =>
-                  onOpen({ job: j, scoreResult: s, trackColor })
-                }
+                onOpen={() => {}}
               />
               <div className="flex gap-1.5">
                 <button
                   type="button"
-                  onClick={() => onTrack(job, scoreResult)}
-                  disabled={tracked || tracking}
+                  onClick={() => trackStub(setTrackedIds, job.id)}
+                  disabled={tracked}
                   className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed"
                   style={
                     tracked
@@ -449,9 +258,7 @@ function MatchSection({
                         }
                   }
                 >
-                  {tracking ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : tracked ? (
+                  {tracked ? (
                     <Check className="w-3 h-3" />
                   ) : (
                     <Plus className="w-3 h-3" />
@@ -460,12 +267,11 @@ function MatchSection({
                 </button>
                 <button
                   type="button"
-                  onClick={onTailorStub}
-                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
-                  title="Not wired up yet in this prototype"
+                  onClick={tailorStub}
+                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
                 >
                   <Wand2 className="w-3 h-3" />
-                  Tailor CV
+                  Generate tailored CV
                 </button>
               </div>
             </div>

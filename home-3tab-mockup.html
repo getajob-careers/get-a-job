@@ -1,0 +1,3652 @@
+<!--
+  VISUAL MOCKUP ONLY -- no real data, no real logic, no framework.
+
+  This is a static, standalone reference snapshot of the "3-tab homepage"
+  prototype reviewed on branch yishai/homepage-3tab-demo, live in the real
+  codebase at src/pages/_preview/Home3TabPreview.jsx (+ Home3TabSidebar.jsx,
+  Home3TabCvTab.jsx, Home3TabJobsTab.jsx, Home3TabFixtures.js), served at
+  the dev-only route /_preview/home-3tab. It is a DESIGN REFERENCE for
+  rebuilding the real thing -- not code to copy-paste as the implementation.
+
+  Every mock CV, job listing, application, and matched role below is
+  fictional sample content, hardcoded for visual review. Nothing here
+  talks to Supabase, nothing generates a real CV, nothing tracks a real
+  application. Tab switching and the CV-bank dropdown are wired with a
+  few lines of vanilla JS purely so this can be clicked through; the
+  seniority/work-type filter chips below toggle a visual "selected" state
+  only and do not re-filter the job grid (the real component this
+  recreates does filter; this static file does not need to).
+
+  Colors are the live app's actual --rd-* design tokens, copied verbatim
+  from src/index.css and inlined below (this file has no access to that
+  stylesheet, so the literal hex values are reproduced here instead of
+  left as unresolved var() references). Primary accent = coral
+  (--rd-coral), matching real usage across Career.jsx and its components
+  (active tab states, primary CTAs, the "applied" funnel tile, and
+  track_1/"Sweet spot" per src/lib/trackConfig.js's TRACK_CONFIG). Track
+  colors follow that same canonical mapping: track_1 = coral, track_2 =
+  teal, track_3 = golden.
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Get A Job -- 3-Tab Homepage Mockup (design reference only)</title>
+    <style>
+      /* ============================================================
+     Design tokens -- literal values from src/index.css, inlined
+     so this file has zero external dependencies. Defined as CSS
+     custom properties (not raw hex scattered everywhere) so the
+     semantic names stay visible as a reference for rebuilding.
+     ============================================================ */
+      :root {
+        /* surfaces */
+        --rd-bg-page: #faf6f0;
+        --rd-bg-card: #ffffff;
+        --rd-bg-sidebar: #efe7db;
+        --rd-bg-soft: #f3ece0;
+
+        /* lines */
+        --rd-border: #f0e7d8;
+        --rd-border-subtle: #ede7dd;
+        --rd-border-hover: #e0d6c4;
+
+        /* text */
+        --rd-text: #211d18;
+        --rd-text-secondary: #6e675b;
+        --rd-text-tertiary: #5e584e;
+        --rd-text-eyebrow: #766445;
+
+        /* coral -- sole CTA / primary accent (track_1 "Sweet spot") */
+        --rd-coral: #d6421f;
+        --rd-coral-dark: #b23a17;
+        --rd-coral-tint: #fce6df;
+
+        /* teal -- success / progress (track_2 "Detour") */
+        --rd-teal: #54b5a2;
+        --rd-teal-dark: #2a6e5e;
+        --rd-teal-tint: #dbeee8;
+
+        /* golden -- stats / info (track_3 "Growth") */
+        --rd-golden: #efb23e;
+        --rd-golden-dark: #7a5408;
+        --rd-golden-tint: #fbebc9;
+
+        --rd-shadow: 0 10px 28px rgba(40, 25, 10, 0.07);
+        /* Rokkitt isn't available without a font fetch (no external deps
+       allowed in this file) -- Georgia is the real app's own fallback. */
+        --rd-font-display: Georgia, "Times New Roman", serif;
+        --rd-font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: var(--rd-bg-page);
+        color: var(--rd-text);
+        font-family: var(--rd-font-body);
+        -webkit-font-smoothing: antialiased;
+      }
+      button,
+      select,
+      input {
+        font-family: inherit;
+      }
+      button {
+        cursor: pointer;
+        border: none;
+        background: none;
+      }
+      svg {
+        display: block;
+      }
+
+      .page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px 24px;
+      }
+      .eyebrow {
+        font-size: 10.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        font-weight: 500;
+        color: var(--rd-text-eyebrow);
+        font-family: monospace;
+        margin: 0 0 2px;
+      }
+      .h1 {
+        font-family: var(--rd-font-display);
+        font-weight: 800;
+        font-size: 20px;
+        color: var(--rd-text);
+        margin: 0;
+      }
+
+      .layout {
+        margin-top: 16px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      /* ---------- Sidebar ---------- */
+      .sidebar {
+        width: 220px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .icon-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .sidebar-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        aspect-ratio: 1 / 1;
+        border-radius: 12px;
+        border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card);
+        padding: 8px;
+        transition:
+          background-color 0.15s,
+          border-color 0.15s;
+      }
+      .sidebar-tile:hover:not(:disabled) {
+        background: var(--rd-bg-soft);
+        border-color: var(--rd-border-hover);
+      }
+      .sidebar-tile:focus-visible {
+        outline: 2px solid var(--rd-coral);
+        outline-offset: 2px;
+      }
+      .sidebar-tile svg {
+        width: 20px;
+        height: 20px;
+        color: var(--rd-text-secondary);
+      }
+      .sidebar-tile:hover:not(:disabled) svg {
+        color: var(--rd-text);
+      }
+      .sidebar-tile span.label {
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 9.5px;
+        color: var(--rd-text-secondary);
+        line-height: 1.2;
+        text-align: center;
+      }
+      .sidebar-tile:hover:not(:disabled) span.label {
+        color: var(--rd-text);
+      }
+      .sidebar-tile:disabled {
+        background: var(--rd-bg-soft);
+        border-color: var(--rd-border-subtle);
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .sidebar-tile .soon {
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-family: monospace;
+        color: var(--rd-text-tertiary);
+      }
+
+      .coach-dock {
+        flex: 1;
+        min-height: 280px;
+        background: var(--rd-bg-sidebar);
+        border-radius: 16px;
+        display: flex;
+        flex-direction: column;
+        padding: 12px;
+      }
+      .coach-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border-subtle);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .coach-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        height: 32px;
+        border-bottom: 1px solid var(--rd-border-subtle);
+      }
+      .coach-header svg {
+        width: 14px;
+        height: 14px;
+        color: var(--rd-coral);
+        flex-shrink: 0;
+      }
+      .coach-header .title {
+        flex: 1;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 12.5px;
+        color: var(--rd-text);
+        letter-spacing: -0.01em;
+      }
+      .coach-header button {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        color: var(--rd-text-tertiary);
+      }
+      .coach-header button:hover {
+        background: var(--rd-bg-soft);
+        color: var(--rd-text);
+      }
+      .coach-header button svg {
+        width: 12px;
+        height: 12px;
+        color: inherit;
+      }
+      .coach-body {
+        padding: 12px;
+        flex: 1;
+      }
+      .coach-body p {
+        font-size: 12px;
+        color: var(--rd-text-secondary);
+        margin: 0 0 10px;
+        line-height: 1.5;
+      }
+      .coach-prompts {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: flex-start;
+      }
+      .coach-prompt {
+        font-size: 11.5px;
+        color: var(--rd-coral-dark);
+        background: var(--rd-coral-tint);
+        border-radius: 999px;
+        padding: 6px 12px;
+        text-align: left;
+      }
+      .coach-input-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px;
+        border-top: 1px solid var(--rd-border-subtle);
+      }
+      .coach-input-row input {
+        flex: 1;
+        border: 1px solid var(--rd-border);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 12px;
+        background: var(--rd-bg-card);
+        color: var(--rd-text);
+      }
+      .coach-input-row input::placeholder {
+        color: var(--rd-text-tertiary);
+      }
+      .coach-send {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--rd-coral-tint);
+        color: var(--rd-coral-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .coach-send svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      /* ---------- Main column / tab bar ---------- */
+      .main {
+        flex: 1;
+        min-width: 0;
+      }
+      .tab-bar {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        border: 1px solid var(--rd-border);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .tab-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 0;
+        font-family: var(--rd-font-display);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--rd-text-secondary);
+        background: var(--rd-bg-card);
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+        border-left: 1px solid var(--rd-border);
+      }
+      .tab-btn:first-child {
+        border-left: none;
+      }
+      .tab-btn svg {
+        width: 14px;
+        height: 14px;
+      }
+      .tab-btn:hover:not(.active) {
+        background: var(--rd-bg-soft);
+        color: var(--rd-text);
+      }
+      .tab-btn.active {
+        background: var(--rd-coral-tint);
+        color: var(--rd-coral-dark);
+        font-weight: 800;
+      }
+      .tab-btn.active svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .tab-panel {
+        display: none;
+        margin-top: 16px;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* ---------- shared bits ---------- */
+      .card {
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 18px;
+        box-shadow: var(--rd-shadow);
+      }
+      .btn-coral {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 12.5px;
+        color: #fff;
+        background: var(--rd-coral);
+        border-radius: 999px;
+        padding: 8px 14px;
+        transition: background-color 0.15s;
+      }
+      .btn-coral:hover {
+        background: var(--rd-coral-dark);
+      }
+      .btn-coral svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* ---------- Tracker tab ---------- */
+      .funnel-row {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .funnel-tile {
+        flex: 1;
+        min-width: 0;
+        text-align: center;
+        border-radius: 12px;
+        padding: 8px 0;
+        background: var(--rd-bg-page);
+      }
+      .funnel-tile .num {
+        font-family: var(--rd-font-display);
+        font-weight: 800;
+        font-size: 18px;
+        line-height: 1.2;
+        color: var(--rd-text-tertiary);
+      }
+      .funnel-tile .lbl {
+        font-size: 10.5px;
+        color: var(--rd-text-tertiary);
+      }
+      .funnel-tile.tone-neutral {
+        background: var(--rd-bg-page);
+      }
+      .funnel-tile.tone-neutral .num {
+        color: var(--rd-text);
+      }
+      .funnel-tile.tone-neutral .lbl {
+        color: var(--rd-text-secondary);
+      }
+      .funnel-tile.tone-coral {
+        background: var(--rd-coral-tint);
+      }
+      .funnel-tile.tone-coral .num,
+      .funnel-tile.tone-coral .lbl {
+        color: var(--rd-coral-dark);
+      }
+      .funnel-tile.tone-teal {
+        background: var(--rd-teal-tint);
+      }
+      .funnel-tile.tone-teal .num,
+      .funnel-tile.tone-teal .lbl {
+        color: var(--rd-teal-dark);
+      }
+
+      .guide-card {
+        padding: 20px;
+        margin-bottom: 16px;
+      }
+      .guide-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .guide-top p.eyebrow {
+        margin: 0;
+      }
+      .guide-top p.body {
+        font-size: 13.5px;
+        color: var(--rd-text-secondary);
+        line-height: 1.55;
+        margin: 6px 0 0;
+        max-width: 640px;
+      }
+      .guide-top p.body strong {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        color: var(--rd-text);
+      }
+      .guide-dismiss {
+        flex-shrink: 0;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rd-text-tertiary);
+      }
+      .guide-dismiss:hover {
+        background: var(--rd-bg-soft);
+        color: var(--rd-text);
+      }
+      .guide-dismiss svg {
+        width: 14px;
+        height: 14px;
+      }
+      .guide-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .guide-tile {
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .guide-tile .head {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 12.5px;
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+      }
+      .guide-tile .head svg {
+        width: 12px;
+        height: 12px;
+      }
+      .guide-tile .body {
+        font-size: 11.5px;
+        line-height: 1.45;
+        margin: 6px 0 0;
+      }
+
+      .pipeline-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .pipeline-head h2 {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 17px;
+        color: var(--rd-text);
+        margin: 0;
+      }
+      .pipeline-head p {
+        font-size: 11.5px;
+        color: var(--rd-text-secondary);
+        margin: 4px 0 0;
+      }
+
+      .kanban {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .kanban-col {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 8px;
+        border-radius: 12px;
+        background: var(--rd-bg-soft);
+        min-height: 220px;
+      }
+      .kanban-col-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 4px;
+      }
+      .kanban-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        flex-shrink: 0;
+      }
+      .kanban-col-head .name {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 12px;
+        color: var(--rd-text);
+      }
+      .kanban-col-head .count {
+        margin-left: auto;
+        font-family: monospace;
+        font-size: 10.5px;
+        color: var(--rd-text-tertiary);
+      }
+      .kanban-empty {
+        font-size: 10.5px;
+        color: var(--rd-text-tertiary);
+        font-style: italic;
+        text-align: center;
+        padding: 14px 8px;
+        border-radius: 10px;
+        border: 1px dashed var(--rd-border);
+        margin-top: 6px;
+      }
+
+      .kanban-card {
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 10px;
+        padding: 10px;
+        cursor: grab;
+      }
+      .kanban-card:hover {
+        border-color: var(--rd-border-hover);
+      }
+      .kanban-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .logo-chip {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 10.5px;
+        flex-shrink: 0;
+      }
+      .kanban-card .pct {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 10.5px;
+      }
+      .kanban-card .role {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 11.5px;
+        line-height: 1.25;
+        margin-top: 6px;
+        color: var(--rd-text);
+      }
+      .kanban-card .company {
+        font-size: 10px;
+        color: var(--rd-text-secondary);
+        margin-top: 2px;
+      }
+      .kanban-card .meta-row {
+        margin-top: 6px;
+      }
+      .track-pill {
+        display: inline-flex;
+        align-items: center;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 9.5px;
+        border-radius: 999px;
+        padding: 2px 6px;
+      }
+      .kanban-card .link-row {
+        margin-top: 6px;
+      }
+      .kanban-card .view-listing {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 9.5px;
+        color: var(--rd-coral);
+      }
+      .kanban-card .view-listing:hover {
+        color: var(--rd-coral-dark);
+      }
+      .kanban-card .view-listing svg {
+        width: 10px;
+        height: 10px;
+      }
+      .kanban-card .no-link {
+        font-size: 9.5px;
+        color: var(--rd-text-tertiary);
+      }
+
+      /* ---------- CV tab ---------- */
+      .cv-layout {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .cv-center {
+        flex: 1;
+        min-width: 0;
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border-subtle);
+        border-radius: 16px;
+        padding: 24px;
+      }
+      .cv-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .cv-dropdown-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+      .cv-dropdown {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--rd-coral-dark);
+        background: var(--rd-coral-tint);
+        border: 1px solid rgba(214, 66, 31, 0.4);
+        border-radius: 999px;
+        padding: 6px 32px 6px 14px;
+        transition: border-color 0.15s;
+      }
+      .cv-dropdown:hover {
+        border-color: var(--rd-coral);
+      }
+      .cv-dropdown:focus-visible {
+        outline: 2px solid var(--rd-coral);
+        outline-offset: 1px;
+      }
+      .cv-dropdown-wrap svg {
+        position: absolute;
+        right: 10px;
+        width: 14px;
+        height: 14px;
+        color: var(--rd-coral-dark);
+        pointer-events: none;
+      }
+
+      .cv-body {
+        max-width: 640px;
+      }
+      .cv-body h2 {
+        font-family: var(--rd-font-display);
+        font-weight: 800;
+        font-size: 22px;
+        color: var(--rd-text);
+        margin: 0;
+      }
+      .cv-body .role-title {
+        font-size: 13px;
+        color: var(--rd-text-secondary);
+        margin: 2px 0 0;
+      }
+      .cv-body .contact {
+        font-size: 11.5px;
+        color: var(--rd-text-tertiary);
+        margin: 4px 0 0;
+      }
+      .section-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 500;
+        color: var(--rd-text-eyebrow);
+        font-family: monospace;
+        margin: 20px 0 8px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--rd-border-subtle);
+      }
+      .cv-body .summary,
+      .cv-body .skills,
+      .cv-body .languages {
+        font-size: 12.5px;
+        color: var(--rd-text-secondary);
+        line-height: 1.6;
+        margin: 0;
+      }
+      .cv-body .tools {
+        font-size: 11.5px;
+        color: var(--rd-text-tertiary);
+        margin: 6px 0 0;
+      }
+      .exp-block + .exp-block {
+        margin-top: 16px;
+      }
+      .exp-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .exp-head .role {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--rd-text);
+      }
+      .exp-head .role .co {
+        font-weight: 400;
+        color: var(--rd-text-secondary);
+      }
+      .exp-head .dates {
+        font-size: 11px;
+        color: var(--rd-text-tertiary);
+        white-space: nowrap;
+      }
+      .exp-bullets {
+        margin: 6px 0 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .exp-bullets li {
+        font-size: 12.5px;
+        color: var(--rd-text-secondary);
+        line-height: 1.55;
+        padding-left: 14px;
+        position: relative;
+      }
+      .exp-bullets li::before {
+        content: "\00b7";
+        position: absolute;
+        left: 0;
+        color: var(--rd-text-tertiary);
+      }
+      .edu-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .edu-row .school {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 13px;
+        color: var(--rd-text);
+      }
+      .edu-row .school .deg {
+        font-weight: 400;
+        color: var(--rd-text-secondary);
+      }
+      .edu-row .dates {
+        font-size: 11px;
+        color: var(--rd-text-tertiary);
+        white-space: nowrap;
+      }
+
+      .cv-right {
+        width: 320px;
+        flex-shrink: 0;
+      }
+      .cv-right h2.title {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 14px;
+        color: var(--rd-text);
+        margin: 0 2px;
+      }
+      .cv-right .sub {
+        font-size: 10.5px;
+        color: var(--rd-text-tertiary);
+        margin: 4px 2px 12px;
+      }
+      .match-section-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 500;
+        color: var(--rd-text-eyebrow);
+        font-family: monospace;
+        margin: 0 2px 6px;
+      }
+      .match-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .match-item {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .match-actions {
+        display: flex;
+        gap: 6px;
+      }
+      .btn-track,
+      .btn-tailor {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 11px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        transition:
+          background-color 0.15s,
+          color 0.15s;
+      }
+      .btn-track svg,
+      .btn-tailor svg {
+        width: 12px;
+        height: 12px;
+      }
+      .btn-track {
+        background: var(--rd-bg-soft);
+        color: var(--rd-text);
+      }
+      .btn-track.tracked {
+        background: var(--rd-teal-tint);
+        color: var(--rd-teal-dark);
+        cursor: default;
+      }
+      .btn-tailor {
+        background: var(--rd-coral);
+        color: #fff;
+      }
+      .btn-tailor:hover {
+        background: var(--rd-coral-dark);
+      }
+
+      /* ---------- Job card (shared: CV tab + Browse Jobs tab) ---------- */
+      .job-card {
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 14px;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        min-width: 0;
+        overflow: hidden;
+        transition:
+          border-color 0.15s,
+          box-shadow 0.15s,
+          transform 0.15s;
+      }
+      .job-card:hover {
+        border-color: var(--rd-border-hover);
+        box-shadow: var(--rd-shadow);
+        transform: translateY(-2px);
+      }
+      .job-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .job-badge {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        font-family: var(--rd-font-display);
+        border-radius: 999px;
+        padding: 2px 8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .job-badge .lbl {
+        font-weight: 800;
+        font-size: 11px;
+      }
+      .job-badge .pct {
+        font-weight: 600;
+        font-size: 10px;
+        opacity: 0.7;
+      }
+      .job-badge.band-strong {
+        background: var(--rd-teal-tint);
+        color: var(--rd-teal-dark);
+      }
+      .job-badge.band-good {
+        background: var(--rd-coral-tint);
+        color: var(--rd-coral-dark);
+      }
+      .job-badge.band-stretch {
+        background: var(--rd-golden-tint);
+        color: var(--rd-golden-dark);
+      }
+      .job-card h3 {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 13.5px;
+        line-height: 1.18;
+        color: var(--rd-text);
+        margin: 0;
+      }
+      .job-card .sub {
+        font-size: 10.5px;
+        color: var(--rd-text-secondary);
+        margin: 2px 0 0;
+      }
+      .job-card .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+      }
+      .job-card .chip {
+        font-size: 10px;
+        background: var(--rd-bg-soft);
+        color: var(--rd-text-tertiary);
+        border-radius: 5px;
+        padding: 2px 6px;
+      }
+      .job-card .skill-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 6px;
+      }
+      .job-card .skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        background: var(--rd-teal-tint);
+        color: var(--rd-teal-dark);
+        border-radius: 999px;
+        padding: 2px 6px;
+        white-space: nowrap;
+      }
+      .job-card .skill-chip svg {
+        width: 10px;
+        height: 10px;
+      }
+
+      /* ---------- Browse Jobs tab ---------- */
+      .jobs-layout {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .jobs-left {
+        flex: 1.55;
+        min-width: 0;
+      }
+      .jobs-right {
+        flex: 1;
+        min-width: 0;
+        background: var(--rd-bg-page);
+        border: 1px solid var(--rd-border-subtle);
+        border-radius: 16px;
+        padding: 14px;
+      }
+      .toggle-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .toggle-btn {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 13px;
+        border-radius: 999px;
+        padding: 6px 16px;
+        color: var(--rd-text-secondary);
+        background: var(--rd-bg-soft);
+      }
+      .toggle-btn:hover:not(.active) {
+        color: var(--rd-text);
+      }
+      .toggle-btn.active {
+        background: var(--rd-coral);
+        color: #fff;
+      }
+
+      .filter-bar {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .filter-bar.visible {
+        display: flex;
+      }
+      .search-wrap {
+        position: relative;
+      }
+      .search-wrap svg.search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        color: var(--rd-text-tertiary);
+      }
+      .search-wrap input {
+        width: 100%;
+        padding: 8px 12px 8px 34px;
+        font-size: 12.5px;
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 999px;
+        color: var(--rd-text);
+      }
+      .search-wrap input::placeholder {
+        color: var(--rd-text-tertiary);
+      }
+      .search-wrap input:focus-visible {
+        outline: 2px solid var(--rd-coral);
+        outline-offset: 1px;
+      }
+      .chip-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .filter-chip {
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 11.5px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        border: 1px solid var(--rd-border);
+        background: var(--rd-bg-card);
+        color: var(--rd-text-secondary);
+      }
+      .filter-chip:hover:not(.active) {
+        border-color: var(--rd-border-hover);
+      }
+      .filter-chip.active {
+        background: var(--rd-coral);
+        color: #fff;
+        border-color: var(--rd-coral);
+      }
+      .chip-sep {
+        width: 1px;
+        height: 16px;
+        background: var(--rd-border);
+        margin: 0 4px;
+      }
+      .simple-select-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+      }
+      .simple-select {
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 11.5px;
+        color: var(--rd-text-secondary);
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 999px;
+        padding: 6px 26px 6px 12px;
+      }
+      .simple-select:hover {
+        border-color: var(--rd-border-hover);
+      }
+      .simple-select-wrap svg {
+        position: absolute;
+        right: 8px;
+        width: 12px;
+        height: 12px;
+        color: var(--rd-text-tertiary);
+        pointer-events: none;
+      }
+
+      .jobs-count-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .jobs-count-row .count {
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--rd-text);
+        margin: 0;
+      }
+      .jobs-count-row .sample-note {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-family: monospace;
+        color: var(--rd-text-secondary);
+        margin: 0;
+      }
+      .job-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .role-row {
+        background: var(--rd-bg-card);
+        border: 1px solid var(--rd-border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .role-row-head {
+        width: 100%;
+        text-align: left;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .role-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        flex-shrink: 0;
+      }
+      .role-row-head .name {
+        flex: 1;
+        min-width: 0;
+        font-family: var(--rd-font-display);
+        font-weight: 700;
+        font-size: 12.5px;
+        color: var(--rd-text);
+      }
+      .role-track-chip {
+        font-family: var(--rd-font-display);
+        font-weight: 600;
+        font-size: 10px;
+        border-radius: 999px;
+        padding: 2px 8px;
+      }
+      .role-row-head svg.chev {
+        width: 14px;
+        height: 14px;
+        color: var(--rd-text-secondary);
+        flex-shrink: 0;
+      }
+      .role-row-body {
+        padding: 0 12px 12px;
+        display: none;
+      }
+      .role-row.expanded .role-row-body {
+        display: block;
+      }
+      .axis-bar-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .axis-bar-row + .axis-bar-row {
+        margin-top: 6px;
+      }
+      .axis-bar-row .lbl {
+        font-size: 10px;
+        color: var(--rd-text-secondary);
+        width: 104px;
+        flex-shrink: 0;
+      }
+      .axis-track {
+        flex: 1;
+        height: 6px;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      .axis-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+      }
+      .role-skill-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .role-skill-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        border-radius: 6px;
+        padding: 2px 8px;
+      }
+      .role-skill-chip svg {
+        width: 10px;
+        height: 10px;
+      }
+      .role-skill-chip.matched {
+        background: var(--rd-teal-tint);
+        color: var(--rd-teal-dark);
+      }
+      .role-skill-chip.gap {
+        background: var(--rd-golden-tint);
+        color: var(--rd-golden-dark);
+      }
+
+      @media (max-width: 900px) {
+        .layout,
+        .cv-layout,
+        .jobs-layout {
+          flex-direction: column;
+        }
+        .sidebar,
+        .cv-right,
+        .jobs-right {
+          width: 100%;
+        }
+        .job-grid {
+          grid-template-columns: 1fr;
+        }
+        .kanban {
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <p class="eyebrow">Prototype -- not the live homepage</p>
+      <h1 class="h1">Home</h1>
+
+      <div class="layout">
+        <!-- ============ SIDEBAR ============ -->
+        <aside class="sidebar">
+          <div class="icon-grid">
+            <button class="sidebar-tile" onclick="goHome()">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M3 11l9-8 9 8" />
+                <path d="M5 10v10h14V10" />
+                <path d="M9 20v-6h6v6" />
+              </svg>
+              <span class="label">Home</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('Your coach')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"
+                />
+                <path
+                  d="M19 4.5l.5 1.4 1.4.5-1.4.5-.5 1.4-.5-1.4-1.4-.5 1.4-.5z"
+                />
+              </svg>
+              <span class="label">Your coach</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('LinkedIn tools')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="3" />
+                <path d="M8 10.5v6.5" />
+                <path d="M8 7.2v.1" />
+                <path d="M12 17v-4a2 2 0 0 1 4 0v4" />
+                <path d="M12 10.5v.1" />
+              </svg>
+              <span class="label">LinkedIn tools</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('Story bank')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v18H6.5A2.5 2.5 0 0 0 4 22.5z"
+                />
+                <path d="M9 2v8l3-2.2L15 10V2" />
+              </svg>
+              <span class="label">Story bank</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('CV bank')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <path d="M14 2v6h6" />
+                <path d="M8 13h8" />
+                <path d="M8 17h8" />
+              </svg>
+              <span class="label">CV bank</span>
+            </button>
+            <button
+              class="sidebar-tile"
+              disabled
+              aria-label="In your browser -- coming soon"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M5 5h5v2a1.5 1.5 0 0 0 3 0V5h5a1 1 0 0 1 1 1v5h-2a1.5 1.5 0 0 0 0 3h2v5a1 1 0 0 1-1 1h-5v-2a1.5 1.5 0 0 0-3 0v2H6a1 1 0 0 1-1-1v-5h2a1.5 1.5 0 0 0 0-3H5V6a1 1 0 0 1 1-1z"
+                />
+              </svg>
+              <span class="label">In your browser</span>
+              <span class="soon">Soon</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('Profile')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="9" />
+                <circle cx="12" cy="10" r="3" />
+                <path d="M6.2 19a5.8 5.8 0 0 1 11.6 0" />
+              </svg>
+              <span class="label">Profile</span>
+            </button>
+            <button class="sidebar-tile" onclick="stub('Settings')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="3.2" />
+                <path
+                  d="M12 2.5v3M12 18.5v3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M2 12h3M19 12h3M4.6 19.4l2.1-2.1M17.3 6.7l2.1-2.1"
+                />
+              </svg>
+              <span class="label">Settings</span>
+            </button>
+          </div>
+
+          <div class="coach-dock">
+            <div class="coach-card">
+              <div class="coach-header">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"
+                  />
+                </svg>
+                <span class="title">Coach</span>
+                <button
+                  aria-label="Open coach in full panel"
+                  onclick="stub('Open coach in full panel')"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M15 3h6v6" />
+                    <path d="M9 21H3v-6" />
+                    <path d="M21 3l-7 7" />
+                    <path d="M3 21l7-7" />
+                  </svg>
+                </button>
+              </div>
+              <div class="coach-body">
+                <p>Knows your roadmap, your pipeline, and this page.</p>
+                <div class="coach-prompts">
+                  <button class="coach-prompt" onclick="stub('Coach prompt')">
+                    What should I focus on?
+                  </button>
+                  <button class="coach-prompt" onclick="stub('Coach prompt')">
+                    Am I ready to apply?
+                  </button>
+                  <button class="coach-prompt" onclick="stub('Coach prompt')">
+                    What's my biggest gap?
+                  </button>
+                </div>
+              </div>
+              <div class="coach-input-row">
+                <input
+                  type="text"
+                  placeholder="Ask about this page..."
+                  disabled
+                />
+                <button class="coach-send" aria-label="Send message" disabled>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M22 2L11 13" />
+                    <path d="M22 2l-7 20-4-9-9-4z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ============ MAIN COLUMN ============ -->
+        <div class="main">
+          <div class="tab-bar" role="tablist">
+            <button
+              class="tab-btn active"
+              role="tab"
+              aria-selected="true"
+              onclick="showTab('tracker', this)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M8 7v7M12 7v4M16 7v10" />
+              </svg>
+              Tracker
+            </button>
+            <button
+              class="tab-btn"
+              role="tab"
+              aria-selected="false"
+              onclick="showTab('cv', this)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <path d="M14 2v6h6" />
+                <path d="M8 13h8" />
+                <path d="M8 17h8" />
+              </svg>
+              CV
+            </button>
+            <button
+              class="tab-btn"
+              role="tab"
+              aria-selected="false"
+              onclick="showTab('jobs', this)"
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.3-4.3" />
+              </svg>
+              Browse Jobs
+            </button>
+          </div>
+
+          <!-- ============ TRACKER TAB ============ -->
+          <section
+            id="panel-tracker"
+            class="tab-panel active"
+            aria-label="Pipeline board"
+          >
+            <div class="funnel-row">
+              <div class="funnel-tile tone-neutral">
+                <div class="num">3</div>
+                <div class="lbl">saved</div>
+              </div>
+              <div class="funnel-tile tone-coral">
+                <div class="num">1</div>
+                <div class="lbl">applied</div>
+              </div>
+              <div class="funnel-tile tone-teal">
+                <div class="num">1</div>
+                <div class="lbl">interview</div>
+              </div>
+              <div class="funnel-tile tone-neutral">
+                <div class="num">0</div>
+                <div class="lbl">offer</div>
+              </div>
+            </div>
+
+            <div class="card guide-card" id="guideCard">
+              <div class="guide-top">
+                <div>
+                  <p class="eyebrow">How to use this pipeline</p>
+                  <p class="body">
+                    Every application has a <strong>7-step process</strong>.
+                    Open any application and go to the
+                    <strong>&#128203; Steps</strong> tab. Work through each step
+                    before submitting -- candidates who skip steps are the ones
+                    who get ignored.
+                  </p>
+                </div>
+                <button
+                  class="guide-dismiss"
+                  aria-label="Dismiss the pipeline guide"
+                  onclick="
+                    document.getElementById('guideCard').style.display = 'none'
+                  "
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div class="guide-grid">
+                <div
+                  class="guide-tile"
+                  style="background: var(--rd-golden-tint)"
+                >
+                  <p class="head" style="color: var(--rd-golden-dark)">
+                    Steps 1&ndash;2
+                  </p>
+                  <p class="body" style="color: var(--rd-golden-dark)">
+                    Qualify yourself. Dissect the job description. Know the role
+                    before applying.
+                  </p>
+                </div>
+                <div class="guide-tile" style="background: var(--rd-teal-tint)">
+                  <p class="head" style="color: var(--rd-teal-dark)">
+                    Steps 3&ndash;5
+                  </p>
+                  <p class="body" style="color: var(--rd-teal-dark)">
+                    Tailor your CV, map skill evidence, and find a referral
+                    contact at the company.
+                  </p>
+                </div>
+                <div
+                  class="guide-tile"
+                  style="background: var(--rd-coral-tint)"
+                >
+                  <p class="head" style="color: var(--rd-coral-dark)">
+                    Steps 6&ndash;7
+                  </p>
+                  <p class="body" style="color: var(--rd-coral-dark)">
+                    Submit your application, then prep for the interview with
+                    STAR-format answers.
+                  </p>
+                </div>
+                <div
+                  class="guide-tile"
+                  style="background: var(--rd-golden-tint)"
+                >
+                  <p class="head" style="color: var(--rd-golden-dark)">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                      <path
+                        d="M12 2l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17l-5.9 3.2 1.2-6.6-4.8-4.6 6.6-.9z"
+                      />
+                    </svg>
+                    Referral = your biggest edge
+                  </p>
+                  <p class="body" style="color: var(--rd-golden-dark)">
+                    Many companies offer referral bonuses to employees when a
+                    referred candidate gets hired. They're incentivised to get
+                    you in.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="pipeline-head">
+              <div>
+                <h2>Pipeline board</h2>
+                <p>
+                  Drag a card between columns to update its status. Click any
+                  card to open the steps checklist. (Example data for this
+                  prototype -- dragging won't persist.)
+                </p>
+              </div>
+              <button class="btn-coral" onclick="stub('Add manually')">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Add manually
+              </button>
+            </div>
+
+            <div class="kanban">
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-text-tertiary)"
+                  ></span
+                  ><span class="name">Interested</span
+                  ><span class="count">2</span>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-top">
+                    <span
+                      class="logo-chip"
+                      style="
+                        background: var(--rd-bg-soft);
+                        color: var(--rd-text-secondary);
+                      "
+                      >W</span
+                    >
+                    <span class="pct" style="color: var(--rd-text-secondary)"
+                      >82%</span
+                    >
+                  </div>
+                  <div class="role">Product Manager</div>
+                  <div class="company">Wix</div>
+                  <div class="meta-row">
+                    <span
+                      class="track-pill"
+                      style="
+                        background: var(--rd-coral-tint);
+                        color: var(--rd-coral-dark);
+                      "
+                      >Track 1</span
+                    >
+                  </div>
+                  <div class="link-row">
+                    <a class="view-listing" href="#" onclick="return false;"
+                      >View listing
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                        />
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14L21 3" /></svg
+                    ></a>
+                  </div>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-top">
+                    <span
+                      class="logo-chip"
+                      style="
+                        background: var(--rd-bg-soft);
+                        color: var(--rd-text-secondary);
+                      "
+                      >M</span
+                    >
+                    <span class="pct" style="color: var(--rd-text-secondary)"
+                      >65%</span
+                    >
+                  </div>
+                  <div class="role">Business Analyst</div>
+                  <div class="company">monday.com</div>
+                  <div class="meta-row">
+                    <span
+                      class="track-pill"
+                      style="
+                        background: var(--rd-teal-tint);
+                        color: var(--rd-teal-dark);
+                      "
+                      >Track 2</span
+                    >
+                  </div>
+                  <div class="link-row">
+                    <span class="no-link">No source link</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-golden)"
+                  ></span
+                  ><span class="name">Preparing</span
+                  ><span class="count">1</span>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-top">
+                    <span
+                      class="logo-chip"
+                      style="
+                        background: var(--rd-golden-tint);
+                        color: var(--rd-golden-dark);
+                      "
+                      >R</span
+                    >
+                    <span class="pct" style="color: var(--rd-golden-dark)"
+                      >74%</span
+                    >
+                  </div>
+                  <div class="role">Strategy &amp; Ops Associate</div>
+                  <div class="company">Riskified</div>
+                  <div class="meta-row">
+                    <span
+                      class="track-pill"
+                      style="
+                        background: var(--rd-coral-tint);
+                        color: var(--rd-coral-dark);
+                      "
+                      >Track 1</span
+                    >
+                  </div>
+                  <div class="link-row">
+                    <a class="view-listing" href="#" onclick="return false;"
+                      >View listing
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                        />
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14L21 3" /></svg
+                    ></a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-golden)"
+                  ></span
+                  ><span class="name">Applied</span><span class="count">1</span>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-top">
+                    <span
+                      class="logo-chip"
+                      style="
+                        background: var(--rd-golden-tint);
+                        color: var(--rd-golden-dark);
+                      "
+                      >F</span
+                    >
+                    <span class="pct" style="color: var(--rd-golden-dark)"
+                      >58%</span
+                    >
+                  </div>
+                  <div class="role">Operations Coordinator</div>
+                  <div class="company">Fiverr</div>
+                  <div class="meta-row">
+                    <span
+                      class="track-pill"
+                      style="
+                        background: var(--rd-golden-tint);
+                        color: var(--rd-golden-dark);
+                      "
+                      >Track 3</span
+                    >
+                  </div>
+                  <div class="link-row">
+                    <span class="no-link">No source link</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-teal)"
+                  ></span
+                  ><span class="name">Interviewing</span
+                  ><span class="count">1</span>
+                </div>
+                <div class="kanban-card">
+                  <div class="kanban-card-top">
+                    <span
+                      class="logo-chip"
+                      style="
+                        background: var(--rd-teal-tint);
+                        color: var(--rd-teal-dark);
+                      "
+                      >L</span
+                    >
+                    <span class="pct" style="color: var(--rd-teal-dark)"
+                      >79%</span
+                    >
+                  </div>
+                  <div class="role">Product Analyst</div>
+                  <div class="company">Lightricks</div>
+                  <div class="meta-row">
+                    <span
+                      class="track-pill"
+                      style="
+                        background: var(--rd-coral-tint);
+                        color: var(--rd-coral-dark);
+                      "
+                      >Track 1</span
+                    >
+                  </div>
+                  <div class="link-row">
+                    <a class="view-listing" href="#" onclick="return false;"
+                      >View listing
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path
+                          d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                        />
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14L21 3" /></svg
+                    ></a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-coral)"
+                  ></span
+                  ><span class="name">Offer</span><span class="count">0</span>
+                </div>
+                <div class="kanban-empty">Drop apps here</div>
+              </div>
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-coral)"
+                  ></span
+                  ><span class="name">Accepted</span
+                  ><span class="count">0</span>
+                </div>
+                <div class="kanban-empty">Drop apps here</div>
+              </div>
+              <div class="kanban-col">
+                <div class="kanban-col-head">
+                  <span
+                    class="kanban-dot"
+                    style="background: var(--rd-text-tertiary)"
+                  ></span
+                  ><span class="name">Rejected</span
+                  ><span class="count">0</span>
+                </div>
+                <div class="kanban-empty">Drop apps here</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ CV TAB ============ -->
+          <section id="panel-cv" class="tab-panel">
+            <div class="cv-layout">
+              <div class="cv-center">
+                <div class="cv-topline">
+                  <p class="eyebrow" style="margin: 0">
+                    Sample content for this prototype
+                  </p>
+                  <div class="cv-dropdown-wrap">
+                    <select
+                      class="cv-dropdown"
+                      id="cvSelect"
+                      onchange="swapCv(this.value)"
+                    >
+                      <option value="master">Master CV</option>
+                      <option value="wix">
+                        Tailored -- Product Manager @ Wix
+                      </option>
+                      <option value="monday">
+                        Tailored -- GTM Manager @ monday.com
+                      </option>
+                    </select>
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="cv-body">
+                  <h2>Noa Bar-Lev</h2>
+                  <p class="role-title" id="cvTitle">
+                    Business Administration Student &middot; Aspiring Product
+                    Manager
+                  </p>
+                  <p class="contact">
+                    noa.barlev.demo@gmail.com &middot;
+                    linkedin.com/in/noa-barlev-demo &middot; Tel Aviv, Israel
+                  </p>
+
+                  <p class="section-label">Summary</p>
+                  <p class="summary" id="cvSummary">
+                    Third-year Business Administration student at Tel Aviv
+                    University with hands-on experience in operations
+                    coordination, data-driven process improvement, and
+                    cross-functional stakeholder communication. Currently
+                    coordinating vendor logistics and reporting workflows at a
+                    fast-growing fintech, with coursework in statistics, product
+                    strategy, and information systems supporting a long-term
+                    focus on Product Management.
+                  </p>
+
+                  <p class="section-label">Experience</p>
+                  <div class="exp-block">
+                    <div class="exp-head">
+                      <p class="role">
+                        Operations &amp; Strategy Intern
+                        <span class="co">&middot; Payoneer</span>
+                      </p>
+                      <p class="dates">Mar 2025 -- Present</p>
+                    </div>
+                    <ul class="exp-bullets">
+                      <li>
+                        Coordinate weekly vendor reporting across 3 regional
+                        teams, cutting reconciliation time by 20% through a
+                        standardized tracking template.
+                      </li>
+                      <li>
+                        Partner with the product team to document workflow gaps
+                        surfaced in customer support tickets, feeding 4 items
+                        directly into the quarterly roadmap review.
+                      </li>
+                      <li>
+                        Built a lightweight Looker dashboard tracking onboarding
+                        funnel drop-off, now referenced weekly by the growth
+                        team.
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="exp-block">
+                    <div class="exp-head">
+                      <p class="role">
+                        Customer Success Coordinator
+                        <span class="co">&middot; Wolt</span>
+                      </p>
+                      <p class="dates">Jul 2023 -- Feb 2025</p>
+                    </div>
+                    <ul class="exp-bullets">
+                      <li>
+                        Managed escalations for 40+ restaurant partners,
+                        maintaining a 94% satisfaction rating across resolved
+                        tickets.
+                      </li>
+                      <li>
+                        Trained 6 new team members on partner-facing tools and
+                        escalation protocol during a period of team doubling.
+                      </li>
+                      <li>
+                        Proposed a macro-based response workflow that reduced
+                        average handling time by 15%.
+                      </li>
+                    </ul>
+                  </div>
+
+                  <p class="section-label">Education</p>
+                  <div class="edu-row">
+                    <p class="school">
+                      Tel Aviv University
+                      <span class="deg"
+                        >&middot; B.A., Business Administration (Marketing
+                        Track)</span
+                      >
+                    </p>
+                    <p class="dates">Oct 2023 -- Present</p>
+                  </div>
+
+                  <p class="section-label">Skills</p>
+                  <p class="skills" id="cvSkills">
+                    Process Improvement &middot; Stakeholder Management &middot;
+                    Data Analysis &middot; SQL (basic) &middot; Product Thinking
+                    &middot; Customer Escalation Management &middot; Vendor
+                    Coordination
+                  </p>
+                  <p class="tools">
+                    Tools: Excel &middot; Looker &middot; Notion &middot;
+                    Salesforce &middot; Figma (basic)
+                  </p>
+
+                  <p class="section-label">Languages</p>
+                  <p class="languages">Hebrew &middot; English</p>
+                </div>
+              </div>
+
+              <div class="cv-right">
+                <h2 class="title">Top matches for you</h2>
+                <p class="sub">Sample listings for this prototype</p>
+
+                <p class="match-section-label">Our picks for you</p>
+                <div class="match-list">
+                  <!-- 4 picks -->
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >P</span
+                        ><span class="job-badge band-strong"
+                          ><span class="lbl">Strong match</span
+                          ><span class="pct">93%</span></span
+                        >
+                      </div>
+                      <h3>Product Operations Manager</h3>
+                      <p class="sub">Port &middot; Tel Aviv</p>
+                      <div class="chips">
+                        <span class="chip">On-site</span
+                        ><span class="chip">1-3 yrs</span
+                        ><span class="chip">Yesterday</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Cross-functional Collaboration</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >W</span
+                        ><span class="job-badge band-strong"
+                          ><span class="lbl">Strong match</span
+                          ><span class="pct">60%</span></span
+                        >
+                      </div>
+                      <h3>Product Manager</h3>
+                      <p class="sub">Workiz &middot; Tel Aviv</p>
+                      <div class="chips">
+                        <span class="chip">Remote</span
+                        ><span class="chip">1-2 yrs</span
+                        ><span class="chip">Today</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Data Analysis</span
+                        ><span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Cross-functional Collaboration</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >H</span
+                        ><span class="job-badge band-good"
+                          ><span class="lbl">Good match</span
+                          ><span class="pct">58%</span></span
+                        >
+                      </div>
+                      <h3>Product Manager</h3>
+                      <p class="sub">Helfy &middot; Herzliya</p>
+                      <div class="chips">
+                        <span class="chip">On-site</span
+                        ><span class="chip">2-4 yrs</span
+                        ><span class="chip">Today</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Problem Solving</span
+                        ><span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Presentation Skills</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >A</span
+                        ><span class="job-badge band-good"
+                          ><span class="lbl">Good match</span
+                          ><span class="pct">51%</span></span
+                        >
+                      </div>
+                      <h3>Product Manager</h3>
+                      <p class="sub">AU10TIX &middot; Israel</p>
+                      <div class="chips">
+                        <span class="chip">Remote</span
+                        ><span class="chip">2-3 yrs</span
+                        ><span class="chip">Today</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Market Research &amp; Competitive Intelligence</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <p class="match-section-label">Worth a stretch</p>
+                <div class="match-list">
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >P</span
+                        ><span class="job-badge band-stretch"
+                          ><span class="lbl">Stretch</span
+                          ><span class="pct">58%</span></span
+                        >
+                      </div>
+                      <h3>Product Manager</h3>
+                      <p class="sub">Papaya Global &middot; Herzliya</p>
+                      <div class="chips">
+                        <span class="chip">Remote</span
+                        ><span class="chip">3-5 yrs</span
+                        ><span class="chip">Today</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Market Research &amp; Competitive Intelligence</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                  <div class="match-item">
+                    <div class="job-card">
+                      <div class="job-card-top">
+                        <span
+                          class="logo-chip"
+                          style="
+                            width: 34px;
+                            height: 34px;
+                            border-radius: 8px;
+                            background: var(--rd-bg-soft);
+                            color: var(--rd-text-secondary);
+                          "
+                          >R</span
+                        ><span class="job-badge band-stretch"
+                          ><span class="lbl">Stretch</span
+                          ><span class="pct">58%</span></span
+                        >
+                      </div>
+                      <h3>Senior Product Manager</h3>
+                      <p class="sub">Riverside.fm &middot; Israel</p>
+                      <div class="chips">
+                        <span class="chip">Remote</span
+                        ><span class="chip">5-8 yrs</span
+                        ><span class="chip">Today</span>
+                      </div>
+                      <div class="skill-chips">
+                        <span class="skill-chip"
+                          ><svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          >
+                            <path d="M20 6L9 17l-5-5" /></svg
+                          >Data Analysis</span
+                        >
+                      </div>
+                    </div>
+                    <div class="match-actions">
+                      <button class="btn-track" onclick="trackBtn(this)">
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Track
+                      </button>
+                      <button
+                        class="btn-tailor"
+                        onclick="stub('Generate tailored CV')"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M4 20l9-9" />
+                          <path d="M13 11l2-2" />
+                          <path d="M17 5l1 2 2 1-2 1-1 2-1-2-2-1 2-1z" /></svg
+                        >Generate tailored CV
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ BROWSE JOBS TAB ============ -->
+          <section id="panel-jobs" class="tab-panel">
+            <div class="jobs-layout">
+              <div class="jobs-left">
+                <div class="toggle-row">
+                  <button
+                    class="toggle-btn active"
+                    onclick="jobsToggle('matches', this)"
+                  >
+                    Top Matches for You
+                  </button>
+                  <button
+                    class="toggle-btn"
+                    onclick="jobsToggle('search', this)"
+                  >
+                    Search All Jobs
+                  </button>
+                </div>
+
+                <div class="filter-bar" id="filterBar">
+                  <div class="search-wrap">
+                    <svg
+                      class="search-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="11" cy="11" r="7" />
+                      <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input
+                      type="text"
+                      placeholder="Search by title or company"
+                    />
+                  </div>
+                  <div class="chip-row">
+                    <button
+                      class="filter-chip"
+                      onclick="this.classList.toggle('active')"
+                    >
+                      Entry
+                    </button>
+                    <button
+                      class="filter-chip"
+                      onclick="this.classList.toggle('active')"
+                    >
+                      Mid
+                    </button>
+                    <button
+                      class="filter-chip"
+                      onclick="this.classList.toggle('active')"
+                    >
+                      Senior
+                    </button>
+                    <span class="chip-sep"></span>
+                    <button
+                      class="filter-chip"
+                      onclick="this.classList.toggle('active')"
+                    >
+                      On-site
+                    </button>
+                    <button
+                      class="filter-chip"
+                      onclick="this.classList.toggle('active')"
+                    >
+                      Remote
+                    </button>
+                    <span class="chip-sep"></span>
+                    <div class="simple-select-wrap">
+                      <select class="simple-select">
+                        <option>All functions</option>
+                        <option>Product</option>
+                        <option>Operations</option>
+                        <option>Strategy</option>
+                        <option>GTM / Sales</option>
+                      </select>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                    <div class="simple-select-wrap">
+                      <select class="simple-select">
+                        <option>All locations</option>
+                        <option>Tel Aviv</option>
+                        <option>Herzliya</option>
+                        <option>Remote (Israel)</option>
+                      </select>
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="jobs-count-row">
+                  <p class="count">10 jobs match, best fit first</p>
+                  <p class="sample-note">Sample listings for this prototype</p>
+                </div>
+
+                <div class="job-grid">
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >P</span
+                      ><span class="job-badge band-strong"
+                        ><span class="lbl">Strong match</span
+                        ><span class="pct">93%</span></span
+                      >
+                    </div>
+                    <h3>Product Operations Manager</h3>
+                    <p class="sub">Port &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">On-site</span
+                      ><span class="chip">1-3 yrs</span
+                      ><span class="chip">Yesterday</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Cross-functional Collaboration</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >W</span
+                      ><span class="job-badge band-strong"
+                        ><span class="lbl">Strong match</span
+                        ><span class="pct">60%</span></span
+                      >
+                    </div>
+                    <h3>Product Manager</h3>
+                    <p class="sub">Workiz &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">Remote</span
+                      ><span class="chip">1-2 yrs</span
+                      ><span class="chip">Today</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Data Analysis</span
+                      ><span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Cross-functional Collaboration</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >H</span
+                      ><span class="job-badge band-good"
+                        ><span class="lbl">Good match</span
+                        ><span class="pct">58%</span></span
+                      >
+                    </div>
+                    <h3>Product Manager</h3>
+                    <p class="sub">Helfy &middot; Herzliya</p>
+                    <div class="chips">
+                      <span class="chip">On-site</span
+                      ><span class="chip">2-4 yrs</span
+                      ><span class="chip">Today</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Problem Solving</span
+                      ><span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Presentation Skills</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >A</span
+                      ><span class="job-badge band-good"
+                        ><span class="lbl">Good match</span
+                        ><span class="pct">51%</span></span
+                      >
+                    </div>
+                    <h3>Product Manager</h3>
+                    <p class="sub">AU10TIX &middot; Israel</p>
+                    <div class="chips">
+                      <span class="chip">Remote</span
+                      ><span class="chip">2-3 yrs</span
+                      ><span class="chip">Today</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Market Research &amp; Competitive Intelligence</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-golden-tint);
+                          color: var(--rd-golden-dark);
+                        "
+                        >P</span
+                      ><span class="job-badge band-stretch"
+                        ><span class="lbl">Stretch</span
+                        ><span class="pct">58%</span></span
+                      >
+                    </div>
+                    <h3>Product Manager</h3>
+                    <p class="sub">Papaya Global &middot; Herzliya</p>
+                    <div class="chips">
+                      <span class="chip">Remote</span
+                      ><span class="chip">3-5 yrs</span
+                      ><span class="chip">Today</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Market Research &amp; Competitive Intelligence</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-golden-tint);
+                          color: var(--rd-golden-dark);
+                        "
+                        >R</span
+                      ><span class="job-badge band-stretch"
+                        ><span class="lbl">Stretch</span
+                        ><span class="pct">58%</span></span
+                      >
+                    </div>
+                    <h3>Senior Product Manager</h3>
+                    <p class="sub">Riverside.fm &middot; Israel</p>
+                    <div class="chips">
+                      <span class="chip">Remote</span
+                      ><span class="chip">5-8 yrs</span
+                      ><span class="chip">Today</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Data Analysis</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >M</span
+                      ><span class="job-badge band-strong"
+                        ><span class="lbl">Strong match</span
+                        ><span class="pct">71%</span></span
+                      >
+                    </div>
+                    <h3>Business Operations Analyst</h3>
+                    <p class="sub">monday.com &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">On-site</span
+                      ><span class="chip">0-2 yrs</span
+                      ><span class="chip">2d ago</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Data Analysis</span
+                      ><span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Process Improvement</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-coral-tint);
+                          color: var(--rd-coral-dark);
+                        "
+                        >L</span
+                      ><span class="job-badge band-good"
+                        ><span class="lbl">Good match</span
+                        ><span class="pct">66%</span></span
+                      >
+                    </div>
+                    <h3>GTM Operations Associate</h3>
+                    <p class="sub">Lemonade &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">On-site</span
+                      ><span class="chip">1-3 yrs</span
+                      ><span class="chip">3d ago</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Vendor Coordination</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-teal-tint);
+                          color: var(--rd-teal-dark);
+                        "
+                        >F</span
+                      ><span class="job-badge band-good"
+                        ><span class="lbl">Good match</span
+                        ><span class="pct">63%</span></span
+                      >
+                    </div>
+                    <h3>Customer Experience Insights Specialist</h3>
+                    <p class="sub">Fiverr &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">Remote</span
+                      ><span class="chip">1-2 yrs</span
+                      ><span class="chip">5d ago</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Customer Escalation Management</span
+                      >
+                    </div>
+                  </div>
+                  <div class="job-card">
+                    <div class="job-card-top">
+                      <span
+                        class="logo-chip"
+                        style="
+                          width: 34px;
+                          height: 34px;
+                          border-radius: 8px;
+                          background: var(--rd-bg-soft);
+                          color: var(--rd-text-secondary);
+                        "
+                        >R</span
+                      ><span class="job-badge band-good"
+                        ><span class="lbl">Good match</span
+                        ><span class="pct">55%</span></span
+                      >
+                    </div>
+                    <h3>Strategy &amp; Planning Associate</h3>
+                    <p class="sub">Riskified &middot; Tel Aviv</p>
+                    <div class="chips">
+                      <span class="chip">On-site</span
+                      ><span class="chip">2-4 yrs</span
+                      ><span class="chip">1w ago</span>
+                    </div>
+                    <div class="skill-chips">
+                      <span class="skill-chip"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Process Improvement</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="jobs-right">
+                <h2 class="title">Your matched roles</h2>
+                <p class="sub">Sample roles for this prototype</p>
+
+                <div class="role-row expanded">
+                  <button class="role-row-head" onclick="toggleRole(this)">
+                    <span
+                      class="role-dot"
+                      style="background: var(--rd-coral)"
+                    ></span>
+                    <span class="name">Product Manager</span>
+                    <span
+                      class="role-track-chip"
+                      style="
+                        background: var(--rd-coral-tint);
+                        color: var(--rd-coral-dark);
+                      "
+                      >Sweet spot</span
+                    >
+                    <svg
+                      class="chev"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m18 15-6-6-6 6" />
+                    </svg>
+                  </button>
+                  <div class="role-row-body">
+                    <div class="axis-bar-row">
+                      <span class="lbl">Qualified now</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-coral-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-coral); width: 78%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="axis-bar-row">
+                      <span class="lbl">Moves you toward goal</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-coral-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-coral); width: 90%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="role-skill-chips">
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Stakeholder Management</span
+                      >
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Data Analysis</span
+                      >
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Process Improvement</span
+                      >
+                      <span class="role-skill-chip gap"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Product Roadmapping</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="role-row">
+                  <button class="role-row-head" onclick="toggleRole(this)">
+                    <span
+                      class="role-dot"
+                      style="background: var(--rd-coral)"
+                    ></span>
+                    <span class="name">Product Operations Manager</span>
+                    <span
+                      class="role-track-chip"
+                      style="
+                        background: var(--rd-coral-tint);
+                        color: var(--rd-coral-dark);
+                      "
+                      >Sweet spot</span
+                    >
+                    <svg
+                      class="chev"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="role-row-body">
+                    <div class="axis-bar-row">
+                      <span class="lbl">Qualified now</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-coral-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-coral); width: 84%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="axis-bar-row">
+                      <span class="lbl">Moves you toward goal</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-coral-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-coral); width: 80%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="role-skill-chips">
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Cross-functional Collaboration</span
+                      >
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Process Improvement</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="role-row">
+                  <button class="role-row-head" onclick="toggleRole(this)">
+                    <span
+                      class="role-dot"
+                      style="background: var(--rd-teal)"
+                    ></span>
+                    <span class="name">GTM Operations Manager</span>
+                    <span
+                      class="role-track-chip"
+                      style="
+                        background: var(--rd-teal-tint);
+                        color: var(--rd-teal-dark);
+                      "
+                      >Detour</span
+                    >
+                    <svg
+                      class="chev"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="role-row-body">
+                    <div class="axis-bar-row">
+                      <span class="lbl">Qualified now</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-teal-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-teal); width: 70%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="axis-bar-row">
+                      <span class="lbl">Moves you toward goal</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-teal-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-teal); width: 42%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="role-skill-chips">
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Vendor Coordination</span
+                      >
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Customer Escalation Management</span
+                      >
+                      <span class="role-skill-chip gap"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >SQL</span
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="role-row">
+                  <button class="role-row-head" onclick="toggleRole(this)">
+                    <span
+                      class="role-dot"
+                      style="background: var(--rd-golden)"
+                    ></span>
+                    <span class="name">Senior Product Manager</span>
+                    <span
+                      class="role-track-chip"
+                      style="
+                        background: var(--rd-golden-tint);
+                        color: var(--rd-golden-dark);
+                      "
+                      >Growth</span
+                    >
+                    <svg
+                      class="chev"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <div class="role-row-body">
+                    <div class="axis-bar-row">
+                      <span class="lbl">Qualified now</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-golden-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-golden); width: 36%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="axis-bar-row">
+                      <span class="lbl">Moves you toward goal</span
+                      ><span
+                        class="axis-track"
+                        style="background: var(--rd-golden-tint)"
+                        ><span
+                          class="axis-fill"
+                          style="background: var(--rd-golden); width: 95%"
+                        ></span
+                      ></span>
+                    </div>
+                    <div class="role-skill-chips">
+                      <span class="role-skill-chip matched"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M20 6L9 17l-5-5" /></svg
+                        >Data Analysis</span
+                      >
+                      <span class="role-skill-chip gap"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >Product Roadmapping</span
+                      >
+                      <span class="role-skill-chip gap"
+                        ><svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path d="M12 5v14M5 12h14" /></svg
+                        >AB Testing</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // All handlers below are visual-only stand-ins -- no real navigation,
+      // no real data mutation. This mirrors the "no framework" requirement:
+      // plain DOM show/hide instead of a router or component state.
+
+      function showTab(name, btnEl) {
+        document.querySelectorAll(".tab-panel").forEach(function (el) {
+          el.classList.remove("active");
+        });
+        document.getElementById("panel-" + name).classList.add("active");
+        document.querySelectorAll(".tab-btn").forEach(function (el) {
+          el.classList.remove("active");
+          el.setAttribute("aria-selected", "false");
+        });
+        btnEl.classList.add("active");
+        btnEl.setAttribute("aria-selected", "true");
+      }
+
+      function goHome() {
+        // "Home" returns to this whole 3-tab page, defaulting to the CV tab --
+        // there's nowhere else to navigate to in this standalone file.
+        var cvBtn = document.querySelectorAll(".tab-btn")[1];
+        showTab("cv", cvBtn);
+      }
+
+      function stub(label) {
+        // Real prototype used a toast; a plain alert stands in here since
+        // this file has no toast library bundled.
+        alert(
+          label + " isn't wired up in this mockup -- visual reference only.",
+        );
+      }
+
+      // ---- CV-bank dropdown: swaps in one of three mock CV variants ----
+      var CV_VARIANTS = {
+        master: {
+          title:
+            "Business Administration Student &middot; Aspiring Product Manager",
+          summary:
+            "Third-year Business Administration student at Tel Aviv University with hands-on experience in operations coordination, data-driven process improvement, and cross-functional stakeholder communication. Currently coordinating vendor logistics and reporting workflows at a fast-growing fintech, with coursework in statistics, product strategy, and information systems supporting a long-term focus on Product Management.",
+          skills:
+            "Process Improvement &middot; Stakeholder Management &middot; Data Analysis &middot; SQL (basic) &middot; Product Thinking &middot; Customer Escalation Management &middot; Vendor Coordination",
+        },
+        wix: {
+          title:
+            "Business Administration Student &middot; Product Manager Candidate",
+          summary:
+            "Product-minded Business Administration student tailoring vendor-operations and cross-functional coordination experience toward Wix's Product Management track. Emphasis below on roadmap input, funnel analysis, and stakeholder alignment -- the parts of the Payoneer and Wolt roles most relevant to a PM interview loop.",
+          skills:
+            "Product Thinking &middot; Cross-functional Collaboration &middot; Data Analysis &middot; Stakeholder Management &middot; Process Improvement &middot; SQL (basic)",
+        },
+        monday: {
+          title:
+            "Business Administration Student &middot; GTM Manager Candidate",
+          summary:
+            "Business Administration student reframing operations and customer-facing experience for a GTM Manager track. Emphasis below on partner escalation management, workflow design, and the reporting cadence built at Payoneer -- the throughlines most relevant to a go-to-market operations role.",
+          skills:
+            "Vendor Coordination &middot; Customer Escalation Management &middot; Process Improvement &middot; Data Analysis &middot; Stakeholder Management",
+        },
+      };
+      function swapCv(id) {
+        var v = CV_VARIANTS[id];
+        document.getElementById("cvTitle").innerHTML = v.title;
+        document.getElementById("cvSummary").textContent = v.summary;
+        document.getElementById("cvSkills").innerHTML = v.skills;
+      }
+
+      // ---- Top-matches / job-grid "Track" button: local toggle only ----
+      function trackBtn(btn) {
+        if (btn.classList.contains("tracked")) return;
+        btn.classList.add("tracked");
+        btn.innerHTML =
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Tracked';
+      }
+
+      // ---- Browse Jobs: Top Matches / Search All Jobs toggle ----
+      function jobsToggle(which, btnEl) {
+        document
+          .querySelectorAll(".toggle-row .toggle-btn")
+          .forEach(function (el) {
+            el.classList.remove("active");
+          });
+        btnEl.classList.add("active");
+        document
+          .getElementById("filterBar")
+          .classList.toggle("visible", which === "search");
+      }
+
+      // ---- Matched-roles rail: expand/collapse ----
+      function toggleRole(headBtn) {
+        var row = headBtn.closest(".role-row");
+        var wasExpanded = row.classList.contains("expanded");
+        document
+          .querySelectorAll(".jobs-right .role-row")
+          .forEach(function (r) {
+            r.classList.remove("expanded");
+          });
+        if (!wasExpanded) row.classList.add("expanded");
+      }
+    </script>
+  </body>
+</html>
