@@ -47,9 +47,13 @@ export function startCvGeneration(jobKey) {
 
 // Guard on jobKey so a slow finished run can't clobber a newer run the user has
 // since started on a different job.
+// Returns true when it applied (this run is still the active one), false when a
+// newer run on another job has superseded it - so the caller can suppress a
+// "CV ready" toast that would point at a card that has already reverted to idle.
 export function markCvGenerationReady(jobKey, applicationId) {
-  if (state.jobKey !== jobKey) return;
+  if (state.jobKey !== jobKey) return false;
   set({ jobKey, applicationId, status: "ready" });
+  return true;
 }
 
 export function markCvGenerationError(jobKey) {

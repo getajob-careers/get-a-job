@@ -170,12 +170,20 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
       // Land IN PLACE: resolve the ring to a "CV ready" state on the card / modal
       // with View CV + Apply one tap away (Eli ruling 2026-07-26). No auto-redirect
       // - the user is never dumped onto the CV surface with no route back to the job.
-      markCvGenerationReady(myKey, data.application_id || applicationId);
-      toast.success(
-        alreadyTracked
-          ? "Your CV is ready."
-          : "Added to your tracker - CV ready.",
+      // Only announce readiness if THIS run is still the active one; a newer
+      // generation on another job supersedes the store and reverts this card to
+      // idle, so a "CV ready" toast would then point nowhere (QA finding).
+      const applied = markCvGenerationReady(
+        myKey,
+        data.application_id || applicationId,
       );
+      if (applied) {
+        toast.success(
+          alreadyTracked
+            ? "Your CV is ready."
+            : "Added to your tracker - CV ready.",
+        );
+      }
     } catch {
       markCvGenerationError(myKey);
       toast.error("Couldn't generate the CV - try again.");
