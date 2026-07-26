@@ -144,10 +144,10 @@ describe("buildCareerPageContext — visible_items (B3)", () => {
   });
 });
 
-// job_id — the open detail-modal job the feed reports up. The ai-chat sanitizer
+// job_id - the open detail-modal job the feed reports up. The ai-chat sanitizer
 // already accepts + fetches job_id; the producer just needs to emit it and omit
 // it when no modal is open.
-describe("buildCareerPageContext — job_id (open detail modal)", () => {
+describe("buildCareerPageContext - job_id (open detail modal)", () => {
   const JOB_ID = "99999999-0000-0000-0000-000000000009";
 
   it("emits job_id when a job detail modal is open", () => {

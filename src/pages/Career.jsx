@@ -451,7 +451,7 @@ export default function Career() {
       buildCareerPageContext({
         // No selected track anymore (track-card model retired). The live jobs
         // list lives inside <UnifiedJobsFeed>, which now reports its on-screen
-        // ids + the open detail-modal id up via onPageContextChange — the helper
+        // ids + the open detail-modal id up via onPageContextChange - the helper
         // omits falsy entities.
         selectedTrack: null,
         roleId: effectiveExpandedId,
