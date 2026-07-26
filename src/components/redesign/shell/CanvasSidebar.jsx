@@ -7,6 +7,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   Map,
+  ListTodo,
   User,
   FileText,
   BookOpen,
@@ -35,6 +36,7 @@ const REDUCE =
 // mockup tool tint; `icon` is the compact lucide glyph for the mobile rail.
 const TOOL_TILES = [
   { id: "career", label: "Career", page: "Career", icon: Map },
+  { id: "tasks", label: "Tasks", page: "Tasks", icon: ListTodo },
   { id: "profile", label: "Profile", page: "Profile", icon: User },
   { id: "cvbank", label: "CV bank", page: "CVAgent", icon: FileText },
   { id: "storybank", label: "Story bank", page: "StoryBank", icon: BookOpen },
