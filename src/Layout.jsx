@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { resolveLayoutMode } from "@/lib/layoutMode";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
 import DepthField from "@/components/redesign/DepthField";
@@ -22,6 +23,7 @@ import {
   Mic,
   GraduationCap,
   MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AgentDrawerProvider } from "@/lib/AgentDrawerContext";
@@ -163,11 +165,14 @@ function LayoutBody({ children, currentPageName }) {
   // (used by SidebarFooter for the avatar initials + name). Backed by
   // the canonical profile cache, so this shares a single fetch with
   // every other page in the app.
-  const { data: profileChrome } = useProfileQuery(user?.id, (p) => ({
-    practicum_path: p?.practicum_path ?? null,
-    onboarding_complete: p?.onboarding_complete === true,
-    full_name: p?.full_name ?? null,
-  }));
+  const { data: profileChrome, isFetched: chromeFetched } = useProfileQuery(
+    user?.id,
+    (p) => ({
+      practicum_path: p?.practicum_path ?? null,
+      onboarding_complete: p?.onboarding_complete === true,
+      full_name: p?.full_name ?? null,
+    }),
+  );
 
   const practicumPath = profileChrome?.practicum_path ?? null;
   const onboardingComplete = profileChrome?.onboarding_complete === true;
@@ -257,7 +262,31 @@ function LayoutBody({ children, currentPageName }) {
   // Public surfaces (Landing / Login / Privacy / Terms / ResetPassword)
   // are rendered outside Layout and stay unmasked since they don't
   // display existing user content.
-  if (currentPageName === ONBOARDING_PAGE || !onboardingComplete) {
+  const layoutMode = resolveLayoutMode({
+    hasUser: !!user?.id,
+    profileFetched: chromeFetched,
+    onboardingComplete,
+    isOnboardingPage: currentPageName === ONBOARDING_PAGE,
+  });
+  // Neutral loader while a signed-in user's profile is still unresolved on a
+  // non-onboarding route: without it, the undefined profile projected to
+  // onboarding_complete:false and flashed the chrome-less not-onboarded branch
+  // at already-onboarded users on cold load (item 8). Never guard/onboarding copy.
+  if (layoutMode === "loading") {
+    return (
+      <div
+        data-private
+        className="min-h-screen bg-rd-bg-page flex items-center justify-center"
+      >
+        <Loader2
+          className="w-6 h-6 text-rd-text-tertiary animate-spin"
+          aria-hidden="true"
+        />
+        <span className="sr-only">Loading</span>
+      </div>
+    );
+  }
+  if (layoutMode === "chromeless") {
     return <div data-private>{children}</div>;
   }
 
