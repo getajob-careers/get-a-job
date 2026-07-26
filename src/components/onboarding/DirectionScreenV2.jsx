@@ -120,8 +120,17 @@ export default function DirectionScreenV2({ data, onChange }) {
   const suggestions = useMemo(() => {
     const norm = (debouncedQuery || "").trim();
     if (norm.length < 2) return [];
-    const { suggestions: scored } = matchRoles(norm, 24);
-    return scored
+    // matchRoles returns an exact title/alias hit SEPARATELY, with an empty
+    // suggestions list (its Pass 1 returns early). Reading only `suggestions`
+    // meant typing a complete role name (e.g. "Product Manager", the field's
+    // own placeholder example) showed an empty dropdown - the one role the
+    // user fully typed was the one role never offered. Surface `exact` as the
+    // top row, de-duped so it never doubles a scored match.
+    const { exact, suggestions: scored } = matchRoles(norm, 24);
+    const ordered = exact
+      ? [exact, ...scored.filter((s) => s.id !== exact.id)]
+      : scored;
+    return ordered
       .map((s) => ROLE_LOOKUP.find((r) => r.id === s.id))
       .filter(Boolean)
       .slice(0, 8);
