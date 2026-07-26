@@ -3,7 +3,6 @@ import { Send, Loader2 } from "lucide-react";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import { isNextDesign } from "@/lib/nextDesign";
 import AgentComposer from "./AgentComposer";
-import { DEFAULT_DOCK_PROMPTS } from "./coachPrompts";
 
 // Persistent input row. Reads/writes shared input + sending state from
 // CoachConversationProvider so the dock and panel surfaces stay in sync
@@ -37,13 +36,10 @@ export default function CoachInput({ variant = "dock" }) {
   }, [conv?.input, isDock]);
 
   if (!conv) return null;
-  // Flag-ON: the shared canvas composer (rd-well bar + focus/empty suggestion
-  // pop-up). Flag-OFF keeps the markup below byte-identical. Auto-grow is
-  // unconditional - AgentComposer carries its own for the flag-on path.
-  if (isNextDesign())
-    return (
-      <AgentComposer variant={variant} suggestions={DEFAULT_DOCK_PROMPTS} />
-    );
+  // Flag-ON: the shared canvas composer (rd-well chat bar; starters live in the
+  // thread empty-state). Flag-OFF keeps the markup below byte-identical. Auto-grow
+  // is unconditional - AgentComposer carries its own for the flag-on path.
+  if (isNextDesign()) return <AgentComposer variant={variant} />;
   const hasText = !!conv.input.trim();
   const canSend = hasText && !conv.sending;
 
@@ -57,9 +53,10 @@ export default function CoachInput({ variant = "dock" }) {
   // Solid coral when send is possible (or in flight); muted coral-tint
   // chip when there's nothing to send. The empty state still feels
   // like part of the coral vocabulary — not a generic disabled grey.
-  const sendBtnClasses = canSend || conv.sending
-    ? "bg-rd-primary hover:bg-rd-primary-dark text-white"
-    : "bg-rd-primary-tint text-rd-primary cursor-not-allowed";
+  const sendBtnClasses =
+    canSend || conv.sending
+      ? "bg-rd-primary hover:bg-rd-primary-dark text-white"
+      : "bg-rd-primary-tint text-rd-primary cursor-not-allowed";
 
   return (
     <div
@@ -84,7 +81,9 @@ export default function CoachInput({ variant = "dock" }) {
         className={`${isDock ? "w-8 h-8" : "w-[42px] h-[42px]"} rd-hit-44 rd-focus-ring rounded-full inline-flex items-center justify-center flex-shrink-0 active:scale-[0.97] transition-all ${sendBtnClasses}`}
       >
         {conv.sending ? (
-          <Loader2 className={`${isDock ? "w-3 h-3" : "w-4 h-4"} animate-spin`} />
+          <Loader2
+            className={`${isDock ? "w-3 h-3" : "w-4 h-4"} animate-spin`}
+          />
         ) : (
           <Send className={isDock ? "w-3 h-3" : "w-4 h-4"} />
         )}
