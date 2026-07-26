@@ -29,6 +29,7 @@ import TrackQuadrantGrid from "../components/roadmap/TrackQuadrantGrid";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { track, EVENTS } from "@/lib/analytics";
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
+import { humanizeTag } from "@/lib/humanizeTag";
 
 // PR 3C — Roadmap restyle on rd tokens. Behavioural-preservation contract
 // (P1–P17) is enforced verbatim:
@@ -59,7 +60,7 @@ const DEFAULT_TAB = "why";
 
 export default function CareerRoadmap() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate(); // eslint-disable-line no-unused-vars
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [generating, setGenerating] = useState(false);
@@ -80,35 +81,53 @@ export default function CareerRoadmap() {
   // prod (the flag is never set there).
   const previewGenerating = (() => {
     try {
-      return new URLSearchParams(window.location.search).get("preview-generating") === "1";
+      return (
+        new URLSearchParams(window.location.search).get(
+          "preview-generating",
+        ) === "1"
+      );
     } catch {
       return false;
     }
   })();
   const generatingState = generating || previewGenerating;
 
-  const { data: roles = [], isLoading, isError: rolesError } = useQuery({
+  const {
+    data: roles = [],
+    isLoading,
+    isError: rolesError,
+  } = useQuery({
     queryKey: ["careerRoles", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("career_roles").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("career_roles")
+        .select("*")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
   });
 
-  const { data: profile, isLoading: profileLoading, isError: profileError } = useProfileQuery(user?.id);
+  const {
+    data: profile,
+    isLoading: profileLoading,
+    isError: profileError,
+  } = useProfileQuery(user?.id);
 
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
-  // eslint-disable-next-line no-unused-vars
+
   const { data: educations = [] } = useEducationQuery(user?.id);
 
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("certifications").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("certifications")
+        .select("*")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
@@ -119,14 +138,22 @@ export default function CareerRoadmap() {
     queryKey: ["projects", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data, error } = await supabase.from("projects").select("*").eq("user_id", user.id);
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
   });
 
-  const stale = isAnalysisStale({ profile, experiences, certifications, projects });
+  const stale = isAnalysisStale({
+    profile,
+    experiences,
+    certifications,
+    projects,
+  });
 
   // Thin-profile nudge (Phase 2 item 3). A roadmap built from a light profile
   // leans on defaults, so the tracks are shallower than they could be. When the
@@ -203,23 +230,38 @@ export default function CareerRoadmap() {
       });
 
       if (data?.cached) {
-        console.warn("[career-roadmap] unexpected cached:true on force-refresh — skipping rewrite");
-        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: 0, cached: true });
+        console.warn(
+          "[career-roadmap] unexpected cached:true on force-refresh — skipping rewrite",
+        );
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, {
+          role_count: 0,
+          cached: true,
+        });
       } else if (rolesWritten > 0) {
-        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesWritten, cached: false });
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, {
+          role_count: rolesWritten,
+          cached: false,
+        });
 
         const { error: persistErr } = await supabase
           .from("profiles")
           .update({
             last_reality_check_date: new Date().toISOString(),
-            qualification_level: data?.qualification_level || profile?.qualification_level || "",
-            overall_assessment: data?.overall_assessment || profile?.overall_assessment || "",
+            qualification_level:
+              data?.qualification_level || profile?.qualification_level || "",
+            overall_assessment:
+              data?.overall_assessment || profile?.overall_assessment || "",
             skill_gaps: data?.skill_gaps || [],
           })
           .eq("id", user.id);
         if (persistErr) {
-          console.error("[career-roadmap] profile persist failed after analysis:", persistErr);
-          toast.error("Roles updated but profile didn't fully save - try Refresh again, or contact support.");
+          console.error(
+            "[career-roadmap] profile persist failed after analysis:",
+            persistErr,
+          );
+          toast.error(
+            "Roles updated but profile didn't fully save - try Refresh again, or contact support.",
+          );
         }
       }
 
@@ -231,9 +273,13 @@ export default function CareerRoadmap() {
       // it hits its ~80s deadline. Surface calm copy; the Refresh button the
       // user already clicked is the retry affordance.
       if (err?.message === "analysis_timeout") {
-        toast.error("Analysis is taking longer than usual. Tap Refresh to try again.");
+        toast.error(
+          "Analysis is taking longer than usual. Tap Refresh to try again.",
+        );
       } else {
-        toast.error(`Failed to generate roadmap: ${err.message || "Please try again."}`);
+        toast.error(
+          `Failed to generate roadmap: ${err.message || "Please try again."}`,
+        );
       }
     } finally {
       setGenerating(false);
@@ -245,7 +291,9 @@ export default function CareerRoadmap() {
       <div className="min-h-full flex items-center justify-center px-6 bg-rd-bg-page">
         <div className="max-w-md flex items-center gap-2.5 rounded-[14px] border border-rd-error-border bg-rd-error-bg px-4 py-3 text-[13px] text-rd-error">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          <span>Failed to load your career roadmap. Refresh the page to try again.</span>
+          <span>
+            Failed to load your career roadmap. Refresh the page to try again.
+          </span>
         </div>
       </div>
     );
@@ -271,7 +319,11 @@ export default function CareerRoadmap() {
           </h1>
           {profile?.last_reality_check_date && roles.length > 0 && (
             <p className="text-[11.5px] text-rd-text-secondary mt-2 font-mono">
-              Last updated · {new Date(profile.last_reality_check_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+              Last updated ·{" "}
+              {new Date(profile.last_reality_check_date).toLocaleDateString(
+                undefined,
+                { year: "numeric", month: "short", day: "numeric" },
+              )}
             </p>
           )}
         </div>
@@ -305,9 +357,9 @@ export default function CareerRoadmap() {
       {/* Qualification + Assessment band — relocated from the dropped
           Overview tab. Visible on every tab so the user's anchor context
           travels with them. */}
-      {profile && (profile.qualification_level || profile.overall_assessment) && roles.length > 0 && (
-        <QualificationBand profile={profile} />
-      )}
+      {profile &&
+        (profile.qualification_level || profile.overall_assessment) &&
+        roles.length > 0 && <QualificationBand profile={profile} />}
 
       {generatingState && (
         <div className="mt-7">
@@ -335,7 +387,10 @@ export default function CareerRoadmap() {
         <div className="mt-6 flex items-center justify-between gap-4 flex-wrap rounded-[14px] border border-rd-golden bg-rd-golden-tint px-4 py-3 text-[13px] text-rd-golden-dark">
           <p className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>Your profile has changed since this analysis was generated. Refresh to see updated tracks.</span>
+            <span>
+              Your profile has changed since this analysis was generated.
+              Refresh to see updated tracks.
+            </span>
           </p>
           <button
             type="button"
@@ -393,9 +448,15 @@ export default function CareerRoadmap() {
           aria-hidden={generatingState || undefined}
         >
           <TabBar activeTab={activeTab} setTab={setTab} />
-          {activeTab === "why" && <WhyTab onTrackClick={setTab} counts={counts} />}
+          {activeTab === "why" && (
+            <WhyTab onTrackClick={setTab} counts={counts} />
+          )}
           {TRACK_ORDER.includes(activeTab) && (
-            <TrackTab track={activeTab} roles={byTrack[activeTab]} onTabChange={setTab} />
+            <TrackTab
+              track={activeTab}
+              roles={byTrack[activeTab]}
+              onTabChange={setTab}
+            />
           )}
         </div>
       )}
@@ -414,12 +475,16 @@ function QualificationBand({ profile }) {
             Qualification level
           </p>
           <p className="font-display font-bold text-[15px] text-rd-text leading-snug mt-1.5">
-            {profile.qualification_level}
+            {humanizeTag(profile.qualification_level)}
           </p>
         </div>
       )}
       {profile.overall_assessment && (
-        <div className={profile.qualification_level ? "md:col-span-2" : "md:col-span-3"}>
+        <div
+          className={
+            profile.qualification_level ? "md:col-span-2" : "md:col-span-3"
+          }
+        >
           <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
             Assessment
           </p>
@@ -445,11 +510,7 @@ function TabBar({ activeTab, setTab }) {
         How tracks work
       </Tab>
       {TRACK_ORDER.map((id) => (
-        <Tab
-          key={id}
-          active={activeTab === id}
-          onClick={() => setTab(id)}
-        >
+        <Tab key={id} active={activeTab === id} onClick={() => setTab(id)}>
           Track {TRACK_CONFIG[id].number}
         </Tab>
       ))}
@@ -484,9 +545,12 @@ function WhyTab({ onTrackClick, counts }) {
       <div className="rounded-[14px] bg-rd-bg-soft px-4 py-3">
         <p className="text-[13px] text-rd-text-secondary leading-[1.55]">
           Every role is placed by two things - how{" "}
-          <span className="font-display font-bold text-rd-text">qualified</span> you
-          are now, and how well it{" "}
-          <span className="font-display font-bold text-rd-text">moves you toward your goal</span>.
+          <span className="font-display font-bold text-rd-text">qualified</span>{" "}
+          you are now, and how well it{" "}
+          <span className="font-display font-bold text-rd-text">
+            moves you toward your goal
+          </span>
+          .
         </p>
       </div>
       <div className="flex justify-center pt-2">
@@ -505,7 +569,8 @@ function TrackTab({ track, roles, onTabChange }) {
   const cfg = TRACK_CONFIG[track];
   const trackIdx = TRACK_ORDER.indexOf(track);
   const prevTrack = trackIdx > 0 ? TRACK_ORDER[trackIdx - 1] : null;
-  const nextTrack = trackIdx < TRACK_ORDER.length - 1 ? TRACK_ORDER[trackIdx + 1] : null;
+  const nextTrack =
+    trackIdx < TRACK_ORDER.length - 1 ? TRACK_ORDER[trackIdx + 1] : null;
 
   return (
     <div className="mt-6 flex flex-col gap-5">
@@ -557,18 +622,18 @@ function TrackTab({ track, roles, onTabChange }) {
 // against the warm palette.
 function TrackHeaderCard({ cfg }) {
   const TINT = {
-    coral:  "var(--rd-primary-tint)",
-    teal:   "var(--rd-teal-tint)",
+    coral: "var(--rd-primary-tint)",
+    teal: "var(--rd-teal-tint)",
     golden: "var(--rd-golden-tint)",
   };
   const BADGE_BG = {
-    coral:  "var(--rd-primary)",
-    teal:   "var(--rd-teal)",
+    coral: "var(--rd-primary)",
+    teal: "var(--rd-teal)",
     golden: "var(--rd-golden)",
   };
   const ACCENT = {
-    coral:  "var(--rd-primary-dark)",
-    teal:   "var(--rd-teal-dark)",
+    coral: "var(--rd-primary-dark)",
+    teal: "var(--rd-teal-dark)",
     golden: "var(--rd-golden-dark)",
   };
   const tint = TINT[cfg.rdColor] || TINT.coral;
