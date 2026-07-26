@@ -298,6 +298,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = React.useRef(null);
+  const expFormRef = React.useRef(null);
 
   // URL-driven tabs. Invalid ?tab values fall back to "profile" silently.
   const tabParam = searchParams.get("tab");
@@ -1089,7 +1090,7 @@ export default function Profile() {
               </button>
             </div>
 
-            <div className={`${RD_CARD_LG} space-y-4`}>
+            <div ref={expFormRef} className={`${RD_CARD_LG} space-y-4`}>
               <div className="flex items-center justify-between">
                 <h3 className="font-display font-bold text-[14px] text-rd-text">
                   {expForm.id ? "Edit experience" : "Add experience"}
@@ -1203,17 +1204,30 @@ export default function Profile() {
                         <button
                           type="button"
                           data-exp-edit={e.id}
-                          onClick={() => setExpForm({
-                            id: e.id,
-                            title: e.title || "",
-                            company: e.company || "",
-                            type: e.type || "internship",
-                            start_date: e.start_date || "",
-                            end_date: e.end_date || "",
-                            is_current: !!e.is_current,
-                            responsibilities: e.responsibilities || "",
-                            skills: e.skills || [],
-                          })}
+                          onClick={() => {
+                            setExpForm({
+                              id: e.id,
+                              title: e.title || "",
+                              company: e.company || "",
+                              type: e.type || "internship",
+                              start_date: e.start_date || "",
+                              end_date: e.end_date || "",
+                              is_current: !!e.is_current,
+                              responsibilities: e.responsibilities || "",
+                              skills: e.skills || [],
+                            });
+                            // Edit fills the form at the top of the tab; without
+                            // this the populated form is a silent off-screen change
+                            // when the edited row is lower down. Honor reduced motion.
+                            expFormRef.current?.scrollIntoView({
+                              behavior: window.matchMedia?.(
+                                "(prefers-reduced-motion: reduce)",
+                              )?.matches
+                                ? "auto"
+                                : "smooth",
+                              block: "start",
+                            });
+                          }}
                           className={RD_BTN_GHOST}
                         >
                           Edit
