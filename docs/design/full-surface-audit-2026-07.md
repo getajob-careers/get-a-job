@@ -161,6 +161,58 @@ Findings:
   (design-craft rule 7). Fix: an 8s timeout flips to an honest "This reset link
   isn't valid" state with a "Back to sign in" button -> `/login`. Verified live on
   dev (error state renders at 8s; button routes to /login).
+- **BLOCKER (un-onboarded) - password-reset email link never reaches the
+  set-new-password form; it lands on the site ROOT and bounces.** Surfaced live by
+  Eli while provisioning the test account, then reproduced 2026-07-24. This is NOT a
+  frontend routing-gate ordering bug (Eli's initial read) - the frontend is correct.
+  - **Root cause [VERIFIED]:** the recovery email's link is
+    `.../auth/v1/verify?...&type=recovery&redirect_to=https://getajob.careers` - the
+    bare Site URL ROOT, NOT `/reset-password`. The app requests
+    `${origin}/reset-password` (Login.jsx:171), but Supabase overrides it with the
+    project **Site URL** because the requesting origin's `/reset-password` is not in
+    the Auth redirect allowlist. Evidence: the actual sent email (read from Gmail)
+    carried `redirect_to=https://getajob.careers`.
+  - **Why the form is unreachable [VERIFIED, code]:** `ResetPassword` only mounts at
+    `/reset-password` (App.jsx:185, a public route OUTSIDE the auth gate and Layout).
+    The root `/` is `LandingV2Preview`, which auto-bounces any authenticated visitor;
+    the recovery link's URL-hash mints a recovery SESSION on landing, so the user is
+    "logged in" -> Landing bounces to `/Home` -> Layout's onboarding gate (and
+    Home's own guard, see `home-redirect.test.jsx`) bounce an incomplete-onboarding
+    user to `/Onboarding`. The set-new-password form is skipped entirely. An
+    onboarded user instead lands on `/Home` (also skipping the form, but they at
+    least have an entry point); an **un-onboarded user is trapped in `/Onboarding`
+    with a live recovery session and no way to set a password** -> cannot recover
+    their account.
+  - **Observation [VERIFIED, confounded]:** following the real recovery link
+    redirected to the site root (resolved to `www.getajob.careers/Home`). Clean
+    observation of the un-onboarded `/Onboarding` bounce was blocked by Eli's
+    pre-existing production session (I did not disturb it); the un-onboarded bounce
+    itself is VERIFIED from code, not just inferred.
+  - **UPDATE 2026-07-24 [VERIFIED] - config fix took, but production still broken on
+    a www/apex mismatch.** Eli added `https://getajob.careers/reset-password` +
+    `http://localhost:5173/reset-password` to the Auth redirect allowlist. Re-tested:
+    - **localhost-origin reset email now carries `redirect_to=http://localhost:5173/reset-password`**
+      (was bare root) -> the allowlist change is EFFECTIVE. Loading that link lands
+      on `/reset-password` (NOT root), confirming the routing side is correct.
+    - **production-origin reset email STILL carries `redirect_to=https://getajob.careers`
+      (bare root).** Cause: production is served on `www.getajob.careers`
+      (`getajob.careers` 301s to `www`), so the app requests
+      `redirectTo=https://www.getajob.careers/reset-password` (WITH www), which does
+      not match the allowlisted apex `https://getajob.careers/reset-password`
+      (NO www) -> Supabase falls back to Site URL root. So production reset is still
+      broken (P0/P1: the recovery form is unreachable for every user; un-onboarded
+      users trapped in `/Onboarding`).
+    - Bonus: the invalid-token landing re-confirmed the #748 honest-error state
+      ("This reset link isn't valid") renders correctly at `/reset-password`.
+  - **Fix - HELD FOR ELI (auth config, one entry away):** add
+    `https://www.getajob.careers/reset-password` (the **www** variant) to Auth -> URL
+    Configuration -> Redirect URLs. That closes P1 on production; localhost is
+    already fixed. (Optionally normalize apex->www so origins are consistent.)
+  - **Optional frontend mitigation (recommend, also HELD - touches the auth-entry
+    path):** have the root landing detect a `type=recovery` token in the URL hash and
+    `navigate('/reset-password')` BEFORE the auth-aware auto-bounce fires - keeps
+    recovery working even if a link lands on root. Small and safe, but it's auth-flow
+    territory, so it's Eli's call, not an autonomous design-lane fix.
 - **P2 - sub-44px tap targets** (WCAG 2.5.5 / design-craft rule 8):
   - Landing: 22 interactive els < 44px, incl. carousel Prev/Next arrows 40x40 (two
     carousels), header "Log in" 48x33, "Start" 70x39, plus several 18-20px text-link
@@ -191,11 +243,46 @@ Findings:
   label / aria-label). On Landing this is likely the known "fake dropzone" (queued
   for removal); still an a11y gap - add an aria-label or associate a `<label>`.
 
-HELD (blocked): the REAL onboarding FLOW lifecycle (`OnboardingEntry` /
-`OnboardingV2`) needs an authenticated-but-UN-onboarded user - I'm onboarded, so
-it redirects, and Eli's `onboarding_step` must not be reset. `/_preview/onboarding/
-:state` audits the styled steps but not the flow's state machine. Needs a fresh /
-throwaway un-onboarded test account.
+## Pass 2b - REAL onboarding flow lifecycle (2026-07-26) - UNBLOCKED
+
+Walked the live V2 onboarding flow signed in as a real un-onboarded account
+(`elienglard34+v2test@gmail.com`, `onboarding_complete=false`, `onboarding_step=0`,
+Eli signed in via the Chrome tab; no password typed by me). Dev branch on localhost.
+Interceptor-armed, client-side nav between steps so fresh-mount warnings are counted.
+**Partial pass - stopped at ~80% context; steps 3-4 + forced error/loading states +
+mobile breakpoints still outstanding (no silent cap; see below).**
+
+Findings so far:
+
+- **[VERIFIED] Step 1 (Your CV) - clean.** 0 console errors / 0 `Maximum update
+depth` / 0 `validateDOMNesting` on fresh mount. a11y solid: situation chips are
+  native `<button aria-pressed>` (multi-select toggles; re-verified the toggle flips
+  and the selection PERSISTS across step2 -> Back -> step1); dropzone is
+  `div[role=button][tabindex=0]` with `aria-label="Upload your resume (PDF or DOCX)"`;
+  "Upload to continue" renders at h44 (the task-1 `RdButton` fix is live here).
+- **[VERIFIED] Step 2 (Review and refine) - clean + honest empty-state.** Skipping the
+  CV shows "No CV yet - fill in the essentials below and you can always add your CV
+  later." 0 console errors / loops / nesting. Sections: Education*, Experience,
+  Projects.
+- **[VERIFIED] Back navigation works.** "<- Back" on step 2 returns to step 1 with
+  selections preserved. (Forward nav not yet tested.)
+- **[VERIFIED] Nit (minor) - raw hidden `<input type=file>` on step 1 has no
+  id/aria-label.** Low severity: the visible dropzone `div[role=button]` IS labeled and
+  is the keyboard entry point, so screen-reader users have a named control; the bare
+  input is a belt-and-suspenders gap only.
+- **[VERIFIED] Routing nuance - an un-onboarded user (complete=false, step=0) lands on
+  `/Home` on sign-in, NOT `/Onboarding`.** Eli observed it live ("i landed on home")
+  and I confirmed the profile flags. `/Onboarding` renders the flow correctly when
+  navigated to directly. Worth a look: does `/Home` degrade gracefully for a step-0
+  account, or should sign-in route an incomplete user straight into `/Onboarding`?
+  Not yet root-caused (Home vs Layout gate signal) - flagged for the next pass.
+
+OUTSTANDING (onboarding, next session): steps 3 + 4 UI/console/states; the
+point-of-no-return (which final action commits `onboarding_complete=true` - do NOT
+trigger it without a fresh account); forced error states (invalid file type on the
+dropzone - note: activating the dropzone opens a BLOCKING OS file dialog, drive it
+via a synthetic drop or `file_upload`, never a real click); loading state during CV
+extraction; forward-nav; keyboard activation of the dropzone; mobile breakpoints.
 
 Still outstanding for Pass 2: AuthCallback (needs a real token in the URL),
 and the interaction-DEPTH pass on the authenticated surfaces (button-by-button
