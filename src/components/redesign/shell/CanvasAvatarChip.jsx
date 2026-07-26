@@ -1,8 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { UserCircle, Settings, LogOut, ChevronsUpDown } from "lucide-react";
+import {
+  UserCircle,
+  Settings,
+  LogOut,
+  ChevronsUpDown,
+  MessageSquare,
+} from "lucide-react";
 import { toast } from "sonner";
 import CanvasCommandItem from "./CanvasCommandItem";
+import { openFeedback } from "@/lib/feedbackStore";
 
 // Compact user/avatar chip at the sidebar bottom (wave-2 feedback #6). Standard
 // app pattern: the Profile TILE now navigates; the quick menu (Profile /
@@ -24,11 +31,19 @@ export default function CanvasAvatarChip({ compact = false, account }) {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
       const w = compact ? 190 : r.width;
-      setPos({
-        left: compact ? Math.max(8, r.right - w) : r.left,
-        bottom: window.innerHeight - r.top + 6,
-        width: w,
-      });
+      const left = compact ? Math.max(8, r.right - w) : r.left;
+      // Flip-aware placement. The chip mounts both top-anchored (top-right
+      // utility bar, mobile header - `compact`) and bottom-anchored (sidebar
+      // footer). Open DOWNWARD when the menu fits below the chip, else UPWARD.
+      // The old code always opened upward, which pushed the top-anchored chips'
+      // menu off the top edge of the viewport.
+      const estMenuH = 4 * 40 + 12; // 4 items (~40px) + container padding
+      const openDown = r.bottom + estMenuH + 8 <= window.innerHeight;
+      setPos(
+        openDown
+          ? { left, top: r.bottom + 6, width: w }
+          : { left, bottom: window.innerHeight - r.top + 6, width: w },
+      );
     }
     setOpen((o) => !o);
   };
@@ -105,7 +120,7 @@ export default function CanvasAvatarChip({ compact = false, account }) {
             style={{
               position: "fixed",
               left: pos.left,
-              bottom: pos.bottom,
+              ...(pos.top != null ? { top: pos.top } : { bottom: pos.bottom }),
               width: pos.width,
               zIndex: 60,
             }}
@@ -120,6 +135,11 @@ export default function CanvasAvatarChip({ compact = false, account }) {
               icon={Settings}
               label="Settings"
               onSelect={run(account?.onSettings, "Prototype: open settings.")}
+            />
+            <CanvasCommandItem
+              icon={MessageSquare}
+              label="Send feedback"
+              onSelect={run(openFeedback)}
             />
             <CanvasCommandItem
               icon={LogOut}

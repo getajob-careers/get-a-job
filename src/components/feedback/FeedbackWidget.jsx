@@ -12,6 +12,12 @@ import {
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
+import { isNextDesign } from "@/lib/nextDesign";
+import {
+  openFeedback,
+  closeFeedback,
+  useFeedbackOpen,
+} from "@/lib/feedbackStore";
 
 // Floating "Got feedback?" pill + modal. Mounted from
 // `AuthenticatedApp` in src/App.jsx as a sibling of <Routes> so it
@@ -47,7 +53,7 @@ const MAX_MESSAGE = 2000;
 export default function FeedbackWidget() {
   const { user } = useAuth();
   const location = useLocation();
-  const [open, setOpen] = useState(false);
+  const open = useFeedbackOpen();
   const [category, setCategory] = useState(null);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -59,8 +65,11 @@ export default function FeedbackWidget() {
   };
 
   const handleOpenChange = (next) => {
-    setOpen(next);
-    if (!next) reset();
+    if (next) openFeedback();
+    else {
+      closeFeedback();
+      reset();
+    }
   };
 
   const canSubmit = !!category && message.trim().length > 0 && !submitting;
@@ -85,7 +94,7 @@ export default function FeedbackWidget() {
     }
     track(EVENTS.FEEDBACK_SUBMITTED, { category, route: location.pathname });
     toast.success("Thanks - feedback sent!");
-    setOpen(false);
+    closeFeedback();
     reset();
   };
 
@@ -107,21 +116,22 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      {/* Floating launcher pill — pinned to the bottom-right corner. The
-          shadcn toast containers share this corner at z-[100], but they're now
-          pointer-events-none when empty (see ui/toast.jsx; individual toasts
-          keep pointer-events-auto), so the pill no longer needs to sit above
-          them — it lives in the corner at z-50 and a live toast simply renders
-          over it for its short lifetime. */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Send feedback"
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-primary text-white shadow-lg hover:bg-rd-primary-dark transition-colors"
-      >
-        <MessageSquare className="w-3.5 h-3.5" />
-        Got feedback?
-      </button>
+      {/* Floating launcher pill — FLAG-OFF ONLY. Flag-on relocates the entry to
+          the avatar menu's "Send feedback" item (it opens the same dialog via
+          feedbackStore), because the fixed pill overlapped content and occluded
+          the mobile coach toggle. The flag-off shell has no avatar menu, so it
+          keeps the pill until the flag-off path retires at Flip 2. */}
+      {!isNextDesign() && (
+        <button
+          type="button"
+          onClick={() => openFeedback()}
+          aria-label="Send feedback"
+          className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-primary text-white shadow-lg hover:bg-rd-primary-dark transition-colors"
+        >
+          <MessageSquare className="w-3.5 h-3.5" />
+          Got feedback?
+        </button>
+      )}
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="bg-rd-bg-card border border-rd-border rounded-[18px] sm:max-w-md">
