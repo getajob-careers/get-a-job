@@ -46,6 +46,13 @@ export { CV_TEMPLATES };
 // switches unmount the studio) so the choice sticks. Default expanded.
 let templatesOpenPref = true;
 
+// Below md the templates rail defaults to its collapsed strip: an expanded 216px
+// rail plus the doc plus the coach block would crush the document on a phone. The
+// user can still expand it; this only sets the initial state on a narrow mount.
+const belowMd = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia("(max-width: 767px)").matches;
+
 const AGENT_CHIPS = [
   "Rewrite my summary",
   "Tighten bullets",
@@ -610,24 +617,24 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
   const current = options.find((o) => o.id === value) || options[0];
   if (!current) return null;
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <button
         onClick={() => setOpen((o) => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 130)}
-        className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-rd-border bg-rd-bg-card hover:bg-rd-bg-soft transition-colors"
+        className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-rd-border bg-rd-bg-card hover:bg-rd-bg-soft transition-colors min-w-0 max-w-full"
       >
         <span className="w-6 h-6 rounded-md bg-rd-primary-tint grid place-items-center shrink-0">
           <FileText className="w-3.5 h-3.5 text-rd-primary" />
         </span>
-        <span className="text-left leading-tight">
-          <span className="block text-[13px] font-display font-semibold text-rd-text">
+        <span className="text-left leading-tight min-w-0">
+          <span className="block text-[13px] font-display font-semibold text-rd-text truncate">
             {current.label}
           </span>
-          <span className="block text-[10.5px] text-rd-text-tertiary">
+          <span className="block text-[10.5px] text-rd-text-tertiary truncate">
             {current.sub}
           </span>
         </span>
-        <ChevronDown className="w-4 h-4 text-rd-text-tertiary ml-1" />
+        <ChevronDown className="w-4 h-4 text-rd-text-tertiary ml-1 shrink-0" />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1.5 w-[272px] bg-rd-bg-card border border-rd-border rounded-xl shadow-rd p-1 z-50">
@@ -770,7 +777,9 @@ export default function CVStudioView({
   // collapse-to-strip Templates rail). Flag off -> today's pill + always-open
   // rail, byte-identical.
   const alive = isNextDesign();
-  const [templatesOpen, setTemplatesOpen] = useState(templatesOpenPref);
+  const [templatesOpen, setTemplatesOpen] = useState(
+    () => templatesOpenPref && !belowMd(),
+  );
   const template = templates.find((t) => t.id === templateId) || templates[0];
   // Template picker list, shared by the flag-off aside and the flag-on
   // expanded rail so there's one definition.
@@ -882,10 +891,12 @@ export default function CVStudioView({
             <button
               onClick={onUndo}
               disabled={!canUndo}
+              aria-label="Undo"
               title="Undo your last change to your profile"
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] text-rd-text-secondary hover:bg-rd-bg-soft disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Undo
+              <RotateCcw className="w-3.5 h-3.5" />{" "}
+              <span className="hidden sm:inline">Undo</span>
             </button>
           )}
           <span
@@ -906,6 +917,7 @@ export default function CVStudioView({
           )}
           <button
             onClick={onDownload}
+            aria-label={alive ? "Download PDF" : "Download"}
             className={
               alive
                 ? // Flag-on: rd- palette coral (not the template accent), so the
@@ -916,14 +928,18 @@ export default function CVStudioView({
           >
             {/* Flag-on: the workspace isn't the artifact - name the deliverable. */}
             <Download className="w-3.5 h-3.5" />{" "}
-            {alive ? "Download PDF" : "Download"}
+            <span className="hidden sm:inline">
+              {alive ? "Download PDF" : "Download"}
+            </span>
           </button>
         </header>
 
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 flex flex-wrap md:flex-nowrap min-h-0">
           {/* Templates. Flag-on: collapses to a ~40px strip (active thumbnail +
-            expand chevron), persisted, default expanded. Flag off: the
-            always-open aside, byte-identical. */}
+            expand chevron), persisted, default expanded (default COLLAPSED below
+            md so the narrow document isn't crushed). Flag off: the always-open
+            aside, byte-identical. Below md the row wraps so the coach panel drops
+            to a full-width block under the document instead of stealing its width. */}
           {alive && !templatesOpen ? (
             <aside className="w-11 shrink-0 border-r border-rd-border bg-rd-bg-card/50 flex flex-col items-center gap-2.5 py-3">
               <button
@@ -1182,9 +1198,9 @@ export default function CVStudioView({
               <div
                 className={
                   rightRail
-                    ? "cv-doc max-w-[720px] mx-auto px-10 py-8"
+                    ? "cv-doc max-w-[720px] mx-auto px-5 py-6 md:px-10 md:py-8"
                     : alive
-                      ? "cv-doc max-w-[720px] mx-auto bg-white rounded-xl shadow-rd border border-rd-border px-12 py-11"
+                      ? "cv-doc max-w-[720px] mx-auto bg-white rounded-xl shadow-rd border border-rd-border px-6 py-8 md:px-12 md:py-11"
                       : "cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
                 }
                 style={docStyle}
@@ -1524,7 +1540,7 @@ export default function CVStudioView({
             (rendered below, outside the document lane), so the document lane has
             no right panel. Flag off: the CV Agent panel, byte-identical. */}
           {rightRail ? null : (
-            <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
+            <aside className="w-full md:w-[336px] shrink-0 max-h-[45vh] md:max-h-none border-t md:border-t-0 md:border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
               <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-full bg-rd-primary-tint grid place-items-center">
                   <FileText className="w-3.5 h-3.5 text-rd-primary" />
