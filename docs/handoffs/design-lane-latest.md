@@ -57,6 +57,9 @@ from scratch. Verify every PR/prod claim against `gh` / Vercel before trusting i
     dropdown placement (was opening upward off-screen) + `CanvasCommandItem` `style` default
     (typecheck 519->517). New `src/lib/feedbackStore.js` + `feedbackStore.test.js`. Verified
     4/4 live on `/_preview/shell/shell-home-active?next=1`. Gate GREEN.
+    FLAG-SCOPE PRECISION (hub correction): FeedbackWidget's open state moved to a module store
+    UNCONDITIONALLY (both flag states); only the launcher is flag-gated. Flag-off is BEHAVIORALLY
+    identical (same pill -> same dialog -> same `public.feedback` insert), NOT byte-identical.
 - **This handoff = PR `eli/design-handoff-pass2e`** (docs-only). Merge it before /clear so the next
   session reads the fresh resume point on origin/main.
 - `main` is checked out in a SEPARATE worktree (`/Users/elienglard/getajob-eval`); branch off
@@ -100,6 +103,21 @@ live app, not the shared local tree.
 1. DONE - CV-gen theater (#765 HELD).
 2. DONE - feedback pill + avatar menu (#767 HELD). (c) mobile coach entry EXISTS
    (`CanvasMobileRail.jsx:49` Sparkles -> CoachDock sheet); pill removal clears the occlusion.
+
+2b. **NEXT - pre-item-3 cleanup PR (ONE sitting, BEFORE the CV-tab mobile pass). Hub findings on
+#765/#767 that the verifiers missed; do these first:** - (a) **Em-dash sweep of 4 added-line sites:** `FeedbackWidget.jsx` (the FLAG-OFF ONLY
+comment), `JobsGridPreview.jsx` (2, harness copy), `tasks/lessons.md` (the 2026-07-26 entry).
+ALSO replace the Unicode ellipsis in the "Tailoring your CV" label (JobGridCard +
+JobDetailModal) with three ASCII periods. AND add an em-dash grep to the Gatekeeper's gate so
+the pipeline catches this itself from now on. - (b) **Gate the error toast** in `useJobCardActions` on the SAME guard as the ready toast:
+make `markCvGenerationError` return a boolean and toast only when it applied. Same defect
+class as the P2 already fixed - a superseded FAILING run currently reports failure over a
+different job's live run. - (c) **Add unit tests for `cvGenerationJob`:** ready-on-superseded returns false,
+error-on-superseded is a no-op, `clear(jobKey)` only clears a matching run.
+NOTE: (b) and (c) touch #765's files (`cvGenerationJob.js`, `useJobCardActions.js`) - if #765
+has already batch-merged by pickup, this is a fresh PR off main; if not, coordinate so it does
+not conflict with the held #765 branch (cleanest: land after #765 merges).
+
 3. **CV-tab mobile pass** - CV page is a mess at mobile widths (Tracker + Browse Jobs are fine).
    Audit CV tab at mobile widths, findings file:line, fix defensible layout breaks in ONE scoped
    PR; anything needing an IA decision -> HELD in the report. (resize_window is UNRELIABLE; verify
