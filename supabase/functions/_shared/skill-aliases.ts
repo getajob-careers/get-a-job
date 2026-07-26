@@ -1296,7 +1296,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "accruals": ["accounting_general"],
   "month end close": ["accounting_general"],
   "financial statements": ["financial_reporting"],
-  "reconciliation": ["bookkeeping"],
   "account reconciliations": ["bookkeeping"],
   "cash management": ["cash_flow_management"],
   "treasury": ["cash_flow_management"],
