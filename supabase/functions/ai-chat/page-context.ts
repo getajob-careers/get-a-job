@@ -17,6 +17,8 @@
 //   - If page_context is absent or empty, prompt assembly is byte-
 //     identical to today — verified by the `prompt-byte-equivalence` test.
 
+import { stripHtml } from "../_shared/strip-html.ts";
+
 const VALID_PAGES = new Set([
   "Today",
   "Career",
@@ -78,6 +80,7 @@ export interface FetchedJob {
   req_years_min: number | null;
   req_years_max: number | null;
   seniority: string | null;
+  description: string | null;
 }
 
 export interface FetchedCompanyTarget {
@@ -293,6 +296,10 @@ export function renderPageContextBlocks(fetched: FetchedPageContext): string {
     if (fetched.job.req_skills_nice?.length) {
       out += `\n- Nice-to-haves: ${fetched.job.req_skills_nice.slice(0, 6).join(", ")}`;
     }
+    if (fetched.job.description) {
+      const jd = stripHtml(String(fetched.job.description)) ?? "";
+      if (jd) out += `\n- Job Description:\n${jd.slice(0, 2000)}`;
+    }
   }
   if (fetched.companyTarget) {
     out += `\n\nTARGET COMPANY (the internship pipeline row the user is currently viewing):`;
@@ -401,7 +408,7 @@ export async function fetchPageContextEntities(
     const { data: job } = await supabase
       .from("jobs")
       .select(
-        "id, title, company_name, location_city, req_skills_core, req_skills_nice, req_years_min, req_years_max, seniority",
+        "id, title, company_name, location_city, req_skills_core, req_skills_nice, req_years_min, req_years_max, seniority, description",
       )
       .eq("id", ctx.job_id)
       .maybeSingle();

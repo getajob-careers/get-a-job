@@ -144,6 +144,7 @@ describe("renderPageContextBlocks", () => {
         req_skills_nice: ["sql"],
         req_years_min: 5,
         req_years_max: 8,
+        description: null,
       },
     });
     expect(out).toContain(`job_id: ${VALID_UUID}`);
@@ -166,9 +167,66 @@ describe("renderPageContextBlocks", () => {
         req_skills_nice: null,
         req_years_min: 0,
         req_years_max: null,
+        description: null,
       },
     });
     expect(out).toContain("Experience required: 0+ yrs");
+  });
+
+  it("renders a capped, HTML-stripped Job Description on the TARGET JOB when present", () => {
+    const out = renderPageContextBlocks({
+      job: {
+        id: VALID_UUID,
+        title: "Data Analyst",
+        company_name: "Chainalysis",
+        location_city: null,
+        seniority: null,
+        req_skills_core: null,
+        req_skills_nice: null,
+        req_years_min: null,
+        req_years_max: null,
+        description: "<p>Great role</p>",
+      },
+    });
+    expect(out).toContain("- Job Description:\nGreat role");
+    expect(out).not.toContain("<p>");
+  });
+
+  it("caps the TARGET JOB Job Description at 2000 chars (mirrors the app-JD cap)", () => {
+    const out = renderPageContextBlocks({
+      job: {
+        id: VALID_UUID,
+        title: "Data Analyst",
+        company_name: null,
+        location_city: null,
+        seniority: null,
+        req_skills_core: null,
+        req_skills_nice: null,
+        req_years_min: null,
+        req_years_max: null,
+        description: "x".repeat(3000),
+      },
+    });
+    expect(out).toContain("x".repeat(2000));
+    expect(out).not.toContain("x".repeat(2001));
+  });
+
+  it("omits the Job Description line when the TARGET JOB description is null", () => {
+    const out = renderPageContextBlocks({
+      job: {
+        id: VALID_UUID,
+        title: "Data Analyst",
+        company_name: "Wix",
+        location_city: null,
+        seniority: null,
+        req_skills_core: null,
+        req_skills_nice: null,
+        req_years_min: null,
+        req_years_max: null,
+        description: null,
+      },
+    });
+    expect(out).not.toContain("Job Description:");
   });
 
   it("renders a TARGET COMPANY block with joined company + sector + pitched role", () => {
@@ -211,6 +269,7 @@ describe("renderPageContextBlocks", () => {
         req_skills_nice: null,
         req_years_min: null,
         req_years_max: null,
+        description: null,
       },
       companyTarget: {
         id: VALID_UUID,

@@ -7,6 +7,7 @@ import {
 } from "../_shared/openai-chat.ts";
 import { routeFor } from "../_shared/model-routing.ts";
 import { sanitizePageContext } from "./page-context.ts";
+import { lookupNamedJob, renderNamedJobBlock } from "./job-name-lookup.ts";
 // Option-B: prompt assembly + structured-block parsing live in prompt-lib.ts
 // (single source of truth, shared verbatim with the eval harness).
 import {
@@ -245,7 +246,27 @@ Deno.serve(async (req) => {
       safeFollowUp,
     });
 
-    const systemPrompt = assembleSystemPrompt(agent, userContext, safeFollowUp);
+    // Piece C: strict-match lookup of a job the user NAMED in their message
+    // (coach only). Best-effort pre-pass on the user-authed client - jobs are
+    // public-read to authed users. A lookup failure must never block a chat
+    // turn, so it is wrapped and degrades to no extra context.
+    let namedJobBlock = "";
+    if (agent === "career_agent" && typeof message === "string" && message) {
+      try {
+        namedJobBlock = renderNamedJobBlock(
+          await lookupNamedJob(supabase, message),
+        );
+      } catch (_e) {
+        /* lookup is best-effort; never block a chat turn */
+      }
+    }
+    const userContextPlus = userContext + namedJobBlock;
+
+    const systemPrompt = assembleSystemPrompt(
+      agent,
+      userContextPlus,
+      safeFollowUp,
+    );
 
     const messages = buildMessages(systemPrompt, conversation_history, message);
 
