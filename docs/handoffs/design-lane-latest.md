@@ -128,6 +128,15 @@ not conflict with the held #765 branch (cleanest: land after #765 merges).
    placeholder low) - make it read as a chat input. Coach SURFACES only; ai-chat backend is the CV
    lane's - do NOT touch it. (Saw the search-bar composer live in ShellPreview: "Ask about this
    page..." with a magnifier icon.)
+
+4b. **Wire the jobs feed into coach page context (Eli un-parked coach job visibility, PRE-FLIP;
+after item 4). YOUR half = Piece A, FRONTEND WIRING ONLY:** - Pass `job_id` when a job card/modal is open. - Pass the displayed feed ids as `visibleJobIds` up through Career's `setPageContext` call -
+currently hardcoded `[]` at `Career.jsx:443`; `UnifiedJobsFeed` must surface its displayed
+ids so Career can forward them. - `buildCareerPageContext` and ai-chat's "VISIBLE ON SCREEN" render path ALREADY support both -
+this is WIRING, not a new contract. - Backend half (capped JD + strict-match name lookup) is the CV lane's - do NOT touch
+`supabase/functions`. Coordination: the CV lane's backend piece is DEAD CODE until 4b lands,
+so this unblocks them.
+
 5. **Tasks tile (small PR)** - coach-accepted tasks land on the Tasks page, which has NO entry in
    the flag-on sidebar (`TOOL_TILES` in `CanvasSidebar.jsx`, 8 tiles, Tasks absent). Add a Tasks
    tile matching the existing pattern. No Tasks-page redesign, just the door.
