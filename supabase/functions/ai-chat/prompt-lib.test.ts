@@ -139,6 +139,15 @@ describe("assembleSystemPrompt — honesty rules + capability routing", () => {
     expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
   });
 
+  it("teaches career_agent the LOOKED-UP JOB / NAMED-JOB LOOKUP honesty rule (Piece C)", () => {
+    const sys = assembleSystemPrompt("career_agent", "", null);
+    expect(sys).toContain("LOOKED-UP JOB / NAMED-JOB LOOKUP");
+    expect(sys).toContain("NAMED-JOB LOOKUP - AMBIGUOUS");
+    expect(sys).toContain(
+      "ASK the user which of the listed postings they mean",
+    );
+  });
+
   it("appends CONTEXT_HONESTY_RULES to interview_coach and skill_development_agent", () => {
     expect(assembleSystemPrompt("interview_coach", "", null)).toContain(
       "DEIXIS HONESTY",
