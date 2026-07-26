@@ -505,7 +505,7 @@ export default function JobsSearchTab({
                 ? "Loading the board…"
                 : hasActiveFacets
                   ? `${ranked.length} of ${scored.length} roles`
-                  : `${displayRanked.length} role${displayRanked.length === 1 ? "" : "s"} matched to you`}
+                  : `${displayRanked.length} role${displayRanked.length === 1 ? "" : "s"}, ranked for you`}
             </p>
             <div
               className="relative flex w-[200px] bg-rd-bg-soft rounded-full p-1"
