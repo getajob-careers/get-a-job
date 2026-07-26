@@ -138,14 +138,14 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
         scoreResult,
       });
       if (res?.error) {
-        markCvGenerationError(myKey);
-        toast.error("Couldn't start generating - try again.");
+        if (markCvGenerationError(myKey))
+          toast.error("Couldn't start generating - try again.");
         return;
       }
       const applicationId = await resolveApplicationId();
       if (!applicationId) {
-        markCvGenerationError(myKey);
-        toast.error("Couldn't link the CV to your tracker - try again.");
+        if (markCvGenerationError(myKey))
+          toast.error("Couldn't link the CV to your tracker - try again.");
         return;
       }
       const { data, error } = await supabase.functions.invoke(
@@ -159,8 +159,8 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
         },
       );
       if (error || !data || data.error) {
-        markCvGenerationError(myKey);
-        toast.error("Couldn't generate the CV - try again.");
+        if (markCvGenerationError(myKey))
+          toast.error("Couldn't generate the CV - try again.");
         return;
       }
       queryClient.invalidateQueries({ queryKey: ["applications"] });
@@ -185,8 +185,8 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
         );
       }
     } catch {
-      markCvGenerationError(myKey);
-      toast.error("Couldn't generate the CV - try again.");
+      if (markCvGenerationError(myKey))
+        toast.error("Couldn't generate the CV - try again.");
     }
   }, [
     generating,

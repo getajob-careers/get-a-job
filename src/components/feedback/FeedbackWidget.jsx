@@ -116,7 +116,7 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      {/* Floating launcher pill — FLAG-OFF ONLY. Flag-on relocates the entry to
+      {/* Floating launcher pill - FLAG-OFF ONLY. Flag-on relocates the entry to
           the avatar menu's "Send feedback" item (it opens the same dialog via
           feedbackStore), because the fixed pill overlapped content and occluded
           the mobile coach toggle. The flag-off shell has no avatar menu, so it
