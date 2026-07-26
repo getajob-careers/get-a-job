@@ -689,8 +689,22 @@ export function scoreJobFit(input, job, opts = {}) {
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
   const gaps = [];
+  // Skill-match chip. A bare "100% skill match" is dishonest on a thin-spec job
+  // (1 listed skill the user happens to have reads as a perfect match). Honest-
+  // labels flag (opts.honestLabels): show the matched-of-listed COUNT instead of
+  // the percentage, so "1 of 1 listed skills" exposes the thin spec. Same >=60%
+  // trigger, display copy only - no score/band/rank change. Flag off => byte-
+  // identical percentage string.
   if (skill.skill_match_pct !== null && skill.skill_match_pct >= 60) {
-    strengths.push(`${skill.skill_match_pct}% skill match`);
+    if (opts.honestLabels) {
+      const listed =
+        skill.matched_skills.length + skill.missing_core_skills.length;
+      strengths.push(
+        `${skill.matched_skills.length} of ${listed} listed skill${listed === 1 ? "" : "s"}`,
+      );
+    } else {
+      strengths.push(`${skill.skill_match_pct}% skill match`);
+    }
   }
   if (skill.matched_skills.length >= 3) {
     strengths.push(`${skill.matched_skills.length} matching skills`);

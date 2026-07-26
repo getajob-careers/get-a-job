@@ -40,6 +40,14 @@ export function scoreAxes(scoreResult) {
 export function ScoreBreakdown({ scoreResult, color, className = "" }) {
   const axes = scoreAxes(scoreResult);
   const fill = color || "var(--rd-text)";
+  const honest = honestMatchLabelsEnabled();
+  // Matched-of-listed counts behind the skill axis (honest_match_labels): a bare
+  // "100" on the Skills row is dishonest on a thin-spec job (1 listed skill the
+  // user has). Flag-on shows "1 of 1" so the thin spec is visible. The bar width
+  // still tracks the ratio; only the number cell changes. Flag off => the number.
+  const skillMatched = scoreResult?.signals?.matched_skills?.length ?? 0;
+  const skillListed =
+    skillMatched + (scoreResult?.signals?.missing_core_skills?.length ?? 0);
   return (
     <div className={className}>
       <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
@@ -49,7 +57,7 @@ export function ScoreBreakdown({ scoreResult, color, className = "" }) {
           shows attainability (the whole composite) and the last shows fit_score -
           neither is the "Experience" or "Seniority" axis. When the flag is on, the
           labels tell the truth. No values change - only the words. */}
-      {(honestMatchLabelsEnabled()
+      {(honest
         ? [
             ["Skills", axes.skill],
             ["Overall", axes.experience],
@@ -65,7 +73,9 @@ export function ScoreBreakdown({ scoreResult, color, className = "" }) {
           <div className="flex items-center justify-between rd-t-micro mb-0.5">
             <span className="text-rd-text-secondary">{label}</span>
             <span className="font-mono text-rd-text-secondary">
-              {Math.round(val * 100)}
+              {honest && label === "Skills" && skillListed > 0
+                ? `${skillMatched} of ${skillListed}`
+                : Math.round(val * 100)}
             </span>
           </div>
           <div className="h-1 rounded-full bg-rd-bg-soft overflow-hidden">

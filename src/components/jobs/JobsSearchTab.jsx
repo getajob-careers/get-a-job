@@ -16,6 +16,7 @@ import { scoringOpts } from "@/lib/flags";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import {
   applyFacetsAndRank,
+  selectFeedOrder,
   searchFacetsKey,
   buildLocationOptions,
   FIT_TIE_EPS,
@@ -245,6 +246,13 @@ export default function JobsSearchTab({
   // 4. Filter + rank over the cached scored set. Re-runs only on facet/scored
   //    change (no re-fetch, no re-score).
   const facets = { keyword, seniorities, workTypes, track, family, location };
+  const hasActiveFacets =
+    keyword.trim() !== "" ||
+    seniorities.length > 0 ||
+    workTypes.length > 0 ||
+    track !== null ||
+    family !== "" ||
+    location !== "";
   // Flag-on: bucket near-tied fit_scores and order by attainability within the
   // bucket so the card ring reads monotonically (ring-vs-sort ruling, option C).
   // Flag off -> no opts -> pure fit_score sort, byte-identical.
@@ -258,25 +266,33 @@ export default function JobsSearchTab({
     [scored, keyword, seniorities, workTypes, track, family, location, alive],
   );
 
-  // Flag-on sort toggle (Plan 1). "best" = the fit-ranked order above (the
-  // single scoring authority); "newest" = the SAME filtered set re-ordered by
-  // date posted. Keyword + facets always apply first, so the toggle only
-  // re-orders, never re-filters. Flag off -> displayRanked === ranked.
+  // Flag-on sort toggle (Plan 1). "best" = the fit-ranked order above; "newest" =
+  // the SAME filtered set re-ordered by date posted. Keyword + facets always
+  // apply first, so the toggle only re-orders, never re-filters.
+  //
+  // Flag-on DEFAULT matches view (best sort + NO active facet): drop off-direction
+  // jobs and order by rank_score (orderDefaultMatches) so the user's own field
+  // leads and the shipped scoring corrections (C1/C2a/direction boost) drive the
+  // order instead of the family-blind-in-practice fit_score. The moment the user
+  // narrows (any facet or keyword), fall back to the fit_score order so
+  // off-direction jobs they explicitly searched for stay reachable. Flag off
+  // (alive=false) -> displayRanked === ranked, byte-identical to today.
   const [sortMode, setSortMode] = useState("best");
-  const displayRanked = useMemo(() => {
-    if (!alive || sortMode !== "newest") return ranked;
-    return [...ranked].sort((a, b) => postedTime(b.job) - postedTime(a.job));
-  }, [ranked, sortMode, alive]);
+  const displayRanked = useMemo(
+    () =>
+      selectFeedOrder({
+        alive,
+        sortMode,
+        hasActiveFacets,
+        ranked,
+        byNewest: (r) =>
+          [...r].sort((a, b) => postedTime(b.job) - postedTime(a.job)),
+      }),
+    [ranked, sortMode, alive, hasActiveFacets],
+  );
 
   // 5. Client-side pagination; reset to the first page when facets change.
   const facetsKey = searchFacetsKey(facets);
-  const hasActiveFacets =
-    keyword.trim() !== "" ||
-    seniorities.length > 0 ||
-    workTypes.length > 0 ||
-    track !== null ||
-    family !== "" ||
-    location !== "";
   const activeFilterCount =
     (keyword.trim() !== "" ? 1 : 0) +
     (seniorities.length > 0 ? 1 : 0) +
@@ -489,7 +505,7 @@ export default function JobsSearchTab({
                 ? "Loading the board…"
                 : hasActiveFacets
                   ? `${ranked.length} of ${scored.length} roles`
-                  : `${ranked.length} role${ranked.length === 1 ? "" : "s"} matched to you`}
+                  : `${displayRanked.length} role${displayRanked.length === 1 ? "" : "s"} matched to you`}
             </p>
             <div
               className="relative flex w-[200px] bg-rd-bg-soft rounded-full p-1"
@@ -614,9 +630,11 @@ export default function JobsSearchTab({
             Scoring the board against your profile…
           </p>
         </div>
-      ) : ranked.length === 0 ? (
+      ) : displayRanked.length === 0 ? (
         // Honest-empty for a zero-result facet stack (e.g. Entry + On-site +
-        // a thin region in PR C). Same pattern as JobsEmpty.
+        // a thin region in PR C), or a default view whose only matches were all
+        // off-direction (gated out). displayRanked === ranked when flag-off, so
+        // this is byte-identical there. Same pattern as JobsEmpty.
         <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
           <Briefcase className="w-10 h-10 text-rd-primary mx-auto mb-3" />
           <p className="text-[14px] font-display font-bold text-rd-text">
@@ -662,7 +680,7 @@ export default function JobsSearchTab({
               );
             })}
           </div>
-          {visibleCount < ranked.length && (
+          {visibleCount < displayRanked.length && (
             <div className="text-center mt-7">
               <button
                 type="button"

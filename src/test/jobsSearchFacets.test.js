@@ -15,6 +15,8 @@ import {
   LOCATION_DISTRICT_TAGS,
   searchFacetsKey,
   applyFacetsAndRank,
+  orderDefaultMatches,
+  selectFeedOrder,
   LOCATION_REGIONS,
 } from "../lib/jobsSearchFacets";
 
@@ -277,5 +279,131 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
       location: "tlv_center",
     });
     expect(out.map((x) => x.job.id)).toEqual(["p"]); // only Sales ∧ TLV&Center ∧ non-null city
+  });
+});
+
+describe("orderDefaultMatches - flag-on default matches ordering", () => {
+  const mk = (id, relevance, rank, fit = 0) => ({
+    job: { id },
+    score: { relevance_match: relevance, rank_score: rank, fit_score: fit },
+  });
+
+  it("drops off-direction jobs; keeps primary/adjacent/unknown", () => {
+    const out = orderDefaultMatches([
+      mk("p", "primary", 0.5),
+      mk("o", "off", 0.99),
+      mk("a", "adjacent", 0.4),
+      mk("u", "unknown", 0.3),
+    ]);
+    expect(out.map((x) => x.job.id)).toEqual(["p", "a", "u"]); // 'o' gated out
+  });
+
+  it("orders by rank_score DESC, and rank_score is never overridden by tier", () => {
+    // an ADJACENT job with a higher rank_score must stay above a PRIMARY one with
+    // a lower rank_score (tier is a tiebreaker only - the documented contract).
+    const out = orderDefaultMatches([
+      mk("primary-lo", "primary", 0.6),
+      mk("adjacent-hi", "adjacent", 0.8),
+    ]);
+    expect(out.map((x) => x.job.id)).toEqual(["adjacent-hi", "primary-lo"]);
+  });
+
+  it("relevance tier breaks EXACT rank_score ties (primary above adjacent above unknown)", () => {
+    const out = orderDefaultMatches([
+      mk("adj", "adjacent", 0.7),
+      mk("unk", "unknown", 0.7),
+      mk("prim", "primary", 0.7),
+    ]);
+    expect(out.map((x) => x.job.id)).toEqual(["prim", "adj", "unk"]);
+  });
+
+  it("fit_score breaks a tie when rank_score AND tier are equal", () => {
+    const out = orderDefaultMatches([
+      {
+        job: { id: "lo" },
+        score: { relevance_match: "primary", rank_score: 0.5, fit_score: 0.3 },
+      },
+      {
+        job: { id: "hi" },
+        score: { relevance_match: "primary", rank_score: 0.5, fit_score: 0.9 },
+      },
+    ]);
+    expect(out.map((x) => x.job.id)).toEqual(["hi", "lo"]);
+  });
+
+  it("falls back to attainability_score when rank_score is absent", () => {
+    const out = orderDefaultMatches([
+      {
+        job: { id: "a" },
+        score: { relevance_match: "primary", attainability_score: 0.4 },
+      },
+      {
+        job: { id: "b" },
+        score: { relevance_match: "adjacent", attainability_score: 0.6 },
+      },
+    ]);
+    expect(out.map((x) => x.job.id)).toEqual(["b", "a"]);
+  });
+});
+
+describe("selectFeedOrder - flag gate (flag-off byte-identical)", () => {
+  const ranked = [
+    {
+      job: { id: "x" },
+      score: { relevance_match: "off", rank_score: 0.9, fit_score: 0.9 },
+    },
+    {
+      job: { id: "y" },
+      score: { relevance_match: "primary", rank_score: 0.4, fit_score: 0.4 },
+    },
+  ];
+  const byNewest = (r) => [...r].reverse();
+
+  it("flag OFF: returns `ranked` UNTOUCHED (same reference) for every mode/facet combo", () => {
+    for (const sortMode of ["best", "newest"]) {
+      for (const hasActiveFacets of [true, false]) {
+        const out = selectFeedOrder({
+          alive: false,
+          sortMode,
+          hasActiveFacets,
+          ranked,
+          byNewest,
+        });
+        expect(out).toBe(ranked); // reference-equal => byte-identical, no reorder, no gate
+      }
+    }
+  });
+
+  it("flag ON, best, NO facet: gates off + rank_score order (orderDefaultMatches)", () => {
+    const out = selectFeedOrder({
+      alive: true,
+      sortMode: "best",
+      hasActiveFacets: false,
+      ranked,
+      byNewest,
+    });
+    expect(out.map((x) => x.job.id)).toEqual(["y"]); // 'x' (off) gated out
+  });
+
+  it("flag ON, best, WITH facet: returns `ranked` unchanged (off-direction stays reachable when searched)", () => {
+    const out = selectFeedOrder({
+      alive: true,
+      sortMode: "best",
+      hasActiveFacets: true,
+      ranked,
+      byNewest,
+    });
+    expect(out).toBe(ranked);
+  });
+
+  it("flag ON, newest: applies byNewest", () => {
+    const out = selectFeedOrder({
+      alive: true,
+      sortMode: "newest",
+      hasActiveFacets: false,
+      ranked,
+      byNewest,
+    });
+    expect(out.map((x) => x.job.id)).toEqual(["y", "x"]);
   });
 });
