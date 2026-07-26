@@ -37,33 +37,60 @@ from scratch. Verify every PR/prod claim against `gh` / Vercel before trusting i
 - **Screen 2 `direction`** - `DirectionScreenV2`. Goal-role search (debounced, ArrowUp/Down + Enter + Escape + clear-X), location free-text, work-arrangement multi-select, practicum inline-expand (Yes reveals faculty/self). No own Continue - shell drives advance + runs the primary_domain inference write. Continue gated on goal role.
 - **Screen 3 `springboard`** - `SpringboardScreenV2`. anime.js code-split pop-in (CSS `onbv2-rise` fallback, reduced-motion static). `hasCv` copy branch. **POINT OF NO RETURN = the "Go to my workspace" button** -> `finaliseAndLaunch()` -> `handleFinalise()` (`onboardingPersist.js:729-730` sets `onboarding_complete=true`, `onboarding_step=6`). NEVER click it on a fresh/test account.
 
-## >>> CURRENT (2026-07-26, pass2e) <<<
+## >>> CURRENT (2026-07-26, pass2f) <<<
 
 ### Serving truth (verify on resume)
 
-- **origin/main HEAD = `8ca318e`** (#764, CV-lane handoff docs). Includes the 5-PR batch this
-  session squash-merged: #758 `6375ac3`, #759 `7a274d1`, #754 `b6c2700`, #753 `2fd3a96`,
-  #755 `533ff00`, plus CV-lane #760/#763/#764. FIRST ACTION on resume: `git fetch`, confirm tip.
-- **Two design PRs HELD (not merged), both carry a full VERIFICATION block; batch-merge when Eli
-  is ready:**
-  - **#765 `eli/cvgen-theater` @ `65f3a57`** - CV-gen progress theater fix (mascot-less). Ring
-    rendered OUTSIDE `.cx-actions` (visible off-hover), shared card/modal state via new module
-    store `src/lib/cvGenerationJob.js`, honest ring off the `(user_id,'generate-tailored-cv')`
-    poller, in-place "CV ready" -> View CV + Apply (auto-redirect killed). Dev harness in
-    JobsGridPreview. Verified 4/4 live. QA P2 (superseded CV-ready toast) FIXED in `65f3a57`.
-    CI: recheck the P2 commit run (green locally: lint/typecheck 519).
-  - **#767 `eli/feedback-avatar` @ `64543b3`** - feedback pill -> avatar menu (FLAG-ON only; pill
-    kept flag-off since that shell has no avatar menu, retires at Flip 2) + flip-aware avatar
-    dropdown placement (was opening upward off-screen) + `CanvasCommandItem` `style` default
-    (typecheck 519->517). New `src/lib/feedbackStore.js` + `feedbackStore.test.js`. Verified
-    4/4 live on `/_preview/shell/shell-home-active?next=1`. Gate GREEN.
-    FLAG-SCOPE PRECISION (hub correction): FeedbackWidget's open state moved to a module store
-    UNCONDITIONALLY (both flag states); only the launcher is flag-gated. Flag-off is BEHAVIORALLY
-    identical (same pill -> same dialog -> same `public.feedback` insert), NOT byte-identical.
-- **This handoff = PR `eli/design-handoff-pass2e`** (docs-only). Merge it before /clear so the next
-  session reads the fresh resume point on origin/main.
+- **origin/main HEAD at handoff = `5956ce3`** (#772, CV-lane handoff docs). CV lane is active:
+  #770 (coach prompt ask-don't-tell), #771 (coach job-context DEEP map, HELD), #772 (their
+  handoff, "items A/B shipped"), #766 (skills batch-1 aliases). FIRST ACTION on resume: `git fetch`,
+  confirm tip (it moves; other lanes merge between sessions).
+- **SEVEN design PRs HELD (not merged), all carry a VERIFICATION block; batch-merge when Eli is
+  ready. Two from the prior session (#765/#767), five from THIS session (#774-778):**
+  - **#765 `eli/cvgen-theater` @ `65f3a57`** - CV-gen progress theater fix (mascot-less). New
+    module store `src/lib/cvGenerationJob.js`; in-place "CV ready" -> View CV + Apply. Verified
+    4/4 live. (Prior session.)
+  - **#767 `eli/feedback-avatar` @ `64543b3`** - feedback pill -> avatar menu (FLAG-ON only) +
+    flip-aware dropdown placement + new `src/lib/feedbackStore.js`. Verified 4/4 live. (Prior
+    session.) FeedbackWidget open-state store is UNCONDITIONAL (both flag states), launcher only is
+    flag-gated; flag-off BEHAVIORALLY identical, not byte-identical.
+  - **#774 `eli/emdash-guard`** - diff-scoped em-dash guard (`scripts/check-em-dash.mjs` +
+    `npm run check:em-dash`, wired into the gatekeeper agent). The one non-colliding piece of item
+    2b (the rest collides with #765/#767 - see queue 2b). CI green.
+  - **#775 `eli/cv-mobile-pass`** (item 3) - standalone `/CVAgent` flag-on CV tab was crushed at
+    mobile (doc 168px, name one-letter-per-line). Fix in `CVStudioView.jsx`: coach panel stacks
+    below md, templates default-collapse below md, doc padding responsive, header shrinks/icon-only
+    below sm. Verified via `getBoundingClientRect` both flag states (doc 168->634px, no overflow);
+    header-375-fit confirmed by label-hidden simulation (resize_window capped ~750 here). CI green.
+  - **#776 `eli/coach-panel-fixes`** (item 4, flag-ON) - AgentComposer dropped the search magnifier
+    (reads as chat input) + removed the re-appearing focus pop-up; starters moved to the CoachThread
+    empty-state as dismissible inline chips (only before first message). Verified live on the shell
+    preview. CI green.
+  - **#777 `eli/coach-job-context`** (item 4b Piece A, FRONTEND) - UnifiedJobsFeed surfaces
+    `{visibleJobIds, openJobId}` via new `onPageContextChange`; Career forwards to
+    `buildCareerPageContext` (added `jobId` -> `job_id`). Backend (`ai-chat/page-context.ts`) already
+    accepts both. No render loop live (`/_preview/career`). UNBLOCKS the CV lane's backend piece
+    (was dead code). CI green.
+  - **#778 `eli/tasks-tile`** (item 5, flag-ON) - added the Tasks tile to `TOOL_TILES` (route Tasks,
+    ListTodo rail glyph) + registered `tasks` in `toolColors` (BLUE). Bespoke silhouette already
+    existed. Verified 9 tiles live. CI pending at handoff (built+tested locally -> expect green).
+- **This handoff = PR `eli/design-handoff-pass2f`** (docs-only, self-merged per Eli's protocol
+  update). Next session reads it on origin/main.
 - `main` is checked out in a SEPARATE worktree (`/Users/elienglard/getajob-eval`); branch off
   `origin/main` here, never `git checkout main`.
+
+### Item 2b HELD remainder (colliding with the held branches - fold in at #765/#767 batch merge, or fast-follow after)
+
+The em-dash GUARD shipped (#774); these five 2b pieces target lines that only exist on #765/#767 and
+so could not land off main. Do them when those branches merge:
+
+- Em-dash sweep of `FeedbackWidget.jsx` (flag-off-only comment, #767) + `JobsGridPreview.jsx`
+  (harness copy, #765). (The "2026-07-26 lessons.md entry" the prior handoff named exists on NO
+  branch - it was uncommitted then and is gone; skip it.)
+- Unicode ellipsis -> ASCII in the JobGridCard/JobDetailModal "Tailoring your CV" label (#765).
+- Gate the error toast in `useJobCardActions` on the same guard as the ready toast (`#765` files).
+- Unit tests for `cvGenerationJob` (ready-on-superseded=false, error-on-superseded=no-op,
+  clear(jobKey) only clears a match) (#765 files).
 
 ### Self-verification pipeline (STANDING PROTOCOL, Eli 2026-07-26 - replaces per-PR human review)
 
@@ -104,8 +131,8 @@ live app, not the shared local tree.
 2. DONE - feedback pill + avatar menu (#767 HELD). (c) mobile coach entry EXISTS
    (`CanvasMobileRail.jsx:49` Sparkles -> CoachDock sheet); pill removal clears the occlusion.
 
-2b. **NEXT - pre-item-3 cleanup PR (ONE sitting, BEFORE the CV-tab mobile pass). Hub findings on
-#765/#767 that the verifiers missed; do these first:** - (a) **Em-dash sweep of 4 added-line sites:** `FeedbackWidget.jsx` (the FLAG-OFF ONLY
+2b. **DONE (partial) - em-dash GUARD shipped as #774; the five colliding pieces are HELD (see
+"Item 2b HELD remainder" above - fold in when #765/#767 merge). Original spec kept below for those:** - (a) **Em-dash sweep of 4 added-line sites:** `FeedbackWidget.jsx` (the FLAG-OFF ONLY
 comment), `JobsGridPreview.jsx` (2, harness copy), `tasks/lessons.md` (the 2026-07-26 entry).
 ALSO replace the Unicode ellipsis in the "Tailoring your CV" label (JobGridCard +
 JobDetailModal) with three ASCII periods. AND add an em-dash grep to the Gatekeeper's gate so
@@ -118,29 +145,28 @@ NOTE: (b) and (c) touch #765's files (`cvGenerationJob.js`, `useJobCardActions.j
 has already batch-merged by pickup, this is a fresh PR off main; if not, coordinate so it does
 not conflict with the held #765 branch (cleanest: land after #765 merges).
 
-3. **CV-tab mobile pass** - CV page is a mess at mobile widths (Tracker + Browse Jobs are fine).
+3. **DONE (#775 HELD).** CV-tab mobile pass - CV page is a mess at mobile widths (Tracker + Browse Jobs are fine).
    Audit CV tab at mobile widths, findings file:line, fix defensible layout breaks in ONE scoped
    PR; anything needing an IA decision -> HELD in the report. (resize_window is UNRELIABLE; verify
    via source classes + real device / DevTools.)
-4. **Coach panel fixes (one PR)** - (a) suggested-message blocks must STOP covering the
+4. **DONE (#776 HELD).** Coach panel fixes (one PR) - (a) suggested-message blocks must STOP covering the
    conversation: show only at thread start before the first message, dismissible with an x, never
    overlay/re-appear over the thread; (b) composer reads as a search bar (magnifying-glass icon,
    placeholder low) - make it read as a chat input. Coach SURFACES only; ai-chat backend is the CV
    lane's - do NOT touch it. (Saw the search-bar composer live in ShellPreview: "Ask about this
    page..." with a magnifier icon.)
 
-4b. **Wire the jobs feed into coach page context (Eli un-parked coach job visibility, PRE-FLIP;
-after item 4). YOUR half = Piece A, FRONTEND WIRING ONLY:** - Pass `job_id` when a job card/modal is open. - Pass the displayed feed ids as `visibleJobIds` up through Career's `setPageContext` call -
+4b. **DONE (#777 HELD).** Wire the jobs feed into coach page context. YOUR half = Piece A,
+FRONTEND WIRING ONLY (unblocks the CV lane's backend, was dead code): - Pass `job_id` when a job card/modal is open. - Pass the displayed feed ids as `visibleJobIds` up through Career's `setPageContext` call -
 currently hardcoded `[]` at `Career.jsx:443`; `UnifiedJobsFeed` must surface its displayed
 ids so Career can forward them. - `buildCareerPageContext` and ai-chat's "VISIBLE ON SCREEN" render path ALREADY support both -
 this is WIRING, not a new contract. - Backend half (capped JD + strict-match name lookup) is the CV lane's - do NOT touch
 `supabase/functions`. Coordination: the CV lane's backend piece is DEAD CODE until 4b lands,
 so this unblocks them.
 
-5. **Tasks tile (small PR)** - coach-accepted tasks land on the Tasks page, which has NO entry in
-   the flag-on sidebar (`TOOL_TILES` in `CanvasSidebar.jsx`, 8 tiles, Tasks absent). Add a Tasks
-   tile matching the existing pattern. No Tasks-page redesign, just the door.
-6. **Copy + profile paper cuts (one PR)** - (a) flag-on jobs status line "N roles matched to you"
+5. **DONE (#778 HELD).** Tasks tile - added `{id:"tasks", page:"Tasks", icon:ListTodo}` after
+   Career in `TOOL_TILES` + registered `tasks` (BLUE) in `toolColors`. 9 tiles now.
+6. **NEXT. Copy + profile paper cuts (one PR)** - (a) flag-on jobs status line "N roles matched to you"
    -> "N roles, ranked for you" (keep the live count); (b) Profile: edit silently fills the form up
    top without scrolling -> auto-scroll to the form on edit; (c) Profile: leaving with unsaved
    changes loses work -> unsaved-changes confirm (save/discard).
