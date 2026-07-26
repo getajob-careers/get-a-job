@@ -11,7 +11,7 @@ export default function CanvasCommandItem({
   hint = null,
   active = false,
   onSelect,
-  style,
+  style = undefined,
   className = "",
   // Default to wrapping so a suggestion is never clipped in the narrow coach
   // dock; a future wide ⌘K palette can opt into truncate={true}.
