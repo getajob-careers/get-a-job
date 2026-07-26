@@ -1,6 +1,6 @@
 {
   "generated_from": "supabase/functions/_shared/libraries/01_skill_library.ts",
-  "count": 618,
+  "count": 619,
   "ids": [
     "ab_testing",
     "ab_testing_marketing",
@@ -8,6 +8,7 @@
     "account_based_marketing",
     "account_management",
     "accounting_general",
+    "accounts_payable",
     "active_directory",
     "administrative_operations",
     "adobe_creative_suite",
@@ -1219,6 +1220,7 @@
     "talent_development": "Talent Development",
     "insurance_domain": "Insurance Domain Knowledge",
     "collections_management": "Collections & Receivables Management",
+    "accounts_payable": "Accounts Payable",
     "field_sales": "Field & Territory Sales",
     "underwriting": "Underwriting",
     "os_internals": "Operating System Internals",
