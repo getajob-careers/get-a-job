@@ -12,6 +12,8 @@
 // degrades to the plain count marquee. It never pads to hit a number; a weak
 // or invented observation is worse than one fewer line. Capped at 3.
 
+import { deslug } from "@/lib/humanizeTag";
+
 // "Guardio" | "Guardio and Wix" | "Guardio, Wix and Payoneer" |
 // "Guardio, Wix and 3 more". Dedupes and trims.
 function formatNameList(names, max = 3) {
@@ -82,7 +84,7 @@ export function buildExtractionObservations({
   // 4) Extractor-derived domain (grounded in the CV; restated as-is).
   const domain = profileData?.primary_domain;
   if (typeof domain === "string" && domain.trim()) {
-    out.push(`Your experience centers on ${domain.trim()}.`);
+    out.push(`Your experience centers on ${deslug(domain)}.`);
   }
 
   // 5) Proof signals - a count of concrete achievements the extractor found.
