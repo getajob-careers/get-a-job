@@ -56,9 +56,14 @@ export function markCvGenerationReady(jobKey, applicationId) {
   return true;
 }
 
+// Mirrors markCvGenerationReady: returns true when it applied (this run is still
+// the active one), false when a newer run on another job has superseded it - so the
+// caller can suppress a failure toast that would report an error over a different
+// job's live run.
 export function markCvGenerationError(jobKey) {
-  if (state.jobKey !== jobKey) return;
+  if (state.jobKey !== jobKey) return false;
   set({ jobKey, applicationId: null, status: "error" });
+  return true;
 }
 
 // Clear unconditionally (jobKey omitted) or only when the active run matches.

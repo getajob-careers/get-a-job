@@ -182,7 +182,7 @@ const FIXTURE = [
         matched_skills: ["onboarding"],
         missing_core_skills: ["integrations", "sql"],
       },
-      reasoning: { strengths: ["A reach today — worth growing toward"] },
+      reasoning: { strengths: ["A reach today - worth growing toward"] },
     },
     desc: "Own customer onboarding end to end: configure the product, integrate with their stack, and make week one a success. (No company logo match — shows the letter placeholder.)",
   },
@@ -226,7 +226,7 @@ export default function JobsGridPreview() {
         <div className="min-h-screen bg-rd-bg-page p-6">
           <div className="max-w-[1000px] mx-auto">
             <h1 className="font-display font-extrabold text-[22px] text-rd-text mb-1">
-              Jobs — grid + detail popup
+              Jobs - grid + detail popup
             </h1>
             <p className="text-[12.5px] text-rd-text-secondary mb-3">
               Click any card to open the detail popup (description pre-seeded).

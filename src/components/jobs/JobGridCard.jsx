@@ -403,7 +403,7 @@ export default function JobGridCard({
             <CvGenerationProgress
               compact
               progress={cvProgress}
-              label="Tailoring your CV…"
+              label="Tailoring your CV..."
             />
           </div>
         ) : alive && cvGen.status === "ready" ? (
