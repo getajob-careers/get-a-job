@@ -6,6 +6,7 @@ import PasswordRequirements from "@/components/account/PasswordRequirements";
 import { Turnstile } from "@marsidev/react-turnstile";
 import RdButton from "@/components/redesign/RdButton";
 import RdCard from "@/components/redesign/RdCard";
+import CanvasLogo from "@/components/redesign/shell/CanvasLogo";
 
 // Cloudflare Turnstile site key. Public — ships in the frontend bundle
 // regardless. Bound to the matching secret in Supabase Auth → CAPTCHA.
@@ -25,24 +26,6 @@ const TURNSTILE_SITE_KEY = "0x4AAAAAADSlsvzNPw5Qejvq";
 //   - PasswordRequirements rendered on signup only.
 //   - Forgot password from the signin label row.
 //   - Banner regions (error + ok) kept available.
-
-// Brand mark — 2x2 dot grid in brand colors + Rokkitt wordmark.
-// Per the sign-in mockup: coral / golden / teal / ink.
-function BrandMark() {
-  return (
-    <div className="inline-flex items-center gap-2.5 select-none">
-      <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
-      </div>
-      <span className="font-display font-bold text-[17px] tracking-tight text-rd-text">
-        Get A Job
-      </span>
-    </div>
-  );
-}
 
 // Google "G" mark for the OAuth button.
 function GoogleGlyph() {
@@ -251,15 +234,9 @@ export default function Login() {
           className="bg-rd-bg-sidebar px-7 py-7 md:w-[300px] md:flex-shrink-0 md:px-7 md:py-9 flex flex-col gap-6 md:justify-between"
           aria-hidden="false"
         >
-          {/* Top: scarcity eyebrow (signup only) + brand */}
+          {/* Top: brand (official locked logotype) */}
           <div className="flex flex-col gap-4">
-            {mode === "signup" && (
-              <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-primary-dark bg-rd-primary-tint rounded-full px-2.5 py-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-rd-primary" />
-                Pilot phase
-              </span>
-            )}
-            <BrandMark />
+            <CanvasLogo size={26} />
           </div>
 
           {/* Middle: hero + subline (fixed copy regardless of mode) */}
