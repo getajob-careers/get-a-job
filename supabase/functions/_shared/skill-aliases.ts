@@ -993,6 +993,28 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "no-code ai automation": ["no_code_ai_automation"],
   "low-code ai automation": ["no_code_ai_automation"],
 
+  // ── Skill-expansion batch 1: AI-tool labels (2026-07-26) ─────────────────
+  // Consumer/generalist AI-assistant tools → `ai_tool_fluency` (the library's
+  // "using AI tools" competency, which names ChatGPT/Claude/Copilot). chatgpt
+  // is the #1 unmapped user label. Additive-only; none of these resolved before
+  // (no ID, no snake fallback). Builder/reviewer split; reviewer-dropped
+  // candidates logged in the PR body, not carried here.
+  "chatgpt": ["ai_tool_fluency"],
+  "chat gpt": ["ai_tool_fluency"],
+  "gpt-4o": ["ai_tool_fluency"],
+  "gemini": ["ai_tool_fluency"],
+  "google gemini": ["ai_tool_fluency"],
+  "microsoft copilot": ["ai_tool_fluency"],
+  "m365 copilot": ["ai_tool_fluency"],
+  "github copilot": ["ai_tool_fluency"],
+  "github co-pilot": ["ai_tool_fluency"],
+  "perplexity": ["ai_tool_fluency"],
+  "perplexity ai": ["ai_tool_fluency"],
+  "notebooklm": ["ai_tool_fluency"],
+  // AI-engineering alias-gaps → existing specialist IDs.
+  "mcp servers": ["mcp_protocol"],
+  "multi-agent orchestration": ["agentic_systems"],
+
   // Operations / logistics variant.
   "operational logistics": ["logistics_practice"],
 
