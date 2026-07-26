@@ -71,9 +71,13 @@ const REVEAL_SIZE = 60;
 // Behaviour is a faithful copy of Jobs.jsx's unified path. The only dev-only
 // diagnostic dropped is the ?debug=1 console echo.
 /**
- * @param {{ onTabChange?: (tab: string) => void, singleColumn?: boolean }} props
+ * @param {{ onTabChange?: (tab: string) => void, onPageContextChange?: (ctx: { visibleJobIds: string[], openJobId: string | null }) => void, singleColumn?: boolean }} props
  */
-export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
+export default function UnifiedJobsFeed({
+  onTabChange,
+  onPageContextChange,
+  singleColumn = false,
+}) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   // Flag-on aliveness + the Plan-1 unified surface. Read once at the top so the
@@ -193,6 +197,24 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
     () => displayedJobs.slice(0, visibleCount),
     [displayedJobs, visibleCount],
   );
+
+  // Surface the on-screen feed to a host (Career forwards it to the coach page
+  // context so the agent can answer "which of these is best"). Only the MATCHES
+  // tab's rendered ids count as "on screen"; the Search tab owns its own list
+  // (JobsSearchTab) and is not surfaced here. openJobId is the open detail modal.
+  // The array is memoized on stable inputs, so the host effect fires only when
+  // the visible list actually changes (no per-render thrash).
+  const openJobId = openJob?.job?.id ?? null;
+  const visibleJobIds = useMemo(
+    () =>
+      unifiedTab === "matches"
+        ? shownJobs.map((j) => j.id).filter(Boolean)
+        : [],
+    [unifiedTab, shownJobs],
+  );
+  useEffect(() => {
+    onPageContextChange?.({ visibleJobIds, openJobId });
+  }, [onPageContextChange, visibleJobIds, openJobId]);
 
   // Split the revealed feed into "Our picks for you" (strong + good bands)
   // and "Worth a stretch" (stretch + reach), preserving order.

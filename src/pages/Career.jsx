@@ -408,6 +408,22 @@ export default function Career() {
     [sortedRoles],
   );
 
+  // The live jobs list lives inside <UnifiedJobsFeed>; it reports its on-screen
+  // ids + the open detail-modal id up here so the page context can carry them.
+  // Keep the array identity stable while the ids are unchanged so the
+  // page-context effect below doesn't thrash.
+  const [feedVisibleJobIds, setFeedVisibleJobIds] = useState([]);
+  const [feedOpenJobId, setFeedOpenJobId] = useState(null);
+  const handleFeedContext = useCallback(({ visibleJobIds, openJobId }) => {
+    setFeedVisibleJobIds((prev) =>
+      prev.length === visibleJobIds.length &&
+      prev.every((id, i) => id === visibleJobIds[i])
+        ? prev
+        : visibleJobIds,
+    );
+    setFeedOpenJobId(openJobId ?? null);
+  }, []);
+
   // PR-B2 agent page-context: surface what Career has cheaply available
   // (the selected track + the matched-role currently expanded on the
   // rail + the application open in the detail drawer, if any) to the
@@ -433,19 +449,27 @@ export default function Career() {
   useEffect(() => {
     setPageContext(
       buildCareerPageContext({
-        // No selected track anymore (track-card model retired) and the live
-        // jobs list lives inside <UnifiedJobsFeed>, so Career surfaces neither
-        // here — the helper omits falsy entities. Only matched-role + drawer
-        // ids carry through.
+        // No selected track anymore (track-card model retired). The live jobs
+        // list lives inside <UnifiedJobsFeed>, which now reports its on-screen
+        // ids + the open detail-modal id up via onPageContextChange - the helper
+        // omits falsy entities.
         selectedTrack: null,
         roleId: effectiveExpandedId,
         applicationId: drawerAppId,
-        visibleJobIds: [],
+        jobId: feedOpenJobId,
+        visibleJobIds: feedVisibleJobIds,
         visibleRoleIds,
       }),
     );
     return () => setPageContext(null);
-  }, [effectiveExpandedId, drawerAppId, visibleRoleIds, setPageContext]);
+  }, [
+    effectiveExpandedId,
+    drawerAppId,
+    feedOpenJobId,
+    feedVisibleJobIds,
+    visibleRoleIds,
+    setPageContext,
+  ]);
 
   // Fixed shell (md+): the page itself doesn't scroll, so wheeling over the
   // empty margins beside the centered content, the header/pipeline, or the
@@ -837,7 +861,10 @@ export default function Career() {
           ref={jobsColRef}
           className={`w-full md:flex-[1.55] min-w-0 ${fixedShell ? "md:h-full md:overflow-y-auto md:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}
         >
-          <UnifiedJobsFeed singleColumn />
+          <UnifiedJobsFeed
+            singleColumn
+            onPageContextChange={handleFeedContext}
+          />
         </div>
 
         {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
