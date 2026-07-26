@@ -16,18 +16,18 @@ describe("scoring flags — v2 default-on", () => {
       confidenceAware: true,
       mustHave: true,
       directionBlend: true,
-      honestLabels: false,
+      honestLabels: true,
     });
   });
 
-  it("kill switch ?scoring_v2=0 forces the legacy path (all off)", () => {
+  it("?scoring_v2=0 forces the legacy scoring path; honest labels are independent (default on)", () => {
     window.history.replaceState({}, "", "/Career?scoring_v2=0");
     expect(scoringV2Enabled()).toBe(false);
     expect(scoringOpts()).toEqual({
       confidenceAware: false,
       mustHave: false,
       directionBlend: false,
-      honestLabels: false,
+      honestLabels: true,
     });
   });
 
@@ -41,21 +41,24 @@ describe("scoring flags — v2 default-on", () => {
       confidenceAware: true,
       mustHave: false,
       directionBlend: false,
-      honestLabels: false,
+      honestLabels: true,
     });
   });
 
-  it("honest_match_labels is display-only and off by default, on via ?honest_match_labels=1", () => {
+  it("honest_match_labels is display-only and ON by default, killed via ?honest_match_labels=0", () => {
     window.history.replaceState({}, "", "/Career");
-    expect(scoringOpts().honestLabels).toBe(false);
-    window.history.replaceState({}, "", "/Career?honest_match_labels=1");
     expect(scoringOpts().honestLabels).toBe(true);
-    // display-only: it never changes the v2 stack flags
+    window.history.replaceState({}, "", "/Career?honest_match_labels=0");
+    expect(scoringOpts().honestLabels).toBe(false);
+    // kill switch is display-only: it never changes the v2 stack flags
     expect(scoringOpts()).toEqual({
       confidenceAware: true,
       mustHave: true,
       directionBlend: true,
-      honestLabels: true,
+      honestLabels: false,
     });
+    // ?honest_match_labels=1 still forces on (parity with the old opt-in URL)
+    window.history.replaceState({}, "", "/Career?honest_match_labels=1");
+    expect(scoringOpts().honestLabels).toBe(true);
   });
 });
