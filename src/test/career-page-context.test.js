@@ -143,3 +143,20 @@ describe("buildCareerPageContext — visible_items (B3)", () => {
     expect(added.visible_items).not.toBe(a.visible_items);
   });
 });
+
+// job_id — the open detail-modal job the feed reports up. The ai-chat sanitizer
+// already accepts + fetches job_id; the producer just needs to emit it and omit
+// it when no modal is open.
+describe("buildCareerPageContext — job_id (open detail modal)", () => {
+  const JOB_ID = "99999999-0000-0000-0000-000000000009";
+
+  it("emits job_id when a job detail modal is open", () => {
+    const ctx = buildCareerPageContext({ jobId: JOB_ID });
+    expect(ctx.job_id).toBe(JOB_ID);
+  });
+
+  it("omits job_id when no modal is open (null / undefined)", () => {
+    expect(buildCareerPageContext({ jobId: null }).job_id).toBeUndefined();
+    expect(buildCareerPageContext({}).job_id).toBeUndefined();
+  });
+});

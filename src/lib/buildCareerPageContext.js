@@ -42,6 +42,7 @@ export function buildCareerPageContext({
   selectedTrack,
   roleId,
   applicationId,
+  jobId,
   visibleJobIds,
   visibleRoleIds,
 }) {
@@ -49,6 +50,9 @@ export function buildCareerPageContext({
   if (selectedTrack) ctx.track = selectedTrack;
   if (roleId) ctx.role_id = roleId;
   if (applicationId) ctx.application_id = applicationId;
+  // The job whose detail modal is open in the feed. The ai-chat sanitizer
+  // already accepts + fetches job_id; Career just needs to emit it.
+  if (jobId) ctx.job_id = jobId;
   const visibleItems = buildVisibleItems({ visibleJobIds, visibleRoleIds });
   if (visibleItems) ctx.visible_items = visibleItems;
   return ctx;
