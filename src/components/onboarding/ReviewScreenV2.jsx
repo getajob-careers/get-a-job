@@ -87,7 +87,7 @@ function SuccessReveal({
   const bulletBase = 1250;
   return (
     <div className="relative overflow-hidden rd-r-lg border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
-      {/* Warm celebration glow behind the counts — a soft golden spotlight on
+      {/* Warm celebration glow behind the counts - a soft golden spotlight on
           the numbers, kept under the content and inert. Fades in with the card. */}
       <div
         aria-hidden="true"
