@@ -85,3 +85,26 @@ describe("deriveJobDisplay", () => {
     expect(deriveJobDisplay(JOB, null).direction).toBeNull();
   });
 });
+
+describe("deriveJobDisplay - aboveCeiling (queue item 2)", () => {
+  it("sets aboveCeiling when seniority_match is above_ceiling", () => {
+    const d = deriveJobDisplay(JOB, {
+      ...SCORE,
+      attainability_band: "stretch",
+      signals: { ...SCORE.signals, seniority_match: "above_ceiling" },
+    });
+    expect(d.aboveCeiling).toBe(true);
+  });
+
+  it("false for an in-range seniority match", () => {
+    const d = deriveJobDisplay(JOB, {
+      ...SCORE,
+      signals: { ...SCORE.signals, seniority_match: "in_range" },
+    });
+    expect(d.aboveCeiling).toBe(false);
+  });
+
+  it("false when unscored", () => {
+    expect(deriveJobDisplay(JOB, null).aboveCeiling).toBe(false);
+  });
+});

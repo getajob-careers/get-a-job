@@ -267,6 +267,14 @@ export default function JobDetailModal({
             style={headerTint}
           >
             <ScoreBreakdown scoreResult={scoreResult} color={d.bandMeta.fg} />
+            {/* Quiet self-explaining note for a stretch inclusion above the
+                user's seniority ceiling (band already capped to "stretch"). */}
+            {d.aboveCeiling && (
+              <p className="mt-2 text-[11px] text-rd-text-secondary">
+                Above your current level - a stretch beyond your seniority
+                today.
+              </p>
+            )}
           </div>
         )}
 

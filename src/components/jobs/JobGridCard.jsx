@@ -366,6 +366,16 @@ export default function JobGridCard({
           </div>
         )}
 
+        {/* Quiet self-explaining note for stretch inclusions above the user's
+            seniority ceiling (band is already capped to "stretch"). Flag-on only. */}
+        {alive && d.aboveCeiling && (
+          <div className="mt-1.5">
+            <span className="inline-flex items-center text-[10px] text-rd-text-secondary border border-rd-border rounded-[5px] px-1.5 py-0.5">
+              Above your current level
+            </span>
+          </div>
+        )}
+
         {d.matchedSkills.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {d.matchedSkills.slice(0, 2).map((s, i) => (

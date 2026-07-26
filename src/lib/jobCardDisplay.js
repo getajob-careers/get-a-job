@@ -8,19 +8,35 @@
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 
 export const RD_TRACK_STYLES = {
-  coral:  { tint: "var(--rd-primary-tint)",  accent: "var(--rd-primary-dark)" },
-  teal:   { tint: "var(--rd-teal-tint)",   accent: "var(--rd-teal-dark)" },
+  coral: { tint: "var(--rd-primary-tint)", accent: "var(--rd-primary-dark)" },
+  teal: { tint: "var(--rd-teal-tint)", accent: "var(--rd-teal-dark)" },
   golden: { tint: "var(--rd-golden-tint)", accent: "var(--rd-golden-dark)" },
-  green:  { tint: "var(--rd-primary-tint)",  accent: "var(--rd-primary-dark)" },
-  gray:   { tint: "var(--rd-teal-tint)",   accent: "var(--rd-teal-dark)" },
-  amber:  { tint: "var(--rd-golden-tint)", accent: "var(--rd-golden-dark)" },
+  green: { tint: "var(--rd-primary-tint)", accent: "var(--rd-primary-dark)" },
+  gray: { tint: "var(--rd-teal-tint)", accent: "var(--rd-teal-dark)" },
+  amber: { tint: "var(--rd-golden-tint)", accent: "var(--rd-golden-dark)" },
 };
 
 export const BAND_META = {
-  strong:  { label: "Strong match", bg: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
-  good:    { label: "Good match",   bg: "var(--rd-primary-tint)",  fg: "var(--rd-primary-dark)" },
-  stretch: { label: "Stretch",      bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
-  reach:   { label: "Reach",        bg: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
+  strong: {
+    label: "Strong match",
+    bg: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
+  },
+  good: {
+    label: "Good match",
+    bg: "var(--rd-primary-tint)",
+    fg: "var(--rd-primary-dark)",
+  },
+  stretch: {
+    label: "Stretch",
+    bg: "var(--rd-golden-tint)",
+    fg: "var(--rd-golden-dark)",
+  },
+  reach: {
+    label: "Reach",
+    bg: "var(--rd-bg-soft)",
+    fg: "var(--rd-text-secondary)",
+  },
 };
 
 // Component 2b direction axis. The for-you feed sorts on rank_score, which boosts
@@ -33,12 +49,25 @@ export const BAND_META = {
 // treatment, so it lives here (the shared seam), not in either card. unknown/off
 // resolve to null (nothing honest to say about direction).
 export const DIRECTION_META = {
-  primary:  { label: "On your goal path", tone: "primary",  dot: "var(--rd-teal-dark)" },
-  adjacent: { label: "Adjacent field",    tone: "adjacent", dot: "var(--rd-golden-dark)" },
+  primary: {
+    label: "On your goal path",
+    tone: "primary",
+    dot: "var(--rd-teal-dark)",
+  },
+  adjacent: {
+    label: "Adjacent field",
+    tone: "adjacent",
+    dot: "var(--rd-golden-dark)",
+  },
 };
 
 const SENIORITY_LABEL = {
-  entry: "Entry", mid: "Mid", senior: "Senior", lead: "Lead", director: "Director", executive: "Exec",
+  entry: "Entry",
+  mid: "Mid",
+  senior: "Senior",
+  lead: "Lead",
+  director: "Director",
+  executive: "Exec",
 };
 
 export function matchBand(score) {
@@ -49,8 +78,12 @@ export function matchBand(score) {
 }
 
 export function experienceChipText(job) {
-  if (job.years_experience_min == null) return SENIORITY_LABEL[job.seniority] || "Mid";
-  if (job.years_experience_max != null && job.years_experience_max > job.years_experience_min) {
+  if (job.years_experience_min == null)
+    return SENIORITY_LABEL[job.seniority] || "Mid";
+  if (
+    job.years_experience_max != null &&
+    job.years_experience_max > job.years_experience_min
+  ) {
     return `${job.years_experience_min}-${job.years_experience_max} yrs`;
   }
   if (job.years_experience_min === 0) return "0+ yrs";
@@ -77,19 +110,27 @@ export function formatPostedDate(dateStr) {
 
 // Single source of truth for the badge + skills the card/modal render from a
 // scoreResult (shape from src/lib/scoreJobFit.js).
-export function deriveJobDisplay(job, scoreResult, { showAttainabilityBand = false, trackColor = null } = {}) {
+export function deriveJobDisplay(
+  job,
+  scoreResult,
+  { showAttainabilityBand = false, trackColor = null } = {},
+) {
   const scored = !!scoreResult;
   const score = scored ? Math.round((scoreResult.fit_score ?? 0) * 100) : null;
-  const attainBand = scored && showAttainabilityBand ? scoreResult.attainability_band || null : null;
-  const attainPct = scored && scoreResult.attainability_score != null
-    ? Math.round(scoreResult.attainability_score * 100)
-    : null;
+  const attainBand =
+    scored && showAttainabilityBand
+      ? scoreResult.attainability_band || null
+      : null;
+  const attainPct =
+    scored && scoreResult.attainability_score != null
+      ? Math.round(scoreResult.attainability_score * 100)
+      : null;
   const band = matchBand(score);
   const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
 
   const badgeStyle = !scored
     ? null
-    : (band === "soft" || !styles)
+    : band === "soft" || !styles
       ? { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" }
       : { background: styles.tint, color: styles.accent };
 
@@ -101,10 +142,27 @@ export function deriveJobDisplay(job, scoreResult, { showAttainabilityBand = fal
     band,
     badgeStyle,
     bandMeta: attainBand ? BAND_META[attainBand] : null,
-    direction: scored ? DIRECTION_META[scoreResult.relevance_match] || null : null,
-    matchedSkills: (scoreResult?.signals?.matched_skills || []).map(humanizeSkillId),
-    missingCoreSkills: (scoreResult?.signals?.missing_core_skills || []).map(humanizeSkillId),
+    direction: scored
+      ? DIRECTION_META[scoreResult.relevance_match] || null
+      : null,
+    matchedSkills: (scoreResult?.signals?.matched_skills || []).map(
+      humanizeSkillId,
+    ),
+    missingCoreSkills: (scoreResult?.signals?.missing_core_skills || []).map(
+      humanizeSkillId,
+    ),
     reasonText: (scoreResult?.reasoning?.strengths || []).join(" · "),
-    chips: [workTypeChipText(job), experienceChipText(job), formatPostedDate(job.date_posted)].filter(Boolean),
+    chips: [
+      workTypeChipText(job),
+      experienceChipText(job),
+      formatPostedDate(job.date_posted),
+    ].filter(Boolean),
+    // Seniority above the user's stretch ceiling. The band is already capped to
+    // "stretch" for these (scoreJobFit), so they read as honest reaches; this
+    // flag lets the flag-on card/detail add a quiet "Above your current level"
+    // chip so an included stretch (e.g. Head of Product) self-explains. Pure
+    // signal, no flag knowledge here - the render sites gate it on the flag.
+    aboveCeiling:
+      scored && scoreResult?.signals?.seniority_match === "above_ceiling",
   };
 }
