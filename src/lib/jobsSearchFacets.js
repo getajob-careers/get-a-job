@@ -214,3 +214,60 @@ export function applyFacetsAndRank(scored, facets, opts = {}) {
     );
   });
 }
+
+// Feed direction tiers: primary best, then adjacent, then unknown. "off" is
+// never ordered here - it is dropped by orderDefaultMatches's gate.
+export const RELEVANCE_TIER = { primary: 0, adjacent: 1, unknown: 2 };
+
+// orderDefaultMatches - the flag-on unified feed's DEFAULT (no-facet) ordering.
+//
+// The default matches view drops off-direction jobs (relevance_match "off") and
+// orders the rest by rank_score DESC. rank_score already carries the C1
+// confidence shrink, C2a must-have reshaping, and the 1.25 primary boost (all
+// passed via scoringOpts with scoring_v2 default-on), so this ordering honors
+// every shipped scoring correction AND stays near-aligned with the attainability
+// the card ring displays - unlike the raw fit_score sort, which ignores all of
+// them. relevance tier and fit_score break EXACT rank_score ties only (they never
+// push a higher-rank_score job below a lower one). This is the SAME comparator
+// the production two-tab feed documents (UnifiedJobsFeed.jsx:176-186); the two
+// feed surfaces therefore order identically and differ only in candidate set.
+//
+// Applies to the DEFAULT view alone. When the user narrows with a keyword or any
+// facet, the caller keeps the fit_score order so off-direction jobs the user
+// explicitly searched for stay reachable. Pure; input/output [{ job, score }].
+export function orderDefaultMatches(scored) {
+  return (Array.isArray(scored) ? scored : [])
+    .filter(
+      ({ score }) => score?.relevance_match && score.relevance_match !== "off",
+    )
+    .sort((a, b) => {
+      const ra = a.score?.rank_score ?? a.score?.attainability_score ?? 0;
+      const rb = b.score?.rank_score ?? b.score?.attainability_score ?? 0;
+      if (rb !== ra) return rb - ra;
+      const ta = RELEVANCE_TIER[a.score?.relevance_match] ?? 2;
+      const tb = RELEVANCE_TIER[b.score?.relevance_match] ?? 2;
+      if (ta !== tb) return ta - tb;
+      return (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0);
+    });
+}
+
+// selectFeedOrder - the flag-on unified feed's display-ordering decision, kept
+// pure so the flag-off byte-identical guarantee is a unit test rather than a
+// render. The single writer of "what order does the feed show".
+//   flag OFF (alive=false)         -> `ranked` UNTOUCHED (byte-identical today)
+//   flag ON, sort "newest"         -> byNewest(ranked)
+//   flag ON, "best", no active facet -> orderDefaultMatches(ranked)  (default view)
+//   flag ON, "best", any facet/keyword -> `ranked` (fit order; off-direction jobs
+//                                          the user searched for stay reachable)
+export function selectFeedOrder({
+  alive,
+  sortMode,
+  hasActiveFacets,
+  ranked,
+  byNewest,
+}) {
+  if (!alive) return ranked;
+  if (sortMode === "newest") return byNewest ? byNewest(ranked) : ranked;
+  if (!hasActiveFacets) return orderDefaultMatches(ranked);
+  return ranked;
+}

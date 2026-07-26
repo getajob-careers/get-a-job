@@ -615,3 +615,45 @@ describe("scoreJobFit — skill coverage passthrough (Phase 0 gate)", () => {
     expect(withCov.fit_score).toBe(base.fit_score);
   });
 });
+
+describe("scoreJobFit - honest_match_labels skill chip (Containment B)", () => {
+  const profile = mkProfile({ skills_canonical: ["python_data", "sql"] });
+
+  it("flag OFF: percentage chip, byte-identical to today", () => {
+    const job = mkJob({ req_skills_core: ["python_data", "sql"] });
+    const r = scoreJobFit({ profile, experiences: [], educations: [] }, job);
+    expect(r.reasoning.strengths).toContain("100% skill match");
+    expect(r.reasoning.strengths.some((s) => /listed skill/.test(s))).toBe(false);
+  });
+
+  it("flag ON: matched-of-listed count instead of a bare percentage", () => {
+    const job = mkJob({ req_skills_core: ["python_data", "sql"] });
+    const r = scoreJobFit(
+      { profile, experiences: [], educations: [] },
+      job,
+      { honestLabels: true },
+    );
+    expect(r.reasoning.strengths).toContain("2 of 2 listed skills");
+    expect(r.reasoning.strengths.some((s) => /% skill match/.test(s))).toBe(false);
+  });
+
+  it("flag ON: thin-spec 1-of-1 reads honestly (singular)", () => {
+    const job = mkJob({ req_skills_core: ["python_data"] });
+    const r = scoreJobFit(
+      { profile, experiences: [], educations: [] },
+      job,
+      { honestLabels: true },
+    );
+    expect(r.reasoning.strengths).toContain("1 of 1 listed skill");
+  });
+
+  it("honest labels never change the numeric score/band/rank", () => {
+    const job = mkJob({ req_skills_core: ["python_data", "sql"] });
+    const off = scoreJobFit({ profile, experiences: [], educations: [] }, job, { mustHave: true, directionBlend: true });
+    const on = scoreJobFit({ profile, experiences: [], educations: [] }, job, { mustHave: true, directionBlend: true, honestLabels: true });
+    expect(on.attainability_score).toBe(off.attainability_score);
+    expect(on.rank_score).toBe(off.rank_score);
+    expect(on.fit_score).toBe(off.fit_score);
+    expect(on.attainability_band).toBe(off.attainability_band);
+  });
+});
