@@ -80,13 +80,24 @@ function SuccessReveal({
     certifications,
     profileData,
   });
+  // Bullets begin revealing only once the count-up has settled (last stat
+  // finishes ~120 + 2*140 + 900ms), so the eye lands on the numbers first, then
+  // the story. All motion is motion-safe: reduced-motion shows everything at
+  // rest immediately (useCountUp already returns the final number).
+  const bulletBase = 1250;
   return (
-    <div className="rd-r-lg border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
-      <div className="flex items-center gap-2 justify-center text-rd-teal-dark">
+    <div className="relative overflow-hidden rd-r-lg border border-rd-teal/40 bg-rd-teal-tint/50 p-5">
+      {/* Warm celebration glow behind the counts — a soft golden spotlight on
+          the numbers, kept under the content and inert. Fades in with the card. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(60%_100%_at_50%_0%,var(--rd-golden-tint),transparent_75%)] opacity-60 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700"
+      />
+      <div className="relative flex items-center gap-2 justify-center text-rd-teal-dark motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500">
         <Check className="w-4 h-4" aria-hidden="true" />
         <p className="font-display font-bold text-[14px]">We read your CV</p>
       </div>
-      <div className="flex items-stretch justify-center divide-x divide-rd-teal/25 mt-3">
+      <div className="relative flex items-stretch justify-center divide-x divide-rd-teal/25 mt-3">
         {stats.map((s, i) => (
           <StatCountUp
             key={i}
@@ -97,15 +108,19 @@ function SuccessReveal({
         ))}
       </div>
       {observations.length > 0 && (
-        <div className="mt-4 border-t border-rd-teal/25 pt-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
-          <p className="text-[11px] font-medium text-rd-text-secondary uppercase tracking-wide text-center mb-2">
+        <div className="relative mt-4 border-t border-rd-teal/25 pt-3">
+          <p className="text-[11px] font-medium text-rd-text-secondary uppercase tracking-wide text-center mb-2 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
             What stood out
           </p>
           <ul className="space-y-1.5 max-w-[420px] mx-auto">
             {observations.map((text, i) => (
               <li
                 key={i}
-                className="flex items-start gap-2 text-[12.5px] text-rd-text leading-snug"
+                className="flex items-start gap-2 text-[12.5px] text-rd-text leading-snug motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-500"
+                style={{
+                  animationDelay: `${bulletBase + i * 130}ms`,
+                  animationFillMode: "both",
+                }}
               >
                 <span
                   className="w-1 h-1 rounded-full bg-rd-teal-dark flex-shrink-0 mt-[7px]"
@@ -117,7 +132,7 @@ function SuccessReveal({
           </ul>
         </div>
       )}
-      <p className="text-[12px] text-rd-text-secondary text-center mt-3">
+      <p className="relative text-[12px] text-rd-text-secondary text-center mt-3">
         Check it below — edit anything that isn&apos;t right, add what&apos;s
         missing.
       </p>
