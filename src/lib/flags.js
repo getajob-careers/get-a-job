@@ -114,17 +114,21 @@ export function onboardingV2Enabled() {
 // zero field experience in (the field-mismatch audit's "100% experience match on a
 // different profession" symptom). This flag makes those labels truthful. It is
 // DISPLAY-ONLY: no score, band, track, rank, or selection changes - only which
-// words/labels the card shows. Opt-in via ?honest_match_labels=1 for verification
-// before any default flip. Off by default => labels are byte-identical to today.
+// words/labels the card shows. Default ON pre-flip (Eli ruling 2026-07-26):
+// the honest copy is strictly more truthful, so it is the production default.
+// Kill switch ?honest_match_labels=0 restores the legacy labels for comparison;
+// ?honest_match_labels=1 forces on (parity with the old opt-in URL).
 export function honestMatchLabelsEnabled() {
   try {
-    return (
-      new URLSearchParams(window.location.search).get("honest_match_labels") ===
-      "1"
+    const q = new URLSearchParams(window.location.search).get(
+      "honest_match_labels",
     );
+    if (q === "0") return false; // kill switch: legacy labels
+    if (q === "1") return true; // explicit force-on
   } catch {
-    return false;
+    /* no window (SSR/test) - fall through to the default */
   }
+  return true;
 }
 
 // The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
