@@ -6,6 +6,15 @@ import { supabase } from "@/api/supabaseClient";
 import { AuthContext } from "@/lib/AuthContext";
 import { addJobToTracker } from "@/components/jobs/JobCard";
 import { applicationCvsQueryKey } from "@/lib/queries/useApplicationCvs";
+import { useCvGenerationProgress } from "@/hooks/useCvGenerationProgress";
+import {
+  jobKeyOf,
+  startCvGeneration,
+  markCvGenerationReady,
+  markCvGenerationError,
+  clearCvGeneration,
+  useCvGenerationJob,
+} from "@/lib/cvGenerationJob";
 
 // Per-card Track / Generate-CV actions for the flag-on job card (Batch C) - the
 // same idempotent flow the CV-tab matched-roles rail already uses (#635),
@@ -61,7 +70,26 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
     [applications, job],
   );
   const [tracking, setTracking] = useState(false);
-  const [tailoring, setTailoring] = useState(false);
+
+  // Cross-view generation state, shared via the module store so the card and the
+  // modal for the SAME job agree and survive the card->modal remount (local state
+  // couldn't - the card unmounts when the modal opens).
+  const myKey = jobKeyOf(job);
+  const genJob = useCvGenerationJob();
+  const cvGen =
+    genJob.jobKey === myKey
+      ? { status: genJob.status, applicationId: genJob.applicationId }
+      : { status: null, applicationId: null };
+  const generating = cvGen.status === "running";
+
+  // Honest determinate ring: poll the (user_id, 'generate-tailored-cv') progress
+  // row only while THIS job is generating. The card and modal poll the same key,
+  // so TanStack dedupes it to one request.
+  const cvProgress = useCvGenerationProgress({
+    userId: user?.id,
+    source: "generate-tailored-cv",
+    enabled: generating,
+  });
 
   const resolveApplicationId = useCallback(async () => {
     const cached =
@@ -99,8 +127,8 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
   }, [tracking, tracked, user, queryClient, job, scoreResult]);
 
   const onGenerateCv = useCallback(async () => {
-    if (tailoring || !user?.id) return;
-    setTailoring(true);
+    if (generating || !user?.id) return;
+    startCvGeneration(myKey);
     try {
       const alreadyTracked = tracked;
       const res = await addJobToTracker({
@@ -110,11 +138,13 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
         scoreResult,
       });
       if (res?.error) {
+        markCvGenerationError(myKey);
         toast.error("Couldn't start generating - try again.");
         return;
       }
       const applicationId = await resolveApplicationId();
       if (!applicationId) {
+        markCvGenerationError(myKey);
         toast.error("Couldn't link the CV to your tracker - try again.");
         return;
       }
@@ -129,6 +159,7 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
         },
       );
       if (error || !data || data.error) {
+        markCvGenerationError(myKey);
         toast.error("Couldn't generate the CV - try again.");
         return;
       }
@@ -136,38 +167,67 @@ export function useJobCardActions(job, scoreResult, { enabled = true } = {}) {
       queryClient.invalidateQueries({
         queryKey: applicationCvsQueryKey(user.id),
       });
-      toast.success(
-        alreadyTracked
-          ? "Your CV is ready."
-          : "Added to your tracker - CV ready.",
+      // Land IN PLACE: resolve the ring to a "CV ready" state on the card / modal
+      // with View CV + Apply one tap away (Eli ruling 2026-07-26). No auto-redirect
+      // - the user is never dumped onto the CV surface with no route back to the job.
+      // Only announce readiness if THIS run is still the active one; a newer
+      // generation on another job supersedes the store and reverts this card to
+      // idle, so a "CV ready" toast would then point nowhere (QA finding).
+      const applied = markCvGenerationReady(
+        myKey,
+        data.application_id || applicationId,
       );
-      // Open the CV tab on the freshly generated copy (ThreeTabHome syncs ?tab;
-      // CVStudioLive's ?application_id selection effect loads it).
-      setSearchParams(
-        (prev) => {
-          const n = new URLSearchParams(prev);
-          n.set("tab", "cv");
-          n.set("application_id", data.application_id || applicationId);
-          n.delete("cv");
-          return n;
-        },
-        { replace: true },
-      );
-    } finally {
-      setTailoring(false);
+      if (applied) {
+        toast.success(
+          alreadyTracked
+            ? "Your CV is ready."
+            : "Added to your tracker - CV ready.",
+        );
+      }
+    } catch {
+      markCvGenerationError(myKey);
+      toast.error("Couldn't generate the CV - try again.");
     }
   }, [
-    tailoring,
+    generating,
+    myKey,
     tracked,
     user,
     queryClient,
     job,
     scoreResult,
     resolveApplicationId,
-    setSearchParams,
   ]);
 
-  return { tracked, tracking, tailoring, onTrack, onGenerateCv };
+  // "View CV" tap from the ready state: open the CV tab on the freshly generated
+  // copy (the deep-link the old flow auto-fired, now user-initiated), then clear
+  // the ready state so it doesn't linger on the card.
+  const onViewCv = useCallback(() => {
+    const appId = cvGen.applicationId;
+    if (!appId) return;
+    setSearchParams(
+      (prev) => {
+        const n = new URLSearchParams(prev);
+        n.set("tab", "cv");
+        n.set("application_id", appId);
+        n.delete("cv");
+        return n;
+      },
+      { replace: true },
+    );
+    clearCvGeneration(myKey);
+  }, [cvGen.applicationId, myKey, setSearchParams]);
+
+  return {
+    tracked,
+    tracking,
+    generating,
+    cvGen,
+    cvProgress,
+    onTrack,
+    onGenerateCv,
+    onViewCv,
+  };
 }
 
 export default useJobCardActions;

@@ -18,6 +18,7 @@ import { useCountUp } from "@/hooks/useCountUp";
 import { isNextDesign } from "@/lib/nextDesign";
 import ScoreRing from "@/components/jobs/ScoreRing";
 import { useJobCardActions } from "@/hooks/useJobCardActions";
+import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
 
 // Compact job card for the 2-up grid. The whole card is one click target that
 // opens the full JobDetailModal. Hovering prefetches the description; dwelling
@@ -91,8 +92,16 @@ export default function JobGridCard({
   // Batch C (flag-on): the hover-actions (Generate CV / Apply / "+") and their
   // tracked state. `enabled: alive` keeps the applications fetch off the flag-off
   // /Jobs surface, which never renders the actions.
-  const { tracked, tracking, tailoring, onTrack, onGenerateCv } =
-    useJobCardActions(job, scoreResult, { enabled: alive });
+  const {
+    tracked,
+    tracking,
+    generating,
+    cvGen,
+    cvProgress,
+    onTrack,
+    onGenerateCv,
+    onViewCv,
+  } = useJobCardActions(job, scoreResult, { enabled: alive });
   const fallbackStyle = styles
     ? { background: styles.tint, color: styles.accent }
     : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
@@ -380,10 +389,56 @@ export default function JobGridCard({
           </div>
         )}
 
-        {/* Batch C hover-actions (flag-on): Generate CV + Apply + compact "+".
-            Slide up on card hover / focus-within; always visible on touch (.cx-actions).
-            stopPropagation so they don't also open the modal. Replaces the peek. */}
-        {alive && (
+        {/* Batch C bottom slot (flag-on). Three mutually-exclusive states:
+            - generating: an ALWAYS-VISIBLE honest ring, rendered OUTSIDE
+              .cx-actions so it shows without hovering the card (theater fix a/c).
+            - ready: an in-place "CV ready" landing with View CV + Apply one tap
+              away and NO auto-redirect (fix d).
+            - idle: the hover-reveal actions (Generate CV / Apply / "+").
+            Generation state is shared with the modal via the cvGenerationJob
+            store, so the same job reads the same state in either view (fix b).
+            stopPropagation so the actions don't also open the modal. */}
+        {alive && generating ? (
+          <div className="mt-auto pt-2.5">
+            <CvGenerationProgress
+              compact
+              progress={cvProgress}
+              label="Tailoring your CV…"
+            />
+          </div>
+        ) : alive && cvGen.status === "ready" ? (
+          <div className="mt-auto pt-2.5">
+            <p className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-teal-dark mb-1.5">
+              <Check className="w-3 h-3" />
+              CV ready
+            </p>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onViewCv();
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+              >
+                View CV
+              </button>
+              {job.apply_url && (
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Apply on the company site"
+                  className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Apply
+                </a>
+              )}
+            </div>
+          </div>
+        ) : alive ? (
           <div className="cx-actions mt-auto pt-2.5 flex items-center gap-1.5">
             <button
               type="button"
@@ -391,15 +446,10 @@ export default function JobGridCard({
                 e.stopPropagation();
                 onGenerateCv();
               }}
-              disabled={tailoring}
-              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
             >
-              {tailoring ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Wand2 className="w-3 h-3" />
-              )}
-              {tailoring ? "Generating…" : "Generate CV"}
+              <Wand2 className="w-3 h-3" />
+              Generate CV
             </button>
             {job.apply_url && (
               <a
@@ -442,7 +492,7 @@ export default function JobGridCard({
               )}
             </button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Delayed-hover peek — an expanded version of the card, overlaid OVER
