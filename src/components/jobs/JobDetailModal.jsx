@@ -7,6 +7,7 @@ import useJobCardActions from "@/hooks/useJobCardActions";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
 import ScoreRing, { ScoreBreakdown } from "@/components/jobs/ScoreRing";
+import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
 import {
   useCompanyDomains,
   companyDomainFor,
@@ -60,11 +61,8 @@ export default function JobDetailModal({
   // Flag-on: the same #635 idempotent Generate-CV flow the card hover-action
   // and rail use, so the modal offers the product's primary verb at the exact
   // decision point. `enabled` gates the applications fetch to flag-on only.
-  const { tailoring: generating, onGenerateCv } = useJobCardActions(
-    job,
-    scoreResult,
-    { enabled: alive },
-  );
+  const { generating, cvGen, cvProgress, onGenerateCv, onViewCv } =
+    useJobCardActions(job, scoreResult, { enabled: alive });
   // Tightened section-eyebrow recipe (flag-on): crisper + denser than the old
   // label - smaller, a touch more tracking, semibold, tighter bottom margin.
   // Batch D applies this same recipe to the CV-rail headers. Flag off ->
@@ -365,21 +363,37 @@ export default function JobDetailModal({
               Apply <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
-          {alive && (
+          {/* Generate-CV slot, sharing state with the card via the cvGenerationJob
+              store (fix b): generating -> the honest ring (fix a/c); ready -> View
+              CV (fix d - Apply already sits one tap away in this footer, so the user
+              is never stranded); idle -> Generate CV. */}
+          {alive && generating ? (
+            <div className="inline-flex items-center px-2">
+              <CvGenerationProgress
+                compact
+                progress={cvProgress}
+                label="Tailoring your CV…"
+              />
+            </div>
+          ) : alive && cvGen.status === "ready" ? (
+            <button
+              type="button"
+              onClick={onViewCv}
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" />
+              View CV
+            </button>
+          ) : alive ? (
             <button
               type="button"
               onClick={onGenerateCv}
-              disabled={generating}
-              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
             >
-              {generating ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Wand2 className="w-3.5 h-3.5" />
-              )}
+              <Wand2 className="w-3.5 h-3.5" />
               Generate CV
             </button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>
