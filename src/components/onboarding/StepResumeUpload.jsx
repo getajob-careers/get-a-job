@@ -277,9 +277,11 @@ export default function StepResumeUpload({
         file.type === "application/msword" ||
         /\.doc$/i.test(file.name || "")
       ) {
-        throw new Error(
+        const e = new Error(
           "Legacy .doc files aren't supported. Please save your CV as .docx or .pdf and upload again.",
         );
+        e.code = "unsupported_format";
+        throw e;
       } else {
         fileText = await file.text();
       }
@@ -443,7 +445,19 @@ export default function StepResumeUpload({
       if (err.code === "empty_text") {
         setEmptyTextMode(true);
       } else if (resilient) {
-        setUploadFailMode(err.code === "timeout" ? "timeout" : "upload_failed");
+        // Route by what actually failed. Legacy .doc and a poor PDF parse are
+        // NOT upload failures - the file uploaded fine - so they must not show
+        // the "the upload didn't go through / check your connection" copy,
+        // which is both wrong and sends the user into a doomed retry loop.
+        if (err.code === "unsupported_format") {
+          setUploadFailMode("unsupported_format");
+        } else if (err.code === "timeout") {
+          setUploadFailMode("timeout");
+        } else if (err.code === "pdf_parse_failed") {
+          setUploadFailMode("extract_none");
+        } else {
+          setUploadFailMode("upload_failed");
+        }
       } else {
         setError(
           `Upload failed: ${err.message}. Please try again or enter details manually.`,
@@ -488,6 +502,10 @@ export default function StepResumeUpload({
   // failure modes. Pre-fills nothing silently: tells the user what happened
   // and offers both "fill in manually" and "try another file".
   const UPLOAD_FAIL_COPY = {
+    unsupported_format: {
+      title: "That file type isn't supported",
+      body: "Legacy .doc files can't be read. Save your CV as a .docx or PDF (in Google Docs or Word, File → Download → PDF), then upload again - or fill your details in manually below.",
+    },
     extract_none: {
       title: "We couldn't read the details from this CV",
       body: "The file uploaded, but we couldn't pull structured text from it - it may be a scanned image or an unusual layout. Try a text-based PDF (File → Download → PDF in Google Docs/Word), or just fill your details in manually below.",
