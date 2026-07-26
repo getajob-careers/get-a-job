@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import CanvasLogo from "@/components/redesign/shell/CanvasLogo";
 
 // OnboardingShell — visual redesign (PR 2A).
 //
@@ -31,22 +32,6 @@ const STEPS = [
   "Reality check",
 ];
 
-function BrandMark() {
-  return (
-    <div className="inline-flex items-center gap-2 select-none">
-      <div className="grid grid-cols-2 gap-[3px]">
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-primary" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
-        <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
-      </div>
-      <span className="font-display font-bold text-[17px] tracking-tight text-rd-text">
-        Get A Job
-      </span>
-    </div>
-  );
-}
-
 export default function OnboardingShell({ currentStep, children }) {
   const total = STEPS.length;
   const stepLabel = STEPS[currentStep] || "";
@@ -63,7 +48,7 @@ export default function OnboardingShell({ currentStep, children }) {
           {/* Top bar — brand mark + "About Get A Job" link. */}
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
-              <BrandMark />
+              <CanvasLogo size={26} />
               <Link
                 to="/Landing"
                 target="_blank"

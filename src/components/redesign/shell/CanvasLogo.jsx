@@ -27,8 +27,11 @@ function LogoDefs({ id, top, bottom }) {
         {/* Highlight is a TOKEN (--rd-logo-hi), not a hardcoded coral: the mark's
             glaze has to follow the palette, or a cool-primary candidate renders a
             coral logo on a blue product. Clay's value is the old #EC6A47
-            verbatim, so Clay is pixel-identical. */}
-        <stop offset="0%" stopColor="var(--rd-logo-hi)" />
+            verbatim, so Clay is pixel-identical. The #EC6A47 FALLBACK covers
+            contexts rendered outside :root[data-next-design] (e.g. flag-off V1
+            onboarding), where --rd-logo-hi is undefined and the stop would
+            otherwise resolve to black. Flag-on is unchanged (the token wins). */}
+        <stop offset="0%" stopColor="var(--rd-logo-hi, #EC6A47)" />
         <stop offset="42%" stopColor="var(--rd-primary)" />
         <stop offset="100%" stopColor="var(--rd-primary-dark)" />
       </linearGradient>
