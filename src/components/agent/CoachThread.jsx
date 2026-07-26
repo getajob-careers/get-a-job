@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { isNextDesign } from "@/lib/nextDesign";
-import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText, Download } from "lucide-react";
+import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText, Download, X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import MessageBubble from "@/components/chat/MessageBubble";
@@ -401,6 +401,10 @@ export default function CoachThread({ variant = "dock" }) {
   const bottomRef = useRef(null);
   const scrollRef = useRef(null);
   const pinnedRef = useRef(true);
+  // Flag-on starters live here (thread start), not in a composer pop-up that
+  // re-covered the conversation. Dismissible; they also disappear on the first
+  // message since the whole empty-state unmounts once messages exist.
+  const [suggestionsDismissed, setSuggestionsDismissed] = useState(false);
   const handleScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -457,11 +461,40 @@ export default function CoachThread({ variant = "dock" }) {
           <p className={`${isDock ? "text-[12px]" : "text-[13px]"} text-rd-text-secondary leading-[1.5]`}>
             Knows your roadmap, your pipeline, and this page.
           </p>
-          {/* Flag-ON: the composer pop-up is the primary suggestion affordance,
-              so the empty-state slims to the intro line (no duplicate chips).
-              Flag-OFF keeps the coral-tint pill chips. */}
+          {/* Flag-OFF keeps the coral-tint pill chips, byte-identical. */}
           {!alive && (
             <div className="flex flex-col items-start gap-1.5">
+              {DEFAULT_DOCK_PROMPTS.map((p, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => conv.sendMessage(p)}
+                  disabled={conv.sending}
+                  className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-primary-tint border border-rd-primary/30 text-rd-primary-dark font-display font-semibold hover:bg-rd-primary hover:border-rd-primary hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Flag-ON: starters as part of the coach's first turn - inline (never a
+              floating overlay over the thread), shown only before the first
+              message, and dismissible. */}
+          {alive && !suggestionsDismissed && (
+            <div className="flex flex-col items-start gap-1.5">
+              <div className="flex items-center gap-2 self-stretch">
+                <p className="flex-1 rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
+                  Suggested
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSuggestionsDismissed(true)}
+                  aria-label="Dismiss suggestions"
+                  className="rd-hit-44 rd-focus-ring inline-flex items-center justify-center w-5 h-5 -mr-1 rounded-md text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+                >
+                  <X className="w-3 h-3" aria-hidden="true" />
+                </button>
+              </div>
               {DEFAULT_DOCK_PROMPTS.map((p, i) => (
                 <button
                   key={i}
