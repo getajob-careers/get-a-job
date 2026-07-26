@@ -76,23 +76,41 @@ immediately; code PRs pile HELD; hub merges in batch; stop only for reserved cat
 **Re-ranked batch order (doc section c):**
 
 1. AI-tools alias -> `ai_tool_fluency` - DONE (#766 merged+LIVE).
-2. **Finance/accounting functions + SaaS [NEW IDs] - NEXT (batch 2).** Strongest both-sided cluster:
-   quality control (49), internal controls (31), accounts payable (23), variance analysis (20), financial
-   statements (18), journal entries (17), financial planning (17), accounts receivable (12), invoice
-   processing (9), cash management (9), month-end close (7), accruals (7), treasury (6), reconciliation (5).
-   Plus SaaS aliases quickbooks/xero (user-only). NEW-ID batch = heavy: concept-grep each vs the 618-ID set,
-   regen, full pipeline. Check each against existing finance IDs before minting (budget_forecasting,
-   financial_modeling, financial_reporting, excel_advanced_finance etc. already exist).
-3. PM functions [NEW]. 4. Security/risk [NEW; re-resolve vs prior Security batch]. 5. Marketing/growth/CX
-   [NEW+alias]. 6. Office tools [ALIAS]. 7. Modern web/cloud/no-code/HRIS-ATS [NEW]. 8. Hebrew - DEMOTED.
+2. **Finance/accounting - DONE (#785 merged, reresolved+written).** REFRAMED: concept-grep showed the
+   619-ID library ALREADY covered ~14/16 candidates, so it was **15 ALIASES + 1 new ID (accounts_payable)**,
+   NOT the "heavy new-ID batch" predicted. This is the pattern: the library is mature; remaining batches are
+   MOSTLY ALIAS. Always concept-grep FIRST before assuming new IDs (the #575 dup-concept lesson).
+3. **PM functions - BUILT+REVIEWED, uncommitted (batch 3, see Resume).** All-ALIAS (0 new IDs). 8 rows, 2
+   dropped. 4. Security/risk [likely alias-heavy; re-resolve vs prior Security batch]. 5. Marketing/growth/CX. 6. Office tools [ALIAS]. 7. Modern web/cloud/no-code/HRIS-ATS. 8. Hebrew - DEMOTED. (Batches 4-7: expect
+   alias-heavy - concept-grep each cluster first, mint new IDs only for genuine gaps.)
 
 - Gen-image AI-tool drops from batch 1 (midjourney/dall-e/adobe firefly -> `generative_ai_creative` L338
   or `ai_design_tools` L316) need their own reviewed mini-batch; `ai tools`/`genai` currently ->
   `machine_learning_fundamentals` is a possible future RE-POINT (additive-only forbids now).
 
-## DONE THIS SESSION
+## DONE THIS SESSION (2026-07-27)
 
-**Batch-1 post-merge tail - DONE + LIVE + clean (2026-07-26).**
+**#780 Coach B+C - MERGED + LIVE.** Squash `897fe66`; ai-chat deployed **v116** (was v115). DEPLOYED bundle
+verified: `job-name-lookup.ts` present, prompt-lib rule 6 (CONTEXT_HONESTY item 6, L960), index wires
+`lookupNamedJob` pre-pass. Vercel prod `dpl_6fiDBHnLT78dBp9U67Qu3YpKr4EW`. Rollback: commit `384227a`, ai-chat v115.
+
+**Batch 2 (Finance/accounting) #785 - MERGED + reresolved+written + verified.** Squash `41c9f51` (parent
+`1ebca6e`). **15 alias rows + 1 new ID `accounts_payable`** (see batch-order #2 for the reframe). Builder/reviewer
+split + 4-agent pipeline all GREEN (spec PASS, resolution-harness 18/18 targets + 4 dropped stay unmapped,
+schema-validator byte-identical, deno check, gate typecheck 517 / build / 1792 tests, em-dash guard).
+
+- **reresolve --write: 134 written, 0 err** (denominator = **5763** active v5 jobs w/ raw). avg_coverage
+  0.241 -> 0.243; zero_core 694 -> 687; avg_resolved_core 4.11 -> 4.14.
+- **GOOD-band guard PASS** by additive-monotonic proof (only the 134 changed jobs can move, all skill-GAINS,
+  fit non-decreasing; band-moves among retained served = 0 across 16 profiles). NOTE: could NOT do a clean
+  pre/post SET diff - ran --write before the pre-snapshot + the committed baseline-pinned was hours stale, so
+  the 170 served-set churn is live job-pool turnover, not batch 2. #757 spot-check NOT run (see Resume item 1).
+- **`reconciliation` audit:** fired on 10 jobs; 2 over-resolutions on eng roles from the bare 1-word key (see
+  follow-up). Reported, not reverted (per hub).
+
+**Batch 3 (PM) - BUILT + REVIEWED this session, uncommitted.** All-alias, 8 rows, 2 dropped. Full spec in Resume.
+
+**Batch-1 post-merge tail - DONE + LIVE + clean (2026-07-26, prior session).**
 
 - `extract-job-requirements` **v29** + `generate-career-analysis` **v117** deployed; both DEPLOYED bodies
   carry the #766 aliases (fingerprints `notebooklm`, `multi-agent orchestration`). ai-chat v115 already live.
@@ -132,12 +150,46 @@ immediately; code PRs pile HELD; hub merges in batch; stop only for reserved cat
   above-ceiling chip stays shelved (branch `eli/above-ceiling-chip`, SHA `a15699b`) until the hub ANNOUNCES
   the theater merge; then rebase on post-theater main + reconcile.
 
-## Resume here (fresh session order - Eli 2026-07-26)
+## Resume here (fresh session order - Eli 2026-07-27)
 
-Batch-1 tail DONE+LIVE. B+C = PR #780 HELD (awaits hub batch merge + ai-chat deploy).
-**NEXT = BATCH 2 (Finance/accounting, NEW IDs)** - full per-batch protocol above (builder/reviewer split,
-concept-grep each new ID vs the 618-ID set, regen `skillIdsGenerated.json`, 4-agent pipeline, HELD PR,
-then post-merge reresolve + eval guard + #757 spot-check). Then batches 3-7. Chip (`a15699b`) re-inserts
-only after the hub announces the theater (#765) merge. Eval-harness reaches the prompt via
-`scripts/lib/ai-chat-prompt-mirror.ts` (thin `export *` re-export of prompt-lib.ts); `prompt-lib.test.ts`
-colocated; `test-ai-chat-bakeoff.ts` consumes the mirror.
+#780 merged+LIVE (ai-chat v116). Batch 2 (#785) MERGED + reresolved+written. Two things pending:
+
+1. **BATCH-2 TAIL REMAINDER: #757 3-profile spot-check** (walkthrough / finance / marketing). NOT run
+   this session - its pre-snapshot lived in a now-deleted prior `$CLAUDE_JOB_DIR/tmp`. To run: re-fetch
+   a profile snap + is_il/is_active corpus with the service-role key inline, then
+   `walkthrough-diag-next.ts rankscore <snap>`. Expected (handoff-neutral): walkthrough 5/10 primary,
+   finance 10/10, marketing 10/10. GOOD-band guard for batch 2 ALREADY PASSED by the additive-monotonic
+   proof (only 134 jobs changed, all skill-GAINS; band-moves among retained served = 0) - #757 is a
+   belt-and-suspenders absolute check, not a blocker.
+2. **BATCH 3 (PM functions) - BUILT + REVIEWED, NOT YET COMMITTED.** All-ALIAS batch (ZERO new IDs; the
+   619-ID library already covers PM). Reviewer-approved **8 alias rows**, **2 DROPPED**. To ship: add these
+   8 rows to `skill-aliases.ts` (unprotected - normal Edit works), then the 4-agent pipeline + HELD PR.
+   NO library edit, NO regen, NO schema-validator (alias-only). Final approved rows:
+   - `product vision` -> product_strategy
+   - `user stories` -> requirements_gathering
+   - `sprint planning` -> agile_methodology
+   - `product analytics` -> product_analytics_expertise
+   - `roadmap ownership` -> roadmap_prioritization
+   - `feature prioritization` -> roadmap_prioritization
+   - `acceptance criteria` -> feature_definition
+   - `prds` -> prd_writing
+   - DROPPED: `discovery` (bare word, ambiguous across sales/customer/product discovery IDs - would
+     mis-resolve non-PM JDs) and `product ownership` (role-umbrella, no clean single target; builder's
+     product_operations was wrong).
+
+Then batches 4-7. Chip (`a15699b`) re-inserts only after the hub announces the theater (#765) merge.
+Eval-harness reaches the prompt via `scripts/lib/ai-chat-prompt-mirror.ts`; `prompt-lib.test.ts` colocated.
+
+### BATCH-2 FOLLOW-UPS (queued, not blocking)
+
+- **Narrow the bare `reconciliation` alias.** Fired on 10 jobs; `account reconciliations` = 5/5 clean
+  (all Controllers), but bare `reconciliation` = 5 fires with 2 over-resolutions on ENGINEERING roles
+  (`a5128a12` Checkmarx Sr BI Data Engineer, `5e1b35ce` Guidde Full Stack) where it means data/payment
+  recon, not bookkeeping. Same bare-ambiguous class as the dropped `discovery`. Consider dropping the
+  1-word key, keeping only `account reconciliations`. Alias-only PR. Eli/hub call - do NOT self-revert.
+- **`accounts_payable` role-graph wiring** = Eli's structural-decision bundle (04_role_skill_mapping);
+  today AP is job-side + user-label resolvable but not in the role->skill graph. NOT batch work.
+- **Live edge-fn deploys for batch 2:** reresolve --write updated the STORED corpus, but NEW live
+  extraction/career-analysis won't use the batch-2 aliases until `extract-job-requirements` +
+  `generate-career-analysis` redeploy (mirrors batch-1's v29/v117 tail). Confirm with hub whether to
+  deploy now or defer to a batch of merged library PRs.
