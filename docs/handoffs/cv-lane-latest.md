@@ -131,9 +131,37 @@ categories / failing gate / 80% context. [[skill-library-expansion-arc]].
   re-measure ([[scoring-parked-postlaunch-remeasure]]). Library work is DATA not formula; if a batch tempts
   a scoring change, that's the line.
 
-## Resume here
+## Resume here (fresh session order - Eli 2026-07-26)
 
-Next session (CV lane): resume the library batches -> **BATCH 2 (Finance/accounting, NEW IDs)** per the
-per-batch protocol above. Builder proposal -> independent reviewer -> 4-agent pipeline -> HELD PR with
-VERIFICATION block. Then batches 3-7. Chip re-inserts only after the hub announces the theater merge.
-Coverage baselines and eval-guard specifics are in the CURRENT ARC section above.
+The batch containing #766/#768/#770/#771/#772 was MERGED by this session at the hub's go
+(SHAs in the PRs-this-session section once filled). Fresh session's order:
+
+**FIRST ACT - batch-1 post-merge tail (do this before anything else):**
+
+1. **Redeploy the edge fns that import `resolveSkill`:** `extract-job-requirements` AND
+   `generate-career-analysis` (`supabase functions deploy <slug> --project-ref
+ilmqmodklutztuybsvwd`). Fingerprint BOTH (deployed != merged; deploy-edge-fn skill).
+2. **`scripts/reresolve-corpus.ts`** (--dry then --write). Report coverage movement vs
+   baseline: corpus avg `skill_coverage_ratio` **0.243** / jobs<0.5 **5,325**; user-unmapped
+   **1,165 occ / 1,067 distinct / 41 of 60 users**. (Alias batch moves the USER side most.)
+3. **160-label eval guard:** GOOD-band movement must be **0** (any GOOD regression = report,
+   do NOT tune).
+4. **#757 three-profile top-10 spot-check** (walkthrough/finance/marketing stay
+   majority-relevant; `scripts/walkthrough-diag-next.ts rankscore <snap>`).
+
+**SECOND - B+C coach-visibility item (ONE backend item, un-parked pre-flip; see
+`docs/research/coach-job-context-lookup-2026-07-26.md`):**
+
+- **B:** capped `description` on the TARGET JOB select (`page-context.ts:403`) + render +
+  a prompt-lib line permitting reference to it. Mirror the 2000-char app-JD cap.
+- **C:** STRICT-MATCH name lookup, deterministic server-side pre-pass in ai-chat: inline
+  title+company match on active IL jobs, exact-ish only; on ambiguity the coach ASKS
+  ("I found 3 analyst roles - which company?"), never guesses. NO fuzzy, NO tool loop
+  (post-flip). Inject matched JD capped. Tests + small eval fixture set for wrong-row
+  protection. Edge-fn deploy + fingerprint after its merge.
+- (Piece A - frontend job_id + visible-feed-ids wiring - is the DESIGN LANE's, already
+  queued there. The frontend does NOT pass job_id today: `Career.jsx:443` `visibleJobIds: []`.)
+- Builder/reviewer split + 4-agent SELF-VERIFICATION PIPELINE, HELD PR with VERIFICATION block.
+
+**THIRD - BATCH 2 (Finance/accounting, NEW IDs)** per the per-batch protocol above, then
+batches 3-7. Chip (`a15699b`) re-inserts only after the hub announces the theater (#765) merge.
