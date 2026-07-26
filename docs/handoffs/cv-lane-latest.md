@@ -1,167 +1,105 @@
-# CV lane — latest handoff (resume point)
+# CV lane - latest handoff (resume point)
 
 Overwrite-on-update (standing rule). **After any context clear, read THIS +
 `tasks/lessons.md` first.** ~150-line resume point, not a log.
 
-## Standing protocol (session hygiene — Eli, effective 2026-07-22)
+## Standing protocol (session hygiene - Eli)
 
-- **Name canary.** Begin EVERY reply to Eli with "Eli, …". When the name stops
-  appearing, Eli says **"canary"** → on that word, overwrite THIS file and tell
-  him to `/clear`.
-- **Statusline** shows context % (green<60, yellow 60–79, red≥80; configured at
-  `~/.claude/statusline-command.sh`). **Proactively offer a handoff at ~80%.**
-  `/context` is user-only — point Eli to the statusline.
-- **Reports end with a compact ledger** (PR · SHA · state · claims to verify ·
-  evidence pointers · open questions) — no narrative recap.
-- This protocol lives HERE, not in CLAUDE.md (the **design lane** owns CLAUDE.md).
+- **Name canary.** Begin EVERY reply to Eli with "Eli, …". When it stops, Eli says
+  **"canary"** → overwrite THIS file + tell him to `/clear`.
+- **Statusline** shows context % (green<60, yellow 60-79, red≥80). **Offer a handoff at ~80%.**
+- **Reports end with a compact ledger** (PR · SHA · state · claims · evidence · open qs).
+- **NEVER delete rows** (even void/test/dry-run) without an explicit Eli ruling; mark eras by
+  `created_at` ([[never-delete-rows-without-ruling]]).
+- **Formatter reflows WHOLE files + strips just-added imports.** Add an import in the SAME edit as
+  its first usage; for test files use Bash `cat >>` (no PostToolUse hook) to avoid whole-file churn;
+  after any Edit to a dense file, check `git diff --stat` for churn ([[formatter-strips-just-added-imports]] + tasks/lessons.md).
+- **No em dashes** in repo artifacts (code/docs/PR bodies) - hyphens. Grep additions before commit.
+- Protocol lives HERE (design lane owns CLAUDE.md).
 
-## Lane identity + current state (2026-07-23)
+## CURRENT ARC - Skill-library expansion (Eli superseding ruling 2026-07-26): runs NOW, in full
 
-The **CV / onboarding-sequence / scoring lane**. Two standing responsibilities:
+Per-label A/L/N triage REMOVED, replaced by MACHINE GATES. Standing order: finish an item → next
+immediately; PRs pile HELD; merges in batch; stop only for reserved categories / failing gate / 80%
+context. Plan of record + joint re-rank: `docs/research/skill-corpus-mining-2026-07-26.md`
+(supersedes the batch order in `skill-coverage-and-suggester-2026-07-26.md`). [[flagon-feed-ranking-arc]] sibling.
 
-1. **Onboarding sequence correctness + persistence** (NOT visual/UX — design lane
-   owns V2 restyle + Phase 2 after the 2026-07-23 reassignment). **Cross-review any
-   design-lane PR that touches a persist path** (`onboardingPersist.js`,
-   `careerAnalysis.js`, `persistOnboardingProfileV2.js`, `inferPrimaryDomainWrite.js`).
-   Contract for the design lane: `docs/handoffs/onboarding-restyle-brief.md`.
-2. **ACTIVE ARC → the landing canvas-recolor adaptation** (below).
+**Queue status:**
 
-Onboarding V2 arc is DONE for this lane: #683/#688(PR-1)/**#691(PR-2)** all
-merged + LIVE; docs handoff #693 merged. PR-2 serving-sha verified on `70bd110`.
-Remaining onboarding is design-lane (Phase 1 restyle → Phase 2 UX → flag flip LAST).
-Purge pre-flip: `email LIKE '%+6b-%'`.
+1. **Suggester floor - DONE, PR #760 HELD.** `suggestSkillFromUnmapped.js`: suggest only when
+   `levenshtein ≤ 2 AND shared first char`, else nothing + existing "No close match" copy.
+   vercel→zero (was "Perl"). +tests.
+2. **Above-ceiling chip - BUILT but DEFERRED (Eli resequence 2026-07-26).** PR #762 CLOSED, branch
+   `eli/above-ceiling-chip` KEPT (SHA `a15699b`) = shelved diff. Deferred because it edits
+   JobGridCard.jsx + JobDetailModal.jsx, which the **design-lane CV-gen theater PR owns right now**
+   (one writer per path). **Re-open / re-insert AFTER the hub announces the theater merge**, then
+   rebase the shelved branch on the post-theater main and reconcile any overlap. (Diff: pure
+   `deriveJobDisplay.aboveCeiling` + quiet chip on card + note in modal, flag-on only, display-only, +tests.)
+3. **Corpus mining report - DONE, filed, PR #763 HELD (docs).** Supply coverage **0.243** (88% jobs
+   <0.5); joint both-sides re-rank. Re-ranked batches (see doc §c): (1) AI-tools ALIAS→`ai_tool_fluency`
+   [chatgpt is #1 user label ×9; `ai_tool_fluency` id EXISTS], (2) Finance/accounting functions [NEW],
+   (3) PM functions [NEW], (4) Security/risk [NEW, re-resolve vs prior Security batch first],
+   (5) Marketing/growth/CX [NEW+alias], (6) Office tools [ALIAS], (7) modern web/cloud/no-code/HRIS-ATS
+   [NEW; supabase/vercel/tailwind are user-only, low corpus payoff], (8) Hebrew - DEMOTED optional
+   (JD supply = 12 Hebrew skill terms only).
+4. **LIBRARY BATCHES - NEXT (not started).** One scoped PR per batch, HELD. MANDATORY per-batch protocol:
+   - **Builder/reviewer split:** I propose mappings, then spawn an INDEPENDENT reviewer agent (fresh
+     context) to validate each alias→ID and each new ID against: (i) genuinely means that skill in
+     hiring, (ii) no collision/shadow of an existing alias, (iii) new IDs are real distinct skills not
+     synonyms, (iv) nothing on the noise do-not-add list. **Reviewer reject/unsure → DROP + log, never
+     argue in. Conservative default.**
+   - **Additive ONLY** (never repoint/delete). New IDs → regen `skillIdsGenerated.json` via
+     `node scripts/regen-skill-ids.mjs` (the two-file sync). Alias-only = single-file (skill-aliases.ts:25,
+     `SKILL_ALIASES` - single source, both consumers import shared `resolveSkill`).
+   - **After merge:** run `scripts/reresolve-corpus.ts`; report coverage movement - user unmapped
+     (baseline 1,165 occ / 1,067 distinct / 41 of 60 users) + corpus avg ratio (baseline 0.243) / jobs<0.5 (5,325).
+   - **EVAL GUARD (replaces Eli's eyes):** run the 160-label eval; **GOOD-band movement must be 0**
+     (any GOOD regression FAILS the batch → report + hold, do NOT tune). Also assert the flag-on feed
+     top-10 for the three #757 acceptance profiles stays majority-relevant (walkthrough/finance/marketing;
+     harness `scripts/walkthrough-diag-next.ts rankscore <snap>`; snaps in `$CLAUDE_JOB_DIR/tmp` - may
+     need re-fetch next session).
+   - **PR body:** additions list · reviewer-dropped list w/ reasons · coverage movement · eval result.
 
----
+**do-not-add noise list (VERIFIED both-sided-but-generic + non-skills):** generic soft skills
+(teamwork, planning, performance, reporting, accuracy, execution, delivery, ownership, initiative…),
+military terms, sports/hobbies, hyper-niche SaaS products, bare fragments.
 
-## SCORING ARC — CLOSED (do not re-open without new evidence)
+## RECENTLY CLOSED (pointers; do not re-open without new evidence)
 
-The scoring-formula arc is **shipped + closed**, NOT to-be-built (verified against
-git log + `docs/eval/scoring-formula-design.md` §7–8, 2026-07-23):
+- **Flag-on feed ranking #757 - MERGED (squash `8f93738`), branch deleted, frontend-only (no edge
+  deploy).** ?next=1 feed (JobsSearchTab) now gates off-direction + sorts by `rank_score` (was gate-less
+  fit_score); honest_match_labels chip. Walkthrough 5/10 primary ACCEPTED by Eli. Production two-tab
+  untouched. `?honest_match_labels=1` eyeball DONE (Eli verified live: Overall / Search fit /
+  matched-of-listed render correctly); only the default-flip decision remains - a triage item, NOT this lane.
+- Prior arcs: scoring v2 stack LIVE default-on (formula PARKED); digest primary-only + honest_match_labels
+  flag LIVE (#749 `71c360e`); story extraction / refine-cv / outreach CLOSED+LIVE.
 
-- **C1 confidence-aware ranking + C2a must-have + C2b direction — LIVE**, default-on
-  as the `scoring_v2` stack (#595→#597→#599→#600/#601, flipped default-ON in **#603**;
-  kill switch `?scoring_v2=0`). All act on `attainability_score`; impl in
-  `src/lib/scoreJobFit.js` (`CONF` block + `mustHaveCoreScore`), flag in
-  `src/lib/flags.js`. Coverage sub-factor = `job.skill_coverage_ratio` (from
-  `extract-job-requirements`).
-- **C4 role-tier / underleveled — PARKED** (#608/#609): classifier works (95%) but the
-  signal penalizes ~30% of GOODs on the pinned 160 — structural, not a threshold. Merged
-  UNWIRED (`src/lib/roleTier.js`, `scripts/c4-harness.mjs`).
-- **C3 hard gates — PARKED** (2b covers most of it). **C5 embeddings — UNLIKELY.**
-- **Next-if-ever (DEFERRED, not active work):** a **second labeling round** on fresh
-  real-user data with more senior profiles, then re-measure — the design doc §8 next
-  move. Do NOT rebuild components; the 160-label snapshot is the binding constraint.
+## PARKED - do NOT touch
 
----
+- **Emails: fully parked until Flip 2.** Eli standing ruling 2026-07-26: digest enable + re-engagement
+  one-off + new-look announcement fire together as ONE Eli-gated moment AFTER the reveal. Do NOT touch
+  `EMAIL_SEND_ENABLED`, the cron, or `dry_run`. Runbook detail: `docs/Handoffs/email-automation-arc.md`.
+- **All scoring formula/weight work** (adjacency tightening, specificity weighting, field-relevant years,
+  C3/C4/C5) - post-launch re-measure ([[scoring-parked-postlaunch-remeasure]]). The library work is DATA,
+  not formula - if a batch tempts a scoring change, that's the line.
 
-## LANDING RECOLOR ARC — DONE + LIVE (#696, 2026-07-23)
+## PRs this session
 
-Recolored the public landing (`src/pages/_preview/LandingV2Preview.jsx`, live `/`) to
-the canvas palette + added a minimal consent-respecting analytics funnel. Eli CERT
-PASSED, hub VERIFIED. **Squash-merged `bc221d0`; prod deploy READY** (Vercel prod
-deployment `5xsizkWrF7d2ZwSeoeKwVCwKDFes`). No edge functions. Rollback = `b56fe1b`.
+- **#760 suggester floor** - MERGED (squash `a458904`), branch deleted.
+- **#763 research docs** - MERGED (squash `4fa8d12`), branch deleted.
+- **#757 flag-on feed ranking** - MERGED (`8f93738`).
+- **#762 above-ceiling chip** - CLOSED/DEFERRED (branch `eli/above-ceiling-chip` `a15699b` kept; re-open post-theater).
+- Queue after resequence: suggester floor (merged) → corpus-mining (merged) → **library batches (NEXT, batch-1 first)**;
+  chip re-inserted after the hub announces the theater merge.
 
-- **Recolor:** `.lv` self-scoped token block remapped to canvas hexes (accent
-  coral→slate `#60617D`, teal→mauve `#9B7D8A`, golden→brown `#60483E`, bg `#F4EBDA`);
-  hardcoded coral/ink rgba swept to slate/warm-brown; AA guard = mauve-deep `#7B606D`
-  for small text/icons. Zero coral in DOM; flag-free public surface.
-- **Analytics:** reuses `src/lib/analytics.js` `track()` (no-ops before PostHog init →
-  consent-respecting). Events: `landing_cta_clicked`, `landing_cv_upload_started`,
-  `landing_cv_upload_succeeded`, `landing_section_reached`. No `main.jsx`/consent touch.
-- **HUB-OWNED follow-up:** PostHog landing-event check runs once consented traffic exists
-  (I can run it via PostHog MCP on the flag-on prod build when asked).
+## Reusable techniques
 
-**Landing-motion follow-up (NOT this lane yet):** ideas 2/3/4 — mascot CV-drop loader,
-SVG line-draw on scroll, staggered stat/feature reveals — **gated on the design lane's
-anime.js install PR** + Eli's mascot eye-pick. Do NOT build on framer-motion (ruled for
-pruning). The recolor is the clean foundation the design lane's scroll-driven
-mascot-journey flagship composes on top of.
-
-**Routed to DESIGN LANE (log, do not touch):** the `.lv-dots`/`griddots` particulate
-backdrop (retired category in-app) and Geist-vs-canvas font unification — both
-compositional.
-
----
-
-## ACTIVE ARC — Story bank extraction quality (PR #697, HELD, 2026-07-23)
-
-**Target = `extract-bullets`** (the reachable capture path; Eli-ruled over the legacy
-`extract-story-from-text` on the undiscoverable /StoryBank page). Branch
-`eli/story-extraction-quality`. **No deploy yet.**
-
-**Root cause (VERIFIED):** extractor is anti-fab-correct but starved by thin input —
-`situation`/`task` NULL in 100% of the 13 existing stories, 0 real-user rows. Dominant
-lever = richer INPUT (guided elicitation, design-lane) since anti-fab forbids the
-extractor from enriching. `extract-story-from-text` + `extract-bullets` share the same
-thin-input shape.
-
-**What's built + HELD on #697:**
-
-- **Eval harness** `scripts/story-extraction-eval.mjs` (mirrors extract-bullets prompt+parse
-  EXACTLY; reads live SYSTEM_PROMPT out of the edge fn) + **committed vitest test**
-  `scripts/story-extraction-eval.test.mjs` (13/13, runs under `npm test`).
-- **Frozen synthetic set** `docs/eval/story-extraction-inputs.json` (7 inputs: thin→rich,
-  software+ops/mktg/BD/analytics, EN+Hebrew-mixed, messy paste, exp+edu). **STAYS FROZEN.**
-  Rubric `docs/eval/story-extraction-rubric.md`; findings + autopsy
-  `docs/eval/story-extraction-baseline-findings.md`; run JSONs in `docs/eval/results/`.
-- **Grounding-context module** `_shared/extraction-context.ts` wired into extract-bullets.
-  **Round-1 grounding (with skill-vocab) LEAKED** (grounded emitted profile top_skills as
-  demonstrated skills on pastes that never named them: thin-swe→Python/SQL, hebrew→SQL).
-  Gate fired → **recalibration #1 (hub-ruled) BUILT:** skill-vocab line deleted, domain +
-  target-role framing kept (mid-ops 84→98, leaked nothing). #2 (skill-vocab→resolution)
-  deferred; #3 (contamination gate) parked (false-drops Hebrew "Data Analysis"); #4 rejected.
-- **Harness fixes:** OPENAI_API_KEY sanitize (U+2028 burned a run); metricNumbers regex
-  ("20 meetings"→20M bug); word-boundary tool gate (sql-in-postgresql).
-
-**STATE: ARC CLOSED + LIVE (2026-07-23).** #697 squash-merged (`d89821c`), branch deleted.
-extract-bullets deployed **v12->v13** (`--project-ref ilmqmodklutztuybsvwd`); serving-fingerprint
-VERIFIED on the deployed bundle (framing-only grounding block: field + working-toward, NO
-skill-vocabulary line; targetCols reverted). Prod Vercel `dpl_2RkhXAaY2PVxyqXfHi1kZmrhbEwd`
-READY on `d89821c`. Gate PASS: grounded anti-fab 0, mid-ops preserved, grounded >= baseline all 7,
-set mean 90.6->91.7.
-
-**ROLLBACK:** predecessor prod commit `4337d2c` (Vercel `dpl_DmawvSTqEvwj7FPiuwFQDNWvUebY`);
-extract-bullets prior **v12** (redeploy prior source to revert the edge fn). Full revert = revert
-the squash + redeploy extract-bullets from `4337d2c`.
-
-**Queued follow-ups (separate PRs, NOT kicked):** (1) hedge-marker checker-list gap
-("over"/"+" unrecognised); (2) outcome-heuristic credit for tool/deploy bullets (rich-swe
-discipline dip); (3) deferred proposal #2 (skill-vocab -> skill-ID resolution). Design-lane
-elicitation brief `docs/handoffs/story-elicitation-brief.md` still HELD for Eli's go.
-
-**NEXT ARC: NOT kicked - Eli rules it later.** Candidates on record: interview bot, skill hub,
-browser extension, graphify. Stand by.
-
-**Design-lane brief** `docs/handoffs/story-elicitation-brief.md` (guided STAR elicitation,
-client-side block assembly, zero edge-fn change) — held for Eli's go. HELD (this lane):
-prompt-rework + model-tier, done once against the real elicited input shape.
-
-## Reusable techniques (from this arc)
-
-- **Palette recolor cert = computed values, NOT screenshots.** The landing's reveal
-  crossfade (opacity tracks scroll) washes out screenshot colours mid-scroll. Cert via
-  `getComputedStyle` on the `.lv` token vars + sample elements (eyebrow / logo dot /
-  `.btn-accent`) → exact hexes, opacity-independent; and an `outerHTML` scan for the OLD
-  literals (`#ef5a41` / `239,90,65`) proves zero leftover. For the one holistic visual
-  shot, inject `.lv *{opacity:1!important;transform:none!important}` then screenshot.
-  Local `npm run dev` drive is enough for a flagless public page — no Vercel-SSO dance.
-- **Two clean commits from an interleaved working tree:** back up the gate-passed file,
-  `git checkout origin/main -- <file>`, re-run each change as its own asserted python
-  script, commit between; then `diff -q` the final tree vs the backup to prove identical.
-- **Preview drive under Vercel SSO + Turnstile:** mint a Vercel share URL
-  (`get_access_to_vercel_url`) to bypass deployment protection in a browser logged
-  into Vercel; enter the app via admin-created `+test` user + magic link (service_role
-  from `supabase projects api-keys`; POST `/auth/v1/admin/users` email_confirm +
-  `/auth/v1/admin/generate_link` magiclink; curl the verify link no-follow, read
-  `#access_token`/`#refresh_token`; build a supabase-js session JSON, inject into
-  localStorage `sb-ilmqmodklutztuybsvwd-auth-token`, reload).
-- **Formatter churn:** on non-prettier-clean files (Roadmap.jsx et al.) an Edit
-  reflows the WHOLE file. Restore `git checkout HEAD -- <f>` and re-apply logical
-  hunks via python str.replace (bypasses the PostToolUse hook). Measure `git diff
---stat` after every edit.
-- **Project subagents (explorer/gatekeeper/sweeper) need a full RELAUNCH**, not a
-  /clear, to load. If absent from the agent list, run gates inline via Bash.
-- **`.obsidian/` is gitignored** — its lint errors are local-only, never in CI.
-- **block-main-push.sh over-matches** compound commands containing both `push` and
-  `main` (even a branch delete / `gh pr create --base main`). Run those steps
-  SEPARATELY; delete a merged branch via `gh api -X DELETE .../git/refs/heads/<b>`.
+- **Large MCP SQL reads** auto-save to a file when over the token cap: parse the outer JSON, extract
+  the array between the untrusted markers, `data[0].<col>` (NOT the wrapper) - see `$CLAUDE_JOB_DIR/tmp`.
+- **Faithful feed repro:** `scripts/walkthrough-diag-next.ts` imports the shipped `orderDefaultMatches`;
+  snapshots via the scrubbed-usage CTE + `search_jobs_by_role_titles` RPC (call as SQL via MCP).
+- **Per-PR clean branch:** stash tracked dirty docs → `git checkout -b <b> origin/main` (split from any
+  cmd containing both "push"+"main") → pop only the item's files. Untracked files travel freely.
+- **skill-aliases.ts is single-source** (post-#511); `skillIdsGenerated.json` = generated mirror
+  (`scripts/regen-skill-ids.mjs`), needed only for new IDs. `jobs.extraction_unmapped_skills` (COLUMN)
+  = supply-side unresolved terms; `profiles.skills_unmapped` = user-side.
