@@ -270,12 +270,51 @@ depth` / 0 `validateDOMNesting` on fresh mount. a11y solid: situation chips are
   id/aria-label.** Low severity: the visible dropzone `div[role=button]` IS labeled and
   is the keyboard entry point, so screen-reader users have a named control; the bare
   input is a belt-and-suspenders gap only.
-- **[VERIFIED] Routing nuance - an un-onboarded user (complete=false, step=0) lands on
-  `/Home` on sign-in, NOT `/Onboarding`.** Eli observed it live ("i landed on home")
-  and I confirmed the profile flags. `/Onboarding` renders the flow correctly when
-  navigated to directly. Worth a look: does `/Home` degrade gracefully for a step-0
-  account, or should sign-in route an incomplete user straight into `/Onboarding`?
-  Not yet root-caused (Home vs Layout gate signal) - flagged for the next pass.
+- **[VERIFIED] ROOT-CAUSE (corrected): the flag-ON `/Home` shell (`ThreeTabHome`) is
+  MISSING the onboarding redirect guard, so an un-onboarded user under the NEXT_DESIGN
+  reveal skips V2 onboarding.** Verdict: **(a) REAL for genuinely fresh accounts - but
+  ONLY under the reveal flag (`?next=1` / localStorage `nextDesign=1` / env `VITE_NEXT_DESIGN=1`),
+  NOT under the production default (which is OFF).** Full trace (all read end-to-end, all
+  VERIFIED):
+  - `/Home` maps to `Home3Tab` (`pages.lazy.js:75` `Home: Home3Tab`), a wrapper that forks
+    on the flag (`Home3Tab.jsx:13-15`): flag-OFF renders `<Home/>`, flag-ON renders
+    `<ThreeTabHome/>`. (Sign-in routes here: authed `/` is the landing which redirects
+    authed users to `/Home`; `Login.jsx:183` `navigate("/")`.)
+  - **Flag-OFF is SAFE.** `<Home/>` carries a per-page redirect guard
+    (`src/pages/Home.jsx:263-275`) that fails open to `/Onboarding` in EVERY branch
+    (profile error, null profile, and `!onboarding_complete`). Un-onboarded flag-off users
+    are correctly bounced.
+  - **Flag-ON is BROKEN.** `<ThreeTabHome/>`
+    (`src/components/redesign/home/ThreeTabHome.jsx`) is pure tab UI - it had **no profile
+    query and no redirect guard** (grepped end to end: zero `onboarding_complete` /
+    navigate-to-Onboarding). So an un-onboarded user under `?next=1` mounts the 3-tab home
+    and **stays on `/Home` - skipping the onboarding flow entirely.**
+  - The guard responsibility is per-page, NOT in Layout. Layout's onboarding handling
+    (`Layout.jsx:260`, `currentPageName === ONBOARDING_PAGE || !onboardingComplete`) only
+    strips the chrome (returns `<div data-private>{children}</div>`) in BOTH flag states -
+    it never redirects, and it returns BEFORE the flag fork / `CanvasShell` (:280), so the
+    shell fork never even runs for un-onboarded users. Layout gates chrome; the page gates
+    routing.
+  - This is exactly what Eli reproduced live on production: a brand-new signup
+    (`+walkthrough`, `onboarding_complete=false`, hub-verified) under `?next=1` landed and
+    STAYED on `/Home`.
+  - **Production exposure NOW: NONE.** VERIFIED against the served prod HTML - the bootstrap
+    line bakes to `var envDefault = "%VITE_NEXT_DESIGN%" === "1"` (literal placeholder, i.e.
+    `false`) and `<html>` carries no `data-next-design`. Default cohort is flag-OFF ->
+    `<Home/>` guard -> correct bounce. Real users never receive `?next=1`. So this is a
+    **FLIP-2 BLOCKER (reveal-cohort), not a live-now P0/P1.** (Visiting `?next=1` also
+    persists `localStorage.nextDesign=1` per `index.html:19`, which is why Eli's test
+    browser sticks on flag-on.)
+  - **Disconfirming check run (rule d):** what would have falsified "flag-off is safe" =
+    a served-HTML `data-next-design` on `<html>` or a baked `envDefault=true` (would make
+    prod default ON = live P1) - neither present; and a guard branch in `Home.jsx` that
+    stays on Home while `!onboarding_complete` - none. What confirms "flag-on is the bug" =
+    Eli's live `?next=1` repro + the grep showing `ThreeTabHome` has no guard.
+  - **FIX APPLIED (this session, HELD PR):** added the onboarding redirect guard to
+    `ThreeTabHome.jsx` (mirrors `Home.jsx:263-275`, flag-ON only so flag-OFF stays
+    byte-identical). Gate green. Per #546, needs a live cold-load browser verify on the
+    flag-on un-onboarded path before merge (needs Eli's authed session) - coordinating with
+    Eli's live repro.
 
 OUTSTANDING (onboarding, next session): steps 3 + 4 UI/console/states; the
 point-of-no-return (which final action commits `onboarding_complete=true` - do NOT

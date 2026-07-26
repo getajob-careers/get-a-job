@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { FileUser, Columns3, Compass } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import { useProfileQuery } from "@/lib/queries/useProfile";
+import { createPageUrl } from "@/utils";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
 import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
 import HomeTrackerTab from "./HomeTrackerTab";
@@ -29,6 +32,34 @@ const TABS = [
 const TAB_IDS = TABS.map((t) => t.id);
 
 export default function ThreeTabHome() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const {
+    data: profile,
+    isFetched: profileFetched,
+    isError: profileError,
+  } = useProfileQuery(user?.id);
+
+  // Onboarding redirect guard - flag-ON parity with <Home/> (Home.jsx:263).
+  // The flag-off home carries this guard; this shell did not, so an
+  // un-onboarded user under the NEXT_DESIGN reveal (?next=1 / env-ON) stayed
+  // on /Home instead of being bounced into the onboarding flow (Flip-2
+  // blocker - Layout only gates chrome, not routing). Fails open to
+  // Onboarding on any profile error, exactly like the legacy path. Deleted at
+  // reveal-cleanup when the two homes unify.
+  useEffect(() => {
+    if (!user || !profileFetched) return;
+    if (profileError) {
+      navigate(createPageUrl("Onboarding"));
+      return;
+    }
+    if (profileFetched && !profile) {
+      navigate(createPageUrl("Onboarding"));
+    } else if (profile && !profile.onboarding_complete) {
+      navigate(createPageUrl("Onboarding"));
+    }
+  }, [user, profileFetched, profileError, profile, navigate]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(
