@@ -18,6 +18,7 @@
     "refresh-jobs:dry": "tsx scripts/refresh-jobs.ts --dry-run",
     "docs:check": "node scripts/check-docs-freshness.mjs",
     "check:ground": "node scripts/check-ground.mjs",
+    "check:em-dash": "node scripts/check-em-dash.mjs",
     "package:verify": "node extension/verify-package.mjs"
   },
   "dependencies": {

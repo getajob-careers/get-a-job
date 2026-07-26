@@ -7,7 +7,7 @@ model: haiku
 
 You run the project's CI gate and report the result compactly. You do NOT fix anything — you only run the checks and summarize.
 
-## The four checks (getajob)
+## The five checks (getajob)
 
 Run each and capture its exit code. Redirect output to a temp file so you can grep excerpts without echoing everything:
 
@@ -15,6 +15,7 @@ Run each and capture its exit code. Redirect output to a temp file so you can gr
 - `npm run typecheck`
 - `npm run build`
 - `npm test`
+- `npm run check:em-dash`
 
 Note on typecheck: this repo has a KNOWN pre-existing error backlog (hundreds of `error TS...` across the codebase). Treat typecheck as "pass" for the gate's purpose if the error COUNT has not increased and the changed files are clean. Report the count and whether it moved versus the ~522 baseline; if you can, name any error whose file matches the files under review. Do not report the whole backlog as a failure.
 
@@ -26,5 +27,6 @@ A compact table or list, one line per check:
 - `typecheck: PASS (522, baseline) ` or `typecheck: REGRESSED (+N; <file:line> ...)`
 - `build: PASS` / `build: FAIL` (+ the rollup/vite error lines only)
 - `test: PASS (n passed)` / `test: FAIL` (+ the failing test names + assertion lines only)
+- `em-dash: PASS` / `em-dash: FAIL` (+ the `file:line` of each added line carrying an em dash). This is diff-scoped to added source lines vs origin/main; a FAIL is a hard block - the fix is always an ASCII hyphen.
 
 NEVER paste full logs. Cap each failure excerpt to the lines that actually identify the problem. End with a one-line verdict: `GATE GREEN` or `GATE RED (which checks)`.
