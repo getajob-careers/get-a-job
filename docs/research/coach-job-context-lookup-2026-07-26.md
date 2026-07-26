@@ -2,7 +2,7 @@
 title: Coach job-context lookup - DEEP map, held for joint scoping
 owner: cv-lane
 last_reviewed: 2026-07-26
-status: report-and-hold (DEEP; do NOT build without joint scoping)
+status: UN-PARKED pre-flip (Eli 2026-07-26); Piece A design lane, Pieces B+C CV lane
 code_paths:
   - supabase/functions/ai-chat/index.ts
   - supabase/functions/ai-chat/prompt-lib.ts
@@ -66,11 +66,35 @@ Even when a job IS pinned (`job_id` present), the coach can't quote the JD becau
 the TARGET JOB select omits `description`. Adding a capped `description` to the
 select (`page-context.ts:403-404`) + render (`273-296`) is small and scoped.
 **BUT** it only helps if the frontend actually passes a `job_id` when a Jobs-feed
-row is open - unverified, and the frontend hook is the design lane's. It does NOT
-solve the walkthrough (user named an UNpinned job). Open question for joint scoping:
-does the Jobs feed pass `job_id` to the coach drawer today?
+row is open. **ANSWERED (hub, 2026-07-26): the frontend does NOT pass job_id today.**
+`Career.jsx:443` hardcodes `visibleJobIds: []` and `UnifiedJobsFeed` never calls
+`setPageContext` (grep: `setPageContext` appears only in Career.jsx). So the pinned-job
+JD is unreachable until the frontend wiring lands - that wiring is **Piece A (design
+lane, already queued there)**. The name-lookup (Piece C) does NOT depend on it. It does
+NOT solve the walkthrough on its own (user named an UNpinned job).
 
-## Options for joint scoping (pick at scoping time; do not build unasked)
+## Eli rulings (2026-07-26): UN-PARKED, goes PRE-FLIP
+
+B.1 is un-parked and ships pre-flip, split three ways:
+
+- **Piece A (frontend wiring): DESIGN LANE, already queued there.** Pass `job_id` +
+  visible-feed ids into page context (fixes the `Career.jsx:443` hardcoded `visibleJobIds: []`
+  and wires `UnifiedJobsFeed` -> `setPageContext`). Not the CV lane's to build.
+- **Piece B (CV lane): capped JD on the pinned job.** Add capped `description` to the
+  TARGET JOB select (`page-context.ts:403`) + render + a prompt-lib line permitting the
+  coach to reference it. Mirror the 2000-char app-JD cap (`prompt-lib.ts:874-891`).
+- **Piece C (CV lane): STRICT-MATCH name lookup.** Deterministic server-side pre-pass in
+  ai-chat: inline title+company match on active IL jobs (`is_il AND is_active`).
+  **Exact-ish matches only.** On ambiguity the coach ASKS ("I found 3 analyst roles -
+  which company?"), never guesses. **NO fuzzy resolution, NO tool loop** (fuzzy is
+  post-flip). Inject the matched JD capped. Tests + a small eval fixture set for wrong-row
+  protection. Edge-fn deploy + fingerprint after its merge.
+
+**Sequencing (CV lane): B+C are ONE backend item, AFTER the batch-1 post-merge tail,
+BEFORE batch 2.** Options 2/3 below are superseded by Piece C (strict-match, no fuzzy/no
+tool loop); the fuzzy/tool-loop variants are explicitly post-flip.
+
+## Options for joint scoping (superseded by the rulings above; kept for context)
 
 1. **SHALLOW-A:** add capped JD to the pinned TARGET JOB block. Cheap; helps only
    the "job open on screen" case; gated on the frontend `job_id` question above.
@@ -93,8 +117,10 @@ strip for unbacked "I'll add / added / tracked" claims is the deterministic hard
 
 - **VERIFIED:** coach job context is ID-driven, JD-omitted on the pinned-job path,
   zero tools, no name+company RPC.
-- **Verdict:** job-lookup-by-name = DEEP -> HOLD for joint scoping. Phrasing fix
-  (B.2) shipped alone: PR #770.
-- **Open questions:** (1) does the Jobs feed pass `job_id` to the coach today?
-  (2) which option (1/2/3) at scoping? (3) eval-harness import path for prompt-lib
-  (to size fixture churn before any prompt/context change).
+- **Verdict:** UN-PARKED, PRE-FLIP (Eli 2026-07-26). Piece A = design lane; Pieces B+C =
+  CV lane, ONE backend item after the batch-1 post-merge tail, before batch 2. Strict-match
+  only, no fuzzy/no tool loop (post-flip). Phrasing fix (B.2) already shipped: PR #770.
+- **Answered:** the frontend does NOT pass `job_id` today (`Career.jsx:443`
+  `visibleJobIds: []`; `UnifiedJobsFeed` never calls `setPageContext`).
+- **Open questions:** eval-harness import path for prompt-lib (to size fixture churn
+  before the B+C prompt/context change).
