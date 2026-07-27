@@ -3,7 +3,7 @@
 **Get A Job — Own Your Career**
 
 **Effective Date:** June 22, 2026
-**Last Updated:** June 23, 2026
+**Last Updated:** June 28, 2026
 
 **Operated by:** Eliezer Englard (Get A Job), Israel
 **Contact:** privacy@getajob.careers
@@ -246,4 +246,4 @@ If you believe your privacy rights have been violated, you also have the right t
 
 ---
 
-_This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder. This is a draft for legal review._
+_This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder._
