@@ -1199,12 +1199,16 @@ export default function StepReview({
       </SectionShell>
 
       <div className="flex justify-between items-center pt-2">
-        <button
-          onClick={onBack}
-          className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
-        >
-          ← Back
-        </button>
+        {onBack ? (
+          <button
+            onClick={onBack}
+            className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
+          >
+            ← Back
+          </button>
+        ) : (
+          <span />
+        )}
         <RdButton onClick={onNext} disabled={!canProceed}>
           Continue <ArrowRight className="w-4 h-4" />
         </RdButton>
