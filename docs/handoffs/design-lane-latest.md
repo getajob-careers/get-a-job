@@ -41,8 +41,11 @@ DESIGN lane, one terminal, persists across clears. Owns: redesign shell/home (`s
 
 1. **Home navigation:** add a Home tile to `TOOL_TILES` (same pattern as the Tasks tile) so there is an explicit path back to the 3-tab Home; keep logo-as-home working.
 2. **Coach sidebar panel:** kill the horizontal scrollbar in the UNEXPANDED panel (chips row or fixed-min-width child overflowing; wrap or clip correctly).
-3. **Rename "CV bank" tile** to match its destination (the CV editor) - "CV" or "CV Studio"; no bank/library view exists yet (post-launch).
-4. **Rename "Chat" tile to "Coach"** - same feature as the sidebar Coach, one name.
+3. **3-REVISED (Eli re-ruled 2026-07-27, SUPERSEDES the old rename):** CV bank moves INTO Home's CV tab.
+   a. REMOVE the cvbank tile from `TOOL_TILES` entirely.
+   b. Flag-on `/CVAgent`: redirect to the Home CV tab (superseded by the coach). **FLAG-OFF `/CVAgent` UNTOUCHED** - live editor until Flip 2.
+   c. **INVESTIGATE-FIRST** on Home's CV tab: what the "Master CV" control does today, and whether tailored CVs surface anywhere there. Then relabel it **"CV bank"** and make it the visible home of ALL the user's CVs - master + tailored, listed and openable. If that's wiring+labeling, BUILD; if it needs new data/capability, STOP and report shape + size for Eli. **The label must be TRUE - no "CV bank" over a single-document view.**
+4. **RULING PENDING (Eli deciding drop-vs-rename for the "Chat" tile):** originally "rename Chat -> Coach (same feature as sidebar Coach, one name)"; Eli is deciding whether to DROP the tile instead. Hub relays the ruling to the fresh session - do NOT act on item 4 until Eli rules.
 5. **NetworkingTab.jsx:103-108:** two pill-styled `<span>`s (Outreach Coach / Comment Coach) look like toggle buttons but are static labels - deceptive affordance. Either make them real jump-links to their sections OR restyle as plain headings. Comment Coach WORKS; do not rebuild it.
 6. **Matched-roles sort disclosure:** one visible line near the list - goal-path roles rank first, then match % (ordering deliberate; just needs to say so). COPY, not logic. (The sort is `sortMatchedRoles` in `MatchedRolesPanel.jsx`: tier order sweet-spot -> growth -> detour, then match_score DESC.)
 7. **LOGO (Eli-ruled):** in the `CanvasLogo` mark, the horizontal stroke under the seated figure's arm reads as an amputated limb. Remove/reshape per the QA suggestion so the figure still reads seated-at-desk. CAUTION: renders on signup, onboarding shell, app shell - verify ALL surfaces BOTH flag states, keep viewBox/dimensions IDENTICAL, keep `var(--rd-logo-hi, #EC6A47)` fallback intact.
