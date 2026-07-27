@@ -1,0 +1,58 @@
+# Redesign announcement - a ONE-OFF manual send to onboarded users telling them
+# the platform has a fully redesigned experience. NO schedule: this fires once,
+# manually, on Eli's go, after he reads the rendered dry-run sample.
+#
+# SEND GATING (two independent conditions, BOTH required for a real send):
+#   1. dry_run=false reaches the edge function. The runner derives this from the
+#      EMAIL_REAL_SEND env below: TRUE only on a dispatch with real_send=true;
+#      FALSE otherwise (so a plain dispatch stays dry-run for review).
+#   2. EMAIL_SEND_ENABLED="true" in the edge-function env (a Supabase secret).
+# With EMAIL_SEND_ENABLED unset, even a real_send run only renders + logs to
+# email_dry_run_log.
+#
+# Required repo secrets (same as refresh-jobs.yml):
+#   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
+#   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
+#
+# Manually trigger a dry run:
+#   gh workflow run send-redesign-announcement.yml
+
+name: Send redesign announcement
+
+on:
+  workflow_dispatch:
+    inputs:
+      real_send:
+        description: "true = actually send (also needs EMAIL_SEND_ENABLED=true); default false = dry-run"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Redesign announcement
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run redesign announcement
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Real send only on a manual dispatch that opts in (real_send=true).
+          # Still requires EMAIL_SEND_ENABLED=true in the edge-fn env to actually send.
+          EMAIL_REAL_SEND: ${{ inputs.real_send == true }}
+        run: npx tsx scripts/send-redesign-announcement.ts

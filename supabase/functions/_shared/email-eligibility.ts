@@ -8,6 +8,10 @@
 //                   job_digest_enabled != false, not internal.
 //   reengagement  = confirmed email, onboarding INCOMPLETE, not unsubscribed,
 //                   not internal.
+//   redesign_announcement = confirmed email, onboarding COMPLETE, not
+//                   unsubscribed, not internal. The people who already use the
+//                   platform and just got the redesign. Disjoint from
+//                   reengagement by construction (the onboarding_complete split).
 //
 // Internal exclusion mirrors the real_users CTE: email pattern (isInternalEmail)
 // + the Noms UUID (no email pattern to match).
@@ -98,9 +102,11 @@ export async function resolveEligibleRecipients(
     if (segment === "job_digest") {
       if (!onboardingComplete) continue;
       if (pref && pref.job_digest_enabled === false) continue;
-    } else {
-      // reengagement
+    } else if (segment === "reengagement") {
       if (onboardingComplete) continue;
+    } else {
+      // redesign_announcement: users who ALREADY use the platform (onboarded).
+      if (!onboardingComplete) continue;
     }
     out.push({ userId: id, email: emailById.get(id)!, fullName: prof?.full_name ?? null });
   }

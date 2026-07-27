@@ -131,3 +131,6 @@ verify_jwt = true
 
 [functions.send-reengagement-email]
 verify_jwt = true
+
+[functions.send-redesign-announcement]
+verify_jwt = true

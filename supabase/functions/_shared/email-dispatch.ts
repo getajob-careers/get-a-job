@@ -10,7 +10,7 @@
 
 import { sendEmail } from "./send-email.ts";
 
-export type EmailType = "job_digest" | "reengagement";
+export type EmailType = "job_digest" | "reengagement" | "redesign_announcement";
 
 // Internal / test recipients — never send here even if sending is later enabled.
 // Mirrors the scrubbed-usage real_users email exclusion (defense in depth: the

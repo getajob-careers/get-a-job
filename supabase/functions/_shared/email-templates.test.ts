@@ -4,7 +4,11 @@
 // inject markup.
 
 import { describe, it, expect } from "vitest";
-import { renderJobDigestEmail, renderReengagementEmail } from "./email-templates";
+import {
+  renderJobDigestEmail,
+  renderReengagementEmail,
+  renderRedesignAnnouncementEmail,
+} from "./email-templates";
 
 const UNSUB = "https://x.supabase.co/functions/v1/email-unsubscribe?token=abc";
 
@@ -68,5 +72,31 @@ describe("renderReengagementEmail", () => {
     expect(text).toContain(UNSUB);
     expect(html).toContain("https://getajob.careers/onboarding");
     expect(text).toContain("Hi Daniel,");
+  });
+});
+
+describe("renderRedesignAnnouncementEmail", () => {
+  it("includes the unsubscribe link + a single CTA to the app root", () => {
+    const { subject, html, text } = renderRedesignAnnouncementEmail({
+      fullName: "Maya Cohen",
+      unsubscribeUrl: UNSUB,
+      appUrl: "https://getajob.careers",
+    });
+    expect(subject.length).toBeGreaterThan(0);
+    expect(html).toContain(UNSUB);
+    expect(text).toContain(UNSUB);
+    expect(html).toContain("https://getajob.careers");
+    expect(text).toContain("Hi Maya,");
+    // Names the four redesigned surfaces, no invented features.
+    expect(text).toContain("the Coach");
+  });
+  it("greeting falls back to 'there' when no name", () => {
+    expect(
+      renderRedesignAnnouncementEmail({
+        fullName: null,
+        unsubscribeUrl: UNSUB,
+        appUrl: "https://getajob.careers",
+      }).text,
+    ).toContain("Hi there,");
   });
 });

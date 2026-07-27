@@ -114,6 +114,39 @@ export function renderJobDigestEmail(args: {
   return { subject, html: shell(inner, args.unsubscribeUrl), text };
 }
 
+// ── Redesign announcement (to onboarded users) ────────────────────────────────
+export function renderRedesignAnnouncementEmail(args: {
+  fullName?: string | null;
+  unsubscribeUrl: string;
+  appUrl: string;
+}): { subject: string; html: string; text: string } {
+  const name = firstName(args.fullName);
+  const subject = "Get A Job has a whole new look";
+
+  const inner = `<div style="font:400 15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:${BRAND.ink};">
+<p style="margin:0 0 12px;">Hi ${esc(name)},</p>
+<p style="margin:0 0 12px;">We rebuilt the Get A Job experience, and it's live now. The Home page, job browsing, your CV bank, and the Coach have all been redesigned to make finding your next role feel clearer and calmer.</p>
+<p style="margin:0 0 16px;">Come take a look.</p>
+<div style="padding-top:4px;">${ctaButton(args.appUrl, "See what's new")}</div>
+</div>`;
+
+  const text = [
+    `Hi ${name},`,
+    ``,
+    `We rebuilt the Get A Job experience, and it's live now. The Home page, job browsing, your CV bank, and the Coach have all been redesigned to make finding your next role feel clearer and calmer.`,
+    ``,
+    `Come take a look.`,
+    ``,
+    `See what's new: ${args.appUrl}`,
+    ``,
+    `---`,
+    `You're receiving this because you signed up for Get A Job.`,
+    `Unsubscribe: ${args.unsubscribeUrl}`,
+  ].join("\n");
+
+  return { subject, html: shell(inner, args.unsubscribeUrl), text };
+}
+
 // ── Onboarding-incomplete re-engagement ───────────────────────────────────────
 export function renderReengagementEmail(args: {
   fullName?: string | null;
