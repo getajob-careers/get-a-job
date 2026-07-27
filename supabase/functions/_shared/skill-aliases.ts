@@ -562,6 +562,33 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "sdlc": ["sdlc_practice"],
   "risk": ["risk_assessment_management"],
   "risk management": ["risk_assessment_management"],
+  // Security/risk batch 4 (reviewer-approved 22/25, alias-only, 0 new IDs). Surface-form
+  // synonyms/abbreviations onto existing infosec IDs; all security/fin-crime-locked so no
+  // non-security over-fire. red_teaming/iso_27001 already auto-resolve (snake-ID), so only
+  // "red team" needs a row. Dropped (genuine new-ID gaps, see close-out report): vulnerability
+  // management, zero trust, security compliance, security awareness, bare owasp.
+  "pentest": ["penetration_testing"],
+  "pen test": ["penetration_testing"],
+  "pen testing": ["penetration_testing"],
+  "penetration test": ["penetration_testing"],
+  "ethical hacking": ["penetration_testing"],
+  "red team": ["red_teaming"],
+  "infosec": ["information_security"],
+  "appsec": ["application_security"],
+  "owasp top 10": ["application_security"],
+  "identity and access management": ["identity_access_management"],
+  "risk assessment": ["risk_assessment_management"],
+  "data loss prevention": ["dlp_data_protection"],
+  "anti money laundering": ["financial_crime_practice"],
+  "kyc": ["financial_crime_practice"],
+  "third party risk": ["vendor_third_party_risk"],
+  "vendor risk": ["vendor_third_party_risk"],
+  "grc": ["grc_frameworks"],
+  "governance risk and compliance": ["grc_frameworks"],
+  "security operations": ["secops_practice"],
+  "security operations center": ["secops_practice"],
+  "soc analyst": ["secops_practice"],
+  "blue team": ["secops_practice"],
 
   // Finance / accounting
   "accounting": ["accounting_general"],
