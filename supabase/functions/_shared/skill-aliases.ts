@@ -676,7 +676,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "rtl2gds": ["rtl2gds"],
   "rtl-to-gds": ["rtl2gds"],
   "rtl to gds": ["rtl2gds"],
-  "soc": ["soc_design"],
   "soc design": ["soc_design"],
   "soc_design": ["soc_design"],
   "system on chip": ["soc_design"],
