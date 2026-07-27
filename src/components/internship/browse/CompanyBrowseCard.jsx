@@ -22,10 +22,13 @@ function ScoreChip({ score }) {
   const band = bandForRuleScore(score);
   const label = BAND_LABELS_SHORT[band];
   const cls =
-    band === "high" ? "brz-score brz-score-strong" :
-    band === "med"  ? "brz-score brz-score-soft" :
-    band === "low"  ? "brz-score brz-score-weak" :
-                      "brz-score brz-score-none";
+    band === "high"
+      ? "brz-score brz-score-strong"
+      : band === "med"
+        ? "brz-score brz-score-soft"
+        : band === "low"
+          ? "brz-score brz-score-weak"
+          : "brz-score brz-score-none";
   const aria =
     band === "none"
       ? "No match band (generate your pitch profile)"
@@ -40,7 +43,8 @@ function ScoreChip({ score }) {
 
 export default function CompanyBrowseCard({ company, score, onClick }) {
   const originLabel = ORIGIN_LABEL_BY_ID.get(company.origin);
-  const hasLiveJobs = company.verified === true && company.ats && company.ats !== "unknown";
+  const hasLiveJobs =
+    company.verified === true && company.ats && company.ats !== "unknown";
   const sectorOrIndustry = company.sector || company.industry;
   const location = formatLocation(company.hq_city, company.hq_country);
 
@@ -53,18 +57,26 @@ export default function CompanyBrowseCard({ company, score, onClick }) {
     >
       <div className="brz-card-eyebrow">
         {originLabel && <span className="brz-card-origin">{originLabel}</span>}
-        {hasLiveJobs && <span className="brz-card-live" aria-label="Has live job postings">Live jobs</span>}
+        {hasLiveJobs && (
+          <span className="brz-card-live" aria-label="Has live job postings">
+            Live jobs
+          </span>
+        )}
       </div>
       <h3 className="brz-card-name">{company.name}</h3>
       <p className="brz-card-meta">
         {sectorOrIndustry && <span>{sectorOrIndustry}</span>}
-        {company.employee_count_range && <span>{company.employee_count_range}</span>}
+        {company.employee_count_range && (
+          <span>{company.employee_count_range}</span>
+        )}
         {location && <span>{location}</span>}
       </p>
       {company.description ? (
         <p className="brz-card-desc">{company.description}</p>
       ) : (
-        <p className="brz-card-desc brz-card-desc-empty">Profile details coming soon.</p>
+        <p className="brz-card-desc brz-card-desc-empty">
+          No profile details yet.
+        </p>
       )}
       <div className="brz-card-footer">
         <ScoreChip score={score} />

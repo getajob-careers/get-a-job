@@ -281,7 +281,7 @@ export default function DirectionScreenV2({ data, onChange }) {
               </div>
             )}
             <p className="mt-2 text-[11.5px] text-rd-text-secondary">
-              Anchors your track and job-fit scores — it&apos;s the one thing we
+              Anchors your track and job-fit scores - it&apos;s the one thing we
               need to tailor every recommendation to you.
             </p>
           </>
@@ -302,7 +302,7 @@ export default function DirectionScreenV2({ data, onChange }) {
       {/* Work arrangement */}
       <div>
         <p className={FIELD_LABEL}>
-          Work arrangement — pick all you&apos;re open to
+          Work arrangement - pick all you&apos;re open to
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {WORK_ARRANGEMENTS.map(({ value, label, Icon }) => {

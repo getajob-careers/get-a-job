@@ -69,13 +69,16 @@ const SITUATION_TO_EMPLOYMENT = {
   freelancing: "freelance",
 };
 
-// V1's employment-status XOR rules, ported to the V2 situation vocab: selecting
-// a value drops any it conflicts with (mirrors StepResumeUpload's
-// toggleEmploymentStatus). student + freelancing stack with anything.
+// Employment-status XOR rules in the V2 situation vocab: selecting a value drops
+// any it conflicts with. `unemployed` is exclusive with both `have_job` and
+// `looking` (you can't be unemployed and employed, or unemployed and actively
+// job-searching in this vocab). But `have_job` and `looking` intentionally
+// COEXIST - an employed person looking for a new role is the common case, so
+// they no longer drop each other (M7). student + freelancing stack with anything.
 const SITUATION_CONFLICTS = {
   unemployed: ["have_job", "looking"],
-  have_job: ["unemployed", "looking"],
-  looking: ["unemployed", "have_job"],
+  have_job: ["unemployed"],
+  looking: ["unemployed"],
 };
 
 // Priority for deriving the single audit `situation` from a multi-pick — ranks
@@ -502,7 +505,7 @@ export default function OnboardingV2() {
                 Let’s start with your CV.
               </h1>
               <p className="rd-t-body-m text-rd-text-secondary mt-2">
-                Drop your CV and we’ll extract everything from it — no manual
+                Drop your CV and we’ll extract everything from it - no manual
                 entry. You can also skip and fill in the essentials yourself.
               </p>
 
@@ -510,9 +513,9 @@ export default function OnboardingV2() {
                   inference + track classification later). */}
               <div className="mt-6">
                 <p className="text-[11px] font-medium text-rd-text-tertiary uppercase tracking-wide mb-2.5">
-                  Your current situation — pick all that apply
+                  Your current situation - pick all that apply
                 </p>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {SITUATIONS.map(({ value, label, Icon }) => {
                     const isSelected = situations.includes(value);
                     return (
@@ -599,7 +602,7 @@ export default function OnboardingV2() {
                 Where are you headed?
               </h1>
               <p className="rd-t-body-m text-rd-text-secondary mt-2">
-                A few preferences that shape every recommendation — your goal,
+                A few preferences that shape every recommendation - your goal,
                 where you want to work, and your internship track.
               </p>
 
