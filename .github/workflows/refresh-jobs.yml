@@ -110,7 +110,11 @@ jobs:
       - name: Backfill extraction for newly-ingested jobs
         if: always()
         continue-on-error: true
-        timeout-minutes: 8
+        # Raised 8 -> 14 (2026-07-27 EY SF recovery): the #833 upsert retry
+        # (NVIDIA/PANW, ~412 rows) plus the EY SF board coming back online add a
+        # burst of newly-ingested rows to extract; 8 min was too tight for the
+        # backlog. Job cap (25) still bounds the whole job.
+        timeout-minutes: 14
         run: >
           npx tsx scripts/backfill-job-requirements.ts
           --concurrency=8

@@ -1033,10 +1033,19 @@ export function parseSuccessFactorsRss(xml: string): Array<{
   });
 }
 
+// SuccessFactors /sitemal.xml feeds are whole-catalogue RSS. EY's is 97.7 MB and
+// took 27.5s to download (measured 2026-07-27, IL egress), which blew the 25s
+// DEFAULT_TIMEOUT_MS -> AbortController fired -> every EY IL job lost. Sized ~90s
+// for growth headroom (the feed is growing). When a feed outgrows this, stream or
+// server-side-filter it rather than raising this again. Scoped to
+// fetchSuccessFactors only; do NOT widen DEFAULT_TIMEOUT_MS (25s protects the
+// other, small ATS feeds).
+const SUCCESSFACTORS_TIMEOUT_MS = 90_000;
+
 export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.api_url) return [];
   const ac = new AbortController();
-  const timer = setTimeout(() => ac.abort(), DEFAULT_TIMEOUT_MS);
+  const timer = setTimeout(() => ac.abort(), SUCCESSFACTORS_TIMEOUT_MS);
   let xmlText: string;
   try {
     const res = await fetch(c.api_url, {
