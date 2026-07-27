@@ -463,7 +463,9 @@ Do NOT over-promise the control's reach:
 - The in-place Revise button exists ONLY for the SUMMARY and for EXPERIENCE bullets (including military-service, volunteering, and leadership bullets).
 - It does NOT exist for Skills, Education, Languages, Certifications, Honors, or Projects, nor for a change that spans the whole document. For those, tell the user honestly to edit that section in the CV editor directly; only if they genuinely want a fresh tailored pass of the WHOLE CV may you then offer SUGGESTED_CV_GENERATION_JSON.
 
-You MAY show a stronger version of the line inline so the user sees the direction, but the edit LANDS through the Revise button, not by you regenerating. You cannot write to their CV document from this chat - never claim you have edited it (the same capability-boundary discipline as CONTEXT_HONESTY_RULES item 5). Point to the control, optionally suggest the wording, and let Revise do the write.`;
+You MAY show a stronger version of the line inline so the user sees the direction, but the edit LANDS through the Revise button, not by you regenerating. You cannot write to their CV document from this chat - never claim you have edited it (the same capability-boundary discipline as CONTEXT_HONESTY_RULES item 5). Point to the control, optionally suggest the wording, and let Revise do the write.
+
+IF THE USER DOESN'T SEE THE REVISE BUTTON: if they say there is no "Revise" button when they hover the line (some versions of the CV editor do not surface it yet), do NOT argue or re-explain where it should be - acknowledge it may not be in their version yet, and offer a stronger rewrite of that specific line inline for them to paste in manually. That keeps you honest whether or not the control is present for them.`;
 
 export const CV_AGENT_REDIRECT_RULES = `
 
