@@ -429,7 +429,7 @@ export default function JobGridCard({
                   e.stopPropagation();
                   onViewCv();
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 min-h-[44px] bg-rd-primary text-white hover:bg-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark focus-visible:ring-offset-1 transition-[background-color,transform] duration-150"
               >
                 View CV
               </button>
@@ -440,7 +440,7 @@ export default function JobGridCard({
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   title="Apply on the company site"
-                  className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
+                  className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 min-h-[44px] bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 transition-[background-color,transform] duration-150"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Apply
@@ -456,7 +456,7 @@ export default function JobGridCard({
                 e.stopPropagation();
                 onGenerateCv();
               }}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 min-h-[44px] bg-rd-primary text-white hover:bg-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark focus-visible:ring-offset-1 transition-[background-color,transform] duration-150"
             >
               <Wand2 className="w-3 h-3" />
               Generate CV
@@ -468,7 +468,7 @@ export default function JobGridCard({
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Apply on the company site"
-                className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
+                className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 min-h-[44px] bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 transition-[background-color,transform] duration-150"
               >
                 <ExternalLink className="w-3 h-3" />
                 Apply
@@ -483,7 +483,7 @@ export default function JobGridCard({
               disabled={tracked || tracking}
               title={tracked ? "In your tracker" : "Add to tracker"}
               aria-label={tracked ? "In your tracker" : "Add to tracker"}
-              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark disabled:cursor-default transition-colors"
+              className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 disabled:cursor-default disabled:active:scale-100 transition-[background-color,transform] duration-150"
               style={
                 tracked
                   ? {

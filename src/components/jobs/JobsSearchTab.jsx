@@ -321,7 +321,7 @@ export default function JobsSearchTab({
       {/* Keyword — match-as-you-type over the cached corpus (title + company
           only; description is lazy-loaded, out of scope). AND-composes with
           the facets below. */}
-      <div className="flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-2.5 shadow-rd mb-3">
+      <div className="flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-2.5 shadow-rd mb-3 transition-[border-color,box-shadow] duration-150 focus-within:border-rd-primary focus-within:shadow-[0_0_0_3px_var(--rd-primary-tint)]">
         <Search className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
         <input
           value={keyword}
@@ -730,7 +730,7 @@ function LocationCombobox({ value, onChange, options }) {
         <button
           type="button"
           aria-expanded={open}
-          className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-3 py-1 border border-rd-border hover:border-rd-primary focus:outline-none"
+          className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-3 py-1 border border-rd-border hover:border-rd-primary transition-[border-color,box-shadow] duration-150 focus-visible:outline-none focus-visible:border-rd-primary focus-visible:shadow-[0_0_0_3px_var(--rd-primary-tint)]"
         >
           {current.label}
           {current.count != null && (

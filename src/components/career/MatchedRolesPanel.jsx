@@ -220,7 +220,8 @@ export default function MatchedRolesPanel({
             <div key={r.id} className={sz.card}>
               <button
                 onClick={() => onToggle(expanded ? `closed-${r.id}` : r.id)}
-                className={sz.toggle}
+                aria-expanded={expanded}
+                className={`${sz.toggle} transition-colors hover:bg-rd-bg-soft active:bg-rd-border-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rd-primary`}
               >
                 <span
                   className={`w-2 h-2 rounded-full ${band.dot} flex-shrink-0`}
