@@ -106,5 +106,10 @@ export function deriveJobDisplay(job, scoreResult, { showAttainabilityBand = fal
     missingCoreSkills: (scoreResult?.signals?.missing_core_skills || []).map(humanizeSkillId),
     reasonText: (scoreResult?.reasoning?.strengths || []).join(" · "),
     chips: [workTypeChipText(job), experienceChipText(job), formatPostedDate(job.date_posted)].filter(Boolean),
+    // Seniority above the user's stretch ceiling (band already capped to
+    // "stretch" in scoreJobFit) - lets the card/modal add a quiet, self-explaining
+    // note so an included reach (e.g. Head of Product) reads as honest rather than
+    // as a scoring glitch. Pure signal; the render sites decide when to show it.
+    aboveCeiling: scored && scoreResult?.signals?.seniority_match === "above_ceiling",
   };
 }

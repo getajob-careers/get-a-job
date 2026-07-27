@@ -84,4 +84,22 @@ describe("deriveJobDisplay", () => {
     expect(deriveJobDisplay(JOB, SCORE).direction).toBeNull();
     expect(deriveJobDisplay(JOB, null).direction).toBeNull();
   });
+
+  it("flags aboveCeiling only when the seniority signal is above_ceiling", () => {
+    const above = deriveJobDisplay(JOB, {
+      ...SCORE,
+      signals: { ...SCORE.signals, seniority_match: "above_ceiling" },
+    });
+    expect(above.aboveCeiling).toBe(true);
+
+    expect(
+      deriveJobDisplay(JOB, {
+        ...SCORE,
+        signals: { ...SCORE.signals, seniority_match: "stretch" },
+      }).aboveCeiling,
+    ).toBe(false);
+    // no signal, and an unscored job, both read as not-above-ceiling
+    expect(deriveJobDisplay(JOB, SCORE).aboveCeiling).toBe(false);
+    expect(deriveJobDisplay(JOB, null).aboveCeiling).toBe(false);
+  });
 });
