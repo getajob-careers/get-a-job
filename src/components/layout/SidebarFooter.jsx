@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { createPageUrl } from "@/utils";
-import { LogOut, House } from "lucide-react";
+import { LogOut, Globe } from "lucide-react";
 
 // `profileFullName` (optional) — preferred name source from profiles.full_name,
 // which is populated by CV extraction during onboarding. Falls back to auth
@@ -76,8 +76,8 @@ export default function SidebarFooter({ profileFullName = null, onNavigate }) {
             onClick={onNavigate}
             className="flex items-center justify-center gap-1.5 mt-2.5 text-[10px] text-rd-text-eyebrow hover:text-rd-text tracking-[0.09em] uppercase font-mono text-center transition-colors hover:underline underline-offset-4"
           >
-            <House className="w-[11px] h-[11px]" aria-hidden="true" />
-            Visit homepage
+            <Globe className="w-[11px] h-[11px]" aria-hidden="true" />
+            getajob.careers
           </Link>
         </>
       ) : (

@@ -80,7 +80,7 @@ export default function CanvasShell({ children, revealMode }) {
           scrolls on every size so real pages are never clipped. */}
       <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
         <CanvasSidebar coach={<CoachDock />} account={account} />
-        <main className="legacy-body flex-1 min-w-0 min-h-0 overflow-y-auto pb-16 md:pb-0">
+        <main className="legacy-body flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-clip pb-16 md:pb-0">
           {children}
         </main>
       </div>

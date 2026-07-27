@@ -422,7 +422,7 @@ export default function JobGridCard({
               <Check className="w-3 h-3" />
               CV ready
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={(e) => {
@@ -449,7 +449,7 @@ export default function JobGridCard({
             </div>
           </div>
         ) : alive ? (
-          <div className="cx-actions mt-auto pt-3 flex items-center gap-2">
+          <div className="cx-actions mt-auto pt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={(e) => {
