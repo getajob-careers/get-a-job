@@ -102,3 +102,117 @@ statement due to statement timeout`. Status=upsert_error → the WRITE died, fet
 ## Scope note
 
 Lever 2 fix, Lever 1 egress, Lever 6 cron, dark-board re-probes = sourcing pipeline (scripts/, GHA) — NOT design lane, NOT CV lane. The Lever 5 remote-flag fix is normalization (scripts/lib/ats-fetchers.ts) but its consumers (JobsSearchTab/JobCard) are CV-lane surfaces — coordinate.
+---
+
+# APPENDIX (2026-07-27, post-investigation execution)
+
+Added after the investigation shipped. Every claim tagged VERIFIED / INFERRED / REPORTED.
+
+## P0 - geo-block VERIFIED (was INFERRED in Lever 1)
+
+Ran a branch-scoped `geo-probe.yml` on a real US GitHub-hosted runner (egress
+`20.169.50.33`, US / AS8075 Microsoft Azure - same egress class as the nightly
+refresh-jobs job), requests mirroring the production fetchers' exact method/UA/body:
+
+- IAI: `http_code=247`, `size=488` bytes (a gateway challenge page, NOT the 1.1MB feed). curl_exit=0.
+- Bezeq: `http_code=000`, `curl_exit=28` (timed out after 25s - TCP hang).
+- HOT: `http_code=302`, `size=0` (redirect, not the data).
+
+All three return HTTP 200 + full payload from an IL residential IP (independently
+re-confirmed by the coordinator this session: `curl ipinfo.io` -> `77.127.128.236
+AS12400 Partner Communications IL`; IAI -> HTTP 200, 1,104,155 bytes, 452 array items).
+**Verdict: geo-block CONFIRMED** - the US CI egress cannot retrieve what an IL IP
+retrieves. The probe workflow was a throwaway (never merged, branch ref deleted).
+
+## ~488 estimate - provenance AUDIT (the Teva discipline, applied to the infra-spend number)
+
+The ~488 IL-job geo-block estimate = IAI 452 + Bezeq 31 + HOT 5. Because this number
+is the basis of an infrastructure-spend decision, it was audited the same way the
+Teva figure was caught:
+
+- **IAI 452: VERIFIED LIVE-FEED count**, NOT an inactive-row count. Coordinator curled
+  the endpoint from an IL IP: HTTP 200, 1,104,155 bytes, 452 array items. IAI has
+  ZERO rows in the jobs table ever, so this figure structurally CANNOT be an
+  inactive-row artifact.
+- **Bezeq 31: live-feed count** (curl 200, 31 records). The 37 sometimes cited is the
+  historical inactive high-water; the estimate correctly uses the live 31.
+- **HOT 5: live-feed count** (curl 200, 5 records).
+
+**Conclusion: the ~488 does NOT share Teva's defect** - it is grounded in live probes
+of the current endpoints, not in counting stale inactive rows. CAVEAT: these are RAW
+feed counts; the net-new ACTIVE-IL landed count after dedup (external_id) + junk-title
+/extraction trim will be modestly lower, and is only precisely knowable once the
+boards ingest through an IL egress. Honest figure: **up to ~488 raw live-feed, net
+somewhat lower.** IAI 452 dominates and is VERIFIED live - it is the load-bearing
+number for the spend decision and it is sound.
+
+## Teva 49-job correction (why the original figure was wrong)
+
+Lever 4 REPORTED a "Teva ~49-job unlock." That figure came from counting historical
+INACTIVE jobs-table rows for Teva, WITHOUT probing whether Teva's board still exists on
+a supported backend. The P2 re-probe (2026-07-27, IL IP) VERIFIED: Teva's SF endpoint
+`careers.teva/sitemal.xml` -> 301 -> www -> 404, and Teva's careers portal is rebuilt
+on **Eightfold AI** (an unsupported ATS). **Teva has migrated OFF SuccessFactors;
+recoverable Teva jobs via SF = 0.** The lesson (same as the vendor-list-vs-infra
+series): a job count taken from stale inactive rows is not a recovery estimate until
+the live board is confirmed to still exist on a fetcher-supported backend.
+
+## P2 re-probe verdicts (SuccessFactors dark boards)
+
+- **EY: recoverable via a fetcher fix, not a registry repoint.** Registry URL
+  (`careers.ey.com/sitemal.xml`) is correct. Measured 2026-07-27 (IL IP): feed is
+  **97.7 MB** (grown from ~68MB), fetch+download **27.5s** which exceeds the 25s
+  `DEFAULT_TIMEOUT_MS` -> AbortController fires -> 0 jobs. Parse 4.9s, peak RSS 193MB
+  (NOT a memory concern on a 7GB runner). Live IL count via the production
+  `classifyLocation` filter = **63** (59 Tel Aviv, 2 Jerusalem, 2 Haifa) - the earlier
+  "37" was a stale undercount. Fix = a SuccessFactors-specific longer timeout;
+  the durable follow-up is streaming / server-side IL filter (98MB downloaded for 63
+  IL jobs = 0.9% yield, and the feed is growing). HELD pending ruling.
+- **Qualitest: DEAD.** SF tenant decommissioned (301 -> sap.com); migrated to Workable,
+  but that board is genuinely empty (`{"total":0}`). Recoverable = 0.
+- **Teva: DEAD** (see correction above). Recoverable = 0.
+
+## P1 shipped
+
+PR #833 merged 2026-07-27 (squash SHA `64123aa`): per-company upsert wrapped in the
+sweep's `withTimeoutRetry` (57014 retry) + `UPSERT_BATCH_SIZE` 200->100 +
+`CONCURRENCY_LIMIT` 20->16 + refresh job `timeout-minutes` 18->25. Targets the
+NVIDIA/PANW recovery (~412 IL active). Validate after the next nightly: NVIDIA/PANW
+rows return active + `upsert_error` count drops in the GHA run summary.
+
+## The $3 datacenter-IL-IP test (draft only - no spend, no accounts created here)
+
+The IL-egress spend decision hinges on ONE unknown: does a _datacenter_ IL IP clear
+the IAI/Bezeq/HOT gateways, or only a _residential_ one? The only IP proven to work is
+residential (Partner). Resolve it cheaply BEFORE buying any plan:
+
+**Option (cheapest to run AND interpret): a Webshare IL datacenter proxy.**
+
+1. Eli buys: Webshare "IL datacenter" 100-IP plan, ~$2.99 (their smallest). This is a
+   proxy endpoint, no VM, no runner. (Eli creates the account + pays; nothing bought here.)
+2. Eli gets `host:port:user:pass` for an IL-geolocated datacenter proxy, then runs the
+   SAME three faithful requests, routed through it:
+   ```
+   P="http://USER:PASS@HOST:PORT"
+   curl -x "$P" -sS -o /dev/null -w "IAI %{http_code} size=%{size_download}\n" --max-time 30 \
+     -H "User-Agent: GetAJob-RefreshJobs/1.0 (https://getajob.example)" -H "Accept: application/json" \
+     "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json"
+   curl -x "$P" -sS -o /dev/null -w "BEZEQ %{http_code} size=%{size_download}\n" --max-time 30 \
+     -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/121.0 Safari/537.36" \
+     "https://d-api.bezeq.co.il/api/Adam/GetActiveJobs"
+   curl -x "$P" -sS -o /dev/null -w "HOT %{http_code} size=%{size_download}\n" --max-time 30 -X POST \
+     -H "User-Agent: GetAJob-RefreshJobs/1.0 (https://getajob.example)" -H "Content-Type: application/json" \
+     --data '{"professionId":0,"areaId":0,"take":100}' \
+     "https://www.hot.net.il/HotCmsApiFront/api/MarketingJob/GetJobs"
+   ```
+3. **Interpretation:**
+   - CONFIRM (datacenter IL works): IAI returns `200` with `size` ~~1.1MB (not 488),
+     Bezeq `200` with a non-trivial body, HOT `200`. -> the cheap datacenter path is
+     viable: route the 3 IL-native fetchers through an IL datacenter proxy (~~$3-27/mo,
+     small ProxyAgent code change). Total effectively solved for ~$5-20/mo.
+   - REFUTE (only residential works): the proxy reproduces the US-runner result
+     (IAI 247/488-byte challenge, Bezeq timeout, HOT 302). -> only a residential IL
+     proxy will work, at a $75+/mo minimum for ~45MB/mo of traffic - poor value, and a
+     strategic call for Eli on whether the ~488 IL-native jobs justify it.
+
+The $3 test collapses a $5/mo-vs-$75+/mo decision; run it before committing to any plan.
