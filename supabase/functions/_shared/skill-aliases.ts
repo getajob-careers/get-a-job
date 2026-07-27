@@ -1427,6 +1427,39 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "invoice processing": ["accounts_payable"],
   "quickbooks": ["bookkeeping"],
   "xero": ["bookkeeping"],
+  // ── Batch 7: Modern web / cloud / data-eng + no-code + HRIS/ATS (2026-07-27) ─
+  // All-alias onto existing IDs, 0 new IDs (builder proposed / independent
+  // reviewer validated concept-correctness with drop-on-doubt). DROPPED by the
+  // reviewer: "clean architecture" (falls between code_quality and system_design,
+  // no clean single-hop home), "telemetry" (domain-ambiguous: SRE observability
+  // vs HW/embedded sensor telemetry - would over-fire on the now-in-library HW
+  // cluster, same class as the soc/dsp drops), "talent management" (3-way umbrella
+  // split), "sdks" (too generic). "solidworks" (mint deferred) filed to the
+  // Mechanical/HW role-expansion cluster as demand evidence, not aliased.
+  "caching": ["backend_development"],
+  "solution architecture": ["solution_design_architecture"],
+  "azure devops": ["ci_cd"],
+  "webhooks": ["backend_development"],
+  "deployment pipelines": ["ci_cd"],
+  "data models": ["data_modeling"],
+  "openshift": ["containerization"],
+  "scipy": ["python_data"],
+  "dynamodb": ["databases"],
+  "advanced sql": ["sql_advanced"],
+  "vba": ["excel_advanced_finance"],
+  "anomaly detection": ["machine_learning"],
+  "employee relations": ["hr_business_partnering"],
+  "employee engagement": ["employee_experience"],
+  "succession planning": ["talent_development"],
+  "linkedin recruiter": ["talent_acquisition_recruiting"],
+  "compensation": ["compensation_benefits"],
+  "hris": ["hris_management"],
+  "supabase": ["backend_development"],
+  "vercel": ["frontend_development"],
+  "tailwind css": ["html_css_modern"],
+  "wordpress": ["web_design"],
+  "wix": ["web_design"],
+  "base44": ["no_code_ai_automation"],
 };
 
 // THE one shared skill resolver. extract-job-requirements,
