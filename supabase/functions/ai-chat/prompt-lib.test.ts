@@ -139,6 +139,14 @@ describe("assembleSystemPrompt — honesty rules + capability routing", () => {
     expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
   });
 
+  it("gives career_agent the CV-Revise-pointer rule so a section tweak routes to Revise, not a regen", () => {
+    const sys = assembleSystemPrompt("career_agent", "", null);
+    expect(sys).toContain("REVISE ONE SECTION OF AN EXISTING CV");
+    // the pointer names the control by name + location for accuracy
+    expect(sys).toContain('"Revise" button');
+    expect(sys).toContain("Tighten");
+  });
+
   it("teaches career_agent the LOOKED-UP JOB / NAMED-JOB LOOKUP honesty rule (Piece C)", () => {
     const sys = assembleSystemPrompt("career_agent", "", null);
     expect(sys).toContain("LOOKED-UP JOB / NAMED-JOB LOOKUP");
