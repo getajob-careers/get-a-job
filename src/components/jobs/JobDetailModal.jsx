@@ -269,7 +269,7 @@ export default function JobDetailModal({
                 user's seniority ceiling (band already capped to "stretch"). */}
             {d.aboveCeiling && (
               <p className="mt-2 text-[11px] text-rd-text-secondary">
-                Above your current level - a stretch beyond your seniority today.
+                Above your current level - beyond your seniority for now.
               </p>
             )}
           </div>
