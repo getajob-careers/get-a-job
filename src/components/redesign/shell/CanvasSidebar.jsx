@@ -9,7 +9,6 @@ import {
   Map,
   ListTodo,
   User,
-  FileText,
   BookOpen,
   Linkedin,
   Mic,
@@ -35,10 +34,10 @@ const REDUCE =
 // general career agent). `id` selects the bespoke CanvasToolIcon silhouette + the
 // mockup tool tint; `icon` is the compact lucide glyph for the mobile rail.
 const TOOL_TILES = [
+  { id: "home", label: "Home", page: "Home", icon: House },
   { id: "career", label: "Career", page: "Career", icon: Map },
   { id: "tasks", label: "Tasks", page: "Tasks", icon: ListTodo },
   { id: "profile", label: "Profile", page: "Profile", icon: User },
-  { id: "cvbank", label: "CV bank", page: "CVAgent", icon: FileText },
   { id: "storybank", label: "Story bank", page: "StoryBank", icon: BookOpen },
   { id: "linkedin", label: "LinkedIn", page: "Linkedin", icon: Linkedin },
   { id: "coach", label: "Interview coach", page: "InterviewCoach", icon: Mic },
@@ -48,7 +47,10 @@ const TOOL_TILES = [
     page: "SkillDevelopmentAdvisor",
     icon: GraduationCap,
   },
-  { id: "chat", label: "Chat", page: "CareerAgent", icon: MessagesSquare },
+  // The Coach tile opens the full-page view of the SAME assistant as the sidebar
+  // dock (CoachDock) - one name everywhere (Eli, PR-D item 4). CV bank retired
+  // from the rail: it now lives in Home's CV tab (item 3), /CVAgent redirects.
+  { id: "chat", label: "Coach", page: "CareerAgent", icon: MessagesSquare },
 ];
 
 // The toolkit rail - a compact horizontal carousel of the coloured objects. Native

@@ -369,7 +369,7 @@ export default function MessageBubble({ message, variant = "page" }) {
         {message.content && (
           <div
             className={cn(
-              "max-w-full",
+              "max-w-full break-words",
               bubblePadding,
               isUser ? userBubbleClasses : agentBubbleClasses,
             )}

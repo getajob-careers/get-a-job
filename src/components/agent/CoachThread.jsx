@@ -441,7 +441,7 @@ export default function CoachThread({ variant = "dock" }) {
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className={`flex-1 min-h-0 overflow-y-auto ${padding} space-y-3`}
+      className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden ${padding} space-y-3`}
       style={{ overscrollBehavior: "contain" }}
       data-coach-thread
       data-variant={variant}

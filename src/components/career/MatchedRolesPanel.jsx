@@ -183,6 +183,15 @@ export default function MatchedRolesPanel({
         Why you&apos;re matched: every role is scored on two axes - how{" "}
         <b className="text-rd-text">qualified</b> you are now, and how well it{" "}
         <b className="text-rd-text">moves you toward {goalName}</b>.
+        {/* Sort disclosure (Eli PR-D item 6): the list order is deliberate -
+            surface it. Comfortable-only so Career's compact render stays
+            byte-identical. Mirrors sortMatchedRoles (tier before score). */}
+        {size === "comfortable" && (
+          <>
+            {" "}
+            Roles on your goal path are listed first, then by match strength.
+          </>
+        )}
       </p>
       <div className={sz.list}>
         {isLoading && roles.length === 0 && (

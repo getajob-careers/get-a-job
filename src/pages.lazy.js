@@ -28,7 +28,9 @@ const AdminLaunch = lazy(() => import("./pages/AdminLaunch"));
 const Career = lazy(() => import("./pages/Career"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const CareerAgent = lazy(() => import("./pages/CareerAgent"));
-const CVAgent = lazy(() => import("./pages/CVAgent"));
+// `/CVAgent` is FLAG-GATED: flag-off renders the live CV editor byte-identical;
+// flag-on redirects into Home's CV tab (the CV bank). See CVAgentRouteGate.jsx.
+const CVAgentRouteGate = lazy(() => import("./pages/CVAgentRouteGate"));
 // `/` + `/Home` and `/Jobs` are FLAG-GATED (each renders the current page
 // flag-off, the redesign flag-on) so the route repoint keeps flag-off
 // byte-identical. Home3Tab stays the "Home" key (so currentPageName is "Home" and
@@ -71,7 +73,7 @@ export const LAZY_PAGES = {
   Career,
   Calendar,
   CareerAgent,
-  CVAgent,
+  CVAgent: CVAgentRouteGate,
   Home: Home3Tab,
   InterviewCoach,
   Jobs: JobsRouteGate,
