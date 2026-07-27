@@ -133,7 +133,7 @@ function SuccessReveal({
         </div>
       )}
       <p className="relative text-[12px] text-rd-text-secondary text-center mt-3">
-        Check it below — edit anything that isn&apos;t right, add what&apos;s
+        Check it below - edit anything that isn&apos;t right, add what&apos;s
         missing.
       </p>
     </div>
@@ -154,7 +154,7 @@ function FailureBanner({ onRetry }) {
           </p>
           <p className="text-[12.5px] text-rd-text-secondary mt-1 leading-relaxed">
             The file didn&apos;t parse cleanly. You can try uploading again, or
-            just fill in the essentials below — either way you&apos;re not
+            just fill in the essentials below - either way you&apos;re not
             stuck.
           </p>
           <button
@@ -214,7 +214,7 @@ export default function ReviewScreenV2({
         <div className="rd-r-lg border border-rd-border bg-rd-bg-card p-4 flex items-center gap-2.5 text-rd-text-secondary">
           <FileText className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
           <p className="text-[12.5px]">
-            No CV yet — fill in the essentials below and you can always add your
+            No CV yet - fill in the essentials below and you can always add your
             CV later.
           </p>
         </div>
@@ -235,6 +235,7 @@ export default function ReviewScreenV2({
         onBack={onBack}
         eyebrow={null}
         showExtractedBanner={!manualFloor}
+        cvExtracted={status === "success"}
       />
     </div>
   );

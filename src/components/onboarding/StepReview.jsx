@@ -662,6 +662,10 @@ export default function StepReview({
   // showExtractedBanner: the "N items pre-filled" teal banner; V2 hides it in
   // favour of its own count-up reveal.
   showExtractedBanner = true,
+  // cvExtracted: whether a CV was actually read. Defaults true (V1 byte-identical).
+  // V2 passes false on the skip / failed-parse path so the subtext does not claim
+  // a CV was read when none was.
+  cvExtracted = true,
 }) {
   // Ensure at least one (primary) education row exists in state so the
   // user can fill it even when the extractor returned nothing.
@@ -843,8 +847,9 @@ export default function StepReview({
           Review and refine.
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Here&apos;s what we found in your CV. Edit anything that isn&apos;t
-          right, add what&apos;s missing, then continue.
+          {cvExtracted
+            ? "Here's what we found in your CV. Edit anything that isn't right, add what's missing, then continue."
+            : "Add the essentials below. Edit anything that isn't right, add what's missing, then continue."}
         </p>
       </div>
 
