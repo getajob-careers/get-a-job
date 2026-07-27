@@ -1074,6 +1074,21 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "mcp servers": ["mcp_protocol"],
   "multi-agent orchestration": ["agentic_systems"],
 
+  // ── Skill-expansion mini-batch: gen-image AI tools (2026-07-27) ───────────
+  // Image-generation tool brand-names -> `generative_ai_creative` (the library
+  // ID whose description names Midjourney/DALL·E/Adobe Firefly verbatim).
+  // Batch-1 routed GENERALIST AI tools to ai_tool_fluency and its reviewer
+  // dropped these gen-image tools; this is the follow-up routing them to the
+  // creative specialist. Job-side evidence is 100% creative-domain (Brand
+  // designer, Creative Strategist). "stable diffusion" DEFERRED: dual-sense
+  // (creative tool vs ML model) - out of ruled scope and the only ambiguous
+  // phrase. Additive; none resolved before. Tested in skillResolver.test.js.
+  "midjourney": ["generative_ai_creative"],
+  "dall-e": ["generative_ai_creative"],
+  "dall·e": ["generative_ai_creative"],
+  "dalle": ["generative_ai_creative"],
+  "adobe firefly": ["generative_ai_creative"],
+
   // Operations / logistics variant.
   "operational logistics": ["logistics_practice"],
 
