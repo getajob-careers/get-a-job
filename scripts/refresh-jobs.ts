@@ -318,16 +318,71 @@ async function processCompany(
 
 // ───── Soft-delete sweep ──────────────────────────────────────────────
 
+// Chunk size for the batched soft-delete UPDATE. A single unbounded UPDATE over
+// the whole stale backlog hit the 2-min Postgres statement_timeout under nightly
+// lock contention and silently skipped the sweep (2026-07-26/27 incident);
+// small chunks keep each statement well under budget.
+const SWEEP_CHUNK = 200;
+
+// Under nightly lock contention the maintenance-tail statements (sweep id-scan,
+// chunk UPDATEs, landing count) surface Postgres 57014 (`canceling statement due
+// to statement timeout`) as a returned error. Bounded retry with linear backoff
+// so a transient timeout doesn't skip the tail. Retries ONLY on timeout; any
+// other error is returned to the caller on the first attempt.
+async function withTimeoutRetry<T extends { error: unknown }>(
+  label: string,
+  fn: () => PromiseLike<T>,
+  tries = 3,
+  backoffMs = 2000,
+): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    const res = await fn();
+    const msg = (res.error as { message?: string } | null)?.message ?? "";
+    const isTimeout = /statement timeout|57014|canceling statement/i.test(msg);
+    if (!res.error || !isTimeout || attempt >= tries) return res;
+    console.error(
+      `WARN: ${label} timed out (attempt ${attempt}/${tries}), retrying in ${backoffMs * attempt}ms`,
+    );
+    await new Promise((r) => setTimeout(r, backoffMs * attempt));
+  }
+}
+
 async function softDeleteStale(supabase: SupabaseClient): Promise<number> {
   const cutoff = new Date(Date.now() - STALE_DAYS * 86_400_000).toISOString();
-  const { data, error } = await supabase
-    .from("jobs")
-    .update({ is_active: false })
-    .lt("last_seen_at", cutoff)
-    .eq("is_active", true)
-    .select("id");
-  if (error) throw new Error(`soft-delete sweep failed: ${error.message}`);
-  return (data ?? []).length;
+  // Collect eligible ids first (paginated, single cheap column), then deactivate
+  // in small chunks. Each chunk UPDATE re-asserts the FULL predicate so a row
+  // that changed between the scan and the write is never wrongly touched.
+  const ids: string[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await withTimeoutRetry("sweep id-scan", () =>
+      supabase
+        .from("jobs")
+        .select("id")
+        .lt("last_seen_at", cutoff)
+        .eq("is_active", true)
+        .range(from, from + 999),
+    );
+    if (error) throw new Error(`soft-delete sweep failed: ${error.message}`);
+    for (const r of data ?? []) ids.push(r.id);
+    if (!data || data.length < 1000) break;
+  }
+
+  let deactivated = 0;
+  for (let i = 0; i < ids.length; i += SWEEP_CHUNK) {
+    const chunk = ids.slice(i, i + SWEEP_CHUNK);
+    const { data, error } = await withTimeoutRetry("sweep update", () =>
+      supabase
+        .from("jobs")
+        .update({ is_active: false })
+        .in("id", chunk)
+        .lt("last_seen_at", cutoff)
+        .eq("is_active", true)
+        .select("id"),
+    );
+    if (error) throw new Error(`soft-delete sweep failed: ${error.message}`);
+    deactivated += (data ?? []).length;
+  }
+  return deactivated;
 }
 
 // ───── Landing page Hero stats ────────────────────────────────────────
@@ -343,11 +398,15 @@ const LANDING_STATS_PAGE_SIZE = 1000;
 async function computeLandingStats(
   supabase: SupabaseClient,
 ): Promise<{ liveRolesCount: number; companiesHiringCount: number }> {
-  const { count, error: countError } = await supabase
-    .from("jobs")
-    .select("*", { count: "exact", head: true })
-    .eq("is_il", true)
-    .eq("is_active", true);
+  const { count, error: countError } = await withTimeoutRetry(
+    "landing count",
+    () =>
+      supabase
+        .from("jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("is_il", true)
+        .eq("is_active", true),
+  );
   if (countError) {
     throw new Error(
       `landing_stats live-roles count failed: ${countError.message}`,
@@ -359,12 +418,14 @@ async function computeLandingStats(
   // in-process instead of standing up a dedicated RPC for one nightly read.
   const slugs = new Set<string>();
   for (let from = 0; ; from += LANDING_STATS_PAGE_SIZE) {
-    const { data, error } = await supabase
-      .from("jobs")
-      .select("company_slug")
-      .eq("is_il", true)
-      .eq("is_active", true)
-      .range(from, from + LANDING_STATS_PAGE_SIZE - 1);
+    const { data, error } = await withTimeoutRetry("landing company-scan", () =>
+      supabase
+        .from("jobs")
+        .select("company_slug")
+        .eq("is_il", true)
+        .eq("is_active", true)
+        .range(from, from + LANDING_STATS_PAGE_SIZE - 1),
+    );
     if (error) {
       throw new Error(`landing_stats company count failed: ${error.message}`);
     }
@@ -488,27 +549,56 @@ async function main() {
 
   // Soft-delete sweep
   let staleMarked = 0;
+  let sweepOk = false;
   if (!dryRun && supabase) {
     try {
       staleMarked = await softDeleteStale(supabase);
+      sweepOk = true;
     } catch (err) {
       console.error(
-        `WARN: soft-delete sweep failed: ${(err as Error).message}`,
+        `::warning::soft-delete sweep failed: ${(err as Error).message}`,
       );
     }
   }
 
   // Landing page Hero stats — must run AFTER the soft-delete sweep above so
-  // is_active reflects tonight's run. Non-fatal: the frontend fallback
-  // (HERO_STATS_FALLBACK + staleness check) absorbs a missed night, so this
-  // doesn't need to fail the whole cron run like a jobs-table write would.
+  // is_active reflects tonight's run. A single missed night is absorbed by the
+  // frontend fallback (HERO_STATS_FALLBACK + staleness check), so one failure
+  // stays non-fatal, but the two-night loudness gate below reds the run.
+  let statsOk = false;
   if (!dryRun && supabase) {
     try {
       await refreshLandingStats(supabase);
+      statsOk = true;
     } catch (err) {
       console.error(
-        `WARN: landing_stats refresh failed: ${(err as Error).message}`,
+        `::warning::landing_stats refresh failed: ${(err as Error).message}`,
       );
+    }
+  }
+
+  // LOUDNESS - never two silent green nights (2026-07-26/27: sweep + stats were
+  // skipped two nights running while the run stayed green). landing_stats.updated_at
+  // is the persistent cross-run signal: if this run failed to refresh the tail AND
+  // that row is already >40h stale, the prior night failed too, red the run
+  // (enforced at the EXIT gate below, after the fetch-health checks).
+  let maintenanceTailAlarm = false;
+  if (!dryRun && supabase && (!sweepOk || !statsOk)) {
+    const { data } = await supabase
+      .from("landing_stats")
+      .select("updated_at")
+      .eq("id", 1)
+      .maybeSingle();
+    const ageH = data?.updated_at
+      ? (Date.now() - new Date(data.updated_at).getTime()) / 3_600_000
+      : Infinity;
+    if (ageH > 40) {
+      console.error(
+        `::error::refresh maintenance tail failed >=2 consecutive nights ` +
+          `(landing_stats ${Number.isFinite(ageH) ? Math.round(ageH) + "h" : "never"} stale, ` +
+          `sweepOk=${sweepOk} statsOk=${statsOk}). Investigate jobs-table statement timeouts.`,
+      );
+      maintenanceTailAlarm = true;
     }
   }
 
@@ -572,6 +662,13 @@ async function main() {
     );
     process.exit(1);
   }
+  if (maintenanceTailAlarm) {
+    console.error(
+      `\nEXIT 1: refresh maintenance tail (soft-delete + landing_stats) has failed >=2 consecutive nights. Ingestion was healthy; the corpus-freshness sweep is not.`,
+    );
+    process.exit(1);
+  }
+
   console.log(
     `\nEXIT 0: ${failurePct.toFixed(0)}% failure rate within ${FAILURE_THRESHOLD_PCT}% global threshold; no ATS family ≥${PER_ATS_MIN_SAMPLE} companies over ${PER_ATS_FAILURE_THRESHOLD_PCT}%.`,
   );
