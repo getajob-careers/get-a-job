@@ -7,9 +7,10 @@ canvas tree.
 ## THE REVEAL FLAG - NEXT_DESIGN (standing architecture, Eli 2026-07-18)
 
 The redesign ships to users as **ONE reveal**, not phase by phase. Every
-user-visible redesign change is gated by a single flag. **Flag OFF (default) =
-current app, byte-identical for all real users. Flag ON = the redesign as far as
-it is built.** Each phase still **merges to `main`** as it is verified (no
+user-visible redesign change is gated by a single flag. **REVEAL SHIPPED (Flip 2,
+PR #826): Flag ON is now the DEFAULT for all real users = the redesign. Flag OFF
+(`?next=0` kill switch) = the legacy app, byte-identical.** Each phase still
+**merges to `main`** as it is verified (no
 long-lived branch, no rot, per-PR CI stays real); the flag, not the branch, holds
 the reveal.
 
@@ -23,13 +24,15 @@ Both read the SAME signal: a `data-next-design` attribute on `<html>`, set once
 **before first paint** by the bootstrap in `index.html`. Resolving it pre-paint
 (not via an async profile fetch) is what avoids a flash on the CSS-variable swap.
 
-**Precedence:** `?next=` query param > `localStorage 'nextDesign'` >
-`VITE_NEXT_DESIGN` build default.
+**Resolution (reveal shipped):** the redesign is the DEFAULT. The persisted
+`localStorage 'nextDesign'` is the sole opt-out: `"0"` (set via `?next=0`) is the
+kill switch; absent or `"1"` = on. The old `VITE_NEXT_DESIGN` build default is
+removed (the flip is fully in-code).
 
-- Turn ON: append **`?next=1`** to any URL (persists in this browser).
-- Turn OFF: **`?next=0`**.
-- At a glance: flag-ON non-reveal shows a small **`NEXT`** badge, bottom-right
-  (suppressed once `VITE_NEXT_DESIGN=1`, i.e. reveal day).
+- Default: the redesign, for every browser with no opt-out.
+- Turn OFF: **`?next=0`** forces legacy and STICKS in this browser.
+- Turn back ON: **`?next=1`** (a no-op on the default).
+- The `NEXT` badge is gone (`revealMode` is hardcoded `true` in `Layout.jsx`).
 
 **Token gating:** `src/index.css` keeps the v1 production values in `:root`
 (byte-identical to old `main`) and puts the Yishai values under
@@ -38,9 +41,10 @@ gating:** `Layout` mounts DepthField + GroundWash and drops the `<main>` bg only
 when `isNextDesign()`; flag-off keeps the opaque `<main>` (no ground to occlude).
 `scripts/check-ground.mjs` understands the flag-off-gated bg.
 
-**Reveal day** = flip the default (`VITE_NEXT_DESIGN=1`), then a cleanup phase
-**deletes the whole mechanism**: this bootstrap, `nextDesign.js`, every guard, and
-the `:root[data-next-design]` selector (promote its values into `:root`).
+**Reveal day = shipped (Flip 2, PR #826):** the default is flipped in code (the
+bootstrap defaults on; `revealMode = true`). A later cleanup phase **deletes the
+whole mechanism**: this bootstrap, `nextDesign.js`, every guard, and the
+`:root[data-next-design]` selector (promote its values into `:root`).
 
 ## THE PALETTE (canonical source = the handoff mockup - Eli, 2026-07-18)
 
