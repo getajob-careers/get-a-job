@@ -4,8 +4,9 @@
 #
 # SEND GATING (two independent conditions, BOTH required for a real send):
 #   1. dry_run=false reaches the edge function. The runner derives this from the
-#      EMAIL_REAL_SEND env below: TRUE on the scheduled daily fire, FALSE on a
-#      manual workflow_dispatch (so manual runs stay dry-run for testing).
+#      EMAIL_REAL_SEND env below: TRUE on the scheduled daily fire OR a manual
+#      dispatch with real_send=true; FALSE otherwise (so plain manual runs stay
+#      dry-run for testing).
 #   2. EMAIL_SEND_ENABLED="true" in the edge-function env (a Supabase secret).
 # With EMAIL_SEND_ENABLED unset, even a scheduled run only renders + logs to
 # email_dry_run_log. First real send targeted for 2026-07-28 06:00 UTC.
@@ -20,7 +21,12 @@
 name: Send job-match digest
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      real_send:
+        description: "true = actually send (also needs EMAIL_SEND_ENABLED=true); default false = dry-run"
+        type: boolean
+        default: false
   schedule:
     - cron: "0 6 * * *" # daily 06:00 UTC; per-user 2-day gate in the function
 
@@ -49,7 +55,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # Real send ONLY on the scheduled daily fire; manual dispatch stays dry-run.
+          # Real send on the scheduled daily fire, or a manual dispatch that opts in.
           # Still requires EMAIL_SEND_ENABLED=true in the edge-fn env to actually send.
-          EMAIL_REAL_SEND: ${{ github.event_name == 'schedule' }}
+          EMAIL_REAL_SEND: ${{ github.event_name == 'schedule' || inputs.real_send == true }}
         run: npx tsx scripts/send-job-digest.ts

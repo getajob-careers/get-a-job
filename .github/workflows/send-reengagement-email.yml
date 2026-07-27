@@ -1,20 +1,17 @@
 # Re-engagement email - a deliberate single send to onboarding-incomplete users.
 #
-# TRIGGERS:
-#   - schedule: a ONE-SHOT date-pinned fire on 2026-07-28 05:30 UTC (the launch
-#     send). REMOVE IN CLEANUP once it has fired: the cron matches day-of-month 28
-#     + month 7, so if left in place it would refire on 2027-07-28.
-#   - workflow_dispatch: on-demand, DRY-RUN by default; set the real_send input to
-#     true to actually send.
+# TRIGGER:
+#   - workflow_dispatch ONLY: on-demand, DRY-RUN by default; set the real_send
+#     input to true to actually send. There is NO schedule - re-engagement fires
+#     only when manually dispatched.
 #
 # SEND GATING (two independent conditions, BOTH required for a real send):
 #   1. dry_run=false reaches the edge function. The runner derives this from the
-#      EMAIL_REAL_SEND env below: TRUE on the scheduled launch fire OR a manual
-#      dispatch with real_send=true; FALSE otherwise (so plain manual runs stay
-#      dry-run for testing).
+#      EMAIL_REAL_SEND env below: TRUE only on a manual dispatch with
+#      real_send=true; FALSE otherwise (so plain manual runs stay dry-run).
 #   2. EMAIL_SEND_ENABLED="true" in the edge-function env (a Supabase secret).
-# With EMAIL_SEND_ENABLED unset, even a real_send/scheduled run only renders +
-# logs to email_dry_run_log.
+# With EMAIL_SEND_ENABLED unset, even a real_send run only renders + logs to
+# email_dry_run_log.
 #
 # Required repo secrets (same as refresh-jobs.yml):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
@@ -32,11 +29,6 @@ on:
         description: "true = actually send (also needs EMAIL_SEND_ENABLED=true); default false = dry-run"
         type: boolean
         default: false
-  schedule:
-    # ONE-SHOT launch send: 2026-07-28 05:30 UTC (day-of-month 28, month 7).
-    # GitHub may delay scheduled runs under load, so treat 05:30 as approximate.
-    # REMOVE IN CLEANUP after it fires (otherwise it refires 2027-07-28).
-    - cron: "30 5 28 7 *"
 
 permissions:
   contents: read
@@ -63,7 +55,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          # Real send on the scheduled launch fire, or a manual dispatch that opts in.
+          # Real send only when the manual dispatch opts in via real_send=true.
           # Still requires EMAIL_SEND_ENABLED=true in the edge-fn env to actually send.
-          EMAIL_REAL_SEND: ${{ github.event_name == 'schedule' || inputs.real_send == true }}
+          EMAIL_REAL_SEND: ${{ inputs.real_send == true }}
         run: npx tsx scripts/send-reengagement.ts
