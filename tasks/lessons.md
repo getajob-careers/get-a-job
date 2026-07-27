@@ -428,3 +428,24 @@ What I did wrong: nearly took the ruling's "2 jobs" framing as the blast radius.
 Rule for next time: before writing an alias REMOVAL to the corpus, enumerate ALL currently-affected jobs (whole-corpus reresolve --dry + list the changed set), not just the ruling's named examples. For each shed skill, check whether the job has ANOTHER phrase that still resolves it; if not, the "over-firing" alias may be the only correct bridge for a class of legit jobs - surface that (and the coverage gap it exposes) before writing. An ambiguous alias that is wrong for N jobs can still be the sole correct path for M>N others.
 
 STANDING RULE (Eli, 2026-07-27) - ALL future alias REMOVALS: before --write, produce the FULL blast-radius list (every job shedding the skill), CLASSIFY each as correct-fix vs coverage-loss, and GATE the write on that split looking sane. Not optional, not just for the ruling's named jobs. Removing an ambiguous alias may expose a pre-existing library coverage gap the alias was masking (here: dropping bare "reconciliation" revealed 8 Bookkeeper-titled jobs, 0 of which resolve bookkeeping and 2 with zero core skills at all - the gap predated the narrow). The narrow can still be RIGHT (the bare key was wrong regardless); the point is you must SEE the full picture and surface the exposed gap before writing, then queue the coverage fix as its own additive batch.
+
+---
+2026-07-27 — replace_all misses siblings on indentation diff
+Trigger: a shared-card cluster reflow left one of two identical-looking Apply buttons cramped; spec verifier caught it.
+What I did wrong: used Edit replace_all anchored on a className string PLUS its preceding line at one indentation depth; the second occurrence sat at a deeper indent, so old_string matched only one. Assumed "identical className" meant replace_all hit both.
+Rule for next time: when reflowing a class recipe that repeats across nested branches, anchor replace_all on the className string ALONE (no surrounding-line indentation), then grep the OLD value afterward to prove zero remain before committing.
+---
+
+---
+2026-07-27 — password-reset SMTP delivers with a ~20-min lag (not broken)
+Trigger: getajob forgot-password reset emails appeared undelivered - two prior-session draws + a fresh draw all showed empty on an immediate Gmail poll, reading as a broken SMTP/quota.
+What I did wrong (nearly): almost escalated to a server-side SMTP investigation after an at-session-start poll returned {}. The emails were simply in flight.
+Rule for next time: getajob reset-email delivery lags ~15-25 min. Do NOT diagnose SMTP as broken from an immediate poll. Send the draw, wait 20-30 min, re-poll `from:getajob.careers newer_than:1d`. Reset link redirect_to = https://www.getajob.careers/reset-password. This is RESOLVED - do not re-diagnose.
+---
+
+---
+2026-07-27 — RULINGS closed (do not re-litigate)
+Situation min-1: RULED OPTIONAL stays (no build). The situation multi-select is already live (#688); do not add a min-1 gate.
+Back-nav: RULED Option A - Back on screens 2->1 and 3->2 (values preserved, safe/idempotent per lifted-state investigation); NO back from screen 1 (review) to the upload step (drop the existing review onBack).
+Task 3 reset: RESOLVED - standing draw order RETIRED.
+---
