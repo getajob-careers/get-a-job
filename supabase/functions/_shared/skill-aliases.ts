@@ -1082,6 +1082,18 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "prd": ["prd_writing"],
   "product requirements document": ["prd_writing"],
 
+  // PM functions - batch 3 (all-alias, reviewer-approved). Additive surface
+  // forms onto existing PM canonicals; "sprint planning" targets
+  // agile_methodology (the role-referenced ID) not agile_practices.
+  "product vision": ["product_strategy"],
+  "user stories": ["requirements_gathering"],
+  "sprint planning": ["agile_methodology"],
+  "product analytics": ["product_analytics_expertise"],
+  "roadmap ownership": ["roadmap_prioritization"],
+  "feature prioritization": ["roadmap_prioritization"],
+  "acceptance criteria": ["feature_definition"],
+  "prds": ["prd_writing"],
+
   // RevOps — attribution, funnel, GTM.
   // (Note: "lead scoring" was dropped from this batch during cross-review
   // — it's a distinct downstream MQL→SQL qualification skill that
