@@ -23,6 +23,20 @@
 // EXTEND HERE not in the edge function. Future expansion goes in this file.
 
 export const SKILL_ALIASES: Record<string, string[]> = {
+  "customer experience": ["customer_experience_management", "customer_journey_management"],
+  "customer experience management": ["customer_experience_management", "customer_journey_management"],
+  "customer experience operations": ["customer_experience_management"],
+  "cx operations": ["customer_experience_management"],
+  "marketing operations": ["marketing_operations"],
+  "marketing ops": ["marketing_operations"],
+  "mops": ["marketing_operations"],
+  "martech operations": ["marketing_operations"],
+  "growth marketing": ["user_acquisition", "demand_generation"],
+  "growth marketing strategy": ["user_acquisition", "demand_generation"],
+  "growth hacking": ["user_acquisition", "marketing_experimentation"],
+  "customer segmentation": ["marketing_analytics"],
+  "audience segmentation": ["marketing_analytics"],
+  "market segmentation": ["market_research"],
   // ── 7-role expansion: HW cluster (2026-07-14) ────────────────────────────
   // "firmware" / "signal processing" auto-resolve via the snake-ID step; these
   // are the variants + the circuit_design→board_design borderline alias (Eli:
@@ -892,7 +906,7 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "ecommerce": ["ecommerce_domain"],
   "e-commerce": ["ecommerce_domain"],
   "adtech": ["adtech_domain"],
-  "martech": ["adtech_domain"],
+  "martech": ["marketing_operations"],
   "b2b saas": ["b2b_saas_domain"],
   "b2b_saas": ["b2b_saas_domain"],
   "lab equipment": ["lab_equipment_practice"],

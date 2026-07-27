@@ -5,6 +5,42 @@ export const skillLibrary = {
   "description": "Unified skill taxonomy (v2.0). Merges historical Schema A (id-keyed) with Schema B (skill_id-keyed). 599 unique skill IDs.",
   "skill_library": [
     {
+      "id": "customer_experience_management",
+      "name": "Customer Experience (CX) Management",
+      "category": "customer_success_skill",
+      "description": "Owning the end-to-end customer experience as an operational discipline: CX-Ops, voice-of-customer and CSAT/NPS programs, contact-center and service-quality management, and cross-functional experience improvement. Distinct from journey mapping (strategy) and support execution.",
+      "tags": [
+        "cx",
+        "customer-experience",
+        "voc",
+        "csat"
+      ],
+      "common_roles": [],
+      "related_skills": [
+        "customer_journey_management",
+        "customer_health_management",
+        "customer_support_operations"
+      ]
+    },
+    {
+      "id": "marketing_operations",
+      "name": "Marketing Operations (MOps)",
+      "category": "technical_business_skill",
+      "description": "Running the marketing engine: martech stack ownership and integration, campaign operations and QA, lead lifecycle and routing, marketing data hygiene, and reporting/process infrastructure. The technical-operational backbone connecting marketing to revenue systems.",
+      "tags": [
+        "marketing-operations",
+        "mops",
+        "martech",
+        "campaign-ops"
+      ],
+      "common_roles": [],
+      "related_skills": [
+        "marketing_automation",
+        "revenue_operations",
+        "marketing_analytics"
+      ]
+    },
+    {
       "id": "administrative_operations",
       "name": "Administrative Operations & Process Management",
       "category": "Administration",

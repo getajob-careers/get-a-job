@@ -1,6 +1,6 @@
 {
   "generated_from": "supabase/functions/_shared/libraries/01_skill_library.ts",
-  "count": 619,
+  "count": 621,
   "ids": [
     "ab_testing",
     "ab_testing_marketing",
@@ -155,6 +155,7 @@
     "customer_communication",
     "customer_discovery",
     "customer_discovery_interviews",
+    "customer_experience_management",
     "customer_facing_ai_delivery",
     "customer_health_management",
     "customer_health_monitoring",
@@ -346,6 +347,7 @@
     "marketing_automation",
     "marketing_campaign_design",
     "marketing_experimentation",
+    "marketing_operations",
     "matlab",
     "mcp_protocol",
     "media_planning_buying",
@@ -623,6 +625,8 @@
     "zapier_ipaas"
   ],
   "names": {
+    "customer_experience_management": "Customer Experience (CX) Management",
+    "marketing_operations": "Marketing Operations (MOps)",
     "administrative_operations": "Administrative Operations & Process Management",
     "executive_support": "Executive & C-Level Support",
     "travel_logistics_coordination": "Travel & Logistics Coordination",
