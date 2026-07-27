@@ -338,7 +338,7 @@ export default function JobDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 px-5 py-3 border-t border-rd-border bg-rd-bg-page flex justify-end gap-2.5">
+        <div className="flex-shrink-0 px-5 py-3 border-t border-rd-border bg-rd-bg-page flex flex-wrap justify-end gap-2.5">
           <button
             type="button"
             onClick={handleAdd}

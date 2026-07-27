@@ -170,8 +170,15 @@ export default function ThreeTabHome() {
             the cards below the fold were unreachable on wide desktop. Mobile is
             unaffected (the tab body already scrolls; this only applies md+). */}
         {activeTab === "jobs" && (
-          <div className="md:h-full flex flex-col md:flex-row gap-5 items-start">
-            <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          // Inside the coach shell rail the md-band content region (~470px at a
+          // 780 viewport) is too narrow to sit a readable feed beside the panel:
+          // side-by-side there starves one column (proven pre-cert). So stack
+          // below lg (each column gets the full width; the container owns the
+          // scroll) and only go side-by-side at lg, where there is room for the
+          // Career-style proportional split (feed 1.55 : panel 1). Career itself
+          // is a full-width page with no rail, so it keeps its md side-by-side.
+          <div className="flex flex-col lg:flex-row gap-5 items-start md:h-full md:min-h-0 md:overflow-y-auto lg:overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="w-full lg:flex-[1.55] min-w-0 lg:h-full lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <UnifiedJobsFeed singleColumn />
             </div>
             <MatchedRolesPanel
@@ -181,8 +188,9 @@ export default function ThreeTabHome() {
               onToggle={setExpandedRoleId}
               size="comfortable"
               scrollSelf
+              scrollAt="lg"
               isLoading={loadingRoles}
-              className="w-full md:w-[360px] lg:w-[400px] xl:w-[440px] flex-shrink-0"
+              className="w-full lg:flex-1 min-w-0"
             />
           </div>
         )}
