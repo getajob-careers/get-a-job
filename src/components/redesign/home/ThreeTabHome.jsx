@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FileUser, Columns3, Compass } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
@@ -6,6 +6,11 @@ import { useProfileQuery } from "@/lib/queries/useProfile";
 import { createPageUrl } from "@/utils";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
 import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
+import { useCareerRolesQuery } from "@/lib/queries/useCareerRoles";
+import MatchedRolesPanel, {
+  sortMatchedRoles,
+  resolveActiveRoleId,
+} from "@/components/career/MatchedRolesPanel";
 import HomeTrackerTab from "./HomeTrackerTab";
 import CvMatchedRolesRail from "./CvMatchedRolesRail";
 
@@ -74,6 +79,19 @@ export default function ThreeTabHome() {
       setActiveTab(urlTab);
     }
   }, [urlTab, activeTab]);
+
+  // Browse Jobs renders the matched-roles why-panel beside the feed - the same
+  // panel Career shows. Same canonical career_roles hook + key the feed uses,
+  // so they share one cache entry and one analysis-pending poll. Own expand
+  // state (independent of Career's instance).
+  const { data: roles = [], isLoading: loadingRoles } = useCareerRolesQuery(
+    user?.id,
+    { profile },
+  );
+  const sortedRoles = useMemo(() => sortMatchedRoles(roles), [roles]);
+  const [expandedRoleId, setExpandedRoleId] = useState(null);
+  const activeRoleId = resolveActiveRoleId(sortedRoles, expandedRoleId);
+  const rolesGoalName = profile?.five_year_role || "your 5-year goal";
 
   const selectTab = (id) => {
     setActiveTab(id);
@@ -152,8 +170,20 @@ export default function ThreeTabHome() {
             the cards below the fold were unreachable on wide desktop. Mobile is
             unaffected (the tab body already scrolls; this only applies md+). */}
         {activeTab === "jobs" && (
-          <div className="md:h-full md:overflow-y-auto">
-            <UnifiedJobsFeed singleColumn />
+          <div className="md:h-full flex flex-col md:flex-row gap-5 items-start">
+            <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <UnifiedJobsFeed singleColumn />
+            </div>
+            <MatchedRolesPanel
+              roles={sortedRoles}
+              goalName={rolesGoalName}
+              expandedId={activeRoleId}
+              onToggle={setExpandedRoleId}
+              size="comfortable"
+              scrollSelf
+              isLoading={loadingRoles}
+              className="w-full md:w-[360px] lg:w-[400px] xl:w-[440px] flex-shrink-0"
+            />
           </div>
         )}
         {/* Bottom edge-fade (desktop only, where the columns inner-scroll): the
