@@ -294,10 +294,11 @@ function LayoutBody({ children, currentPageName }) {
 
   // NEXT_DESIGN gate. Flag OFF = current production shell (opaque <main>, no
   // ground). Flag ON = the crowned ground stack + transparent <main>. Resolved
-  // once, pre-paint, via src/lib/nextDesign.js. `revealMode` (env default ON)
-  // suppresses the corner badge - at reveal everyone is on, so it is not a "mode".
+  // once, pre-paint, via src/lib/nextDesign.js. `revealMode` is now TRUE (Flip 2:
+  // the redesign is the default for everyone), which suppresses the "NEXT" preview
+  // badge - once everyone is on, it is not a "mode". Deleted at reveal-cleanup.
   const nextDesign = isNextDesign();
-  const revealMode = import.meta.env.VITE_NEXT_DESIGN === "1";
+  const revealMode = true;
 
   // Shell fork (shell phase, PR1). Flag ON = the ported CanvasShell (top utility
   // bar + toolkit rail + coach dock) wrapping the REAL routed page. Flag OFF =
