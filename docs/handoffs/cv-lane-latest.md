@@ -93,48 +93,37 @@ timeout kills the second.)
    the only gap is live PROFILE-side resolution of a user typing a gen-image tool in career-analysis
    (0 current users). One deploy closes parity if wanted next session.
 
-## EMAIL LAUNCH ARC (2026-07-27) - 3 HELD PRs, MANUAL-DISPATCH-PER-SEND
+## EMAIL LAUNCH ARC (2026-07-27) - MERGED + REDEPLOYED + DRY-RUN-VERIFIED, GATE UNARMED
 
-Step-0 dry-run REDONE under strict evidence (prior session's 20:41/20:44Z rows were
-FABRICATED - future-dated vs 17:19Z DB clock; logged CRITICAL in lessons.md). Fresh
-dry-run VERIFIED: digest 38 rows + reengagement 22 rows, all inside the run window.
+All three PRs MERGED to main (squash) and the three send functions REDEPLOYED:
 
-Three HELD PRs, all awaiting hub line-by-line + merge:
+- **#830** `086a09b` - exclude 2 QA accts (cwsctstest, pod1cws) via the shared
+  `INTERNAL_EMAIL_RE` in email-dispatch.ts.
+- **#831** `f24dbc8` - digest daily 06:00 UTC schedule ON + a `real_send` input
+  (gate `github.event_name == 'schedule' || inputs.real_send`); reengagement is
+  manual-dispatch-ONLY (`inputs.real_send == true`), the one-shot `30 5 28 7 *`
+  cron REMOVED. Per-user 2-day gap enforced in scripts/send-job-digest.ts
+  (`MIN_DIGEST_GAP_DAYS = 2`).
+- **#834** `dfcee1a` - redesign-announcement send to ONBOARDED users (subject
+  "Get A Job has a whole new look"), manual workflow_dispatch, verify_jwt=true.
 
-- **#830** (`eli/email-exclude-test-accts`, `39939f0`) - exclude 2 QA accts
-  (cwsctstest002, pod1cws) via narrow shared `INTERNAL_EMAIL_RE` patterns. After merge:
-  redeploy `send-reengagement-email` (+ `send-job-digest`) so the deployed fn carries
-  the fix, then re-run reengagement dry-run to confirm 22->20.
-- **#831** (`eli/email-launch-schedule`) - digest daily 06:00 UTC schedule ON and now
-  carries a `real_send` boolean input so a manual dispatch can opt into a real send
-  (gate: `github.event_name == 'schedule' || inputs.real_send`). Reengagement has NO
-  schedule - it fires ONLY by manual workflow_dispatch with `real_send=true` (the
-  one-shot `30 5 28 7 *` launch cron was REMOVED). `EMAIL_REAL_SEND` env -> `dry_run:!realSend`;
-  both still additionally gated by the edge-fn `EMAIL_SEND_ENABLED` secret (unset = dry-run/log only).
-- **#834** (`eli/email-redesign-announcement`, DEPLOYED v1) - NEW redesign-announcement
-  email to onboarded users (39 audience; disjoint from reengagement 22, overlap 0).
-  workflow_dispatch-only, real_send input, verify_jwt=true pinned. Copy HELD for Eli's
-  approval (subject "Get A Job has a whole new look"; names Home/job browsing/CV bank/
-  Coach; CTA getajob.careers). Fn deployed + DEPLOYED-source verified. True
-  function-dry-run (email_dry_run_log rows) needs the workflow on main (local invoke
-  401s - runtime key = GH Actions secret only), so it runs after merge.
+Redeployed (DEPLOYED source grep-confirmed to carry cwsctstest + pod1cws):
+`send-reengagement-email` **v2** (ezbr 9b980e55), `send-job-digest` **v3** (ezbr 613c0c0a),
+`send-redesign-announcement` **v2** (ezbr 4ad1ca0b). All verify_jwt=true.
 
-**ARMING (Eli's step, NOT the agent's):** every send is a MANUAL dispatch. Eli reads
-that send's dry-run rows in `email_dry_run_log` FIRST, then - only when he decides to go
-live - runs `supabase secrets set EMAIL_SEND_ENABLED=true --project-ref ilmqmodklutztuybsvwd`
-and dispatches the specific workflow with `real_send=true`. There is NO scheduled reengagement
-send and no automatic morning fire; nothing leaves the building without Eli's explicit dispatch.
+Dry runs (real_send default false) HUB-VERIFIED against the live log: reengagement
+**20** eligible / 0 QA leakage, announcement **39** eligible / 0 internal leakage,
+overlap 0, 0 em dashes in fresh rendered rows, unsubscribe token on every row, deployed
+copy matches approved samples. Digest logged 38 (skipped_not_due 0). Nothing sent.
 
-## NEXT (email arc)
+## MORNING SEQUENCE (Eli's, awake - gate stays UNARMED until Eli acts)
 
-1. **Per-send manual dispatch.** Each email (digest, reengagement, announcement) is a
-   SEPARATE manual `gh workflow run ... -f real_send=true`, AFTER Eli reads that send's
-   dry-run rows in `email_dry_run_log` and arms `EMAIL_SEND_ENABLED`. Reengagement is no
-   longer scheduled; the digest cron only real-sends once `EMAIL_SEND_ENABLED` is set. The
-   agent verifies dry-run rows and reports; it never arms the gate or passes `real_send=true`.
-2. **Redesign announcement (#834)** - only AFTER Eli approves the copy AND #834 merges:
-   `gh workflow run send-redesign-announcement.yml -f real_send=true` (or without the flag
-   for one more dry-run first). Redeploy the fn post-#830 to inherit the test-acct exclusion.
+Every send is a MANUAL dispatch Eli runs, hub-verified between each step:
+1. ARM: `supabase secrets set EMAIL_SEND_ENABLED=true --project-ref ilmqmodklutztuybsvwd`.
+2. Reengagement: `gh workflow run send-reengagement-email.yml -f real_send=true`; hub-verify.
+3. Announcement: `gh workflow run send-redesign-announcement.yml -f real_send=true`; hub-verify.
+4. Digest: fires on the daily cron once armed (or manual `-f real_send=true`); hub-verify.
+The agent NEVER arms the gate or passes real_send=true - arming + every send are Eli's.
 
 ## RESUME HERE (other lanes)
 
