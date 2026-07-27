@@ -299,6 +299,13 @@ export default function OnboardingV2() {
         experiences,
         educations,
         projects,
+        // Provenance guard: the 'extracted' stamp is applied only when the
+        // domain being written actually came from CV extraction. Passing the
+        // raw extracted domain lets the persist layer distinguish it from an
+        // INFERRED domain that back-nav can backfill into profileData (a
+        // springboard->back->direction->back->review->Continue round-trip),
+        // which must NOT be re-labelled 'extracted'.
+        extractedPrimaryDomain: extracted?.primary_domain || null,
       });
     } finally {
       setAdvancing(false);
@@ -469,6 +476,21 @@ export default function OnboardingV2() {
           ))}
         </div>
 
+        {/* Back-nav (RULED Option A): only from direction (2) and springboard
+            (3), each stepping back one screen. Screen values are lifted into
+            this component, so a return preserves them; re-advancing re-runs the
+            same idempotent/guarded persist. No back from review (1) to upload
+            (0) - that step is not a meaningful return target. */}
+        {step >= 2 && (
+          <button
+            type="button"
+            onClick={() => setStep((s) => s - 1)}
+            className="self-start -mt-4 mb-5 px-1 py-1.5 text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2"
+          >
+            ← Back
+          </button>
+        )}
+
         <div className="flex-1">
           <p className="text-[11px] font-medium text-rd-primary uppercase tracking-wide mb-2">
             {screen.eyebrow}
@@ -615,7 +637,6 @@ export default function OnboardingV2() {
                 certifications={certifications}
                 setCertifications={setCertifications}
                 onContinue={advanceFromReview}
-                onBack={() => setStep(0)}
                 onRetry={retryUpload}
               />
             </div>

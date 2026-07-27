@@ -20,12 +20,30 @@ import { cleanProfilePayload } from "@/lib/onboardingPayload";
 // exactly what _shared/infer-primary-domain.ts intends. Stamp ONLY when a
 // domain is actually being written from extraction; a null domain leaves the
 // source null (authoritative, never 'inferred').
+//
+// `extractedPrimaryDomain` is the raw domain CV extraction produced (null when
+// the CV yielded none, or on a CV-less flow). The stamp is gated on the domain
+// being written EQUALLING it - not merely on `primary_domain != null` - so an
+// INFERRED domain that back-nav backfilled into profileData (a
+// springboard->back->direction->back->review->Continue round-trip) is never
+// re-labelled 'extracted'; its DB source stays 'inferred'. Matches the invariant
+// this comment documents.
+
+function domainsMatch(a, b) {
+  return (
+    a != null &&
+    b != null &&
+    String(a).trim() !== "" &&
+    String(a).trim() === String(b).trim()
+  );
+}
 
 export function buildReviewProfilePayload({
   profileData,
   experiences,
   educations,
   projects,
+  extractedPrimaryDomain = null,
 }) {
   const base = cleanProfilePayload({
     ...profileData,
@@ -33,9 +51,13 @@ export function buildReviewProfilePayload({
     educations: educations || [],
     projects: projects || [],
   });
-  const hasDomain =
-    base.primary_domain != null && String(base.primary_domain).trim() !== "";
-  return hasDomain ? { ...base, primary_domain_source: "extracted" } : base;
+  const fromExtraction = domainsMatch(
+    base.primary_domain,
+    extractedPrimaryDomain,
+  );
+  return fromExtraction
+    ? { ...base, primary_domain_source: "extracted" }
+    : base;
 }
 
 export async function persistReviewProfile({
@@ -44,6 +66,7 @@ export async function persistReviewProfile({
   experiences,
   educations,
   projects,
+  extractedPrimaryDomain = null,
 }) {
   if (!userId) return { ok: false, error: new Error("missing userId") };
   const payload = buildReviewProfilePayload({
@@ -51,6 +74,7 @@ export async function persistReviewProfile({
     experiences,
     educations,
     projects,
+    extractedPrimaryDomain,
   });
   const { error } = await supabase
     .from("profiles")

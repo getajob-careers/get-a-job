@@ -3,15 +3,19 @@ import { buildReviewProfilePayload } from "@/lib/persistOnboardingProfileV2";
 import { mapExtractedToOnboardingState } from "@/lib/mapExtractedToOnboarding";
 
 // The stamp is the keystone of the precedence invariant: the review screen
-// writes primary_domain_source='extracted' ONLY when a domain was extracted, so
-// the direction screen's inference guard leaves an extracted domain untouched.
+// writes primary_domain_source='extracted' ONLY when the domain being written
+// actually came from CV extraction (the written domain EQUALS the raw extracted
+// domain), so the direction screen's inference guard leaves an extracted domain
+// untouched - and, critically, so an INFERRED domain that V2 back-nav can
+// backfill into profileData is never mislabelled 'extracted'.
 describe("buildReviewProfilePayload — the 'extracted' stamp", () => {
-  it("stamps primary_domain_source='extracted' when a domain was extracted", () => {
+  it("stamps primary_domain_source='extracted' when the written domain came from extraction", () => {
     const payload = buildReviewProfilePayload({
       profileData: { full_name: "A", primary_domain: "product", skills: [] },
       experiences: [],
       educations: [],
       projects: [],
+      extractedPrimaryDomain: "product",
     });
     expect(payload.primary_domain).toBe("product");
     expect(payload.primary_domain_source).toBe("extracted");
@@ -23,6 +27,7 @@ describe("buildReviewProfilePayload — the 'extracted' stamp", () => {
       experiences: [],
       educations: [],
       projects: [],
+      extractedPrimaryDomain: null,
     });
     expect(payload.primary_domain).toBeNull();
     expect(payload.primary_domain_source).toBeUndefined();
@@ -34,6 +39,35 @@ describe("buildReviewProfilePayload — the 'extracted' stamp", () => {
       experiences: [],
       educations: [],
       projects: [],
+      extractedPrimaryDomain: "   ",
+    });
+    expect(payload.primary_domain_source).toBeUndefined();
+  });
+
+  // The back-nav round-trip case (Eli's ruling b): a CV-less user infers a
+  // domain at the direction screen; advanceFromDirection backfills that INFERRED
+  // domain into profileData; a Back to review then re-runs this persist with
+  // primary_domain set but NO extracted domain. The stamp must NOT fire - the DB
+  // source stays 'inferred'.
+  it("does NOT stamp an inferred domain backfilled via back-nav (extracted is null)", () => {
+    const payload = buildReviewProfilePayload({
+      profileData: { full_name: "A", primary_domain: "operations", skills: [] },
+      experiences: [],
+      educations: [],
+      projects: [],
+      extractedPrimaryDomain: null,
+    });
+    expect(payload.primary_domain).toBe("operations");
+    expect(payload.primary_domain_source).toBeUndefined();
+  });
+
+  it("does NOT stamp when the written domain differs from the extracted one", () => {
+    const payload = buildReviewProfilePayload({
+      profileData: { primary_domain: "operations", skills: [] },
+      experiences: [],
+      educations: [],
+      projects: [],
+      extractedPrimaryDomain: "product",
     });
     expect(payload.primary_domain_source).toBeUndefined();
   });
