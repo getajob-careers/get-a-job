@@ -366,4 +366,17 @@ describe("Phase 0a-followup: role-coverage alias expansion (72 entries)", () => 
   it("hr analytics → hr_data_analytics", () => {
     expect(resolveSkill("hr analytics")).toContain("hr_data_analytics");
   });
+
+  // Gen-image AI tools (2026-07-27 mini-batch) → generative_ai_creative
+  it("midjourney → generative_ai_creative", () => {
+    expect(resolveSkill("midjourney")).toContain("generative_ai_creative");
+  });
+  it("dall-e variants → generative_ai_creative", () => {
+    expect(resolveSkill("dall-e")).toContain("generative_ai_creative");
+    expect(resolveSkill("dall·e")).toContain("generative_ai_creative");
+    expect(resolveSkill("dalle")).toContain("generative_ai_creative");
+  });
+  it("adobe firefly → generative_ai_creative", () => {
+    expect(resolveSkill("adobe firefly")).toContain("generative_ai_creative");
+  });
 });
