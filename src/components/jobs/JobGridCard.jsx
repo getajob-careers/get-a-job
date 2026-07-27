@@ -422,14 +422,14 @@ export default function JobGridCard({
               <Check className="w-3 h-3" />
               CV ready
             </p>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   onViewCv();
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
               >
                 View CV
               </button>
@@ -449,14 +449,14 @@ export default function JobGridCard({
             </div>
           </div>
         ) : alive ? (
-          <div className="cx-actions mt-auto pt-2.5 flex items-center gap-1.5">
+          <div className="cx-actions mt-auto pt-3 flex items-center gap-2">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onGenerateCv();
               }}
-              className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
             >
               <Wand2 className="w-3 h-3" />
               Generate CV
@@ -468,7 +468,7 @@ export default function JobGridCard({
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Apply on the company site"
-                className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
+                className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
               >
                 <ExternalLink className="w-3 h-3" />
                 Apply
@@ -483,7 +483,7 @@ export default function JobGridCard({
               disabled={tracked || tracking}
               title={tracked ? "In your tracker" : "Add to tracker"}
               aria-label={tracked ? "In your tracker" : "Add to tracker"}
-              className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark disabled:cursor-default transition-colors"
+              className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark disabled:cursor-default transition-colors"
               style={
                 tracked
                   ? {
