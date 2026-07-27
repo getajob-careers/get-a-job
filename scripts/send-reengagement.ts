@@ -1,8 +1,9 @@
 // send-reengagement.ts — manual entrypoint for the one-off onboarding-incomplete
 // re-engagement email. Invokes the send-reengagement-email edge function with the
 // service-role client (so its bearer is the service key → isServiceRoleCaller
-// passes). DRY-RUN is forced here AND is the function default; nothing sends until
-// Eli enables it in the dispatch layer (EMAIL_SEND_ENABLED="true").
+// passes). DRY-RUN by default; a real send requires EMAIL_REAL_SEND=true from the
+// workflow (the scheduled launch fire, or a dispatch with real_send=true) AND
+// EMAIL_SEND_ENABLED="true" in the edge-function env.
 //
 // Run: npx tsx scripts/send-reengagement.ts   (needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
 
@@ -17,9 +18,14 @@ if (!url || !key) {
 
 const svc = createClient(url, key);
 
+// EMAIL_REAL_SEND is set by the workflow: true on the scheduled launch fire or an
+// opt-in manual dispatch, false otherwise. dry_run is its inverse. Even dry_run
+// false only sends when EMAIL_SEND_ENABLED=true in the edge-function env.
+const realSend =
+  String(process.env.EMAIL_REAL_SEND ?? "").toLowerCase() === "true";
+
 const { data, error } = await svc.functions.invoke("send-reengagement-email", {
-  // Explicit dry_run:true (belt-and-suspenders; the function also defaults to it).
-  body: { dry_run: true },
+  body: { dry_run: !realSend },
 });
 
 if (error) {

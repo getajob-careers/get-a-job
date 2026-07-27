@@ -1,13 +1,14 @@
-# Job-match digest — SHIPPED DISABLED (workflow_dispatch only). The schedule line
-# is intentionally COMMENTED OUT: nothing runs automatically until Eli reviews the
-# dry-run samples and enables it. Even when the schedule is on, the edge function
-# defaults to DRY-RUN (renders + logs to email_dry_run_log, never sends) — a real
-# send additionally requires EMAIL_SEND_ENABLED="true" in the function env.
+# Job-match digest. Runs DAILY at 06:00 UTC (schedule below) plus on-demand via
+# workflow_dispatch. The per-user 2-day gap is enforced inside the function, so a
+# daily cron yields "every two days per user".
 #
-# Cadence: the function enforces a per-user 2-day gap, so this cron is intended to
-# run DAILY once enabled ("every two days per user" = daily cron + per-user gate).
-# To go live for real: (1) uncomment the schedule below, (2) set the send flags per
-# the PR, targeting the first real send for Sunday 2026-07-26.
+# SEND GATING (two independent conditions, BOTH required for a real send):
+#   1. dry_run=false reaches the edge function. The runner derives this from the
+#      EMAIL_REAL_SEND env below: TRUE on the scheduled daily fire, FALSE on a
+#      manual workflow_dispatch (so manual runs stay dry-run for testing).
+#   2. EMAIL_SEND_ENABLED="true" in the edge-function env (a Supabase secret).
+# With EMAIL_SEND_ENABLED unset, even a scheduled run only renders + logs to
+# email_dry_run_log. First real send targeted for 2026-07-28 06:00 UTC.
 #
 # Required repo secrets (same as refresh-jobs.yml):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
@@ -20,15 +21,15 @@ name: Send job-match digest
 
 on:
   workflow_dispatch: {}
-  # schedule:
-  #   - cron: '0 6 * * *'   # daily 06:00 UTC; per-user 2-day gate in the function
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC; per-user 2-day gate in the function
 
 permissions:
   contents: read
 
 jobs:
   run:
-    name: Job-match digest (dry-run)
+    name: Job-match digest
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -44,8 +45,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run job-match digest (dry-run)
+      - name: Run job-match digest
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Real send ONLY on the scheduled daily fire; manual dispatch stays dry-run.
+          # Still requires EMAIL_SEND_ENABLED=true in the edge-fn env to actually send.
+          EMAIL_REAL_SEND: ${{ github.event_name == 'schedule' }}
         run: npx tsx scripts/send-job-digest.ts
