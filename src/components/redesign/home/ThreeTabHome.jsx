@@ -202,7 +202,7 @@ export default function ThreeTabHome() {
           // Career-style proportional split (feed 1.55 : panel 1). Career itself
           // is a full-width page with no rail, so it keeps its md side-by-side.
           <div className="flex flex-col lg:flex-row gap-5 items-start md:h-full md:min-h-0 md:overflow-y-auto lg:overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="w-full lg:flex-[1.55] min-w-0 lg:h-full lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="w-full lg:flex-[1.55] min-w-0 overflow-x-clip lg:h-full lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {/* Sort disclosure (Eli pre-cert item 1): the feed ranks goal-path
                   roles first, so a lower-scored goal-path role can sit above a
                   higher-scored adjacent one. Surface that AT the feed - the panel
