@@ -109,8 +109,11 @@ export default function ApplicationRow({
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(defaultExpanded);
 
-  const handleOpenCVAgent = () => {
-    navigate("/CVAgent");
+  const handleChatWithCoach = () => {
+    // Coach (career_agent) consumes ?application_id to pre-load this role's
+    // context - so the "pre-loaded with this application's context" copy below
+    // is honest (the old /CVAgent target loaded no context and was a CV editor).
+    navigate(`/CareerAgent?application_id=${encodeURIComponent(app.id)}`);
   };
   const [activeTab, setActiveTab] = useState(initialTab);
   const [jdText, setJdText] = useState(app.job_description || "");
@@ -667,11 +670,11 @@ export default function ApplicationRow({
                 <div className="border-t border-rd-border-subtle pt-4">
                   <button
                     type="button"
-                    onClick={handleOpenCVAgent}
+                    onClick={handleChatWithCoach}
                     className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold text-rd-text hover:text-rd-primary-dark transition-colors"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
-                    Chat with CV Agent for this role
+                    Chat with Coach for this role
                   </button>
                   <p className="text-[11px] text-rd-text-secondary mt-1">
                     Opens a conversation pre-loaded with this application&apos;s

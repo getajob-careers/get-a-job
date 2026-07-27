@@ -124,7 +124,7 @@ export default function CVStudioLive({
     useApplicationsWithJd(user?.id, noJdOpen);
 
   // Selection: honor ?cv / ?application_id ONCE (the tracker's "Generate tailored
-  // CV → Open in CV Agent" deep-link), waiting for the refetch to land a freshly
+  // CV → Open in CV editor" deep-link), waiting for the refetch to land a freshly
   // generated copy. Otherwise default to master (or most recent), and recover if
   // the current selection drops out of the list.
   useEffect(() => {

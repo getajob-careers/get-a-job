@@ -210,3 +210,22 @@ describe("MatchedRolesPanel comfortable diverges (density)", () => {
     expect(title).not.toHaveClass("text-[14px]");
   });
 });
+
+describe("MatchedRolesPanel sort disclosure (Eli pre-cert item 1)", () => {
+  const DISCLOSURE = /goal path are listed first, then by match strength/;
+
+  it("renders on compact by default (Career gets it, every tier)", () => {
+    renderPanel();
+    expect(screen.getByText(DISCLOSURE)).toBeInTheDocument();
+  });
+
+  it("renders on comfortable by default", () => {
+    renderPanel({ size: "comfortable" });
+    expect(screen.getByText(DISCLOSURE)).toBeInTheDocument();
+  });
+
+  it("hides when sortDisclosure={false} (Browse Jobs shows it above the feed)", () => {
+    renderPanel({ size: "comfortable", sortDisclosure: false });
+    expect(screen.queryByText(DISCLOSURE)).toBeNull();
+  });
+});
