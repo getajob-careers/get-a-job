@@ -429,7 +429,7 @@ export default function JobGridCard({
                   e.stopPropagation();
                   onViewCv();
                 }}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
               >
                 View CV
               </button>
@@ -456,7 +456,7 @@ export default function JobGridCard({
                 e.stopPropagation();
                 onGenerateCv();
               }}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[12px] whitespace-nowrap rounded-full px-3 py-2.5 bg-rd-primary text-white hover:bg-rd-primary-dark transition-colors"
             >
               <Wand2 className="w-3 h-3" />
               Generate CV
