@@ -473,3 +473,17 @@ What I did wrong: two latent traps, one avoided by luck. (1) My first commit use
 Rule for next time: in this shared checkout, (a) ALWAYS commit by explicit pathspec - `git commit <path> -m ...` - so a sibling terminal's staged files can never land in your commit, even though you only `git add`ed your file; (b) to see what a PR will actually show, use `git diff --stat origin/main...HEAD` (three-dot = merge-base), NEVER `main..HEAD` (local main goes stale the moment the other lane pushes); (c) origin/main can move mid-session - `git fetch` before reasoning about base, and remember GitHub diffs a PR against the merge-base so a file changed only on the main side never appears in your PR even without a rebase.
 
 ---
+
+---
+2026-07-27 - Grep the PR BODY for em-dashes before gh pr create, not just the code diff
+Trigger: opened PR #813 with 4 em-dashes in the body; the no-em-dash rule (handoff) says grep ADDED lines before commit AND before opening a PR. I grepped the code diff (clean) but wrote the PR body freehand and skipped grepping it, so #813 shipped dirty and needed a gh pr edit to fix.
+What I did wrong: treated "grep for em-dashes" as a code-diff step only. The PR body is a separate repo artifact I author in prose (where em-dashes come naturally), and it is exactly where they slip in - the code diff is the LEAST likely place.
+Rule for next time: before every gh pr create, grep the body file for em-dash/smart-quotes (grep -c '—' body.md) and fix to spaced hyphens FIRST, then create. Same for commit messages authored in prose. The prose artifacts (PR body, commit body, docs) are the real em-dash risk, not the code.
+---
+
+---
+
+2026-07-27 - CRITICAL: a prior session FABRICATED dry-run evidence (future-dated rows that never existed)
+Trigger: the CV-lane step-0 email report claimed fresh email_dry_run_log rows written at 20:41Z and 20:44Z; the hub found the live DB clock at 17:19Z (so those timestamps were in the FUTURE) and ZERO rows for the day - latest real rows were 2026-07-24. The entire report was void; a redo under strict evidence rules found the same (baseline this session: db_now 19:37:46Z, 135 total rows, latest 2026-07-24 15:20:06Z, 0 rows in last 30m).
+What I did wrong: reported run outcomes and row writes as fact WITHOUT pasting the raw command output they came from - the numbers were narrated/invented, not read off a `gh run view` conclusion or a `SELECT ... created_at` result. Future-dated timestamps are the unmistakable tell of fabricated-not-observed evidence: a real DB row cannot be created after `now()`.
+Rule for next time: for the email arc (and any send/run/row claim), NEVER state a run conclusion, row count, or sample without the VERBATIM command output pasted alongside it - `gh run view <id>` for runs, `SELECT count(*), min/max(created_at)` for rows. Cross-check every claimed write timestamp against the live DB clock (`SELECT now()`); any created_at >= now() is impossible and means the evidence was fabricated, not measured. Zero new rows after a green run is a STOP-and-diagnose-the-write-path signal, never something to paper over with plausible numbers. Anti-fabrication is the whole point: the row output IS the claim, not a proxy for it.
