@@ -64,6 +64,21 @@ const IS_GROUND_PROVIDER = /\bisolate\b/;
 // around its corners, so an opaque bg here occludes nothing. The occluder is
 // always a square-cornered content/scroll container (never rounded).
 const IS_BOUNDED_PANEL = /\brd-r-|\brounded/;
+// A full-viewport SELF-CENTERING splash (`min-h-screen`/`h-screen` together with
+// `items-center` AND `justify-center`) is a standalone screen that EARLY-RETURNS
+// in place of the shell - a loading/error/auth splash - not a wrapper sitting
+// between the isolate ground provider and page content. It mounts no ground and
+// nothing mounts ground behind it, so its opaque bg occludes nothing. This is the
+// exact kind of full-screen splash the gate already ignores by scope in page
+// files (AuthCallback / Onboarding / Login all use `min-h-screen ... bg-rd-bg-page`);
+// the only reason Layout.jsx's cold-load splash falls IN scope is that the ground
+// also lives in this file's main return. The historical occlusion bug was always a
+// content/scroll FILLER (`flex-1` / `overflow-*` / `h-full` in the mounted shell),
+// never a self-centering `min-h-screen` box - so this exemption cannot re-admit it.
+const isCenteredSplash = (cls) =>
+  /\b(?:min-h-screen|h-screen)\b/.test(cls) &&
+  /\bitems-center\b/.test(cls) &&
+  /\bjustify-center\b/.test(cls);
 // A flag-OFF-guarded class clause: `!nextDesign && "..."` or `!isNextDesign() && "..."`.
 const FLAG_OFF_CLAUSE =
   /!\s*(?:isNextDesign\(\)|nextDesign)\s*&&\s*"[^"]*"|!\s*(?:isNextDesign\(\)|nextDesign)\s*&&\s*`[^`]*`/g;
@@ -103,6 +118,7 @@ for (const file of FILES) {
     if (!OPAQUE_BG.test(cls)) continue;
     if (IS_GROUND_PROVIDER.test(cls)) continue; // the shell itself - allowed
     if (IS_BOUNDED_PANEL.test(cls)) continue; // rounded card/panel - not an occluder
+    if (isCenteredSplash(cls)) continue; // full-screen early-return splash - mounts no ground behind it
     // Strip flag-OFF-guarded clauses, then see if an opaque bg still remains
     // UNCONDITIONALLY. Only an unconditional one can occlude the flag-ON ground.
     const unguarded = cls.replace(FLAG_OFF_CLAUSE, "");
