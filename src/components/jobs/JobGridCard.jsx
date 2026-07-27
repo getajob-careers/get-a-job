@@ -440,7 +440,7 @@ export default function JobGridCard({
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   title="Apply on the company site"
-                  className="inline-flex items-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
+                  className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3 py-2.5 bg-rd-bg-soft text-rd-text hover:text-rd-primary-dark transition-colors"
                 >
                   <ExternalLink className="w-3 h-3" />
                   Apply
