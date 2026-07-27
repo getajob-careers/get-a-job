@@ -52,7 +52,12 @@ const REGISTRY_PATH = join(
   "companies_il.json",
 );
 
-const CONCURRENCY_LIMIT = 20;
+// Lowered 20 -> 16 (2026-07-27 supply-growth P1) to cut peak concurrent
+// writers on the heavy-GIN jobs table, the documented contention source
+// behind the 07-26/27 upsert-timeout storm. Governs fetch AND write
+// concurrency, so it modestly lengthens the nightly; the per-company upsert
+// retry below is the real safety net. Hub-tunable.
+const CONCURRENCY_LIMIT = 16;
 // Global backstop: exit 1 if >20% of ALL companies fail. Catches the
 // "everything is on fire" case (registry-wide outage, env-var typo).
 const FAILURE_THRESHOLD_PCT = 20;
@@ -77,7 +82,10 @@ const PER_ATS_FAILURE_THRESHOLD_PCT = 50;
 // print their health row below, just without tripping exit 1.
 const PER_ATS_MIN_SAMPLE = 5;
 const STALE_DAYS = 2;
-const UPSERT_BATCH_SIZE = 200;
+// Halved 200 -> 100 (2026-07-27 supply-growth P1): a smaller batch holds
+// page/index locks for less time, reducing the lock-wait that pushed the two
+// largest boards (NVIDIA/PANW) past the 120s statement_timeout.
+const UPSERT_BATCH_SIZE = 100;
 
 // ATSs to actually process. The registry contains comeet/recruitee/custom
 // entries we don't have fetchers for yet; skip them silently.
@@ -289,9 +297,16 @@ async function processCompany(
         fetched_at: new Date().toISOString(),
         is_active: true,
       }));
-      const { error } = await supabase
-        .from("jobs")
-        .upsert(batch, { onConflict: "ats_source,external_id" });
+      // Retry on Postgres 57014 (statement timeout) under nightly write
+      // contention, mirroring the sweep's withTimeoutRetry. Without this a
+      // single transient timeout lost the whole company for the night; the
+      // two largest boards (NVIDIA/PANW) failed two nights running and the
+      // 2-day sweep then deactivated all their rows (2026-07-26/27 incident).
+      const { error } = await withTimeoutRetry(`upsert ${company.name}`, () =>
+        supabase
+          .from("jobs")
+          .upsert(batch, { onConflict: "ats_source,external_id" }),
+      );
       if (error) throw new Error(error.message);
     }
   } catch (err) {
