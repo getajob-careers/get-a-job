@@ -35,13 +35,18 @@ const REDUCE =
 // general career agent). `id` selects the bespoke CanvasToolIcon silhouette + the
 // mockup tool tint; `icon` is the compact lucide glyph for the mobile rail.
 const TOOL_TILES = [
-  { id: "home", label: "Home", page: "Home", icon: House },
-  { id: "career", label: "Career", page: "Career", icon: Map },
+  // Tile order ruled by Eli (pre-cert). The exact leading five - Tasks, Interview
+  // coach, LinkedIn, Home, Profile - then Career, Story bank, Skill hub, and the
+  // Coach full-page tile LAST (the Coach dock is always present in the rail, so
+  // its full-page twin is the least-reached). Desktop rail + mobile rail share
+  // this one array, so both inherit the order.
   { id: "tasks", label: "Tasks", page: "Tasks", icon: ListTodo },
-  { id: "profile", label: "Profile", page: "Profile", icon: User },
-  { id: "storybank", label: "Story bank", page: "StoryBank", icon: BookOpen },
-  { id: "linkedin", label: "LinkedIn", page: "Linkedin", icon: Linkedin },
   { id: "coach", label: "Interview coach", page: "InterviewCoach", icon: Mic },
+  { id: "linkedin", label: "LinkedIn", page: "Linkedin", icon: Linkedin },
+  { id: "home", label: "Home", page: "Home", icon: House },
+  { id: "profile", label: "Profile", page: "Profile", icon: User },
+  { id: "career", label: "Career", page: "Career", icon: Map },
+  { id: "storybank", label: "Story bank", page: "StoryBank", icon: BookOpen },
   {
     id: "skills",
     label: "Skill hub",
