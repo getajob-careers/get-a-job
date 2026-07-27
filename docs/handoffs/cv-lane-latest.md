@@ -13,102 +13,106 @@ Overwrite-on-update (standing rule). **After any context clear, read THIS +
   ([[never-delete-rows-without-ruling]]).
 - **Audience = ANY career seeker** now, not just business students (CLAUDE.md line is stale
   beachhead framing). Never gate role/skill/coverage scope on "business students"
-  ([[audience-any-career-seeker]], Eli 2026-07-27).
-- **Formatter reflows WHOLE files + strips just-added imports.** Add an import in the SAME edit as its
-  first usage; after any Edit to a dense file, check `git diff --stat` for churn
-  ([[formatter-strips-just-added-imports]]).
+  ([[audience-any-career-seeker]], Eli 2026-07-27). 0-user on a gap is a sparse-base artifact
+  (64 profiles), NOT no-demand.
+- **Formatter reflows WHOLE files + strips just-added imports.** For dense JSON/JSX, apply edits via
+  Bash python str.replace (bypasses the PostToolUse hook); grep the diff-stat for churn after.
 - **No em dashes** in repo artifacts (code/docs/**PR bodies**/**commit messages**) - hyphens. Grep ADDED
-  lines (`^\+`) before commit AND before opening a PR - AND grep the PR-body FILE + commit message
-  (prose is the real em-dash risk, not the code diff; a fresh 2026-07-27 lesson).
+  lines AND the PR-body FILE + commit message before commit AND before `gh pr create` (prose is the real
+  risk, not the code diff).
 - **Shared working tree (design lane shares this checkout):** commit by EXPLICIT PATHSPEC
-  (`git commit <path> -m ...`), never bare `git commit`. Verify PR scope with
-  `git diff --stat origin/main...HEAD` (THREE-dot), never `main..HEAD` (local main goes stale). `git
-fetch` before reasoning about base. Per-PR clean branch off `origin/main`; stage ONLY the item's files
-  (tree carries dirty `.claude/settings.local.json` + schema-validator JSONs + many untracked docs +
-  `tasks/lessons.md` + `docs/research/role-library-coverage-gap.md`).
-- **Merge ritual:** `gh pr merge <n> --squash` (NO --delete-branch; the local-checkout step fails because
-  main is checked out in getajob-eval worktree, but the REMOTE merge succeeds). Verify
-  `gh pr view <n> --json state`=MERGED, then delete remote branch via
-  `gh api -X DELETE repos/getajob-careers/get-a-job/git/refs/heads/<branch>` (push hook blocks
-  `git push --delete`). Run `gh pr create --base main` on its OWN line (compound trips the hook).
+  (`git commit <path> -m ...`), never bare. Verify PR scope with `git diff --stat origin/main...HEAD`
+  (THREE-dot), never `main..HEAD` (local main goes stale). `git fetch` before reasoning about base.
+  Per-PR clean branch off `origin/main`; stage ONLY the item's files (tree carries dirty
+  `.claude/settings.local.json` + schema-validator JSONs + many untracked docs + `tasks/lessons.md`).
+- **Merge ritual:** `gh pr merge <n> --squash` (NO --delete-branch; local-checkout step fails - main is
+  checked out in getajob-eval worktree, but REMOTE merge succeeds). Verify `gh pr view <n> --json state`
+  =MERGED, then delete remote branch via `gh api -X DELETE repos/getajob-careers/get-a-job/git/refs/heads/<branch>`.
+  Run `gh pr create --base main` on its OWN line (compound trips the hook).
 - **Protocol (Eli):** docs-only handoff PRs MERGE immediately, no hub wait. Code/data PRs stay HELD
   until the hub has SEEN them, then boundary-merge. Edge-fn deploys get a DEPLOYED-source fingerprint.
 
 ## SERVICE-ROLE KEY - unblocked (REST only)
 
 `export SUPABASE_SERVICE_ROLE_KEY=$(supabase projects api-keys --project-ref ilmqmodklutztuybsvwd | grep -i service_role | grep -oE 'eyJ[A-Za-z0-9_.-]+' | head -1)`.
-WORKS for PostgREST reads/writes (legacy JWT len 219). NEVER write it to a key file. The "CLI keys
-fail" caveat is EDGE-FN RUNTIME ONLY ([[service-role-key-runtime-drift]]). `jobs` has NO `role` column
-(use `function_family` as the domain proxy). Supabase MCP `execute_sql` (project ilmqmodklutztuybsvwd)
-is loaded. `+walkthrough` uid = `9d1cbc94-3738-46e0-8bc0-7b62eacc2584`.
+WORKS for PostgREST reads/writes (legacy JWT len 219). NEVER write it to a key file (inline in the env
+var; delete any `.bakeoff.env`/`.srk` same turn). "CLI keys fail" caveat is EDGE-FN RUNTIME ONLY
+([[service-role-key-runtime-drift]]). `jobs` has NO `company`/`role` column (use `function_family` as the
+domain proxy). Supabase MCP `execute_sql` (project ilmqmodklutztuybsvwd) is loaded. `+walkthrough` uid =
+`9d1cbc94-3738-46e0-8bc0-7b62eacc2584`.
 
-## SELF-VERIFICATION PIPELINE (MANDATORY per ruled item)
+## SELF-VERIFICATION PIPELINE (per ruled item)
 
-After the build, spawn fresh-context general-purpose agents IN PARALLEL: 1) SPEC VERIFIER (diff == ruled
-spec, no creep), 2) QA BREAKER (adversarial; real harness for data/prompt changes), 3) FLAG-SCOPE (only
-if flag-gated), 4) GATEKEEPER (lint/typecheck net-delta/build/test). Baseline: typecheck ~518 (net delta
-matters); `.obsidian/` lint RED is gitignored cruft CI never sees; `scripts/` is outside eslint config.
+After the build, run IN PARALLEL: 1) SPEC VERIFIER (diff == ruled spec, no creep), 2) QA BREAKER
+(adversarial; real harness for data/prompt changes - the b5 reviewer caught a genuine #575 role-side
+split the builder missed), 3) FLAG-SCOPE (only if flag-gated), 4) GATEKEEPER (lint/typecheck
+net-delta/build/test). Baseline: typecheck ~518 (net delta matters); `.obsidian/` lint RED is gitignored
+cruft CI never sees; `scripts/` is outside eslint config.
 
-## DONE THIS SESSION (2026-07-27, pass 4) - items 1+2 LIVE, item 3 HELD-gated
+## GUARD-1 harness (reusable, in `$CLAUDE_JOB_DIR/tmp`)
 
-1. **#811 cron resilient sweep MERGED + LIVE** (squash `ef682e5`). No edge deploy (GH Actions script;
-   tonight's run picks it up). **DEFERRED CHECK:** after the next nightly run, confirm the two-night
-   LOUDNESS gate did NOT fire spuriously (green run + fresh landing_stats, not >40h stale).
+OLD-vs-NEW resolver RE-SCORE over the live corpus, 16 profiles + walkthrough. Gate = GOOD-BAND
+PRESERVATION (0 band drops); membership churn is ADVISORY iff (a) band preserved, (b) correct new
+resolution of a genuinely-required skill, (c) displaced by equal-or-stronger ON-DOMAIN job - else STOP
+([[scoring-parked-postlaunch-remeasure]], lessons 2026-07-27 P02/P07). Files: `guard1-rescore-b5.ts`
+(edit the OLD import), `guard1-b5-diff.mjs`, `reresolve-corpus.ts`. **Regenerate OLD alias snapshot from
+`origin/main` before reuse:** `git show origin/main:supabase/functions/_shared/skill-aliases.ts > tmp/aliases-OLD-<x>.ts`.
+Run: `deno run --allow-env --allow-read --allow-net --allow-write --sloppy-imports --import-map=scripts/match-eval-imap.json <harness> <old|new> <out>`.
 
-2. **Coach CV-Revise-pointer rule DONE + LIVE** (PR #813 squash `364a422`; **ai-chat deployed v117**,
-   fingerprint-verified: rule marker `REVISE ONE SECTION OF AN EXISTING CV` + fallback
-   `IF THE USER DOESN'T SEE THE REVISE BUTTON` + presets in the live bundle). Rule lives in
-   `career_agent` branch of `assembleSystemPrompt` (prompt-lib.ts). On a section-revise ask against an
-   EXISTING generated CV, the coach points to the inline "Revise" button (Summary + Experience bullets
-   only; flag-on/nextDesign) instead of emitting a whole-CV regen card. Hub ruled BOTH questions:
-   career_agent is the right surface (confirmed); flag fallback clause ADDED (`d5204e7`) - honest in
-   both flag states. **NOTE (Eli): `cv-helper` + `application_cv_success_agent` are UNWIRED dead code
-   (zero frontend refs); the in-Studio chat is `edit-cv`, NOT ai-chat. Do NOT re-wire cv-helper.**
-   Rollback = revert `364a422` + redeploy ai-chat from v116.
+## DONE THIS SESSION (2026-07-27, CV-lane pass 5)
 
-3. **Batch 7 skill aliases HELD-gated (PR #817, `2807ea3`, branch `eli/skill-batch7-modernweb-hris`).**
-   24 additive aliases, 0 new IDs, single-file `_shared/skill-aliases.ts`. Builder proposed / independent
-   reviewer drop-on-doubt. Reviewer DROPS: clean architecture, telemetry (HW-lane over-fire),
-   talent management, sdks. **solidworks mint DEFERRED** to the Mechanical/HW role-expansion cluster
-   (filed to `docs/research/role-library-coverage-gap.md` - UNTRACKED local doc - as demand evidence).
-   GATES ALL PASS: GUARD-1 5510 jobs, 128 changed, 137 ADDs, **0 REMOVALS**; ambiguity sweep no
-   wrong-domain fires (compensation HR-only, vba finance-only). EVAL GUARD walkthrough 3/10 + finance
-   10/10 + marketing 10/10 top-10 BYTE-IDENTICAL OLD->NEW, off=0. Gatekeeper net-0 typecheck, build+test
-   PASS. schema-validator baseline-parity, deno check clean. Reviewer flags for Eli's eye (kept):
-   vba->excel_advanced_finance (finance-flavored), employee relations->hr_business_partnering (borderline),
-   vercel->frontend_development (deploy platform), anomaly detection->machine_learning (~6 security + 1
-   FinOps borderline fires; retarget time_series_analysis if too broad).
-   **PER-BATCH TAIL after hub merges #817:** `scripts/reresolve-corpus.ts --dry` then `--write`
-   (137 additive resolutions / 128 jobs; inline the key, delete any `.bakeoff.env` same turn), then
-   redeploy `extract-job-requirements` + `generate-career-analysis` + fingerprint DEPLOYED source, then
-   eval-guard spot-check. Harnesses reusable in `$CLAUDE_JOB_DIR/tmp`: `guard1-batch7.ts`,
-   `build-eval-corpus.ts`, `skill-aliases-OLD.ts` (regenerate OLD snapshot from origin/main before reuse).
+1. **#817 batch-7 aliases MERGED + LIVE** (squash `65621bf`). Full tail done: reresolve **171 written**
+   (additive; coverage 0.247->0.248, 0 removals), **extract-job-requirements v33->v34** +
+   **generate-career-analysis v121->v122**, both fingerprinted in DEPLOYED source (base44/openshift/vercel
+   present). Eval-guard 14/16 + walkthrough byte-identical, 2 improvements. 4 moderate aliases
+   (vba/employee relations/vercel/anomaly detection) - **NO off-domain fire** (flagged near-misses
+   `experience with vercel` on Infra Eng + `real-time anomaly detection` on dairy operator correctly do
+   NOT fire). Rollback = revert `65621bf` + redeploy the 2 fns from v33/v121.
 
-## RESUME HERE (fresh session order)
+2. **b5 genuine-gap PR #820 HELD, hub-PASSED** (`30b5b69`, branch `eli/skill-b5-cx-mktops`, CI-green).
+   MINT `customer_experience_management` (customer_success_skill, 37 discipline-phrase jobs) +
+   `marketing_operations` (technical_business_skill, 21 jobs); 14 aliases; `martech` retargeted
+   adtech_domain->marketing_operations (the ONLY line-replacement, ruled). ALIASED (not minted) growth
+   marketing + customer segmentation onto existing clusters. PR deferred (14 jobs/0 users, at-bar).
+   **CX #575 role-side split** (reviewer caught: `customer_experience_manager` role maps
+   `customer_journey_management` as core, 04_role_skill_mapping.ts:289) **CLOSED via dual-target CX
+   aliases** - RULED by Eli: keep PR as built, mint + dual-target, NO role-graph edit. Reviewer DROPPED
+   `cx` + `user segmentation` (drop-on-doubt). Gates: schema-validator baseline-identical, deno check
+   clean, typecheck net-0, test+build+edge-boot green (1819). GUARD-1 15/16 + walkthrough byte-identical,
+   1 advisory (P07 CS-Manager swap, band preserved).
 
-1. **If #817 merged:** run the Batch-7 per-batch tail (reresolve --write + redeploy 2 fns + fingerprint +
-   eval guard). Else it stays HELD for hub.
-2. **b5 GENUINE-GAP mini-batch (NEXT substantive item, needs NEW IDs).** Own reviewed batch, concept-grep
-   zero-dup + full 4-agent pipeline + GUARD-1 + eval guard. Gaps (do NOT force-alias onto existing IDs):
-   **customer experience (n=29, biggest)**, marketing operations, growth marketing, public relations,
-   customer segmentation. Per gap emit a MINT-vs-SKIP recommendation with evidence (like the finance-risk
-   SKIP ruling: 13 jobs / 0 users = below the bar). New IDs -> edit `01_skill_library.ts` +
-   `node scripts/regen-skill-ids.mjs` (regen `src/lib/skillIdsGenerated.json`) + `common_roles:[]` on new
-   entries. `library-changes` skill checklist applies (concept-grep every ID).
-3. **Gen-image AI-tool mini-batch** (from b1): midjourney/dall-e/adobe firefly -> generative_ai_creative /
-   ai_design_tools. Own reviewed batch.
-4. **soc chip cluster + solidworks/mechanical-CAD** -> extractor/role-expansion horizon (Architect /
-   Mechanical-HW), NOT alias work. Both filed in role-library-coverage-gap.md (untracked - consider a
-   dedicated docs-commit for that doc; it has a pre-existing frontmatter em-dash to fix then).
+## RESUME HERE (fresh session FIRST ACT)
 
-### QUEUED follow-ups (not blocking)
+1. **MERGE #820 (hub-PASSED) via the ritual**, then its per-batch tail: reresolve `--dry` then `--write`
+   (report denominator; inline key, delete any `.bakeoff.env` same turn) -> redeploy
+   `extract-job-requirements` + `generate-career-analysis` -> fingerprint DEPLOYED source for a b5 marker
+   (`marketing_operations` or `customer_experience_management`) -> eval-guard spot-check (walkthrough
+   baseline stable). Harnesses ready in `$CLAUDE_JOB_DIR/tmp` (regenerate OLD snapshot from origin/main
+   first). Rollback capture: fns currently v34/v122 (will be v35/v123 after).
+2. **#811 loudness re-check.** `ef682e5` (resilient sweep + 2-night loudness gate) merged 14:26 UTC 07-27,
+   AFTER the 04:31 UTC nightly - so it first EXECUTES in tonight's cron (01:00 UTC 07-28). Read tomorrow's
+   run: confirm the two-night gate stayed QUIET (green run + fresh landing_stats, not >40h stale).
+   landing_stats was fresh (1.9h) at handoff time.
+3. **Next substantive items (own reviewed batches):** (a) gen-image AI-tool mini-batch from b1
+   (midjourney/dall-e/adobe firefly -> generative_ai_creative / ai_design_tools). (b) soc chip cluster +
+   solidworks/mechanical-CAD -> extractor/role-expansion horizon (Architect/Mechanical-HW), NOT alias
+   work; both filed in `docs/research/role-library-coverage-gap.md` (untracked).
 
-- **accounts_payable role-graph wiring** = Eli's structural-decision bundle (04_role_skill_mapping).
+## ELI'S STRUCTURAL DECISION BUNDLE (04_role_skill_mapping - deferred, do NOT touch without ruling)
+
+- `accounts_payable` role-graph wiring.
+- **NEW (2026-07-27):** wire `customer_experience_management` into the `customer_experience_manager` role
+  mapping (closes the CX split at the role side; the b5 PR closed it at the job side via dual-target
+  aliases as an interim). Both are structural role-graph edits held for Eli's dedicated pass.
+
+## QUEUED follow-ups (not blocking)
+
 - companies_il.json `by_ats` header stale ([[companies-il-by-ats-stale]]).
+- Workday no-facet searchText widening ([[workday-nofacet-searchtext-widening]]).
 
 ## PARKED - do NOT touch
 
 - Emails (until Flip 2 [[outreach-register-arc]]). All scoring formula/weight work (post-launch
   re-measure [[scoring-parked-postlaunch-remeasure]]) - library work is DATA not formula.
-- Design lane theater PR #765; above-ceiling chip shelved (`eli/above-ceiling-chip` `a15699b`) until hub
-  announces the theater merge, then rebase.
+- Design lane theater PR #765; above-ceiling chip shelved (`eli/above-ceiling-chip`) until hub announces
+  the theater merge, then rebase.
