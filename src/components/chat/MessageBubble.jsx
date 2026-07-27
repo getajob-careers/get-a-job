@@ -418,6 +418,14 @@ export default function MessageBubble({ message, variant = "page" }) {
                       {children}
                     </h3>
                   ),
+                  table: ({ children }) => (
+                    // Own horizontal scroll so a wide table scrolls WITHIN the
+                    // bubble instead of being clipped by the thread's
+                    // overflow-x-hidden (item 2) or forcing a panel scrollbar.
+                    <div className="overflow-x-auto my-2">
+                      <table className="border-collapse">{children}</table>
+                    </div>
+                  ),
                   code: ({ inline, children }) =>
                     inline ? (
                       <code className="px-1 py-0.5 rounded bg-rd-bg-soft text-rd-text-secondary text-xs">
