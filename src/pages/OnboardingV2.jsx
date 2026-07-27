@@ -299,6 +299,13 @@ export default function OnboardingV2() {
         experiences,
         educations,
         projects,
+        // Provenance guard: the 'extracted' stamp is applied only when the
+        // domain being written actually came from CV extraction. Passing the
+        // raw extracted domain lets the persist layer distinguish it from an
+        // INFERRED domain that back-nav can backfill into profileData (a
+        // springboard->back->direction->back->review->Continue round-trip),
+        // which must NOT be re-labelled 'extracted'.
+        extractedPrimaryDomain: extracted?.primary_domain || null,
       });
     } finally {
       setAdvancing(false);
