@@ -25,12 +25,13 @@ function LogoDefs({ id, top, bottom }) {
         y2={bottom}
       >
         {/* Highlight is a TOKEN (--rd-logo-hi), not a hardcoded coral: the mark's
-            glaze has to follow the palette, or a cool-primary candidate renders a
-            coral logo on a blue product. Clay's value is the old #EC6A47
-            verbatim, so Clay is pixel-identical. The #EC6A47 FALLBACK covers
-            contexts rendered outside :root[data-next-design] (e.g. flag-off V1
-            onboarding), where --rd-logo-hi is undefined and the stop would
-            otherwise resolve to black. Flag-on is unchanged (the token wins). */}
+            glaze follows the palette, or a cool-primary product renders a coral
+            logo. Flag-ON (:root[data-next-design]) sets --rd-logo-hi to the slate
+            --accent-soft (#8b8ca3, index.css), so the new-design mark is ENTIRELY
+            slate - NO coral anywhere. The #EC6A47 FALLBACK applies ONLY where
+            --rd-logo-hi is undefined: the flag-OFF / old-world surfaces (e.g. V1
+            onboarding), which keep the coral glaze until Flip 2 (also prevents a
+            black stop there). Never hardcode coral here - read the token. */}
         <stop offset="0%" stopColor="var(--rd-logo-hi, #EC6A47)" />
         <stop offset="42%" stopColor="var(--rd-primary)" />
         <stop offset="100%" stopColor="var(--rd-primary-dark)" />
