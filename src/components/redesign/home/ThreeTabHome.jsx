@@ -152,7 +152,7 @@ export default function ThreeTabHome() {
               tabIndex={active ? 0 : -1}
               onClick={() => selectTab(tab.id)}
               onKeyDown={onTabKeyDown}
-              className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 min-h-[44px] rounded-full font-display font-bold rd-t-body-s transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rd-primary-dark ${
+              className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 min-h-[44px] rounded-full font-display font-bold rd-t-body-s transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white ${
                 active
                   ? "text-white"
                   : "text-rd-text-secondary hover:text-rd-text"
