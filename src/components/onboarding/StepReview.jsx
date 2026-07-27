@@ -848,8 +848,8 @@ export default function StepReview({
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           {cvExtracted
-            ? "Here’s what we found in your CV. Edit anything that isn’t right, add what’s missing, then continue."
-            : "Add the essentials below. Edit anything that isn’t right, add what’s missing, then continue."}
+            ? "Here's what we found in your CV. Edit anything that isn't right, add what's missing, then continue."
+            : "Add the essentials below. Edit anything that isn't right, add what's missing, then continue."}
         </p>
       </div>
 
