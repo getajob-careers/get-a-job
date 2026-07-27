@@ -381,7 +381,41 @@ function Career({ g }) {
   );
 }
 
+// Home - the house/home-base object. Glaze pentagon body + ink arched doorway;
+// the round attic window is the object's warm-white "light" that pops on hover
+// ("someone's home"). Mono per object - one glaze, one ink.
+function Home({ g }) {
+  return (
+    <>
+      <path
+        d="M14 3.6 L24 12.6 L24 24 L4 24 L4 12.6 Z"
+        fill={`url(#${g})`}
+        stroke="var(--to-ink)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11 24 L11 18.6 a3 3 0 0 1 6 0 L17 24"
+        fill="none"
+        stroke="var(--to-ink)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <circle
+        className="ti-home"
+        cx="14"
+        cy="9.6"
+        r="1.8"
+        fill="var(--to-hi)"
+        stroke="var(--to-ink)"
+        strokeWidth="1.2"
+      />
+    </>
+  );
+}
+
 const SHAPES = {
+  home: Home,
   career: Career,
   coach: Coach,
   chat: Chat,

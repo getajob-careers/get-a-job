@@ -30,7 +30,7 @@ import CvMatchedRolesRail from "./CvMatchedRolesRail";
 //   Jobs    -> UnifiedJobsFeed (self-fetching; singleColumn for the narrow column).
 
 const TABS = [
-  { id: "cv", label: "CV", icon: FileUser },
+  { id: "cv", label: "CV bank", icon: FileUser },
   { id: "tracker", label: "Tracker", icon: Columns3 },
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];

@@ -119,7 +119,7 @@ function PieceRevise({ onRevise, target }) {
         disabled={busy}
         aria-label="Revise with AI"
         title="Revise with AI"
-        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-medium transition-opacity ${busy ? "opacity-100 text-rd-primary-dark" : "opacity-0 group-hover/bullet:opacity-100 group-hover/piece:opacity-100 focus:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark"}`}
+        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10.5px] font-medium transition-opacity print:opacity-0 ${busy ? "opacity-100 text-rd-primary-dark" : "opacity-50 group-hover/bullet:opacity-100 group-hover/piece:opacity-100 focus:opacity-100 text-rd-text-tertiary hover:text-rd-primary-dark"}`}
       >
         {busy ? (
           <Loader2 className="w-3 h-3 animate-spin" />

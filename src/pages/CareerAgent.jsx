@@ -80,9 +80,10 @@ export default function CareerAgent() {
   const appLabel = selectedApp
     ? `${selectedApp.role_title}${selectedApp.company ? ` at ${selectedApp.company}` : ""}`
     : null;
-  const title = selectedApp
-    ? `AI Career Agent - ${appLabel}`
-    : "AI Career Agent";
+  // Presents as "Coach" - the full-page view of the SAME assistant as the
+  // sidebar dock (one name everywhere, Eli PR-D item 4). Backend agent identity
+  // (agentName="career_agent") is unchanged - copy + chrome only.
+  const title = selectedApp ? `Coach - ${appLabel}` : "Coach";
   const description = selectedApp
     ? "Career strategy scoped to this specific role and your fit for it."
     : "Honest, data-driven career strategy based on your actual profile and roadmap.";

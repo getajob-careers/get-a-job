@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { supabase } from "@/api/supabaseClient";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { useAuth } from "@/lib/AuthContext";
@@ -6,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle } from "lucide-react";
+import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { track, EVENTS } from "@/lib/analytics";
@@ -25,6 +27,7 @@ import {
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: profile } = useProfileQuery(user?.id);
   const [cvName, setCvName] = useState(app.cv_version_name || "");
   const [cvStatus, setCvStatus] = useState(app.cv_status || "not_started");
@@ -192,20 +195,36 @@ export default function CVManagement({ app, onUpdate }) {
             <FileText className="w-4 h-4 text-[#52545A]" />
             <span className="text-xs text-[#52545A]">CV Generated</span>
           </div>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await triggerBlobDownload(app.cv_url, cvFilename(profile?.full_name, app.role_title));
-              } catch (err) {
-                toast.error(`Download failed: ${err?.message || "unknown error"}`);
+          <div className="flex items-center gap-3">
+            {/* View in CV editor (Eli PR-D item 8): opens THIS tailored version in
+                the CV surface. Deep-links /CVAgent?application_id; the route gate
+                resolves it - flag-off = the editor, flag-on = Home's CV bank tab
+                with this CV selected. */}
+            <button
+              type="button"
+              onClick={() =>
+                navigate(createPageUrl("CVAgent") + `?application_id=${encodeURIComponent(app.id)}`)
               }
-            }}
-            className="text-xs text-[#0E1014] underline flex items-center gap-1 cursor-pointer"
-          >
-            <Download className="w-3 h-3" />
-            Download (.pdf)
-          </button>
+              className="text-xs text-[#52545A] hover:text-[#0E1014] flex items-center gap-1 cursor-pointer rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0E1014] focus-visible:ring-offset-1 transition-colors"
+            >
+              <Pencil className="w-3 h-3" />
+              View in CV editor
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await triggerBlobDownload(app.cv_url, cvFilename(profile?.full_name, app.role_title));
+                } catch (err) {
+                  toast.error(`Download failed: ${err?.message || "unknown error"}`);
+                }
+              }}
+              className="text-xs text-[#0E1014] underline flex items-center gap-1 cursor-pointer"
+            >
+              <Download className="w-3 h-3" />
+              Download (.pdf)
+            </button>
+          </div>
         </div>
       )}
 

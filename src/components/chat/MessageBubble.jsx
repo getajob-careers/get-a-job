@@ -369,7 +369,7 @@ export default function MessageBubble({ message, variant = "page" }) {
         {message.content && (
           <div
             className={cn(
-              "max-w-full",
+              "max-w-full break-words",
               bubblePadding,
               isUser ? userBubbleClasses : agentBubbleClasses,
             )}
@@ -417,6 +417,14 @@ export default function MessageBubble({ message, variant = "page" }) {
                     <h3 className="text-sm font-semibold my-1.5 text-rd-text">
                       {children}
                     </h3>
+                  ),
+                  table: ({ children }) => (
+                    // Own horizontal scroll so a wide table scrolls WITHIN the
+                    // bubble instead of being clipped by the thread's
+                    // overflow-x-hidden (item 2) or forcing a panel scrollbar.
+                    <div className="overflow-x-auto my-2">
+                      <table className="border-collapse">{children}</table>
+                    </div>
                   ),
                   code: ({ inline, children }) =>
                     inline ? (

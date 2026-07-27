@@ -60,9 +60,13 @@ function LogoDefs({ id, top, bottom }) {
 }
 
 // Full mark internals - the A-frame desk, a sharpened hunched worker (head +
-// back + a distinct arm), and a solid laptop (the "working" anchor). `chair`
-// adds a seat + back-post so the figure sits instead of floating.
-function FullInner({ accent, ink, chair }) {
+// back + a distinct arm + seated legs), and a solid laptop (the "working"
+// anchor). The old seat/back-post "chair" strokes were replaced by real legs
+// (Eli PR-D, 2026-07-27, variant A "forward L-sit"): the figure now reads as a
+// person sitting - thigh forward under the desk, shin dropping into the frame -
+// instead of head+torso+arm with stub-nubs. ViewBox + every other coordinate is
+// unchanged, so the mark stays drop-in at all sizes / surfaces / flag states.
+function FullInner({ accent, ink }) {
   return (
     <>
       {/* A legs / desk frame */}
@@ -85,18 +89,6 @@ function FullInner({ accent, ink, chair }) {
         strokeWidth="5"
         strokeLinecap="round"
       />
-      {/* chair (variant): seat + back-post, grounding the sitter */}
-      {chair && (
-        <g
-          stroke={accent}
-          strokeWidth="3.6"
-          strokeLinecap="round"
-          opacity="0.82"
-        >
-          <path d="M13.5 33 L25 33" />
-          <path d="M13.5 33 L13.5 20.5" />
-        </g>
-      )}
       {/* person: head + hunched back + a distinct arm reaching the laptop */}
       <circle cx="24" cy="12" r="5.4" fill={accent} />
       <path
@@ -111,6 +103,23 @@ function FullInner({ accent, ink, chair }) {
         stroke={accent}
         strokeWidth="4.3"
         strokeLinecap="round"
+      />
+      {/* seated legs (Eli variant A): thigh forward under the desk, shin down */}
+      <path
+        d="M25.5 30 L34 34"
+        stroke={accent}
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path
+        d="M34 34 L32.5 46"
+        stroke={accent}
+        strokeWidth="5.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
       />
       {/* laptop (solid ink): base + angled screen */}
       <path d="M28.5 29 L40 31.6 L38.4 26 L26.9 23.4 Z" fill={ink} />
@@ -145,7 +154,7 @@ export function MarkFullChair({
     >
       {material && <LogoDefs id={uid} top={6} bottom={50} />}
       <g filter={material ? `url(#${uid}-lift)` : undefined}>
-        <FullInner accent={stroke} ink={solid} chair />
+        <FullInner accent={stroke} ink={solid} />
       </g>
     </svg>
   );

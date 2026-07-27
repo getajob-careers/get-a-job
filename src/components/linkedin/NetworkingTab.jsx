@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowDown } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CommentCoach from "./networking/CommentCoach";
 import OutreachConversationsList from "./networking/OutreachConversationsList";
@@ -96,22 +96,32 @@ export default function NetworkingTab() {
         </div>
       </Link>
 
-      {/* Decorative tool-pill row per mockup — labels each tool below
-          but doesn't switch views (Eli's ruling: keep stacked, don't
-          change discoverability behavior). */}
-      <div className="flex gap-2 flex-wrap" aria-hidden="true">
-        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-primary text-white">
+      {/* Two-tool jump-links (Eli PR-D item 5): the old filled/soft pill pair
+          read as a selected/unselected TOGGLE but did nothing - a deceptive
+          affordance. These are now real in-page anchors to each tool's section
+          (useful once the Outreach list pushes Comment Coach below the fold),
+          styled as clearly-clickable link-chips, not a toggle. */}
+      <nav className="flex gap-2 flex-wrap" aria-label="Jump to a networking tool">
+        <a
+          href="#outreach-coach"
+          className="rd-hit-44 rd-focus-ring inline-flex items-center gap-1.5 font-display font-semibold text-[13px] rounded-full border border-rd-border bg-rd-bg-card px-3.5 py-1.5 text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary-dark active:bg-rd-bg-soft transition-colors"
+        >
           Outreach Coach
-        </span>
-        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary">
+          <ArrowDown className="w-3.5 h-3.5" aria-hidden="true" />
+        </a>
+        <a
+          href="#comment-coach"
+          className="rd-hit-44 rd-focus-ring inline-flex items-center gap-1.5 font-display font-semibold text-[13px] rounded-full border border-rd-border bg-rd-bg-card px-3.5 py-1.5 text-rd-text-secondary hover:border-rd-primary hover:text-rd-primary-dark active:bg-rd-bg-soft transition-colors"
+        >
           Comment Coach
-        </span>
-      </div>
+          <ArrowDown className="w-3.5 h-3.5" aria-hidden="true" />
+        </a>
+      </nav>
 
       {/* Outreach Coach surfaced first — it's the action the Internship
           flow drives to. Comment Coach (still high-leverage per
           research) sits below as a discovery surface. */}
-      <Section title="Outreach Coach">
+      <Section id="outreach-coach" title="Outreach Coach">
         {outreachView === null ? (
           <OutreachConversationsList
             onOpen={openConversation}
@@ -132,16 +142,16 @@ export default function NetworkingTab() {
         )}
       </Section>
 
-      <Section title="Comment Coach">
+      <Section id="comment-coach" title="Comment Coach">
         <CommentCoach />
       </Section>
     </div>
   );
 }
 
-function Section({ title, children }) {
+function Section({ id, title, children }) {
   return (
-    <section>
+    <section id={id} className="scroll-mt-4">
       <h2 className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-3">
         {title}
       </h2>
