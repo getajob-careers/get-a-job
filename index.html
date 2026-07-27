@@ -8,21 +8,27 @@
     <!-- NEXT_DESIGN flag bootstrap. Resolves the redesign flag ONCE, before first
          paint and before the CSS module loads, so the token overrides in
          :root[data-next-design] (src/index.css) and the JS guard
-         (src/lib/nextDesign.js) never disagree and there is no flash. Precedence:
-         ?next= query param > localStorage 'nextDesign' > VITE_NEXT_DESIGN build
-         default. Flag OFF (default) = current production, untouched. This whole
-         block is deleted at reveal. -->
+         (src/lib/nextDesign.js) never disagree and there is no flash.
+
+         REVEAL SHIPPED (Flip 2): the redesign is now the DEFAULT for everyone. The
+         persisted 'nextDesign' localStorage is the sole opt-out: "0" (set via
+         ?next=0) is the kill switch and STICKS across sessions; absent or "1" = on.
+         ?next=1 re-enables (a no-op on the default). Mirrors the ?scoring_v2=0
+         escape hatch. This whole block is deleted at reveal-cleanup. -->
     <script>
       (function () {
+        var on = true;
         try {
           var q = new URLSearchParams(location.search).get("next");
           if (q === "1") localStorage.setItem("nextDesign", "1");
-          else if (q === "0") localStorage.removeItem("nextDesign");
-          var envDefault = "%VITE_NEXT_DESIGN%" === "1";
-          if (localStorage.getItem("nextDesign") === "1" || envDefault) {
-            document.documentElement.setAttribute("data-next-design", "");
-          }
-        } catch (e) {}
+          else if (q === "0") localStorage.setItem("nextDesign", "0");
+          on = localStorage.getItem("nextDesign") !== "0";
+        } catch (e) {
+          // localStorage blocked (private mode): can't persist, so honor the
+          // param for this load only; default on.
+          on = new URLSearchParams(location.search).get("next") !== "0";
+        }
+        if (on) document.documentElement.setAttribute("data-next-design", "");
       })();
     </script>
     <!-- SEO / social. Static so no-JS crawlers and social unfurlers (which do

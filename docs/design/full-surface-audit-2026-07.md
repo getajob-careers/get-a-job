@@ -315,6 +315,11 @@ depth` / 0 `validateDOMNesting` on fresh mount. a11y solid: situation chips are
     byte-identical). Gate green. Per #546, needs a live cold-load browser verify on the
     flag-on un-onboarded path before merge (needs Eli's authed session) - coordinating with
     Eli's live repro.
+  - **RESOLVED / now shipped:** the guard is live in `ThreeTabHome.jsx:48-66` on `main`,
+    and Flip 2 (PR #826) has since flipped the default ON. The two references above to the
+    `VITE_NEXT_DESIGN` env default describe the pre-Flip-2 mechanism, which is now removed;
+    the reveal-cohort blocker is closed (un-onboarded users are bounced into V2 onboarding
+    in both flag states).
 
 OUTSTANDING (onboarding, next session): steps 3 + 4 UI/console/states; the
 point-of-no-return (which final action commits `onboarding_complete=true` - do NOT

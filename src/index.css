@@ -20,14 +20,14 @@
  * single flag (see src/lib/nextDesign.js + the bootstrap in index.html). This
  * block defines the --rd-* tokens for BOTH states:
  *
- *   :root                   = flag OFF (default) = the v1 production palette,
- *                             byte-identical to pre-Phase-0 main. Real users see
- *                             NO change until reveal day.
- *   :root[data-next-design] = flag ON = the crowned YISHAI system (Yishai palette
- *                             on the GREIGE ground, always-on MEDIUM treatment
- *                             baked in). Its specificity (0,1,1) beats :root
- *                             (0,0,1), so it wins once the bootstrap sets
- *                             data-next-design on <html>.
+ *   :root                   = flag OFF = the v1 production palette, byte-identical
+ *                             to pre-Phase-0 main. Reached only via the ?next=0
+ *                             kill switch now that the reveal has shipped.
+ *   :root[data-next-design] = flag ON (DEFAULT since Flip 2) = the crowned YISHAI
+ *                             system (Yishai palette on the GREIGE ground, always-on
+ *                             MEDIUM treatment baked in). Its specificity (0,1,1)
+ *                             beats :root (0,0,1), so it wins once the bootstrap
+ *                             sets data-next-design on <html> (now by default).
  *
  * Source of truth + rationale: docs/design/canvas-tokens.md. --rd-field,
  * --rd-logo-hi and the --rd-amp-* tokens are new to the redesign and live ONLY in
@@ -37,8 +37,8 @@
  * tasks/redesign.md's token table.
  */
 @layer base {
-  /* Flag OFF (default): the exact pre-Phase-0 main palette. Do not "improve" it -
-     this exists to be byte-identical to old main until reveal day. */
+  /* Flag OFF (?next=0 kill switch): the exact pre-Phase-0 main palette. Do not
+     "improve" it - this exists to be byte-identical to old main. */
   :root {
     /* Surfaces */
     --rd-bg-page: #faf6f0;
