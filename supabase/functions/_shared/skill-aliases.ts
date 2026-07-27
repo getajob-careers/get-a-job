@@ -1325,6 +1325,21 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "bookkeeping up to trial balance": ["bookkeeping"],
   "bookkeeping through balance sheet": ["bookkeeping"],
   "hands on bookkeeping": ["bookkeeping"],
+  // Re-file mini-batch (from #792 reviewer drops, hub-approved). Structural/close
+  // and AP-cycle reconciliations that belong to accounts_payable / accounting_general,
+  // NOT bookkeeping. Finance-locked keys (vendor/supplier/intercompany/balance-sheet/
+  // general-ledger) - no eng-role over-fire. Singular + plural are distinct keys
+  // (resolver depluralizes single-token only), so both number forms are listed.
+  "vendor reconciliations": ["accounts_payable"],
+  "vendor reconciliation": ["accounts_payable"],
+  "supplier reconciliations": ["accounts_payable"],
+  "supplier reconciliation": ["accounts_payable"],
+  "general ledger entries": ["accounting_general"],
+  "gl entries": ["accounting_general"],
+  "intercompany reconciliation": ["accounting_general"],
+  "intercompany reconciliations": ["accounting_general"],
+  "balance sheet reconciliations": ["accounting_general"],
+  "balance sheet reconciliation": ["accounting_general"],
   "cash management": ["cash_flow_management"],
   "treasury": ["cash_flow_management"],
   "variance analysis": ["bva_analysis"],
