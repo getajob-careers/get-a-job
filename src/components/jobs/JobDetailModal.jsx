@@ -265,13 +265,6 @@ export default function JobDetailModal({
             style={headerTint}
           >
             <ScoreBreakdown scoreResult={scoreResult} color={d.bandMeta.fg} />
-            {/* Quiet self-explaining note for a stretch inclusion above the
-                user's seniority ceiling (band already capped to "stretch"). */}
-            {d.aboveCeiling && (
-              <p className="mt-2 text-[11px] text-rd-text-secondary">
-                Above your current level - beyond your seniority for now.
-              </p>
-            )}
           </div>
         )}
 
@@ -281,6 +274,17 @@ export default function JobDetailModal({
             height and long descriptions get clipped unscrollably. Pre-existing
             on main; fixed here for both flag states. */}
         <div className="flex-1 min-h-0 px-5 py-4 overflow-y-auto">
+          {/* Quiet self-explaining note for a stretch inclusion above the user's
+              seniority ceiling (band already capped to "stretch"). Lives in the
+              body, not the breakdown panel, so it also renders on alive &&
+              !unified surfaces (Search tab, CV matched-roles rail) where
+              showBreakdown is false. */}
+          {alive && d.aboveCeiling && (
+            <p className="text-[11px] text-rd-text-secondary mb-4">
+              Above your current level - beyond your seniority for now.
+            </p>
+          )}
+
           {d.scored && d.reasonText && (
             <p className="text-[12.5px] text-rd-text-secondary leading-[1.55] mb-4">
               {d.reasonText}
