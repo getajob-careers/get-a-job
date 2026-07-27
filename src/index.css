@@ -257,6 +257,17 @@
   }
 }
 
+/* Flag-ON only: paint the body (which propagates to the viewport canvas) with
+   the canvas page token, so on viewports wider than CanvasShell's max-w-[1400px]
+   the side gutters read as seamless canvas instead of white. Unlayered on
+   purpose - it must win over the @layer base `body` rule above. Flag-OFF has no
+   data-next-design attr, so body stays bg-background (white) - byte-identical.
+   Login + onboarding paint their own full-width bg-rd-bg-page over the body, so
+   they are unaffected. */
+:root[data-next-design] body {
+  background-color: var(--rd-bg-page);
+}
+
 /*
  * TYPE + RADIUS SCALE + ELEVATION - the locked design-system classes, promoted
  * from the canvas (was src/pages/_preview/canvas/{scale,elevation}.css) to global
