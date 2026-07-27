@@ -38,14 +38,8 @@ import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
-  Rocket,
-  Headphones,
-  TrendingUp,
   HelpCircle,
-  Check,
   Plus,
-  ChevronDown,
-  ChevronUp,
   ChevronRight,
   Loader2,
   X,
@@ -55,7 +49,10 @@ import {
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
 import RdFunnelTile from "@/components/redesign/RdFunnelTile";
-import { humanizeSkillId } from "@/lib/humanizeSkillId";
+import MatchedRolesPanel, {
+  sortMatchedRoles,
+  resolveActiveRoleId,
+} from "@/components/career/MatchedRolesPanel";
 import { isAuthError, recoverFromAuthError } from "@/lib/authRecovery";
 import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
 import { useCareerRolesQuery } from "@/lib/queries/useCareerRoles";
@@ -94,76 +91,6 @@ const APPLICATION_STATUS_LABELS = {
 // First-time guide dismissal: per-user localStorage flag, same precedent
 // as Home's hero-done key (Home.jsx:365).
 const PIPELINE_GUIDE_DISMISS_KEY = (uid) => `pipelineGuideDismissed:${uid}`;
-
-// Display normalization for the 0-1 score contract.
-//
-// career_roles.match_score, readiness_score, and goal_alignment_score are
-// stored as 0-1 fractions (verified against live DB 2026-06-11; max across
-// all 426 production rows is 1.0). This page renders percent strings, so
-// every consumer here multiplies by 100. Same conversion JobCard.jsx
-// already applies for fit_score (Math.round(score * 100), and that
-// RoleCard.jsx applies for readiness_score + goal_alignment_score
-// (Math.round(Number(rawScore) * 100)). This page was the outlier; the
-// rail forgot the conversion and shipped showing "1%" badges for two
-// weeks of production.
-//
-// Contract:
-//   - Caller MUST gate on null/undefined upstream (see qualifiedAvailable
-//     and pathAvailable in the rail; typeof === "number" for the badge).
-//   - This helper coerces null/undefined to 0 defensively but the rendered
-//     element should already be omitted in the null case.
-//   - Clamped to [0, 100] so a future stored value > 1 (or a 0-100 row
-//     left over before this hotfix) renders as 100 rather than something
-//     absurd like "8800%".
-const toPct = (v) => Math.max(0, Math.min(100, Math.round((v ?? 0) * 100)));
-
-// Band styling per track — canonical rdColor mapping (T1 coral · T2 teal ·
-// T3 golden) from TRACK_CONFIG, expressed as static Tailwind classes so
-// the JIT compiler sees them.
-const TRACK_BAND = [
-  {
-    key: "track_1",
-    icon: Rocket,
-    circle: "bg-rd-primary",
-    tintBg: "bg-rd-primary-tint",
-    ink: "text-rd-primary-dark",
-    activeBorder: "border-rd-primary",
-    dot: "bg-rd-primary",
-    barFill: "bg-rd-primary",
-    barTrack: "bg-rd-primary-tint",
-  },
-  {
-    key: "track_2",
-    icon: Headphones,
-    circle: "bg-rd-teal",
-    tintBg: "bg-rd-teal-tint",
-    ink: "text-rd-teal-dark",
-    activeBorder: "border-rd-teal",
-    dot: "bg-rd-teal",
-    barFill: "bg-rd-teal",
-    barTrack: "bg-rd-teal-tint",
-  },
-  {
-    key: "track_3",
-    icon: TrendingUp,
-    circle: "bg-rd-golden",
-    tintBg: "bg-rd-golden-tint",
-    ink: "text-rd-golden-dark",
-    activeBorder: "border-rd-golden",
-    dot: "bg-rd-golden",
-    barFill: "bg-rd-golden",
-    barTrack: "bg-rd-golden-tint",
-  },
-];
-
-// Matched-roles chip text = the track NAME (the "how tracks work" explainer
-// covers what each one means). Keyed by track id; goal-ordering elsewhere
-// still renders sweet spot → growth → detour.
-const TRACK_NAMES = {
-  track_1: "Sweet spot",
-  track_2: "Detour",
-  track_3: "Growth",
-};
 
 export default function Career() {
   const { user } = useAuth();
@@ -380,24 +307,13 @@ export default function Career() {
   // deliberate: on live data a 0.92 detour would outrank a 0.847 sweet-spot
   // role under a flat match_score sort, burying the role the user should act
   // on first. Unknown tracks sort last.
-  const sortedRoles = useMemo(() => {
-    const TIER_ORDER = { track_1: 0, track_3: 1, track_2: 2 };
-    return [...roles].sort((a, b) => {
-      const ta = TIER_ORDER[a.track] ?? 99;
-      const tb = TIER_ORDER[b.track] ?? 99;
-      if (ta !== tb) return ta - tb;
-      return (b.match_score ?? 0) - (a.match_score ?? 0);
-    });
-  }, [roles]);
+  const sortedRoles = useMemo(() => sortMatchedRoles(roles), [roles]);
 
   const goalName = profile?.five_year_role || "your 5-year goal";
 
   // First matched role opens by default; falls back to the top role once
   // the user collapses the open one (the closed-<id> sentinel never matches).
-  const effectiveExpandedId =
-    expandedRoleId && sortedRoles.some((r) => r.id === expandedRoleId)
-      ? expandedRoleId
-      : (sortedRoles[0]?.id ?? null);
+  const effectiveExpandedId = resolveActiveRoleId(sortedRoles, expandedRoleId);
 
   // B3 visible-list ids — the exact ORDER rendered in the Matched Roles rail
   // (tier then match_score). The live-jobs list now lives inside
@@ -867,150 +783,19 @@ export default function Career() {
           />
         </div>
 
-        {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
-            list across all tracks, ordered by fit-quality tier then
-            match_score. Each row carries its own track band styling.
-            In the fixed shell it fills the row height and scrolls internally
-            (scrollbar hidden) so a long list is fully reachable; with the
-            pipeline board open the page scrolls normally, so it's just
-            natural height, top-aligned. */}
-        <div
-          className={`w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 ${fixedShell ? "md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "md:self-start"}`}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-display font-bold text-[14px] text-rd-text">
-              Your matched roles
-            </span>
-            <span className="text-[10.5px] text-rd-text-secondary">
-              {sortedRoles.length} {sortedRoles.length === 1 ? "role" : "roles"}
-            </span>
-          </div>
-          <p className="text-[10.5px] leading-[1.5] text-rd-text-tertiary mb-2.5">
-            Why you&apos;re matched: every role is scored on two axes - how{" "}
-            <b className="text-rd-text">qualified</b> you are now, and how well
-            it <b className="text-rd-text">moves you toward {goalName}</b>.
-          </p>
-          <div className="flex flex-col gap-2">
-            {sortedRoles.length === 0 && (
-              <p className="text-[12px] text-rd-text-secondary px-1 py-2">
-                No matched roles yet.
-              </p>
-            )}
-            {sortedRoles.map((r) => {
-              const expanded = r.id === effectiveExpandedId;
-              // Each role carries its OWN track band (the list is mixed-track
-              // now). Fall back to track_1 styling if the stored track is
-              // unrecognized so a row never renders without a color.
-              const band =
-                TRACK_BAND.find((t) => t.key === r.track) || TRACK_BAND[0];
-              const trackName = TRACK_NAMES[r.track];
-              // RULINGS.md (e): null score columns NEVER render as 0%.
-              // Compute "available" from the raw nulls (not from the
-              // coalesced fallback) so a genuinely-missing column omits its
-              // bar entirely. readiness_score is allowed to fall back to
-              // match_score for display — both being null is the only case
-              // that omits the qualified bar. match_score and readiness_score
-              // are identical on live data, so the magnitude shows ONCE as the
-              // "Qualified now" bar; the collapsed header carries the
-              // track-NAME chip (Sweet spot / Growth / Detour), never the
-              // number a second time.
-              const qualifiedRaw = r.readiness_score ?? r.match_score;
-              const qualifiedAvailable =
-                qualifiedRaw !== null && qualifiedRaw !== undefined;
-              const pathAvailable =
-                r.goal_alignment_score !== null &&
-                r.goal_alignment_score !== undefined;
-              const qualified = toPct(qualifiedRaw);
-              const path = toPct(r.goal_alignment_score);
-              const matched = (r.matched_skills || []).slice(0, 4);
-              const gaps = (r.missing_skills || []).slice(0, 3);
-              return (
-                <div
-                  key={r.id}
-                  className="bg-rd-bg-card border border-rd-border rounded-[12px] overflow-hidden"
-                >
-                  <button
-                    onClick={() =>
-                      setExpandedRoleId(expanded ? `closed-${r.id}` : r.id)
-                    }
-                    className="w-full text-left px-3 py-2.5 flex items-center gap-2"
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${band.dot} flex-shrink-0`}
-                    />
-                    <span className="flex-1 min-w-0 font-display font-bold text-[12.5px] leading-[1.25] text-rd-text">
-                      {r.title}
-                    </span>
-                    {trackName && (
-                      <span
-                        className={`font-display font-semibold text-[10px] rounded-full px-2 py-0.5 ${band.tintBg} ${band.ink}`}
-                      >
-                        {trackName}
-                      </span>
-                    )}
-                    {expanded ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-rd-text-secondary flex-shrink-0" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-rd-text-secondary flex-shrink-0" />
-                    )}
-                  </button>
-                  {expanded && (
-                    <div className="px-3 pb-3">
-                      {(qualifiedAvailable || pathAvailable) && (
-                        <div className="flex flex-col gap-1.5">
-                          {qualifiedAvailable && (
-                            <AxisBar
-                              label="Qualified now"
-                              value={qualified}
-                              fill={band.barFill}
-                              track={band.barTrack}
-                            />
-                          )}
-                          {pathAvailable && (
-                            <AxisBar
-                              label={`Moves you to ${goalName}`}
-                              value={path}
-                              fill={band.barFill}
-                              track={band.barTrack}
-                            />
-                          )}
-                        </div>
-                      )}
-                      {(matched.length > 0 || gaps.length > 0) && (
-                        <div className="flex flex-wrap gap-1.5 mt-2.5">
-                          {matched.map((s) => (
-                            <span
-                              key={s}
-                              className="inline-flex items-center gap-1 text-[10px] bg-rd-teal-tint text-rd-teal-dark rounded-[6px] px-2 py-0.5"
-                            >
-                              <Check className="w-2.5 h-2.5" />{" "}
-                              {humanizeSkillId(s)}
-                            </span>
-                          ))}
-                          {gaps.map((s) => (
-                            <span
-                              key={s}
-                              className="inline-flex items-center gap-1 text-[10px] bg-rd-golden-tint text-rd-golden-dark rounded-[6px] px-2 py-0.5"
-                            >
-                              <Plus className="w-2.5 h-2.5" />{" "}
-                              {humanizeSkillId(s)}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      <Link
-                        to={createPageUrl("Roadmap")}
-                        className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-medium text-rd-primary-dark hover:text-rd-text transition-colors"
-                      >
-                        Full role detail <ChevronRight className="w-3 h-3" />
-                      </Link>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        {/* Right - matched roles why-panel. Extracted to a shared component
+            (src/components/career/MatchedRolesPanel) so the Browse Jobs tab
+            renders the SAME panel beside its feed. size="compact" +
+            scrollSelf={fixedShell} + this width className reproduce Career's
+            original inline layout; keep it byte-identical here. */}
+        <MatchedRolesPanel
+          roles={sortedRoles}
+          goalName={goalName}
+          expandedId={effectiveExpandedId}
+          onToggle={setExpandedRoleId}
+          scrollSelf={fixedShell}
+          className="w-full md:flex-1 min-w-0"
+        />
       </div>
     </div>
   );
@@ -1037,27 +822,6 @@ function PipelineGuideTile({ tint, accent, head, body, highlight = false }) {
       >
         {body}
       </p>
-    </div>
-  );
-}
-
-function AxisBar({ label, value, fill, track }) {
-  // RULINGS.md (b): explanatory axes render as bars with NO numerals.
-  // The bar fill is the sole carrier of magnitude; the label names the
-  // axis. Removing the trailing percent span here is the load-bearing
-  // edit — keep it that way.
-  const v = Math.max(0, Math.min(100, value || 0));
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-[10px] text-rd-text-secondary w-[104px] flex-shrink-0">
-        {label}
-      </span>
-      <span className={`flex-1 h-1.5 rounded-full ${track} overflow-hidden`}>
-        <span
-          className={`block h-full rounded-full ${fill}`}
-          style={{ width: `${v}%` }}
-        />
-      </span>
     </div>
   );
 }
