@@ -101,7 +101,7 @@ export function renderJobDigestEmail(args: {
     ``,
     ...args.jobs.map(
       (j) =>
-        `- ${j.title} — ${j.company}${j.location ? " (" + j.location + ")" : ""}\n  ${j.url}`,
+        `- ${j.title} at ${j.company}${j.location ? " (" + j.location + ")" : ""}\n  ${j.url}`,
     ),
     ``,
     `See all your matches: ${args.appUrl}`,
@@ -154,11 +154,11 @@ export function renderReengagementEmail(args: {
   appUrl: string;
 }): { subject: string; html: string; text: string } {
   const name = firstName(args.fullName);
-  const subject = "We rebuilt onboarding — come see your job matches";
+  const subject = "We rebuilt onboarding, come see your job matches";
 
   const inner = `<div style="font:400 15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:${BRAND.ink};">
 <p style="margin:0 0 12px;">Hi ${esc(name)},</p>
-<p style="margin:0 0 12px;">You started setting up your Get A Job profile but didn't finish — so you haven't seen your job matches yet.</p>
+<p style="margin:0 0 12px;">You started setting up your Get A Job profile but didn't finish, so you haven't seen your job matches yet.</p>
 <p style="margin:0 0 16px;">We just rebuilt the setup flow to be much faster: a few quick questions and you're matched to real, current roles from Israeli tech companies. It takes about two minutes.</p>
 <div style="padding-top:4px;">${ctaButton(args.appUrl, "Finish setting up")}</div>
 </div>`;
@@ -166,7 +166,7 @@ export function renderReengagementEmail(args: {
   const text = [
     `Hi ${name},`,
     ``,
-    `You started setting up your Get A Job profile but didn't finish — so you haven't seen your job matches yet.`,
+    `You started setting up your Get A Job profile but didn't finish, so you haven't seen your job matches yet.`,
     ``,
     `We just rebuilt the setup flow to be much faster: a few quick questions and you're matched to real, current roles from Israeli tech companies. It takes about two minutes.`,
     ``,

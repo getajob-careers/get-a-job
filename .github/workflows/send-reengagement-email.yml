@@ -1,8 +1,17 @@
-# Re-engagement email — ONE-OFF, manual only (workflow_dispatch). Unlike the
-# digest there is NO schedule: re-engagement is a deliberate single send Eli
-# triggers once, not a recurring job. The edge function defaults to DRY-RUN
-# (renders + logs to email_dry_run_log, never sends) — a real send additionally
-# requires EMAIL_SEND_ENABLED="true" in the function env.
+# Re-engagement email - a deliberate single send to onboarding-incomplete users.
+#
+# TRIGGER:
+#   - workflow_dispatch ONLY: on-demand, DRY-RUN by default; set the real_send
+#     input to true to actually send. There is NO schedule - re-engagement fires
+#     only when manually dispatched.
+#
+# SEND GATING (two independent conditions, BOTH required for a real send):
+#   1. dry_run=false reaches the edge function. The runner derives this from the
+#      EMAIL_REAL_SEND env below: TRUE only on a manual dispatch with
+#      real_send=true; FALSE otherwise (so plain manual runs stay dry-run).
+#   2. EMAIL_SEND_ENABLED="true" in the edge-function env (a Supabase secret).
+# With EMAIL_SEND_ENABLED unset, even a real_send run only renders + logs to
+# email_dry_run_log.
 #
 # Required repo secrets (same as refresh-jobs.yml):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
@@ -14,14 +23,19 @@
 name: Send re-engagement email
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      real_send:
+        description: "true = actually send (also needs EMAIL_SEND_ENABLED=true); default false = dry-run"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
 jobs:
   run:
-    name: Re-engagement email (dry-run)
+    name: Re-engagement email
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -37,8 +51,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run re-engagement email (dry-run)
+      - name: Run re-engagement email
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Real send only when the manual dispatch opts in via real_send=true.
+          # Still requires EMAIL_SEND_ENABLED=true in the edge-fn env to actually send.
+          EMAIL_REAL_SEND: ${{ inputs.real_send == true }}
         run: npx tsx scripts/send-reengagement.ts

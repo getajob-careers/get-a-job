@@ -83,6 +83,8 @@ describe("isInternalEmail", () => {
       "foo@getajob.careers",
       "isaacselig@x.com",
       "yishailieser@x.com",
+      "cwsctstest002@gmail.com",
+      "pod1cws@gmail.com",
     ])
       expect(isInternalEmail(e)).toBe(true);
   });
