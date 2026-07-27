@@ -1309,6 +1309,22 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "month end close": ["accounting_general"],
   "financial statements": ["financial_reporting"],
   "account reconciliations": ["bookkeeping"],
+  // Bookkeeping coverage batch (reviewer-approved 11/17). Restores bookkeeping
+  // resolution for Bookkeeper JDs after the bare "reconciliation" narrow; every
+  // key is finance-locked ("bank"/"credit card") or contains "bookkeep", so none
+  // re-introduces the eng-role over-fire the bare key had. Space-form keys catch
+  // hyphen/snake/paren input via the resolver's normalization retries.
+  "bank reconciliations": ["bookkeeping"],
+  "bank reconciliation": ["bookkeeping"],
+  "credit card reconciliations": ["bookkeeping"],
+  "certified bookkeeper": ["bookkeeping"],
+  "bookkeeping certificate": ["bookkeeping"],
+  "full cycle bookkeeping": ["bookkeeping"],
+  "multi entity bookkeeping": ["bookkeeping"],
+  "multi currency bookkeeping": ["bookkeeping"],
+  "bookkeeping up to trial balance": ["bookkeeping"],
+  "bookkeeping through balance sheet": ["bookkeeping"],
+  "hands on bookkeeping": ["bookkeeping"],
   "cash management": ["cash_flow_management"],
   "treasury": ["cash_flow_management"],
   "variance analysis": ["bva_analysis"],
