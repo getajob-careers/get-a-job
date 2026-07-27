@@ -203,6 +203,15 @@ export default function ThreeTabHome() {
           // is a full-width page with no rail, so it keeps its md side-by-side.
           <div className="flex flex-col lg:flex-row gap-5 items-start md:h-full md:min-h-0 md:overflow-y-auto lg:overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <div className="w-full lg:flex-[1.55] min-w-0 lg:h-full lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {/* Sort disclosure (Eli pre-cert item 1): the feed ranks goal-path
+                  roles first, so a lower-scored goal-path role can sit above a
+                  higher-scored adjacent one. Surface that AT the feed - the panel
+                  (which stacks below the feed under lg) opts out so the line is
+                  visible at every width, right where the ordering confuses. */}
+              <p className="text-[12px] leading-[1.5] text-rd-text-tertiary mb-3 px-0.5">
+                Roles on your goal path are listed first, then by match
+                strength.
+              </p>
               <UnifiedJobsFeed singleColumn />
             </div>
             <MatchedRolesPanel
@@ -214,6 +223,7 @@ export default function ThreeTabHome() {
               scrollSelf
               scrollAt="lg"
               isLoading={loadingRoles}
+              sortDisclosure={false}
               className="w-full lg:flex-1 min-w-0"
             />
           </div>

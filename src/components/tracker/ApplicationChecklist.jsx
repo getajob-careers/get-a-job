@@ -241,7 +241,7 @@ export default function ApplicationChecklist({
             id: tId,
             duration: 15000,
             action: {
-              label: "Open in CV Agent",
+              label: "Open in CV editor",
               onClick: () =>
                 navigate(
                   createPageUrl("CVAgent") +

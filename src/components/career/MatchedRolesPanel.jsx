@@ -154,6 +154,7 @@ export default function MatchedRolesPanel({
   scrollSelf = false,
   scrollAt = "md",
   isLoading = false,
+  sortDisclosure = true,
   className = "",
 }) {
   const sz = SIZES[size] || SIZES.compact;
@@ -184,9 +185,11 @@ export default function MatchedRolesPanel({
         <b className="text-rd-text">qualified</b> you are now, and how well it{" "}
         <b className="text-rd-text">moves you toward {goalName}</b>.
         {/* Sort disclosure (Eli PR-D item 6): the list order is deliberate -
-            surface it. Comfortable-only so Career's compact render stays
-            byte-identical. Mirrors sortMatchedRoles (tier before score). */}
-        {size === "comfortable" && (
+            surface it on every tier so both surfaces that render this ordering
+            explain it. Browse Jobs opts out (sortDisclosure={false}) because it
+            shows the same line above the feed, where the confusion lives.
+            Mirrors sortMatchedRoles (tier before score). */}
+        {sortDisclosure && (
           <>
             {" "}
             Roles on your goal path are listed first, then by match strength.
