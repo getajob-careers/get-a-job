@@ -15,8 +15,11 @@ export type EmailType = "job_digest" | "reengagement";
 // Internal / test recipients — never send here even if sending is later enabled.
 // Mirrors the scrubbed-usage real_users email exclusion (defense in depth: the
 // segment queries already exclude these, this is a second gate at the send edge).
+// cwsctstest / pod1cws are two non-plus-addressed QA accounts that slipped the
+// plus-addressed patterns above; matched by narrow exact-ish local-part fragments
+// (NOT bare "test"/"cws", which would false-positive real users).
 const INTERNAL_EMAIL_RE =
-  /(elienglard|isaacselig|yishailieser|@getajob|\+demo|\+test|\+audit|\+cwsreview)/i;
+  /(elienglard|isaacselig|yishailieser|@getajob|\+demo|\+test|\+audit|\+cwsreview|cwsctstest|pod1cws)/i;
 export const isInternalEmail = (email: string): boolean =>
   INTERNAL_EMAIL_RE.test(String(email ?? ""));
 
