@@ -41,25 +41,44 @@ full findings: `docs/research/supply-growth/` (00-consolidated.md + lever1-6 + a
 - **P0 VERIFIED:** geo-block CONFIRMED - US GHA egress (Azure) is blocked by IAI/Bezeq/HOT gateways (IAI 247/488-byte challenge, Bezeq timeout, HOT 302); all 200+data from an IL residential IP. ExpressVPN/Shift4 genuinely dead (~0 IL). The ~488 estimate (IAI 452 + Bezeq 31 + HOT 5) is a LIVE-FEED count (audited, no Teva defect); IAI 452 VERIFIED live and dominates.
 - **$3 test (drafted, NOT run):** Eli buys a Webshare IL DATACENTER proxy (~$2.99), curls the 3 endpoints through it. Confirms/refutes whether a datacenter IL IP works (only a residential IL IP is proven). Exact commands in 00-consolidated.md appendix. No spend/accounts by Claude.
 
-### >>> ACTIVE / BLOCKED ON ELI: EY SuccessFactors recovery <<<
+### >>> NEXT ACTION: merge the held EY PR #838, then dispatch <<<
 
-Eli revoked the EY hold (wants EY live) AND the "don't touch nightly path" line **for the
-SuccessFactors fetcher ONLY**. New order was: merge #833 (DONE) -> measure -> build EY fix (held) -> dispatch after auth.
+Eli ruled 2026-07-27: **63 IL stands** (build proceeded); budget plan confirmed (SF-specific
+timeout at ats-fetchers.ts, extraction 8->14, job cap stays 25). **EY PR #838 is BUILT + HELD**
+on branch `eli/ey-sf-timeout` - do NOT rebuild. Gate GREEN (lint / typecheck 517 no-regression /
+build / 1831 tests / em-dash), Spec Verifier PASS, QA-Breaker in the PR's VERIFICATION block.
+What #838 ships:
 
-**STOPPED at the measurement gate (Eli's rule: stop if IL count != 37).** Measured EY live
-(IL IP, temp scratch, no DB writes): feed **97.7 MB** (grew from 68MB), fetch+download **27.5s**
-(exceeds the 25s DEFAULT_TIMEOUT_MS -> aborts -> 0 jobs), parse 4.9s, peak RSS **193 MB** (NOT a
-memory concern), total items 7,265, **IL items via production `classifyLocation` = 63** (59 Tel
-Aviv, 2 Jerusalem, 2 Haifa - all legit; the "37" was a stale re-probe undercount). **Reported +
-holding for Eli's ruling on 63-vs-37 before building.**
+- `scripts/lib/ats-fetchers.ts`: new `SUCCESSFACTORS_TIMEOUT_MS = 90_000` (comment records the
+  measured basis: feed 97.7 MB / fetch 27.5s on 2026-07-27, ~90s growth headroom), used ONLY at
+  the `fetchSuccessFactors` AbortController. `DEFAULT_TIMEOUT_MS` (25s) UNCHANGED; no other fetcher.
+- `.github/workflows/refresh-jobs.yml`: Backfill-extraction step `timeout-minutes` 8->14; job cap stays 25.
 
-**EY fix spec (build when Eli rules):**
+Measurement (verbatim, for the record): HTTP 200, feed 97.7 MB, fetch 27.5s, parse 4.9s, total
+32.5s, peak RSS 193 MB, 7,265 total items, **63 IL** (59 Tel Aviv, 2 Jerusalem, 2 Haifa).
 
-- Add a `SUCCESSFACTORS_TIMEOUT_MS` const in `scripts/lib/ats-fetchers.ts`, use it ONLY at the AbortController timer at `fetchSuccessFactors` line ~1039 (currently `DEFAULT_TIMEOUT_MS`). Size from the 27.5s measurement WITH REAL MARGIN (feed is growing) - propose ~90s. Do NOT change `DEFAULT_TIMEOUT_MS` (line 20 = 25_000); do NOT touch other fetchers. 7 boards use `fetchSuccessFactors` - keep blast radius there.
-- SAME PR: raise the **extraction** step `timeout-minutes` 8->14 in `.github/workflows/refresh-jobs.yml` (line ~107, the "Backfill extraction" step - pays for extracting the recovered+EY jobs). NOTE reconciliation to flag to Eli: his message said "raise the refresh step budget 8->14, job cap stays 18," but VERIFIED structure = the refresh/fetch step has NO per-step budget (bounded by the job cap, which #833 already raised 18->25); the only `:8` is the extraction step. So: raise extraction 8->14, KEEP job cap 25 (do NOT revert to 18 - that would undo #833's fetch headroom). Confirm with Eli.
-- Memory is fine (193MB) so streaming is NOT urgent; PROPOSE a streamed/server-side-IL-filter version as a SEPARATE held PR (98MB downloaded for 63 IL = 0.9% yield, feed growing) - do not build it now.
-- Gate green + both verifiers, then HOLD with the measurement numbers in the PR body.
-- **Step 4 (after Eli authorizes the merge):** go live by manual dispatch, NOT the cron. Two conditions: do NOT dispatch past 00:15Z, and confirm no other refresh run is in flight first (`gh run list --workflow=refresh-jobs.yml`). If either fails, skip - let the 01:00Z cron carry it, say so. Then report: refresh step duration, per-ATS health rows, whether the loudness gate fired, and verbatim `select count(*) from jobs where is_active and company_name ilike '%EY%';` - **success = ~63** (NOT 37; the table holds 185 pre-dark inactive EY rows, so anything near 185 is suspicious, not success).
+**NEXT-SESSION STEPS, in order:**
+
+1. **Merge #838 via the ritual** (squash; confirm `state:MERGED` via `gh pr view --json state,mergedAt,mergeCommit`; delete the ref in a SEPARATE command).
+2. **Small cleanup** (fold into #838 before merge, OR a quick follow-up docs commit): the workflow
+   HEADER comment (`.github/workflows/refresh-jobs.yml` ~lines 36-39) is STALE - still says
+   "Job-level timeout: 18 min ... extraction capped at 8 min"; reality post-#833/#838 is cap 25 /
+   extraction 14. Fix the prose to match.
+3. **Go live by MANUAL DISPATCH** (do not wait for cron): `gh workflow run refresh-jobs.yml`. TWO
+   conditions: (a) do NOT dispatch past **00:15Z**; (b) confirm no other refresh run is in flight
+   first (`gh run list --workflow=refresh-jobs.yml --limit 3`). If either fails, SKIP - let the
+   01:00Z cron carry it, and say so plainly.
+4. **After the run, report:** the Refresh-step wall-clock duration, the per-ATS health rows,
+   whether the loudness/failure gate fired, and verbatim
+   `select count(*) from jobs where is_active and company_name ilike '%EY%';`.
+   **EY success = roughly 63, materially above zero, nowhere near 185** (185 = pre-dark inactive
+   rows; near-185 is suspicious, NOT success). Not an exact gate (feed grows).
+5. **Same run validates #833:** NVIDIA + Palo Alto Networks should self-heal (return active, ~412 IL):
+   `select count(*) filter (where is_active) from jobs where company_name in ('NVIDIA','Palo Alto Networks');`.
+   If EITHER is still 0, **STOP and escalate with the GHA logs** (the `upsert_error` lines) - do not paper over it.
+
+- **Durable follow-up (separate held PR, NOT built):** stream / server-side IL filter for SF
+  (98 MB downloaded for 63 IL = 0.9% yield, feed growing). Memory is fine (193 MB) so not urgent.
 
 ### Deferred / not-built (need an Eli ruling to start)
 
