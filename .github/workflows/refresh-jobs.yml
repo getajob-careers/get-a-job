@@ -68,7 +68,13 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    # Raised 18 -> 25 (2026-07-27 supply-growth P1, PR #833). The Refresh step
+    # has no per-step budget, so this job ceiling bounds it. On a contention
+    # night the timing-out UPSERTs each sit for the full 120s statement_timeout,
+    # so the step already reached 10m17s on 2026-07-27; the paired upsert-retry
+    # (up to two backoff waits per timing-out company) plus concurrency 20->16
+    # lengthen it further. 25 gives headroom so the job is not killed mid-write.
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4

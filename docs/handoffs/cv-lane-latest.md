@@ -93,7 +93,46 @@ timeout kills the second.)
    the only gap is live PROFILE-side resolution of a user typing a gen-image tool in career-analysis
    (0 current users). One deploy closes parity if wanted next session.
 
-## RESUME HERE (fresh session FIRST ACT)
+## EMAIL LAUNCH ARC (2026-07-27) - 3 HELD PRs + STEP 1 gate
+
+Step-0 dry-run REDONE under strict evidence (prior session's 20:41/20:44Z rows were
+FABRICATED - future-dated vs 17:19Z DB clock; logged CRITICAL in lessons.md). Fresh
+dry-run VERIFIED: digest 38 rows + reengagement 22 rows, all inside the run window.
+
+Three HELD PRs, all awaiting hub line-by-line + merge:
+
+- **#830** (`eli/email-exclude-test-accts`, `39939f0`) - exclude 2 QA accts
+  (cwsctstest002, pod1cws) via narrow shared `INTERNAL_EMAIL_RE` patterns. After merge:
+  redeploy `send-reengagement-email` (+ `send-job-digest`) so the deployed fn carries
+  the fix, then re-run reengagement dry-run to confirm 22->20.
+- **#831** (`eli/email-launch-schedule`, `71ed31d`) - digest daily 06:00 UTC schedule
+  ON; reengagement one-shot `30 5 28 7 *` (2026-07-28 05:30 UTC, REMOVE-IN-CLEANUP).
+  Wired real-send: both runners hardcoded dry_run:true, so uncommenting alone would
+  NOT send; now `EMAIL_REAL_SEND` env (schedule / real_send input) -> `dry_run:!realSend`.
+- **#834** (`eli/email-redesign-announcement`, DEPLOYED v1) - NEW redesign-announcement
+  email to onboarded users (39 audience; disjoint from reengagement 22, overlap 0).
+  workflow_dispatch-only, real_send input, verify_jwt=true pinned. Copy HELD for Eli's
+  approval (subject "Get A Job has a whole new look"; names Home/job browsing/CV bank/
+  Coach; CTA getajob.careers). Fn deployed + DEPLOYED-source verified. True
+  function-dry-run (email_dry_run_log rows) needs the workflow on main (local invoke
+  401s - runtime key = GH Actions secret only), so it runs after merge.
+
+**STEP 1 (tonight, ONLY after #830 + #831 merge):** `supabase secrets set
+EMAIL_SEND_ENABLED=true --project-ref ilmqmodklutztuybsvwd`, verify via secrets list,
+report. Then STOP - scheduled sends fire in the morning.
+
+## TOMORROW (email arc)
+
+1. **Read the scheduled sends** (after they fire 07-28): digest ~06:00 UTC + reengagement
+   ~05:30 UTC. `gh run list` for both workflows; query `email_dry_run_log` (or real-send
+   logs if EMAIL_SEND_ENABLED was set) for outcomes; confirm no test accts if #830 merged
+   - redeployed.
+2. **Redesign announcement (#834)** - only AFTER Eli approves the copy AND #834 merges AND
+   STEP 1 done: `gh workflow run send-redesign-announcement.yml -f real_send=true` for the
+   real send (or without the flag for one more dry-run first). Redeploy the fn post-#830
+   to inherit the exclusion.
+
+## RESUME HERE (other lanes)
 
 1. **#811 loudness gate first-execution read.** `ef682e5` (resilient sweep + 2-night loudness gate, in
    `scripts/refresh-jobs.ts`, workflow `refresh-jobs.yml`, cron `0 1 UTC` but DRIFTS to ~04:00) merged
