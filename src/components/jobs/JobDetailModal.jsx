@@ -249,7 +249,7 @@ export default function JobDetailModal({
             type="button"
             onClick={requestClose}
             aria-label="Close"
-            className="flex-shrink-0 p-1 rounded-md text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+            className="flex-shrink-0 inline-flex items-center justify-center w-11 h-11 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-1 transition-[background-color,transform] duration-150"
           >
             <X className="w-4.5 h-4.5" />
           </button>
@@ -343,7 +343,7 @@ export default function JobDetailModal({
             type="button"
             onClick={handleAdd}
             disabled={adding || added}
-            className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] rounded-full px-4 py-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] rounded-full px-4 py-2 min-h-[44px] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 transition-[background-color,transform] duration-150 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
             style={
               added
                 ? {
@@ -367,8 +367,8 @@ export default function JobDetailModal({
               rel="noopener noreferrer"
               className={
                 alive
-                  ? "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2 transition-colors"
-                  : "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
+                  ? "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary focus-visible:ring-offset-2 rounded-full px-4 py-2 min-h-[44px] transition-[background-color,border-color,transform] duration-150"
+                  : "inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark focus-visible:ring-offset-2 rounded-full px-4 py-2 min-h-[44px] transition-[background-color,transform] duration-150"
               }
             >
               Apply <ExternalLink className="w-3.5 h-3.5" />
@@ -390,7 +390,7 @@ export default function JobDetailModal({
             <button
               type="button"
               onClick={onViewCv}
-              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark focus-visible:ring-offset-2 rounded-full px-4 py-2 min-h-[44px] transition-[background-color,transform] duration-150"
             >
               <Check className="w-3.5 h-3.5" />
               View CV
@@ -399,7 +399,7 @@ export default function JobDetailModal({
             <button
               type="button"
               onClick={onGenerateCv}
-              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark rounded-full px-4 py-2 transition-colors"
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[12.5px] text-white bg-rd-primary hover:bg-rd-primary-dark active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-primary-dark focus-visible:ring-offset-2 rounded-full px-4 py-2 min-h-[44px] transition-[background-color,transform] duration-150"
             >
               <Wand2 className="w-3.5 h-3.5" />
               Generate CV

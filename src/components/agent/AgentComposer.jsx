@@ -53,7 +53,7 @@ export default function AgentComposer({ variant = "dock" }) {
       data-agent-composer
       data-variant={variant}
     >
-      <div className="rd-well rd-r-md flex items-end gap-1.5 px-2.5 py-2 transition-shadow focus-within:ring-2 focus-within:ring-rd-primary/35">
+      <div className="rd-well rd-r-md flex items-end gap-1.5 px-2.5 py-2 transition-shadow focus-within:ring-2 focus-within:ring-rd-primary/60">
         <textarea
           ref={taRef}
           value={conv.input}

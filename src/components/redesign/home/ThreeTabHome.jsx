@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { FileUser, Columns3, Compass } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
@@ -103,12 +103,33 @@ export default function ThreeTabHome() {
     setSearchParams(next, { replace: true });
   };
 
+  // ARIA APG tab pattern: roving tabindex + arrow/Home/End keys move focus and
+  // activate. Only the active tab is in the tab order (tabIndex 0); the arrows
+  // walk between the three, so a keyboard user tabs INTO the control once then
+  // arrows across it.
+  const tabRefs = useRef([]);
+  const onTabKeyDown = (e) => {
+    const count = TABS.length;
+    let nextIndex = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown")
+      nextIndex = (activeIndex + 1) % count;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
+      nextIndex = (activeIndex - 1 + count) % count;
+    else if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = count - 1;
+    if (nextIndex === null) return;
+    e.preventDefault();
+    selectTab(TABS[nextIndex].id);
+    tabRefs.current[nextIndex]?.focus();
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
       {/* Segmented-pill tabs (canvas comp A): one confident control. */}
       <div
         className="relative flex w-full max-w-[440px] mx-auto bg-rd-bg-soft rounded-full p-1 flex-shrink-0"
         role="tablist"
+        aria-label="Home sections"
       >
         <span
           aria-hidden="true"
@@ -118,17 +139,20 @@ export default function ThreeTabHome() {
             transform: `translateX(${activeIndex * 100}%)`,
           }}
         />
-        {TABS.map((tab) => {
+        {TABS.map((tab, index) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              ref={(el) => (tabRefs.current[index] = el)}
               type="button"
               role="tab"
               aria-selected={active}
+              tabIndex={active ? 0 : -1}
               onClick={() => selectTab(tab.id)}
-              className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-full font-display font-bold rd-t-body-s transition-colors ${
+              onKeyDown={onTabKeyDown}
+              className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 min-h-[44px] rounded-full font-display font-bold rd-t-body-s transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rd-primary-dark ${
                 active
                   ? "text-white"
                   : "text-rd-text-secondary hover:text-rd-text"
