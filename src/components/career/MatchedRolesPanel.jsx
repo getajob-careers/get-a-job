@@ -152,12 +152,21 @@ export default function MatchedRolesPanel({
   onToggle,
   size = "compact",
   scrollSelf = false,
+  scrollAt = "md",
   isLoading = false,
   className = "",
 }) {
   const sz = SIZES[size] || SIZES.compact;
+  // The breakpoint at which the panel owns its own scroll. Career passes the
+  // default "md" (byte-identical to its original inline layout). ThreeTabHome
+  // passes "lg" because it lives inside the coach shell rail: below lg its
+  // content region is too narrow to sit the panel beside the feed, so it stacks
+  // (no self-scroll - the jobs container scrolls the whole stack) and only owns
+  // its scroll once side-by-side at lg.
   const rootScroll = scrollSelf
-    ? " md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    ? scrollAt === "lg"
+      ? " lg:h-full lg:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      : " md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     : " md:self-start";
 
   return (
