@@ -1,0 +1,177 @@
+{
+  "_comment": "DRAFT for human promotion. NOT the registry. 2026-07-28 overnight sourcing lane, batch 4. Every row coordinator-probed live. Do NOT copy _-prefixed keys into companies_il.json.",
+  "companies": [
+    {
+      "name": "Alstom",
+      "type": "international_il_rd",
+      "industry": "Rail Infrastructure / EPC",
+      "domain": "alstom.com",
+      "careers_url": "https://jobsearch.alstom.com/",
+      "ats": "successfactors",
+      "slug": "jobsearch.alstom.com",
+      "api_url": "https://jobsearch.alstom.com/sitemap.xml",
+      "verified": true,
+      "notes": "FEED IS 25MB. fetchSuccessFactors has a function-specific timeout from #838 (EY is 97.7MB) so the shape is handled, but watch the first run. An agent scored this IL:0 because its reader capped below 25MB.",
+      "_verified_il_jobs_2026_07_28": 42,
+      "_skew": "MIXED",
+      "_il_breakdown": "Haifa + Tel Aviv light-rail build: Project Director, RSY Planning Manager, Performance & Cost Analyst, Direct Buyer, Storekeeper, Quality Engineer"
+    },
+    {
+      "name": "Roche",
+      "type": "international_il_rd",
+      "industry": "Pharma / Diagnostics",
+      "domain": "roche.com",
+      "careers_url": "https://roche.wd3.myworkdayjobs.com/roche-ext",
+      "ats": "workday",
+      "slug": "roche.wd3.myworkdayjobs.com/roche-ext",
+      "api_url": "https://roche.wd3.myworkdayjobs.com/wday/cxs/roche/roche-ext/jobs",
+      "verified": true,
+      "notes": "Also appears on Phenom with the same 4 roles. Pick ONE rail. roche.wd3 not in registry_workday_hosts.txt.",
+      "_verified_il_jobs_2026_07_28": 4,
+      "_skew": "BUSINESS",
+      "_il_breakdown": "Hod Hasharon: Healthcare Systems Partner, Patient Journey Partner, Application Specialist, Field Service Engineer"
+    },
+    {
+      "name": "Reckitt",
+      "type": "international_il_rd",
+      "industry": "Consumer Health / FMCG",
+      "domain": "reckitt.com",
+      "careers_url": "https://careers.reckitt.com/",
+      "ats": "successfactors",
+      "slug": "careers.reckitt.com",
+      "api_url": "https://careers.reckitt.com/sitemal.xml",
+      "verified": true,
+      "notes": "Note sitemal.xml (RSS, 512 items) not sitemap.xml (urlset) - the fetcher already uses sitemal.xml.",
+      "_verified_il_jobs_2026_07_28": 2,
+      "_skew": "BUSINESS",
+      "_il_breakdown": "Hod Hasharon: Sales Representative Pharma; Finance PTP Temp"
+    },
+    {
+      "name": "Gartner",
+      "type": "international_il_rd",
+      "industry": "Research / Advisory",
+      "domain": "gartner.com",
+      "careers_url": "https://gartner.wd5.myworkdayjobs.com/EXT",
+      "ats": "workday",
+      "slug": "gartner.wd5.myworkdayjobs.com/EXT",
+      "api_url": "https://gartner.wd5.myworkdayjobs.com/wday/cxs/gartner/EXT/jobs",
+      "verified": true,
+      "notes": "Verified via location facet Israel:1. gartner.com marketing site 403s; the Workday board is reachable directly.",
+      "_verified_il_jobs_2026_07_28": 1,
+      "_skew": "BUSINESS",
+      "_il_breakdown": "Account Executive, High-tech Israel (Herzliya Pituach)"
+    },
+    {
+      "name": "Maersk",
+      "type": "international_il_rd",
+      "industry": "Shipping / Logistics",
+      "domain": "maersk.com",
+      "careers_url": "https://maersk.wd3.myworkdayjobs.com/maersk_careers",
+      "ats": "workday",
+      "slug": "maersk.wd3.myworkdayjobs.com/maersk_careers",
+      "api_url": "https://maersk.wd3.myworkdayjobs.com/wday/cxs/maersk/maersk_careers/jobs",
+      "verified": true,
+      "notes": "Facet 'Israel, Ashdod, 7761003':1. Same tenant also serves APM Terminals (IL:0).",
+      "_verified_il_jobs_2026_07_28": 1,
+      "_skew": "BUSINESS",
+      "_il_breakdown": "Customs Coordinator / Agent, Ashdod"
+    },
+    {
+      "name": "Dentsu",
+      "type": "international_il_rd",
+      "industry": "Advertising / Media",
+      "domain": "dentsu.com",
+      "careers_url": "https://dentsuaegis.wd3.myworkdayjobs.com/DAN_GLOBAL",
+      "ats": "workday",
+      "slug": "dentsuaegis.wd3.myworkdayjobs.com/DAN_GLOBAL",
+      "api_url": "https://dentsuaegis.wd3.myworkdayjobs.com/wday/cxs/dentsuaegis/DAN_GLOBAL/jobs",
+      "verified": true,
+      "notes": "Verified via location facet Israel:1.",
+      "_verified_il_jobs_2026_07_28": 1,
+      "_skew": "BUSINESS",
+      "_il_breakdown": "Account Strategist, Tel Aviv"
+    },
+    {
+      "name": "Johnson Controls",
+      "type": "international_il_rd",
+      "industry": "Building Technologies",
+      "domain": "johnsoncontrols.com",
+      "careers_url": "https://jci.wd5.myworkdayjobs.com/JCI",
+      "ats": "workday",
+      "slug": "jci.wd5.myworkdayjobs.com/JCI",
+      "api_url": "https://jci.wd5.myworkdayjobs.com/wday/cxs/jci/JCI/jobs",
+      "verified": true,
+      "notes": "Facet-label search for 'Israel' MISSES this row (facet reads 'Zarhin Raanana'); confirmed via searchText+locationsText instead.",
+      "_verified_il_jobs_2026_07_28": 1,
+      "_skew": "ENG",
+      "_il_breakdown": "Software Engineer (.NET/C#), Zarhin Raanana"
+    },
+    {
+      "name": "Boston Scientific",
+      "type": "international_il_rd",
+      "industry": "Medical Devices",
+      "domain": "bostonscientific.com",
+      "careers_url": "https://jobs.bostonscientific.com/",
+      "ats": "successfactors",
+      "slug": "jobs.bostonscientific.com",
+      "api_url": "https://jobs.bostonscientific.com/sitemap.xml",
+      "verified": true,
+      "notes": "Also appears on Eightfold with the same single role. Pick ONE rail.",
+      "_verified_il_jobs_2026_07_28": 1,
+      "_skew": "ENG",
+      "_il_breakdown": "Service Development Engineering Manager, Yokneam Illit"
+    }
+  ],
+  "excluded_duplicate_endpoint": [
+    {
+      "name": "Edwards Lifesciences",
+      "found_on": "workday edwards.wd5/edwardscareers",
+      "il_jobs": 12,
+      "reason": "Already a proposed add in PR #843 (11 IL then, 12 now). Re-probe confirms #843 was right; not double-counted here."
+    },
+    {
+      "name": "Abbott",
+      "found_on": "phenom www.jobs.abbott",
+      "il_jobs": 3,
+      "reason": "Already a proposed add in PR #837 on Workday. Same roles via a second rail."
+    },
+    {
+      "name": "Juniper Networks",
+      "found_on": "workday hpe.wd5/Jobsathpe",
+      "il_jobs": null,
+      "reason": "juniper.net/careers redirects to careers.hpe.com/juniper. That is HPE's board, already in the registry."
+    },
+    {
+      "name": "Korn Ferry",
+      "found_on": "workday kornferry.wd5/kornferry (GUESSED)",
+      "il_jobs": null,
+      "reason": "Site segment was guessed and the endpoint returned HTTP 422. A guessed endpoint is not evidence. Explicitly not ingested."
+    }
+  ],
+  "class_b_rail_census": {
+    "bar": "4+ tenants with live Israeli jobs",
+    "CLEARS": {
+      "eightfold": {
+        "tenants": 8,
+        "il_jobs": 139,
+        "note": "Applied Materials 58 (ceiling, multi-location), Qualcomm 35, Teva 27, HP Inc 12, Citi 3, Micron 2, Boston Scientific 1, AstraZeneca 1"
+      },
+      "phenom": {
+        "tenants": 6,
+        "il_jobs": 64,
+        "note": "Cisco 30, GE HealthCare 21, Thermo Fisher 5, Roche 4, Abbott 3, Danaher 1. totalHits leaks non-IL; count job.country=='Israel'."
+      },
+      "oracle_fusion": {
+        "tenants": 5,
+        "il_jobs": 95,
+        "note": "Israel Discount Bank 70 (all Hebrew, business), Oracle 8, Fortinet 7, Verint 5, Dell 5. expand=requisitionList is mandatory; matcher must accept Hebrew ישראל."
+      }
+    },
+    "UNDER_OR_DISQUALIFIED": {
+      "icims": "DISQUALIFIED: no public JSON, list markup has no location field, robots noindex. MaxLinear '100+ IL' lead retired as unsupported.",
+      "recruitee": "0 qualifying tenants. Registry row Helios 404s - prune.",
+      "teamtailor": "0 qualifying tenants. Registry row SABON is the Romanian franchise - re-tag or prune.",
+      "hibob_bamboohr_rippling": "0-1 tenants across ~194 careers pages. No hidden Israeli-local ATS exists; Comeet is it."
+    }
+  }
+}
