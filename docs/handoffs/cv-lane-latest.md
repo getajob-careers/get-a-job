@@ -93,7 +93,7 @@ timeout kills the second.)
    the only gap is live PROFILE-side resolution of a user typing a gen-image tool in career-analysis
    (0 current users). One deploy closes parity if wanted next session.
 
-## EMAIL LAUNCH ARC (2026-07-27) - 3 HELD PRs + STEP 1 gate
+## EMAIL LAUNCH ARC (2026-07-27) - 3 HELD PRs, MANUAL-DISPATCH-PER-SEND
 
 Step-0 dry-run REDONE under strict evidence (prior session's 20:41/20:44Z rows were
 FABRICATED - future-dated vs 17:19Z DB clock; logged CRITICAL in lessons.md). Fresh
@@ -105,10 +105,12 @@ Three HELD PRs, all awaiting hub line-by-line + merge:
   (cwsctstest002, pod1cws) via narrow shared `INTERNAL_EMAIL_RE` patterns. After merge:
   redeploy `send-reengagement-email` (+ `send-job-digest`) so the deployed fn carries
   the fix, then re-run reengagement dry-run to confirm 22->20.
-- **#831** (`eli/email-launch-schedule`, `71ed31d`) - digest daily 06:00 UTC schedule
-  ON; reengagement one-shot `30 5 28 7 *` (2026-07-28 05:30 UTC, REMOVE-IN-CLEANUP).
-  Wired real-send: both runners hardcoded dry_run:true, so uncommenting alone would
-  NOT send; now `EMAIL_REAL_SEND` env (schedule / real_send input) -> `dry_run:!realSend`.
+- **#831** (`eli/email-launch-schedule`) - digest daily 06:00 UTC schedule ON and now
+  carries a `real_send` boolean input so a manual dispatch can opt into a real send
+  (gate: `github.event_name == 'schedule' || inputs.real_send`). Reengagement has NO
+  schedule - it fires ONLY by manual workflow_dispatch with `real_send=true` (the
+  one-shot `30 5 28 7 *` launch cron was REMOVED). `EMAIL_REAL_SEND` env -> `dry_run:!realSend`;
+  both still additionally gated by the edge-fn `EMAIL_SEND_ENABLED` secret (unset = dry-run/log only).
 - **#834** (`eli/email-redesign-announcement`, DEPLOYED v1) - NEW redesign-announcement
   email to onboarded users (39 audience; disjoint from reengagement 22, overlap 0).
   workflow_dispatch-only, real_send input, verify_jwt=true pinned. Copy HELD for Eli's
@@ -117,20 +119,22 @@ Three HELD PRs, all awaiting hub line-by-line + merge:
   function-dry-run (email_dry_run_log rows) needs the workflow on main (local invoke
   401s - runtime key = GH Actions secret only), so it runs after merge.
 
-**STEP 1 (tonight, ONLY after #830 + #831 merge):** `supabase secrets set
-EMAIL_SEND_ENABLED=true --project-ref ilmqmodklutztuybsvwd`, verify via secrets list,
-report. Then STOP - scheduled sends fire in the morning.
+**ARMING (Eli's step, NOT the agent's):** every send is a MANUAL dispatch. Eli reads
+that send's dry-run rows in `email_dry_run_log` FIRST, then - only when he decides to go
+live - runs `supabase secrets set EMAIL_SEND_ENABLED=true --project-ref ilmqmodklutztuybsvwd`
+and dispatches the specific workflow with `real_send=true`. There is NO scheduled reengagement
+send and no automatic morning fire; nothing leaves the building without Eli's explicit dispatch.
 
-## TOMORROW (email arc)
+## NEXT (email arc)
 
-1. **Read the scheduled sends** (after they fire 07-28): digest ~06:00 UTC + reengagement
-   ~05:30 UTC. `gh run list` for both workflows; query `email_dry_run_log` (or real-send
-   logs if EMAIL_SEND_ENABLED was set) for outcomes; confirm no test accts if #830 merged
-   - redeployed.
-2. **Redesign announcement (#834)** - only AFTER Eli approves the copy AND #834 merges AND
-   STEP 1 done: `gh workflow run send-redesign-announcement.yml -f real_send=true` for the
-   real send (or without the flag for one more dry-run first). Redeploy the fn post-#830
-   to inherit the exclusion.
+1. **Per-send manual dispatch.** Each email (digest, reengagement, announcement) is a
+   SEPARATE manual `gh workflow run ... -f real_send=true`, AFTER Eli reads that send's
+   dry-run rows in `email_dry_run_log` and arms `EMAIL_SEND_ENABLED`. Reengagement is no
+   longer scheduled; the digest cron only real-sends once `EMAIL_SEND_ENABLED` is set. The
+   agent verifies dry-run rows and reports; it never arms the gate or passes `real_send=true`.
+2. **Redesign announcement (#834)** - only AFTER Eli approves the copy AND #834 merges:
+   `gh workflow run send-redesign-announcement.yml -f real_send=true` (or without the flag
+   for one more dry-run first). Redeploy the fn post-#830 to inherit the test-acct exclusion.
 
 ## RESUME HERE (other lanes)
 

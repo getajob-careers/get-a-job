@@ -11,8 +11,9 @@
 // (Replaces the retired server-side attainability-lite proxy, which scored every
 // under-specified job ~1.0 and surfaced the least-extracted jobs to everyone.)
 //
-// DRY-RUN is forced here AND is the edge function default; nothing sends until
-// Eli enables it in the dispatch layer (EMAIL_SEND_ENABLED="true").
+// DRY-RUN by default; a real send requires EMAIL_REAL_SEND=true from the workflow
+// (the scheduled daily fire; manual dispatch stays dry-run) AND EMAIL_SEND_ENABLED
+// set to "true" in the edge-function env.
 //
 // Run: npx tsx scripts/send-job-digest.ts   (needs SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)
 
@@ -29,6 +30,12 @@ if (!url || !key) {
   process.exit(1);
 }
 const svc = createClient(url, key);
+
+// EMAIL_REAL_SEND is set by the workflow: true on the scheduled daily fire, false
+// on a manual dispatch. dry_run is its inverse. Even dry_run false only sends when
+// EMAIL_SEND_ENABLED=true in the edge-function env.
+const realSend =
+  String(process.env.EMAIL_REAL_SEND ?? "").toLowerCase() === "true";
 
 // Real-user scrub (mirrors _shared/email-eligibility.ts + the scrubbed-usage CTE).
 const INTERNAL_EMAIL_RE =
@@ -224,7 +231,7 @@ async function main() {
 
   // Hand the pre-selected jobs to the edge function (render + log only).
   const { data, error } = await svc.functions.invoke("send-job-digest", {
-    body: { dry_run: true, selections },
+    body: { dry_run: !realSend, selections },
   });
   if (error) {
     console.error("[send-job-digest] invoke failed:", error.message);
