@@ -33,10 +33,9 @@
 # Off-peak both ways; exact local time isn't load-bearing (no users
 # watching the run).
 #
-# Job-level timeout: 18 min. Ingest typically 3-5 min, extraction
-# capped at 8 min for the per-night delta of ~30-60 rows. The job
-# ceiling has a few minutes of headroom for catch-up runs after a
-# missed cron.
+# Job-level timeout: 25 min. Ingest typically 3-5 min, extraction
+# capped at 14 min for the per-night delta plus catch-up backlog. The
+# job ceiling has headroom for catch-up runs after a missed cron.
 #
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
