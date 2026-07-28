@@ -1,0 +1,44 @@
+# Re-engagement email — ONE-OFF, manual only (workflow_dispatch). Unlike the
+# digest there is NO schedule: re-engagement is a deliberate single send Eli
+# triggers once, not a recurring job. The edge function defaults to DRY-RUN
+# (renders + logs to email_dry_run_log, never sends) — a real send additionally
+# requires EMAIL_SEND_ENABLED="true" in the function env.
+#
+# Required repo secrets (same as refresh-jobs.yml):
+#   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
+#   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
+#
+# Manually trigger a dry run:
+#   gh workflow run send-reengagement-email.yml
+
+name: Send re-engagement email
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Re-engagement email (dry-run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run re-engagement email (dry-run)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/send-reengagement.ts

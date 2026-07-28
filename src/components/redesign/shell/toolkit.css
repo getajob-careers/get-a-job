@@ -1,0 +1,229 @@
+/* Toolkit rail (round 3). The tools are distinct colored OBJECTS sitting in the
+ * rail space — the silhouette IS the tile, NOT an icon inside a uniform card
+ * frame (the Spline reference). Each object is its own shape + own glaze
+ * (toolColors) over one shared material: a top-lit gradient body + a soft warm
+ * ground shadow, a cursor parallax-tilt on hover, and one icon morph beat. This
+ * is the ONE surface that earns soft-3D beyond flat paper-lift (scoped ruling in
+ * canvas-tokens.md). Stays in Clay (warm, premium, not toy). Reduced motion →
+ * flat + static.
+ */
+
+.cx-tool {
+  cursor: pointer;
+}
+
+/* Carousel variant: a compact horizontal band. Right-edge fade = "there's more"
+ * (peek affordance); scrollbar hidden (wheel/trackpad scroll is wired in JS).
+ * overscroll-behavior-x: contain keeps the horizontal gesture from CHAINING to
+ * the document at the band's edge — so a Mac trackpad swipe can never trigger
+ * the browser back-navigation. */
+.cx-carousel {
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  -webkit-mask-image: linear-gradient(to right, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 86%, transparent 100%);
+}
+.cx-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* The object: a floating dimensional shape. Ground shadow = "sitting in a
+ * space." Tilt/lift transform is set inline by the tile; CSS animates it. */
+.cx-tool-obj,
+.cx-tool-ico {
+  transform-style: preserve-3d;
+}
+.cx-tool-ico {
+  display: inline-flex;
+  /* Flat treatment (2026-07-19): a barely-there shadow so the objects read as
+     flat glyphs, not floating 3D domes. Hover gives a modest lift only. */
+  filter: drop-shadow(0 1px 2px rgba(74, 44, 22, 0.08));
+  transition:
+    transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 0.24s ease;
+  will-change: transform;
+}
+.cx-tool:hover .cx-tool-ico {
+  filter: drop-shadow(0 4px 8px rgba(74, 44, 22, 0.14));
+}
+
+/* Carousel nav chevrons — quiet, at the band edges, centered on the object row.
+ * Right one sits a touch brighter as the persistent "there's more" hint; both
+ * brighten on rail hover and are click-to-advance (non-trackpad users). */
+.cx-rail-nav {
+  position: absolute;
+  top: 33px;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--rd-bg-card);
+  color: var(--rd-primary);
+  box-shadow:
+    0 1px 2px rgba(74, 44, 22, 0.12),
+    0 4px 10px -2px rgba(74, 44, 22, 0.22);
+  opacity: 0.55;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+.cx-rail-nav-r {
+  opacity: 0.85;
+}
+.group\/rail:hover .cx-rail-nav {
+  opacity: 1;
+}
+.cx-rail-nav:hover {
+  transform: translateY(-50%) scale(1.09);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cx-tool-ico {
+    transition: none;
+    transform: none !important;
+  }
+  .cx-rail-nav {
+    transition: none;
+  }
+}
+
+/* Per-tool icon morphs — one beat each, on the tile's hover. Only under
+ * no-preference so reduced motion keeps the static silhouette. transform-box:
+ * fill-box makes SVG sub-element transform-origins behave. */
+@media (prefers-reduced-motion: no-preference) {
+  /* coach — the waveform "speaks" */
+  .ti-wave line {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .cx-tool:hover .ti-wave line {
+    animation: tiWave 0.9s ease-in-out infinite;
+  }
+  .cx-tool:hover .ti-wave line:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .cx-tool:hover .ti-wave line:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes tiWave {
+    0%,
+    100% {
+      transform: scaleY(0.55);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  /* skills — satellites bloom outward, then settle */
+  .ti-sat {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scale(0.35);
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .cx-tool:hover .ti-sat {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* profile — the ring draws around the portrait (accent, hidden at rest) */
+  .ti-ring {
+    stroke-dasharray: 41;
+    stroke-dashoffset: 41;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  .cx-tool:hover .ti-ring {
+    stroke-dashoffset: 0;
+  }
+
+  /* linkedin — the "in" is visible at rest and RE-draws on hover */
+  .ti-draw {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 0;
+  }
+  .cx-tool:hover .ti-draw {
+    animation: tiInDraw 0.55s ease;
+  }
+  @keyframes tiInDraw {
+    from {
+      stroke-dashoffset: 26;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* cv bank — the back page fans out */
+  .ti-fan {
+    transform-box: fill-box;
+    transform-origin: bottom right;
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .cx-tool:hover .ti-fan {
+    transform: translate(-1px, -1px) rotate(-9deg);
+  }
+
+  /* story bank (rosette) — the star pops ("achievement highlighted") */
+  .ti-star {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .cx-tool:hover .ti-star {
+    animation: tiStarPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes tiStarPop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.22);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* chat - the typing dots ripple */
+  .ti-chat circle {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .cx-tool:hover .ti-chat circle {
+    animation: tiChat 0.9s ease-in-out infinite;
+  }
+  .cx-tool:hover .ti-chat circle:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .cx-tool:hover .ti-chat circle:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes tiChat {
+    0%,
+    100% {
+      transform: translateY(0.8px);
+      opacity: 0.5;
+    }
+    45% {
+      transform: translateY(-1.4px);
+      opacity: 1;
+    }
+  }
+
+  /* tasks — the checkmark draws (accent, hidden at rest) */
+  .ti-check {
+    stroke-dasharray: 12;
+    stroke-dashoffset: 12;
+    transition: stroke-dashoffset 0.35s ease 0.05s;
+  }
+  .cx-tool:hover .ti-check {
+    stroke-dashoffset: 0;
+  }
+}

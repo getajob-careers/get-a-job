@@ -1,0 +1,51 @@
+# Job-match digest — SHIPPED DISABLED (workflow_dispatch only). The schedule line
+# is intentionally COMMENTED OUT: nothing runs automatically until Eli reviews the
+# dry-run samples and enables it. Even when the schedule is on, the edge function
+# defaults to DRY-RUN (renders + logs to email_dry_run_log, never sends) — a real
+# send additionally requires EMAIL_SEND_ENABLED="true" in the function env.
+#
+# Cadence: the function enforces a per-user 2-day gap, so this cron is intended to
+# run DAILY once enabled ("every two days per user" = daily cron + per-user gate).
+# To go live for real: (1) uncomment the schedule below, (2) set the send flags per
+# the PR, targeting the first real send for Sunday 2026-07-26.
+#
+# Required repo secrets (same as refresh-jobs.yml):
+#   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
+#   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
+#
+# Manually trigger a dry run:
+#   gh workflow run send-job-digest.yml
+
+name: Send job-match digest
+
+on:
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: '0 6 * * *'   # daily 06:00 UTC; per-user 2-day gate in the function
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Job-match digest (dry-run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run job-match digest (dry-run)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/send-job-digest.ts

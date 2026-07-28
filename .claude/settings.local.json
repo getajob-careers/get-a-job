@@ -43,7 +43,19 @@
       "Bash(git --no-pager diff --stat src/lib/database.types.ts)",
       "Bash(git --no-pager diff --stat)",
       "Bash(git commit -q -m ' *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git log *)",
+      "Bash(cat jsconfig.json)",
+      "Bash(find . -maxdepth 2 -iname \"tsconfig*.json\")",
+      "Bash(ls scripts/*.json)",
+      "mcp__posthog__exec",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_network_requests",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for",
+      "PowerShell(\\(Get-Content \"C:\\\\Users\\\\yisha\\\\OneDrive\\\\Desktop\\\\get-a-job\\\\settings_home_clean.txt\" -Raw\\).Length)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('C:/Users/yisha/.claude/skills/obsidian-second-brain/hooks/load_vault_context.py'\\).read\\(\\)\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,

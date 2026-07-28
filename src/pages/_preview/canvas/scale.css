@@ -1,0 +1,59 @@
+/* Canvas type + radius scale (round 3, step 1 — the ONLY legal values).
+ *
+ * Root cause R1/R2 from the component audit: 19 ad-hoc font sizes and 9 corner
+ * radii read as "assembled, not designed." These are the tokens that replace
+ * them. Every text size and corner radius in the fixture Home must be one of
+ * these classes — scripts/check-scale.mjs fails the build on any raw
+ * text-[Npx] / rounded-[Npx] / rounded-{sm,md,lg,xl} left in the canvas.
+ *
+ * Font FAMILY + WEIGHT stay on the existing utilities (font-display / font-body
+ * / font-bold). These classes own size + line-height (+ tracking on display
+ * steps only, so eyebrow tracking-* utilities don't fight them).
+ */
+
+/* Type scale — 7 steps. Rokkitt slab for display, system stack for body. */
+.rd-t-display-l {
+  font-size: 26px;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.rd-t-display-m {
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.rd-t-display-s {
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.rd-t-body-l {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.rd-t-body-m {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.rd-t-body-s {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.rd-t-micro {
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+/* Radius scale — 4 steps + Tailwind's rounded-full for pills/round. */
+.rd-r-xs {
+  border-radius: 6px;
+}
+.rd-r-sm {
+  border-radius: 10px;
+}
+.rd-r-md {
+  border-radius: 14px;
+}
+.rd-r-lg {
+  border-radius: 18px;
+}
