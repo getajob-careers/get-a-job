@@ -1,0 +1,41 @@
+greenhouse boards with a CONFIRMED Israeli office in /offices: 143 of 210 probed
+  ...of which ZERO live IL postings right now: 34
+
+=== WATCHLIST: confirmed IL office, 0 IL jobs today (re-check these, do not treat as dead) ===
+  Stripe                       stripe                  board_total= 532  office=Israel Locations / None
+  Pure Storage                 purestorage             board_total= 316  office=Israel / None
+  Veeam                        veeamsoftware           board_total= 249  office=Israel / None
+  Braze                        braze                   board_total= 231  office=Israel / None
+  Block (Square)               block                   board_total= 210  office=Israel / None
+  Elastic                      elastic                 board_total= 195  office=Israel / None
+  HubSpot                      hubspotjobs             board_total= 175  office=Remote - Israel / None
+  Anaplan                      anaplan                 board_total= 174  office=EMEA / Israel
+  Harness                      harnessinc              board_total= 101  office=Jerusalem, Israel / Jerusalem, Jerusalem District, I
+  ZoomInfo                     zoominfo                board_total=  94  office=Remote Israel - IST / Ra'anana, Israel
+  OpenTable                    opentable               board_total=  57  office=Remote Location - Israel / None
+  Zynga (Storemaven / IL)      zyngacareers            board_total=  52  office=Israel / None
+  Ping Identity                pingidentity            board_total=  50  office=ISR - Office - Tel Aviv  / Tel Aviv District, Israel
+  New Relic                    newrelic                board_total=  49  office=Home Office (ISRAEL) / None
+  Mixpanel                     mixpanel                board_total=  43  office=Israel / Tel Aviv District, Israel
+  At-Bay                       atbayjobs               board_total=  29  office=Israel / None
+  Dropbox                      dropbox                 board_total=  28  office=Israel / None
+  Hippo                        hippo70                 board_total=  27  office=X (DO NOT USE) Israel  / Tel Aviv District, Israel
+  Sumo Logic                   sumologic               board_total=  19  office=Israel (DO NOT USE) / Israel
+  LivePerson                   liveperson              board_total=  18  office=Herzliya Office / None
+  Sayari                       sayari                  board_total=  17  office=Israel / None
+  PhaseV                       phasev                  board_total=  14  office=TLV Office / Dereck Ha'SHalom St 4
+  Pagaya                       pagaya                  board_total=  13  office=Pagaya Israel / Tel Aviv
+  AssemblyAI                   assemblyai              board_total=  10  office=Remote - Israel / None
+  Cybereason                   cybereason              board_total=   9  office=Tel Aviv / Tel Aviv, Israel
+  Magic Leap                   magicleap               board_total=   9  office=Tel Aviv, Israel / Tel Aviv District, Israel
+  Imubit                       imubit                  board_total=   5  office=Imubit, Ltd / Modiin-Maccabim-Reut, Central District
+  Spot.IM                      openweb                 board_total=   5  office=Tel Aviv / Tel Aviv-Yafo, Gush Dan, Israel
+  Codefresh                    octopusdeploy           board_total=   3  office=Israel / Tel Aviv-Yafo, Tel Aviv District, Israel
+  Eko                          eko                     board_total=   0  office=Tel Aviv / None
+  Hivestack (by Perion)        hivestack               board_total=   0  office=IL-Holon / Holon, Israel
+  Outbrain                     outbraininc             board_total=   0  office=Israel / None
+  Rhino Federated Computing    rhinofederatedcomputin  board_total=   0  office=Tel Aviv / Tel Aviv-Yafo, Tel Aviv District, Israel
+  Vim                          vim                     board_total=   0  office=Tel Aviv District, Israel / Tel Aviv District, Israe
+
+=== control: confirmed IL office AND live IL jobs (working as intended) ===
+  109 boards, e.g. Cato Networks(44); Nebius(41); NICE Systems(36); Astera Labs(29); Taboola(29); SentinelOne(28); SimilarWeb(24); Wiz(24)
