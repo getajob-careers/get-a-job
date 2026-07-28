@@ -1,0 +1,782 @@
+name	ats	slug	total	il_match	region_incl_il	region_excl_il	sample_incl
+Canonical	greenhouse	canonical	302	0	176	126	Home based - EMEA | Home based - Worldwide
+Welocalize	lever	weloglobal	629	10	24	451	Global | Remote, Worldwide
+Remote.com	greenhouse	remotecom	234	0	20	167	EMEA | Remote - EMEA | Remote-EMEA
+Dash0	ashby	dash0	31	0	8	5	EMEA - Remote | EMEA - Remote Copenhagen
+BJAK	ashby	bjakcareer	1440	7	5	1360	Global
+Coinbase	greenhouse	coinbase	152	1	3	135	Remote - EMEA
+Ox Security	comeet	F8.006	18	7	3	8	EMEA PL Warsaw
+Prismic	lever	prismic	6	0	3	2	Work from anywhere (Europe)
+Tulip	greenhouse	tulip	64	2	3	22	EMEA - Remote
+Bright Data	comeet	88.007	39	18	2	18	Bright Data - Worldwide
+Singular	ashby	singular	20	2	2	14	EMEA Remote
+WEKA	greenhouse	wekatest	42	5	2	18	EMEA Remote
+Zapier	ashby	zapier	16	0	2	6	EMEA | NAMER EMEA
+Allot	comeet	C4.009	20	1	1	16	EMEA
+Appnext	greenhouse	appnext	1	0	1	0	EMEA
+Candex Technologies	ashby	candex	17	9	1	2	Global
+Cohere	ashby	cohere	138	0	1	66	London Europe Middle East
+ControlUp	lever	controlup	10	1	1	7	EMEA - General
+Drata	ashby	drata	60	0	1	24	Remote - EMEA
+Elastic	greenhouse	elastic	195	0	1	177	Distributed, EMEA
+GitLab	greenhouse	gitlab	186	5	1	164	Remote, EMEA
+KELA Targeted Cyber	comeet	2A.004	8	6	1	1	KELA EMEA
+Lyft	greenhouse	lyft	156	0	1	59	U.S. Anywhere
+Netafim	comeet	B7.002	57	32	1	21	EMEA
+Novee	comeet	AA.008	7	3	1	3	EMEA - Remote GB Remote
+Pentera	comeet	C5.00D	16	7	1	8	Global
+Upwind	comeet	49.004	61	18	1	35	EMEA (Remote) ES Lecrín
+Utila	comeet	D9.00F	13	4	1	8	EMEA (Remote) DE Berlin
+Vast Data	comeet	43.001	234	36	1	156	EMEA
+Zafran	comeet	49.009	27	4	1	22	EMEA Remote
+OPSWAT	greenhouse	opswat	82	4	1	66	AMER - Remote; EMEA
+BioCatch	comeet	03.00E	22	9	1	10	EMEA GB London
+AvaTrade	comeet	6A.00A	11	3	1	7	Worldwide IL
+15Five	lever	15five	1	0	0	1	
+1Password	ashby	1password	64	0	0	60	
+365Scores	comeet	B3.006	12	11	0	1	
+4M Analytics	comeet	B6.00F	5	4	0	1	
+7AI	ashby	sevenai	26	0	0	0	
+83North	workable	83north	0	0	0	0	
+8fig	comeet	08.004	1	1	0	0	
+Abnormal Security	greenhouse	abnormalsecurity	73	0	0	73	
+accessiBe	greenhouse	accessibe	4	1	0	0	
+ACS Motion Control	comeet	14.000	15	11	0	4	
+ActiveFence	comeet	D5.005	27	10	0	16	
+Adaptive6	comeet	AA.000	2	2	0	0	
+Adyen	greenhouse	adyen	214	0	0	19	
+Aerospike	greenhouse	aerospike	17	3	0	8	
+Affirm	greenhouse	affirm	179	0	0	178	
+AI21 Labs	comeet	E6.001	0	0	0	0	
+Aidoc	comeet	B4.007	17	12	0	5	
+Aim Security	ashby	aim	22	0	0	0	
+aiOla	comeet	77.002	2	1	0	1	
+Airtable	ashby	airtable	0	0	0	0	
+Aitech	comeet	88.004	11	3	0	8	
+AKA FOODS	comeet	79.00D	1	1	0	0	
+Akeyless	comeet	akeyless	12	7	0	5	
+Aleph Farms	lever	aleph	95	0	0	73	
+AlgoSec	comeet	71.006	24	1	0	23	
+Aligned	greenhouse	aligned	5	2	0	2	
+AllBetter	comeet	F8.00E	3	3	0	0	
+Amplitude	greenhouse	amplitude	46	0	0	13	
+Anaplan	greenhouse	anaplan	174	0	0	151	
+Anchor	comeet	87.00D	14	6	0	6	
+Anecdotes Compliance	comeet	F9.00B	6	4	0	2	
+Anthropic	greenhouse	anthropic	416	0	0	89	
+Anyscale	ashby	anyscale	21	0	0	0	
+Anyword	comeet	30.00B	2	2	0	0	
+Apiiro	greenhouse	apiiro	8	5	0	1	
+Apollo.io	greenhouse	apollo	0	0	0	0	
+Appcharge	comeet	9A.00B	8	6	0	1	
+AppsFlyer	greenhouse	appsflyer	60	23	0	2	
+april	ashby	april	17	6	0	6	
+Aqua Security	comeet	91.001	8	5	0	3	
+Aquant Technologies	ashby	aquant	4	0	0	0	
+Arbe Robotics	comeet	C6.001	15	15	0	0	
+Argus Cyber Security	comeet	A7.004	0	0	0	0	
+Armis	smartrecruiters	armis	2	2	0	0	
+Armis Security	greenhouse	armissecurity	28	12	0	14	
+ArmorCode	greenhouse	armorcode	5	0	0	4	
+Arpeely	comeet	57.001	8	8	0	0	
+Asana	greenhouse	asana	147	0	0	6	
+AssemblyAI	greenhouse	assemblyai	10	0	0	1	
+Astera Labs	greenhouse	asteralabs	154	29	0	106	
+Astrix Security	comeet	09.009	0	0	0	0	
+AT&T Israel R&D Center	comeet	38.00A	7	7	0	0	
+At-Bay	greenhouse	atbayjobs	29	0	0	29	
+AU10TIX	comeet	3A.00C	4	4	0	0	
+Audiocodes	comeet	85.004	22	15	0	7	
+Augury	greenhouse	augury	30	6	0	23	
+AutoDS	greenhouse	autods	2	1	0	0	
+Autofleet	workable	autofleet	8	7	0	1	
+Axonius	greenhouse	axonius	26	7	0	16	
+Backslash Security	comeet	98.004	4	2	0	0	
+Balance	comeet	67.008	5	4	0	0	
+BIRD Aerosystems	comeet	97.006	22	22	0	0	
+Cardo Systems	comeet	F2.003	9	7	0	2	
+CEVA	comeet	76.005	32	12	0	19	
+Directeam	comeet	29.008	5	3	0	0	
+Driivz	comeet	C4.00B	4	3	0	0	
+Duve	comeet	58.00D	6	4	0	2	
+EX.CO	comeet	F0.005	3	2	0	1	
+Firefly	comeet	39.000	5	2	0	2	
+Gilat Satellite Networks	comeet	39.005	19	2	0	16	
+Bigabid	comeet	A4.003	3	0	0	2	
+BigID	greenhouse	bigid	15	1	0	9	
+BioCatch	lever	biocatch	13	5	0	7	
+Bizzabo	comeet	A5.000	12	0	0	1	
+Blink Ops	comeet	C7.004	11	4	0	7	
+Block (Square)	greenhouse	block	210	0	0	210	
+Bloomreach	greenhouse	bloomreach	83	0	0	63	
+Bluevine	greenhouse	bluevineisrael	2	2	0	0	
+Bluevine Israel	greenhouse	bluevineisrael	2	2	0	0	
+Bosch	smartrecruiters	BoschGroup	100	0	0	99	
+Bounce	comeet	E9.00C	10	5	0	5	
+Box	greenhouse	boxinc	118	0	0	84	
+Brandlight	ashby	brandlight	9	0	0	1	
+Braze	greenhouse	braze	231	0	0	9	
+Brex	greenhouse	brex	277	0	0	277	
+Bridgewise	comeet	F9.009	0	0	0	0	
+Bringg	greenhouse	bringg	3	0	0	1	
+Buildots	comeet	36.004	50	22	0	16	
+Caesarstone	comeet	25.000	43	3	0	37	
+Calendly	greenhouse	calendly	15	0	0	10	
+Candivore	comeet	48.00F	2	1	0	0	
+Capitolis	greenhouse	capitolis	3	2	0	1	
+Capsule Security	ashby	capsule	9	0	0	0	
+Cato Networks	greenhouse	catonetworks	129	44	0	83	
+Cellebrite	comeet	C3.00F	65	23	0	41	
+Ceragon Networks	comeet	D3.003	46	13	0	29	
+Chainalysis	ashby	chainalysis-careers	43	13	0	16	
+Character.AI	ashby	character	16	0	0	0	
+Checkmarx	comeet	C0.008	36	3	0	32	
+Checkr	greenhouse	checkr	53	0	0	53	
+Cheq	comeet	65.005	5	1	0	4	
+Clari	lever	clari	0	0	0	0	
+Claroty	comeet	F2.004	21	10	0	11	
+Classiq	comeet	F7.008	13	10	0	3	
+ClearML	greenhouse	clear	38	0	0	38	
+Cloudflare	greenhouse	cloudflare	275	0	0	6	
+Cloudinary	lever	cloudinary	29	9	0	4	
+Codefresh	greenhouse	octopusdeploy	3	0	0	2	
+CodeValue	comeet	81.009	16	16	0	0	
+Cognyte	comeet	F2.009	50	12	0	31	
+CommBox	comeet	0A.001	6	5	0	1	
+CommIT	comeet	76.008	161	51	0	61	
+Compugen	comeet	D9.00E	1	1	0	0	
+Comunix	workable	comunix	0	0	0	0	
+Confluent	ashby	confluent	35	0	0	25	
+Connatix	greenhouse	jwp	0	0	0	0	
+Connecteam	greenhouse	connecteam	63	22	0	41	
+Contentstack	greenhouse	contentstack	5	0	0	1	
+Continental	smartrecruiters	Continental	100	0	0	94	
+Coralogix	comeet	06.004	45	13	0	29	
+Coro	comeet	08.00A	3	0	0	3	
+Coupa Software	lever	coupa	107	0	0	107	
+Crazy Labs	comeet	32.00E	12	0	0	0	
+Cresta	greenhouse	cresta	99	0	0	91	
+Cross River	comeet	C7.00F	19	19	0	0	
+CTERA Networks	comeet	A0.003	3	1	0	2	
+Cybellum	comeet	D4.001	0	0	0	0	
+Cybereason	greenhouse	cybereason	9	0	0	1	
+Cycode	comeet	A8.00D	6	4	0	2	
+CYE	lever	CYE	11	9	0	2	
+Cyera	comeet	17.008	120	34	0	72	
+Cylus	greenhouse	cyluscybersecurity	7	4	0	3	
+Cymotive Technologies	comeet	F1.008	1	1	0	0	
+Cymulate	greenhouse	cymulate	12	3	0	9	
+Cynet	comeet	33.00D	26	3	0	20	
+Cyolo	comeet	F5.005	4	4	0	0	
+CytoReason	comeet	16.002	0	0	0	0	
+Daisy	comeet	67.002	10	2	0	8	
+Darrow.ai	comeet	D8.000	0	0	0	0	
+Databricks	greenhouse	databricks	800	1	0	454	
+Datadog	greenhouse	datadog	424	3	0	421	
+Datarails	greenhouse	datarails	13	7	0	6	
+DealHub	comeet	86.005	24	15	0	9	
+Decart	ashby	decart-ai	0	0	0	0	
+Deel	ashby	deel	0	0	0	0	
+deepdub	comeet	E7.00C	12	1	0	8	
+Deloitte	comeet	F7.00B	98	98	0	0	
+Descope	greenhouse	descope	6	5	0	0	
+Discord	greenhouse	discord	46	0	0	0	
+DoorDash	greenhouse	doordashusa	465	0	0	49	
+DoorLoop	comeet	0A.006	6	0	0	6	
+Dream	comeet	99.002	32	32	0	0	
+DriveNets	comeet	72.006	31	30	0	1	
+Dropbox	greenhouse	dropbox	28	0	0	28	
+Duolingo	greenhouse	duolingo	59	0	0	8	
+Earnix	comeet	93.00B	13	5	0	8	
+EasySend	comeet	D5.009	2	2	0	0	
+Edgybees	comeet	95.000	0	0	0	0	
+Eitan Medical	comeet	C6.00F	8	6	0	2	
+Eko	greenhouse	eko	0	0	0	0	
+Eleos Health	greenhouse	eleoshealth	16	7	0	7	
+ElevenLabs	ashby	elevenlabs	218	0	0	197	
+Empathy	comeet	empathy	12	6	0	6	
+Endor Labs	greenhouse	endorlabs	16	0	0	9	
+Enlight Renewable Energy	comeet	99.006	22	17	0	5	
+esh	comeet	87.003	0	0	0	0	
+eToro	comeet	41.009	27	3	0	5	
+Exa AI	ashby	exa	36	0	0	6	
+Exodigo	comeet	89.005	55	14	0	41	
+Explorium	comeet	B4.00E	0	0	0	0	
+Fabric	comeet	52.009	1	1	0	0	
+Factify	comeet	A9.00F	6	3	0	1	
+Fetcherr	comeet	68.006	39	16	0	8	
+Figma	greenhouse	figma	175	5	0	153	
+Final	comeet	C0.009	5	0	0	0	
+Finout	ashby	finout	14	4	0	1	
+Fireblocks	greenhouse	fireblocks	66	11	0	30	
+Firebolt	comeet	26.004	4	0	0	3	
+Five Sigma	comeet	07.008	3	1	0	2	
+Fiverr	comeet	60.002	16	14	0	2	
+Fivetran	greenhouse	fivetran	198	0	0	197	
+Flexor	comeet	F9.006	2	2	0	0	
+Foresight Automotive	comeet	13.000	2	0	0	0	
+Foretellix	comeet	84.007	2	0	0	2	
+Forter	greenhouse	forter	40	10	0	30	
+Freightos	comeet	F0.000	22	2	0	16	
+Frontegg	comeet	77.009	0	0	0	0	
+Fullpath	comeet	54.002	14	9	0	5	
+FundGuard	comeet	37.002	1	0	0	0	
+Gemini	greenhouse	gemini	44	0	0	27	
+Gett	comeet	A0.002	10	10	0	0	
+GK8	comeet	E8.000	2	2	0	0	
+Glassbox	workable	glassbox	0	0	0	0	
+Glean	greenhouse	gleanwork	104	0	0	41	
+Gloat	smartrecruiters	gloat	7	0	0	7	
+Global-e	comeet	62.002	53	15	0	38	
+Gong	greenhouse	gongio	100	17	0	9	
+Grain Finance	comeet	4A.000	7	4	0	0	
+Granica	ashby	granica	8	0	0	0	
+Grip Security	comeet	A8.001	2	2	0	0	
+Groundcover	comeet	88.008	18	6	0	12	
+Guardio	comeet	57.000	23	23	0	0	
+Guardz	greenhouse	guardz	8	2	0	6	
+Guesty	comeet	10.000	19	1	0	16	
+Guidde	greenhouse	guidde	8	5	0	3	
+Guideline	comeet	89.009	13	13	0	0	
+Gusto	greenhouse	gusto	78	0	0	8	
+H2Pro	comeet	A7.001	0	0	0	0	
+Hailo	comeet	D5.007	1	1	0	0	
+Harness	greenhouse	harnessinc	101	0	0	84	
+Hello Heart	greenhouse	helloheart	17	4	0	13	
+Hippo	greenhouse	hippo70	27	0	0	7	
+Hivestack (by Perion)	greenhouse	hivestack	0	0	0	0	
+Honeybook	ashby	honeybook	14	10	0	0	
+Honeycomb Insurance	greenhouse	honeycombinsurance	16	4	0	0	
+Houzz	lever	houzz	6	2	0	4	
+HUMAN Security	ashby	HUMAN	12	4	0	6	
+HubSpot	greenhouse	hubspotjobs	175	0	0	175	
+Humanz	workable	humanz	6	2	0	4	
+Hunters	comeet	67.007	0	0	0	0	
+Hypercore	ashby	hypercore	7	1	0	0	
+HyperGuest	comeet	09.00B	2	0	0	2	
+Hypernative	comeet	8A.00E	17	11	0	6	
+Hyro	comeet	B9.00A	13	8	0	5	
+Imagen	comeet	78.00F	5	0	0	0	
+Imagene AI	comeet	D7.000	6	4	0	2	
+Immunai	comeet	37.009	10	6	0	4	
+Imubit	greenhouse	imubit	5	0	0	2	
+Inflection AI	greenhouse	inflectionai	7	0	0	7	
+Innovid	greenhouse	innovid	15	2	0	2	
+Innoviz Technologies	comeet	52.004	7	7	0	0	
+Insightec	comeet	4A.004	21	4	0	14	
+Instacart	greenhouse	instacart	124	0	0	116	
+Intercom	greenhouse	intercom	128	0	0	87	
+Intuition Robotics	comeet	B3.00B	4	0	0	3	
+IONIX	comeet	08.003	4	2	0	2	
+IRONSCALES	comeet	1A.007	9	5	0	4	
+ironSource	smartrecruiters	ironsource	0	0	0	0	
+Irregular	ashby	irregular	9	9	0	0	
+Island	comeet	09.00A	62	26	0	24	
+Israel Tech Guard	comeet	29.009	3	3	0	0	
+JFrog	greenhouse	jfrog	34	9	0	9	
+Jifiti	comeet	47.005	1	1	0	0	
+Justt	comeet	36.001	9	0	0	7	
+K Health	greenhouse	khealthcareers	24	1	0	0	
+K2view	comeet	D5.000	1	0	0	1	
+Kaltura	comeet	E2.00D	20	12	0	4	
+Kela Technologies	comeet	2A.007	24	24	0	0	
+Keshet Media Group	comeet	26.009	19	12	0	0	
+Klaviyo	greenhouse	klaviyo	151	0	0	13	
+Komodor	comeet	96.005	12	1	0	11	
+KPMG	lever	kpmg	0	0	0	0	
+KPMG Israel (Somekh Chaikin)	comeet	F3.007	50	50	0	0	
+Lakera	ashby	lakera.ai	30	0	0	10	
+Lasso Security	comeet	F9.008	4	4	0	0	
+Lattice	greenhouse	lattice	5	0	0	5	
+LaunchDarkly	greenhouse	launchdarkly	32	0	0	31	
+LayerX	comeet	F9.00D	4	3	0	1	
+LeanData	ashby	leandata	12	0	0	2	
+Legit Security	comeet	37.004	9	5	0	4	
+Lema Labs	comeet	EA.001	5	3	0	2	
+Lemonade	ashby	lemonade	30	0	0	3	
+Lendbuzz	lever	lendbuzz	71	5	0	1	
+Lightricks	greenhouse	lightricks	6	5	0	0	
+Lightrun	greenhouse	lightrun	1	1	0	0	
+Linear	ashby	linear	25	0	0	17	
+Linx Security	comeet	99.00C	13	7	0	6	
+LivePerson	greenhouse	liveperson	18	0	0	9	
+Logz.io	lever	logz	4	2	0	0	
+Loom	ashby	loom	0	0	0	0	
+Loora	ashby	loora	6	6	0	0	
+LSports	comeet	26.002	2	1	0	1	
+Lumana	ashby	lumana	4	3	0	0	
+Lumen	ashby	lumen	0	0	0	0	
+Lumenis	comeet	A1.00C	7	7	0	0	
+Lusha	comeet	73.00B	5	5	0	0	
+Madlan	comeet	33.00F	1	1	0	0	
+Magenta Medical	comeet	F9.003	8	0	0	0	
+Magic Leap	greenhouse	magicleap	9	0	0	1	
+Matia	ashby	matia	9	5	0	4	
+Matific	workable	matific	4	0	0	2	
+MDClone	comeet	66.004	3	2	0	0	
+Melio	greenhouse	melio	18	8	0	1	
+Mend	ashby	mend-io	10	4	0	6	
+Mercury	greenhouse	mercury	57	0	0	55	
+Mesh Payments	greenhouse	mesh	19	0	0	6	
+MetalBear	comeet	8A.002	1	0	0	1	
+MIND	comeet	4A.00D	7	6	0	1	
+Mine	comeet	39.003	5	4	0	0	
+Minute Media	comeet	45.00A	6	3	0	2	
+Mirakl	greenhouse	mirakl	11	0	0	11	
+Mistral AI	lever	mistral	0	0	0	0	
+Mitiga	comeet	26.00B	5	2	0	3	
+Mixpanel	greenhouse	mixpanel	43	0	0	43	
+Mixtiles	greenhouse	mixtiles	13	11	0	1	
+Modal Labs	ashby	modal	32	0	0	0	
+MongoDB	greenhouse	mongodb	402	7	0	137	
+Moon Active	comeet	a2.00c	29	18	0	9	
+Moonshot Marketing	comeet	87.005	0	0	0	0	
+Moovit	comeet	63.007	3	3	0	0	
+MyHeritage	greenhouse	myheritage	5	4	0	1	
+Nano Dimension	comeet	62.003	2	0	0	2	
+Nano-X Imaging	comeet	43.00F	2	2	0	0	
+Nas Company	greenhouse	nascompany	6	1	0	5	
+Natural Intelligence	comeet	71.001	4	4	0	0	
+Navan	greenhouse	tripactions	188	9	0	46	
+Navina	comeet	E6.00C	14	9	0	5	
+Nayax	comeet	13.009	34	9	0	25	
+Nayya	greenhouse	nayya	4	0	0	1	
+Nebius	greenhouse	nebius	336	41	0	274	
+New Relic	greenhouse	newrelic	49	0	0	49	
+Next Insurance	greenhouse	nextinsurance66	29	6	0	0	
+NextSilicon	comeet	18.007	31	15	0	15	
+Nexxen	ashby	nexxen	30	9	0	2	
+NICE Systems	greenhouse	nice	333	36	0	297	
+Nimbleway	comeet	09.00F	16	5	0	11	
+Noma Security	comeet	3A.005	16	13	0	3	
+Notion	ashby	notion	116	0	0	37	
+NoTraffic	comeet	1A.00F	10	6	0	4	
+Novidea	comeet	E5.00A	4	0	0	4	
+nSure.ai	comeet	A7.007	5	2	0	2	
+Nuvei	workable	nuvei	58	5	0	49	
+Oasis Security	greenhouse	oasissecurity	66	5	0	25	
+Obligo	greenhouse	obligo	4	2	0	0	
+Okta	greenhouse	okta	361	1	0	215	
+One Zero Digital Bank	comeet	36.00A	10	10	0	0	
+Onebeat	comeet	0A.000	5	0	0	5	
+OneStep	comeet	79.007	7	4	0	3	
+OpenAI	ashby	openai	750	0	0	196	
+OpenDor Media	comeet	79.00F	1	0	0	1	
+OpenTable	greenhouse	opentable	57	0	0	44	
+Optibus	comeet	D1.00C	6	3	0	3	
+Optimove	greenhouse	optimove	8	1	0	4	
+Orbem	ashby	orbem	5	0	0	0	
+Orca AI	comeet	86.003	11	6	0	3	
+Orca Security	greenhouse	orcasecurity	7	4	0	3	
+Outbrain	greenhouse	outbraininc	0	0	0	0	
+Outreach.io	lever	outreach	30	0	0	13	
+Overwolf	comeet	B1.001	10	6	0	2	
+Oyster HR	ashby	oyster	17	0	0	15	
+Pagaya	greenhouse	pagaya	13	0	0	4	
+Pagaya Israel	greenhouse	pagayais	17	17	0	0	
+Palantir	lever	palantir	287	1	0	60	
+Panaya	comeet	61.00C	5	1	0	4	
+Pango	comeet	59.002	10	10	0	0	
+Panorays	comeet	97.00D	2	0	0	2	
+Plus500	comeet	A1.00F	17	17	0	0	
+Prisma Photonics	comeet	18.00C	6	6	0	0	
+Retym	comeet	C6.003	35	14	0	17	
+Rise	comeet	A9.000	1	1	0	0	
+ScyllaDB	comeet	E4.006	4	1	0	3	
+Shopic	comeet	E6.002	3	3	0	0	
+SodaStream	comeet	40.008	9	2	0	1	
+SolarEdge Technologies	comeet	71.00A	115	40	0	68	
+Start.io	comeet	B2.004	3	1	0	2	
+Toka	comeet	46.00D	4	3	0	1	
+Windward	comeet	31.002	15	3	0	1	
+Placer.ai	greenhouse	placerlabs	9	2	0	6	
+Nexar	smartrecruiters	NexarInc	2	2	0	0	
+Papaya Gaming	comeet	46.00B	4	4	0	0	
+Papaya Global	comeet	16.005	54	14	0	30	
+Paragon	comeet	76.006	31	31	0	0	
+Parallel Wireless	lever	parallelwireless	27	4	0	8	
+Parametrix	greenhouse	parametrix	23	0	0	20	
+Payoneer	greenhouse	payoneer	132	19	0	113	
+PayZen	ashby	payzen-inc	6	0	0	5	
+Percepto	comeet	44.000	9	5	0	4	
+Perion Network	greenhouse	perionnetworkltd	12	1	0	10	
+Perplexity	ashby	perplexity	87	0	0	7	
+Personetics	comeet	83.00A	14	10	0	4	
+PhaseV	greenhouse	phasev	14	0	0	11	
+PI-Cardia	comeet	A5.00B	7	6	0	1	
+Pillar Security	lever	pillar	0	0	0	0	
+Pinecone	ashby	pinecone	5	0	0	2	
+Ping Identity	greenhouse	pingidentity	50	0	0	46	
+Pinterest	greenhouse	pinterest	198	0	0	154	
+Pixellot	comeet	BA.00B	6	6	0	0	
+Plaid	ashby	plaid	115	0	0	4	
+PlainID	comeet	C4.00C	5	3	0	2	
+Playtika	greenhouse	playtikaltd	25	18	0	3	
+Port	comeet	59.004	36	10	0	26	
+Postman	greenhouse	postman	116	1	0	114	
+Powtoon	workable	powtoon	4	0	0	4	
+PrettyDamnQuick	comeet	0A.00E	3	2	0	1	
+Primis	comeet	33.00C	19	16	0	0	
+ProteanTecs	comeet	D5.00E	17	9	0	7	
+Proxymity	workable	proxymity	0	0	0	0	
+Pure Storage	greenhouse	purestorage	316	0	0	174	
+Qedma	comeet	7A.006	5	3	0	2	
+Qodo	comeet	B8.00B	11	6	0	5	
+Ramp	ashby	ramp	118	0	0	47	
+Rapyd	comeet	73.00E	24	9	0	14	
+Reco	comeet	3A.00D	13	4	0	9	
+Reddit	greenhouse	reddit	191	0	0	145	
+Redefine Meat	comeet	28.004	3	0	0	0	
+Redis	ashby	redis	28	0	0	26	
+REE Automotive	comeet	D3.00B	2	1	0	1	
+Reeco	comeet	0A.00D	3	1	0	2	
+Reflectiz	comeet	CA.008	20	1	0	14	
+Regatta	workable	regatta-3	5	5	0	0	
+Replit	ashby	replit	92	0	0	9	
+Resident	greenhouse	residenthome	15	6	0	9	
+Resident Home	greenhouse	residenthome	15	6	0	9	
+Rhino Federated Computing	greenhouse	rhinofederatedcomputing	0	0	0	0	
+Riot Games	greenhouse	riotgames	160	0	0	160	
+Riskified	greenhouse	riskified	20	4	0	0	
+Riverside.fm	comeet	66.009	32	21	0	11	
+Robinhood	greenhouse	robinhood	124	0	0	14	
+Roblox	greenhouse	roblox	217	0	0	210	
+Runway	ashby	runway	4	0	0	4	
+SafeBreach	greenhouse	safebreach	3	3	0	0	
+Salesloft	ashby	salesloft	0	0	0	0	
+Salt Security	greenhouse	saltsecurity	7	2	0	1	
+Samsung	comeet	D4.005	19	19	0	0	
+Scale AI	greenhouse	scaleai	207	0	0	67	
+ScaleOps	comeet	99.003	56	30	0	26	
+Scopely	greenhouse	scopely	148	4	0	144	
+Seal Security	comeet	C9.00A	2	1	0	1	
+Seemplicity	comeet	67.00D	3	2	0	1	
+Semperis	ashby	semperis	24	6	0	11	
+SentinelOne	greenhouse	sentinellabs	222	28	0	169	
+Sentry	ashby	sentry	48	0	0	18	
+Sett	comeet	4A.00B	14	14	0	0	
+Shapes	ashby	shapes	6	6	0	0	
+Silverfort	comeet	54.007	26	10	0	15	
+SimilarWeb	greenhouse	similarweb	73	24	0	10	
+Sisense	greenhouse	sisense	5	2	0	1	
+Skai	comeet	22.00A	14	3	0	11	
+Skylo Technologies Israel	ashby	skylo	41	0	0	25	
+Slice (Global Equity)	greenhouse	slice	49	0	0	21	
+Snappy Gifts	ashby	snappy	7	3	0	4	
+Snyk	ashby	snyk	0	0	0	0	
+Sony Semiconductor Israel (formerly Altair)	comeet	88.003	5	4	0	0	
+Spines	workable	spines	0	0	0	0	
+Spot.IM	greenhouse	openweb	5	0	0	0	
+Spotify	lever	spotify	106	0	0	5	
+Squarespace	greenhouse	squarespace	17	0	0	1	
+Stampli	comeet	F6.007	16	4	0	12	
+StarkWare	comeet	C6.00E	0	0	0	0	
+Stream Security	ashby	stream	4	0	0	0	
+Stripe	greenhouse	stripe	532	0	0	235	
+Sumo Logic	greenhouse	sumologic	19	0	0	12	
+SundaySky	comeet	71.000	3	0	0	3	
+Sunflower	comeet	AA.009	25	25	0	0	
+Suno	ashby	suno	67	0	0	0	
+SuperAnnotate	lever	superannotate	8	0	0	0	
+Surecomp	comeet	24.00E	7	2	0	5	
+Svix	ashby	svix	3	0	0	0	
+Sweep	ashby	sweep	7	2	0	2	
+Sweet Security	greenhouse	sweetsecurity	6	6	0	0	
+Swimm	comeet	56.007	1	1	0	0	
+Sygnia	comeet	78.00A	13	9	0	4	
+Syqe Medical	comeet	F1.00C	1	0	0	0	
+Tabnine	comeet	39.006	5	3	0	2	
+Taboola	greenhouse	taboola	92	29	0	62	
+Tailor Brands	comeet	94.009	9	9	0	0	
+TailorMed	comeet	E5.009	17	6	0	11	
+Taranis	comeet	34.003	3	0	0	3	
+Taro Pharmaceutical Industries	comeet	9A.00A	24	23	0	0	
+Tastewise	comeet	F8.000	1	0	0	1	
+TAT Technologies	workable	tat-technologies-ltd	20	2	0	18	
+Tavily	ashby	tavily	18	9	0	2	
+TCS (Tata Consultancy Services)	greenhouse	tcs	79	0	0	0	
+Teads	greenhouse	teads1	66	6	0	2	
+Tenable	greenhouse	tenableinc	58	13	0	45	
+Terrific	lever	terrific-innovation	7	2	0	1	
+ThetaRay	comeet	72.00F	12	3	0	9	
+Tikal	comeet	68.00C	6	5	0	0	
+Tipa	comeet	87.008	2	0	0	1	
+Tipalti	greenhouse	tipaltisolutions	44	7	0	35	
+Toast	greenhouse	toast	284	0	0	90	
+Together AI	greenhouse	togetherai	59	0	0	4	
+Token Security	greenhouse	tokensecurity	5	4	0	1	
+Tomorrow.io	greenhouse	tomorrow	18	2	0	14	
+Tonic Security	lever	tonic	2	0	0	0	
+Torq	greenhouse	torq	26	6	0	18	
+Transmit Security	greenhouse	transmitsecurity	18	12	0	6	
+Travelier	comeet	64.006	1	1	0	0	
+Trax Retail	comeet	22.007	6	0	0	5	
+Trigo	smartrecruiters	trigo	100	0	0	100	
+Triple Whale	greenhouse	triplewhale	14	5	0	5	
+TripleTen	comeet	98.008	264	1	0	165	
+Trullion	comeet	07.000	3	1	0	2	
+Tufin	comeet	A1.00B	11	3	0	7	
+Twilio	greenhouse	twilio	183	0	0	183	
+Twingate	lever	twingate	3	1	0	0	
+Ultra Information Solutions	comeet	E3.004	1	0	0	0	
+Unframe	greenhouse	unframe	34	10	0	24	
+Unit	ashby	unit	6	4	0	0	
+Upstream Security	comeet	E4.003	2	2	0	0	
+UVeye	comeet	92.00F	35	11	0	24	
+Vectorious Medical Technologies	comeet	68.003	6	5	0	0	
+Veeam	greenhouse	veeamsoftware	249	0	0	223	
+Vega	comeet	C9.009	14	8	0	6	
+Venn	greenhouse	venncity	4	1	0	2	
+Via	greenhouse	via	174	15	0	19	
+Vim	greenhouse	vim	0	0	0	0	
+Visit.org	workable	visit	102	2	0	96	
+Voodoo	lever	voodoo	34	0	0	0	
+Votiro Cybersec	ashby	menlosecurity	19	0	0	19	
+Voyantis	comeet	86.00B	9	8	0	1	
+Walkme	lever	walkme	54	18	0	2	
+Wand AI	ashby	wand-ai	16	2	0	9	
+Webflow	greenhouse	webflow	25	0	0	5	
+Western Digital	smartrecruiters	WesternDigital	100	0	0	100	
+Wiliot	comeet	F6.003	22	9	0	13	
+Winbond	comeet	9A.009	3	3	0	0	
+Wing Security	greenhouse	wing	37	0	0	11	
+Winn.ai	comeet	4A.00F	2	2	0	0	
+Wiz	greenhouse	wizinc	137	24	0	91	
+Wonderful	ashby	wonderful	13	1	0	9	
+Workiz	comeet	F6.006	10	2	0	8	
+WorldQuant	greenhouse	worldquant	100	5	0	11	
+WSC Sports	comeet	93.007	7	3	0	4	
+xAI	greenhouse	xai	200	0	0	31	
+XTEND	comeet	85.00A	25	11	0	14	
+Yotpo	greenhouse	yotpo	11	3	0	0	
+YouLeap	workable	youleap	0	0	0	0	
+Zadara	lever	Zadara	9	4	0	1	
+Zencity	comeet	56.00B	2	1	0	1	
+ZenGo	comeet	18.00D	0	0	0	0	
+Zero Networks	comeet	39.00F	11	6	0	5	
+Zesty	comeet	06.000	3	1	0	2	
+ZIM Integrated Shipping (Comeet board)	comeet	72.008	73	13	0	22	
+ZoomInfo	greenhouse	zoominfo	94	0	0	82	
+Zscaler	greenhouse	zscaler	299	1	0	190	
+ZyG	comeet	DA.006	13	13	0	0	
+Zynga (Storemaven / IL)	greenhouse	zyngacareers	52	0	0	43	
+Abra R&D	comeet	15.007	111	22	0	0	
+Agora	comeet	08.007	8	6	0	2	
+AllCloud	comeet	71.008	20	12	0	8	
+Ask-AI	comeet	1A.00C	6	4	0	2	
+Bagira Systems	comeet	47.006	49	22	0	27	
+Bond Sports	comeet	F7.009	4	3	0	0	
+BrandShield	comeet	13.002	5	5	0	0	
+Bulls Media	comeet	F9.007	23	2	0	3	
+BuyMe	comeet	B2.008	3	2	0	0	
+Chargeflow	comeet	29.001	7	3	0	4	
+Clinch	comeet	42.007	9	3	0	6	
+Clover Security	comeet	7A.00A	9	7	0	2	
+Cust2Mate	comeet	6A.00D	0	0	0	0	
+Delta Galil Industries	comeet	78.000	38	7	0	31	
+DustPhotonics	comeet	05.00B	6	5	0	1	
+Elmo Motion Control	comeet	B3.00F	11	6	0	5	
+Elsight	comeet	B9.006	4	3	0	0	
+Enercon Technologies	comeet	A4.00D	13	13	0	0	
+Flytrex	comeet	77.003	14	3	0	10	
+ForSight Robotics	comeet	E9.008	8	8	0	0	
+Holisto	comeet	76.001	5	2	0	3	
+Infinity Labs R&D	comeet	56.006	10	9	0	0	
+Jazz	comeet	6A.009	7	4	0	3	
+JVP	comeet	35.00E	5	4	0	0	
+Lab42	comeet	58.001	6	6	0	0	
+Landa Corporation	comeet	A4.000	10	3	0	7	
+Liquidity Group	comeet	77.00A	2	0	0	0	
+LiveU	comeet	90.00C	10	2	0	7	
+Lumissil Microsystems	comeet	05.00F	2	2	0	0	
+Luxottica	comeet	E9.006	1	1	0	0	
+Majestic Labs	comeet	AA.004	28	14	0	14	
+Mami	comeet	BA.008	4	4	0	0	
+Medison Pharma	comeet	67.00A	76	25	0	46	
+mPrest	comeet	38.005	8	8	0	0	
+Nym Health	comeet	46.005	3	2	0	1	
+Odigos	comeet	5A.001	2	0	0	2	
+Okoora	comeet	85.00C	6	6	0	0	
+Onyx Security	comeet	BA.005	10	6	0	4	
+Orbit Communication Systems	comeet	2B.008	18	18	0	0	
+Orchid Security	comeet	4A.001	4	1	0	3	
+Orpak Systems	comeet	65.001	2	2	0	0	
+Partake	comeet	07.005	1	1	0	0	
+PenLink	comeet	E5.002	8	3	0	1	
+Rapid Medical	comeet	5A.003	3	3	0	0	
+Remedio	comeet	CA.000	15	12	0	3	
+SeNAI	comeet	CA.004	4	3	0	1	
+SentryCS	comeet	88.002	18	13	0	3	
+Spinomenal	comeet	99.008	6	6	0	0	
+SuperPlay	comeet	28.003	25	15	0	10	
+Tenen Group	comeet	93.00C	22	12	0	5	
+TeraSky	comeet	B7.009	14	8	0	6	
+UpPro	comeet	18.003	6	6	0	0	
+Viber	comeet	04.002	28	9	0	15	
+Waterfall Security	comeet	C7.009	6	4	0	2	
+WeSki	comeet	F8.00C	5	5	0	0	
+YouAppi	comeet	C9.00B	5	1	0	4	
+Wolt Israel	greenhouse	woltisrael	56	56	0	0	
+Speechify	greenhouse	speechify	1318	10	0	1231	
+Quanthealth	greenhouse	quanthealth	11	10	0	1	
+Electreon	greenhouse	electreon	6	4	0	1	
+Wayve	greenhouse	wayve	114	6	0	25	
+Canopy	greenhouse	canopycare	4	3	0	1	
+Nanit	greenhouse	nanit	8	4	0	0	
+Comet	greenhouse	comet	4	2	0	2	
+Ingenio	greenhouse	ingenio	6	2	0	3	
+Jamf	greenhouse	jamf	32	2	0	25	
+Nift	greenhouse	nift	8	1	0	6	
+Workato	greenhouse	workato	144	1	0	91	
+BBYO	greenhouse	bbyointernal19	3	1	0	0	
+Grafana Labs	greenhouse	grafanalabs	135	3	0	132	
+Netcracker	greenhouse	netcracker	27	1	0	18	
+Sayari	greenhouse	sayari	17	0	0	13	
+D-Fend Solutions	lever	d-fendsolutions	31	25	0	0	
+Veeva Systems	lever	veeva	821	3	0	394	
+Oktopost	lever	oktopost	8	3	0	2	
+Smarsh	lever	smarsh	39	2	0	17	
+Appen	lever	appen	50	2	0	38	
+RWS	lever	rws	65	1	0	2	
+MyTeam	workable	myteam	18	18	0	0	
+Real Dev	workable	real-dev-inc	6	5	0	1	
+Tomax	workable	tomax	6	6	0	0	
+Rayzone Group	workable	rayzone-group	4	4	0	0	
+JoVE	workable	jove	136	1	0	129	
+Premium Merchant Funding	workable	premium-merchant-funding-3	33	3	0	30	
+1GLOBAL	workable	1global	76	1	0	75	
+QuickTeam	workable	quickteam	43	0	0	31	
+Shifters AI	workable	shifters-ai	7	7	0	0	
+Azeus Convene	workable	azeus-convene	73	1	0	58	
+CropX	workable	cropx	7	1	0	6	
+D-ploy	workable	d-ploy	121	1	0	102	
+EU Medical	workable	eumedical	17	1	0	16	
+FPM Global	workable	fpm-global	6	1	0	4	
+L.Raphael	workable	l-dot-r-aphael	6	1	0	5	
+Oikonomakis Law	workable	oikonomakis-law-firm	17	1	0	13	
+Oversee	workable	oversee-1	7	1	0	6	
+Volga Partners	workable	volga-partners	97	1	0	74	
+Toloka AI	workable	toloka-ai	1254	12	0	1112	
+Crusoe	ashby	crusoe	358	7	0	342	
+Airwallex	ashby	airwallex	609	6	0	418	
+Arago	ashby	arago	17	6	0	0	
+Fundamental	ashby	fundamental	25	7	0	3	
+OurRitual	ashby	ourritual	2	2	0	0	
+Harmony	ashby	harmony	5	2	0	1	
+PointFive	ashby	pointfive	14	5	0	0	
+Traysar	ashby	traysar	9	1	0	0	
+Lev Haolam	ashby	levhaolam	0	0	0	0	
+Origin	ashby	originhq	10	1	0	9	
+Viz.ai	ashby	viz.ai	18	3	0	15	
+Whalo	ashby	whalo	0	0	0	0	
+Zip	ashby	zip	129	2	0	28	
+CodeRabbit	ashby	coderabbit	54	1	0	7	
+Fundwell	ashby	fundwell	7	1	0	0	
+TriEdge Investments	ashby	triedge-investments	9	0	0	1	
+LILT	ashby	lilt-production	365	7	0	337	
+Mench	workable	mench	6	6	0	0	
+Wolt	greenhouse	wolt	270	10	0	184	
+Eon	greenhouse	eonio	22	5	0	15	
+DRW	greenhouse	drweng	164	4	0	21	
+Axon	greenhouse	axon	480	4	0	449	
+BeyondTrust	greenhouse	beyondtrust	50	3	0	39	
+Bottomline Technologies	greenhouse	bottomlinetechnologies	29	1	0	17	
+Commvault	greenhouse	commvault	81	1	0	80	
+Couchbase	greenhouse	couchbaseinc	31	1	0	24	
+Ultima Genomics	greenhouse	ultimagenomics	15	2	0	12	
+Biorasi	greenhouse	biorasillc	6	1	0	5	
+CodeForce	workable	codeforce-362	14	1	0	4	
+Sauce	lever	Sauce	9	2	0	1	
+Prilenia	lever	prilenia	3	0	0	0	
+Israel Discount Bank	comeet	F8.004	59	56	0	0	
+Abra Information Technologies	comeet	12.003	46	35	0	0	
+The Jewish Agency for Israel	comeet	C8.008	29	3	0	0	
+Alma Lasers	comeet	67.006	35	13	0	19	
+Jeen.ai	comeet	DA.008	17	14	0	2	
+Play Perfect	comeet	69.001	11	11	0	0	
+Atera	comeet	63.00B	20	11	0	9	
+Ivix	comeet	09.002	12	8	0	3	
+inManage	comeet	B7.006	7	7	0	0	
+Zenity	comeet	19.000	36	11	0	24	
+Realplay	comeet	9A.003	8	8	0	0	
+Echo	comeet	9A.006	10	7	0	3	
+Flare	comeet	36.00F	15	8	0	7	
+Faye	comeet	87.00a	13	6	0	7	
+Sentra	comeet	87.00B	10	8	0	2	
+Oligo Security	comeet	5A.00B	8	8	0	0	
+Frame Security	comeet	FA.002	21	5	0	11	
+Daylight Security	comeet	7A.00D	0	0	0	0	
+Nexite	comeet	37.000	4	4	0	0	
+BCStrategy	comeet	C4.006	8	7	0	0	
+Appdome	comeet	E6.005	9	7	0	2	
+Kornit Digital	comeet	11.00F	13	9	0	3	
+Integrity Labs	comeet	43.009	6	6	0	0	
+Imagry	comeet	b7.00f	10	3	0	7	
+NeuReality	comeet	89.002	9	5	0	4	
+Mize	comeet	88.000	9	5	0	4	
+Rooms	comeet	0A.002	7	7	0	0	
+Mego Afek	comeet	7A.003	8	0	0	2	
+Finubit	comeet	A9.002	3	3	0	0	
+Shaldor	comeet	29.003	4	4	0	0	
+Tenzai	comeet	1B.002	10	5	0	5	
+Notch	comeet	CA.003	9	4	0	5	
+Incredibuild	comeet	66.00F	4	4	0	0	
+Cyberillium	comeet	58.004	4	4	0	0	
+Planck	comeet	28.00E	3	3	0	0	
+Native	comeet	5A.00A	11	4	0	7	
+A Security	comeet	EA.007	8	4	0	0	
+A.S HR Services	comeet	79.004	3	2	0	0	
+Amp	comeet	6A.005	2	0	0	0	
+SuperCom	comeet	46.00A	2	1	0	1	
+Applift	comeet	39.00A	3	3	0	0	
+Protai	comeet	98.003	3	2	0	0	
+Harmonya	comeet	89.004	3	2	0	0	
+Silk	comeet	F6.00C	5	3	0	1	
+Minimus	comeet	19.00B	2	2	0	0	
+Appstock	comeet	DA.003	2	2	0	0	
+Artlist	comeet	85.003	4	2	0	2	
+TITAN (FormTitan)	comeet	88.00A	3	2	0	1	
+Flo-Optics	comeet	EA.00E	2	2	0	0	
+MAËLYS	comeet	68.002	3	2	0	1	
+Easy	comeet	B5.001	1	1	0	0	
+DYG	comeet	58.009	5	1	0	1	
+Solidus Labs	comeet	E6.007	8	1	0	6	
+Finonex	comeet	97.004	2	2	0	0	
+Zemingo	comeet	80.005	1	1	0	0	
+ZeroPort	comeet	7A.00E	3	3	0	0	
+Infinidat	comeet	D6.003	47	29	0	15	
+Appsforce	comeet	09.00C	2	2	0	0	
+Mentee Robotics	comeet	6A.002	8	8	0	0	
+44 Ventures	comeet	18.001	7	5	0	1	
+Kayhut	comeet	F0.00B	11	5	0	0	
+Helfy	comeet	3A.008	22	17	0	0	
+Nuvoton	comeet	51.00F	18	15	0	2	
+vHive	comeet	08.002	7	2	0	3	
+Friends	comeet	81.00F	17	7	0	0	
+Sola Security	comeet	A9.003	5	5	0	0	
+Scailium	comeet	45.00B	1	1	0	0	
+Eyesatop	comeet	FA.006	11	8	0	3	
+Pulsenmore	comeet	68.00B	1	1	0	0	
+Ownera	comeet	59.003	2	1	0	0	
+MazeBolt	comeet	A7.00C	2	2	0	0	
+TopGum	comeet	E9.00A	15	2	0	0	
+Rounds	comeet	59.005	12	8	0	4	
+Regulus	comeet	9A.00D	13	12	0	1	
+Smart-Shooter	comeet	0B.00A	7	7	0	0	
+Dualbird	comeet	2B.00C	8	7	0	1	
+JDC	comeet	F3.004	32	15	0	6	
+OurCrowd	comeet	D3.00A	6	5	0	1	
+Fluent Trade Technologies	comeet	E5.00E	12	3	0	9	
+MedOne	comeet	58.006	2	2	0	0	
+Airobotics	comeet	AA.005	22	22	0	0	
+Newphotonics	comeet	89.000	2	2	0	0	
+Pipl	comeet	22.008	6	2	0	4	
+Webbing	comeet	46.00E	55	1	0	52	
+Ship4wd	comeet	29.00B	0	0	0	0	
+Sensi.AI	comeet	E7.00F	15	4	0	10	
+SysAid	comeet	43.00A	14	8	0	6	
+CopilotKit	lever	copilotkit	1	0	0	0	
+Insait	comeet	0B.00C	10	2	0	8	
+droxi	comeet	1A.001	3	2	0	1	
+Spacial	ashby	spacial	6	1	0	0	
+Orion Security	greenhouse	orioncscybersecurityltd	4	2	0	2	
