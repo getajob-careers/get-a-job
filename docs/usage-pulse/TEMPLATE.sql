@@ -16,6 +16,19 @@
 -- it has changed, update the real_users CTE in every block below
 -- before running anything — do not trust this comment over the live
 -- file.
+--
+-- DAY-BOUNDARY TIMEZONE (getajob-schema.md §11, decided 2026-08-07):
+-- every `::date` cast below is a UTC-day boundary by convention, to
+-- match PostHog's fixed UTC project timezone. This currently relies on
+-- the Postgres session default matching UTC (REPORTED, not verified
+-- live) — if a `SHOW timezone` check ever disagrees, every `::date`
+-- cast in this file needs to become `(col AT TIME ZONE 'UTC')::date`
+-- explicitly. Local Israel time (IDT, UTC+3) means local 00:00-03:00
+-- falls on the PRECEDING UTC day, which merges an early-morning local
+-- session backward — the direction this biases distinct-day/return
+-- counts is UNDER-counting, not over. Magnitude unmeasured as of
+-- 2026-08-07; see the hour-of-day check (Q4) in
+-- usage-2026-08-07-returner-join.sql.
 -- ============================================================
 
 -- BLOCK: population

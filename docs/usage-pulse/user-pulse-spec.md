@@ -1,6 +1,6 @@
 # `/user-pulse` — spec
 
-Status: draft, not yet installed as a live command. Every block in
+Status: installed 2026-08-08 as `.claude/commands/user-pulse.md`. The command file carries the executable steps; this spec is the rationale and the contract. One canonical copy of each — do not restate the steps here. Every block in
 `docs/usage-pulse/TEMPLATE.sql` is sourced from a file that actually ran
 today; sourcing is cited by path inside that file's own block comments.
 
